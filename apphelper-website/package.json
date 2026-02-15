@@ -20,6 +20,7 @@
     "tsc": "tsc",
     "copy-styles": "node -e \"const fs=require('fs');const path=require('path');const src='src/styles';const dest='dist/styles';if(!fs.existsSync(dest)){fs.mkdirSync(dest,{recursive:true});}fs.readdirSync(src).forEach(file=>fs.copyFileSync(path.join(src,file),path.join(dest,file)));\"",
     "build": "npm-run-all clean tsc copy-styles",
+    "lint": "eslint --fix src/",
     "dev": "vite"
   },
   "repository": {
@@ -44,7 +45,7 @@
     "@churchapps/apphelper-donations": "^0.6.17",
     "@churchapps/apphelper-forms": "^0.6.14",
     "@churchapps/apphelper-markdown": "^0.6.15",
-    "@churchapps/helpers": "^1.2.5",
+    "@churchapps/helpers": "^1.2.19",
     "@mui/icons-material": "^7.3.4",
     "@mui/material": "^7.3.1",
     "@react-google-maps/api": "^2.20.0",
@@ -63,7 +64,8 @@
     "@churchapps/apphelper-donations": "^0.6.17",
     "@churchapps/apphelper-forms": "^0.6.14",
     "@churchapps/apphelper-markdown": "^0.6.15",
-    "@churchapps/helpers": "^1.2.5",
+    "@churchapps/helpers": "^1.2.19",
+    "@eslint/js": "^9.28.0",
     "@mui/icons-material": "^7.3.4",
     "@mui/material": "^7.3.1",
     "@react-google-maps/api": "^2.20.0",
@@ -72,6 +74,9 @@
     "@types/react-big-calendar": "^1.8.12",
     "@types/react-dom": "^19.1.7",
     "@vitejs/plugin-react": "^4.7.0",
+    "eslint": "^9.28.0",
+    "eslint-plugin-unused-imports": "^4.4.1",
+    "globals": "^16.2.0",
     "moment": "^2.30.0",
     "npm-run-all2": "^8.0.4",
     "react": "^19.1.0",
@@ -82,6 +87,7 @@
     "react-router-dom": "^7.6.3",
     "rimraf": "^6.0.1",
     "typescript": "^5.9.2",
+    "typescript-eslint": "^8.35.0",
     "vite": "^7.0.6"
   }
 }

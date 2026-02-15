@@ -49,8 +49,8 @@
     "ora": "^8.0.0",
     "tsup": "^8.0.0",
     "tsx": "^4.0.0",
-    "typescript": "^5.3.0",
+    "typescript": "^5.9.2",
     "typescript-eslint": "^8.35.0",
-    "vite": "^5.0.0"
+    "vite": "^7.0.6"
   }
 }

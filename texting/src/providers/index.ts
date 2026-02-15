@@ -1,12 +1,14 @@
 import { ITextingProvider, ProviderInfo } from "../interfaces.js";
 import { TextInChurchProvider } from "./textInChurch/index.js";
 import { ClearstreamProvider } from "./clearstream/index.js";
+import { MutualMinistryProvider } from "./mutualMinistry/index.js";
 
 const providers = new Map<string, ITextingProvider>();
 
 // Register built-in providers
 providers.set("textinchurch", new TextInChurchProvider());
 providers.set("clearstream", new ClearstreamProvider());
+providers.set("mutualministry", new MutualMinistryProvider());
 
 const providerMeta: Record<string, Omit<ProviderInfo, "id">> = {
   clearstream: {
@@ -20,6 +22,12 @@ const providerMeta: Record<string, Omit<ProviderInfo, "id">> = {
     requiresSecret: false,
     settingsUrl: "https://textinchurch.com/support",
     helpText: "Visit Text In Church Support to request developer API access. Once approved, create an API Key in your Account Settings > Developer API section."
+  },
+  mutualministry: {
+    name: "Mutual Ministry",
+    requiresSecret: false,
+    settingsUrl: "",
+    helpText: "Uses AWS SNS for SMS delivery. No API keys required - authentication is handled via AWS IAM roles. Requires a Mutual Ministry texting subscription with available credits."
   }
 };
 
@@ -52,3 +60,4 @@ export function getProviderInfo(): ProviderInfo[] {
 
 export { TextInChurchProvider } from "./textInChurch/index.js";
 export { ClearstreamProvider } from "./clearstream/index.js";
+export { MutualMinistryProvider } from "./mutualMinistry/index.js";

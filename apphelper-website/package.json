@@ -1,0 +1,87 @@
+{
+  "name": "@churchapps/apphelper-website",
+  "version": "0.6.17",
+  "description": "Website components for ChurchApps AppHelper",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "clean": "rimraf dist",
+    "tsc": "tsc",
+    "copy-styles": "node -e \"const fs=require('fs');const path=require('path');const src='src/styles';const dest='dist/styles';if(!fs.existsSync(dest)){fs.mkdirSync(dest,{recursive:true});}fs.readdirSync(src).forEach(file=>fs.copyFileSync(path.join(src,file),path.join(dest,file)));\"",
+    "build": "npm-run-all clean tsc copy-styles",
+    "dev": "vite"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ChurchApps/Packages.git",
+    "directory": "apphelper-website"
+  },
+  "keywords": [
+    "ChurchApps",
+    "website",
+    "components",
+    "react"
+  ],
+  "author": "ChurchApps.org",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ChurchApps/Packages/issues"
+  },
+  "homepage": "https://github.com/ChurchApps/Packages#readme",
+  "peerDependencies": {
+    "@churchapps/apphelper": "^0.6.5",
+    "@churchapps/apphelper-donations": "^0.6.17",
+    "@churchapps/apphelper-forms": "^0.6.14",
+    "@churchapps/apphelper-markdown": "^0.6.15",
+    "@churchapps/helpers": "^1.2.5",
+    "@mui/icons-material": "^7.3.4",
+    "@mui/material": "^7.3.1",
+    "@react-google-maps/api": "^2.20.0",
+    "moment": "^2.30.0",
+    "react": "^18.0.0 || ^19.0.0",
+    "react-big-calendar": "^1.15.0",
+    "react-dnd": "^16.0.1",
+    "react-dnd-html5-backend": "^16.0.1",
+    "react-dom": "^18.0.0 || ^19.0.0"
+  },
+  "dependencies": {
+    "rrule": "^2.8.1"
+  },
+  "devDependencies": {
+    "@churchapps/apphelper": "^0.6.5",
+    "@churchapps/apphelper-donations": "^0.6.17",
+    "@churchapps/apphelper-forms": "^0.6.14",
+    "@churchapps/apphelper-markdown": "^0.6.15",
+    "@churchapps/helpers": "^1.2.5",
+    "@mui/icons-material": "^7.3.4",
+    "@mui/material": "^7.3.1",
+    "@react-google-maps/api": "^2.20.0",
+    "@types/node": "^24.2.0",
+    "@types/react": "^19.1.9",
+    "@types/react-big-calendar": "^1.8.12",
+    "@types/react-dom": "^19.1.7",
+    "@vitejs/plugin-react": "^4.7.0",
+    "moment": "^2.30.0",
+    "npm-run-all2": "^8.0.4",
+    "react": "^19.1.0",
+    "react-big-calendar": "^1.15.0",
+    "react-dnd": "^16.0.1",
+    "react-dnd-html5-backend": "^16.0.1",
+    "react-dom": "^19.1.0",
+    "react-router-dom": "^7.6.3",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.9.2",
+    "vite": "^7.0.6"
+  }
+}

@@ -1,0 +1,75 @@
+{
+  "name": "@churchapps/apphelper-forms",
+  "version": "0.6.14",
+  "description": "Form components for ChurchApps AppHelper - general forms without payment processing",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "clean": "rimraf dist",
+    "tsc": "tsc",
+    "build": "npm-run-all clean tsc",
+    "dev": "vite"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ChurchApps/Packages.git",
+    "directory": "apphelper-forms"
+  },
+  "keywords": [
+    "ChurchApps",
+    "forms",
+    "components",
+    "react",
+    "material-ui"
+  ],
+  "author": "ChurchApps.org",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ChurchApps/Packages/issues"
+  },
+  "homepage": "https://github.com/ChurchApps/Packages#readme",
+  "peerDependencies": {
+    "@churchapps/helpers": "^1.2.4",
+    "@churchapps/apphelper": "^0.6.0",
+    "@mui/material": "^7.3.1",
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
+  },
+  "dependencies": {
+    "@churchapps/apphelper-donations": "^0.6.0",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "axios": "^1.11.0",
+    "date-fns": "^4.1.0",
+    "i18next": "^25.3.2",
+    "react-i18next": "^15.6.1"
+  },
+  "devDependencies": {
+    "@churchapps/apphelper": "^0.6.0",
+    "@churchapps/helpers": "^1.2.4",
+    "@mui/material": "^7.3.1",
+    "@stripe/react-stripe-js": "^3.9.0",
+    "@stripe/stripe-js": "^7.8.0",
+    "@types/node": "^24.2.0",
+    "@types/react": "^19.1.9",
+    "@types/react-dom": "^19.1.7",
+    "@vitejs/plugin-react": "^4.7.0",
+    "npm-run-all2": "^8.0.4",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.9.2",
+    "vite": "^7.0.6"
+  }
+}

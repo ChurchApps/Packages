@@ -1,0 +1,62 @@
+{
+  "name": "@churchapps/helpers",
+  "version": "1.2.24",
+  "type": "module",
+  "description": "Library of helper functions not specific to any one ChurchApps project or framework.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "clean": "rimraf dist",
+    "build": "yarn clean && tsc",
+    "lint": "eslint --fix src/",
+    "publish": "npm run build && npm publish --access=public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ChurchApps/Packages.git",
+    "directory": "helpers"
+  },
+  "keywords": [
+    "ChurchApps"
+  ],
+  "author": "ChurchApps.org",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ChurchApps/Packages/issues"
+  },
+  "homepage": "https://github.com/ChurchApps/Packages/tree/main/helpers#readme",
+  "engines": {
+    "node": ">=20.0.0",
+    "yarn": ">=1.22.0",
+    "npm": ">=8.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.5.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.57.0",
+    "eslint-plugin-unused-imports": "^4.4.1",
+    "npm-run-all2": "^8.0.4",
+    "rimraf": "^6.0.1",
+    "rrule": "^2.8.1",
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "dayjs": "^1.11.18"
+  },
+  "peerDependencies": {
+    "rrule": "^2.8.1"
+  },
+  "peerDependenciesMeta": {
+    "rrule": {
+      "optional": true
+    }
+  }
+}

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@churchapps/texting - Playground</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <header>
+        <h1>Texting Provider Playground</h1>
+        <p class="subtitle">Test SMS providers with live credentials</p>
+      </header>
+
+      <div class="layout">
+        <!-- Config Panel -->
+        <section class="panel">
+          <h2>Provider Configuration</h2>
+          <div class="form-group">
+            <label for="provider-select">Provider</label>
+            <select id="provider-select">
+              <option value="">Select a provider...</option>
+            </select>
+          </div>
+          <div id="provider-help" class="help-text hidden"></div>
+          <div class="form-group">
+            <label for="api-key">API Key</label>
+            <input type="password" id="api-key" placeholder="Enter API key" />
+          </div>
+          <div class="form-group hidden" id="api-secret-group">
+            <label for="api-secret">API Secret</label>
+            <input type="password" id="api-secret" placeholder="Enter API secret" />
+          </div>
+          <button id="validate-btn" class="btn btn-secondary" disabled>Validate Credentials</button>
+          <div id="validate-result" class="result hidden"></div>
+        </section>
+
+        <!-- Send Panel -->
+        <section class="panel">
+          <h2>Send Message</h2>
+          <div class="form-group">
+            <label for="phone-number">Phone Number</label>
+            <input type="tel" id="phone-number" placeholder="+15551234567" />
+          </div>
+          <div class="form-group">
+            <label for="message">Message</label>
+            <textarea id="message" rows="4" placeholder="Type your message..." maxlength="1600"></textarea>
+            <div class="char-count">
+              <span id="char-count">0</span> characters
+              (<span id="segment-count">0</span> SMS segment<span id="segment-plural">s</span>)
+            </div>
+          </div>
+          <button id="send-btn" class="btn btn-primary" disabled>Send Message</button>
+          <div id="send-result" class="result hidden"></div>
+        </section>
+
+        <!-- Bulk Send Panel -->
+        <section class="panel">
+          <h2>Bulk Send</h2>
+          <div class="form-group">
+            <label for="bulk-phones">Phone Numbers (one per line)</label>
+            <textarea id="bulk-phones" rows="4" placeholder="+15551234567&#10;+15559876543"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="bulk-message">Message</label>
+            <textarea id="bulk-message" rows="3" placeholder="Type your message..." maxlength="1600"></textarea>
+          </div>
+          <button id="bulk-send-btn" class="btn btn-primary" disabled>Send to All</button>
+          <div id="bulk-result" class="result hidden"></div>
+        </section>
+      </div>
+
+      <!-- Log -->
+      <section class="panel log-panel">
+        <div class="log-header">
+          <h2>Log</h2>
+          <button id="clear-log-btn" class="btn btn-small">Clear</button>
+        </div>
+        <div id="log" class="log"></div>
+      </section>
+    </div>
+    <script type="module" src="main.ts"></script>
+  </body>
+</html>

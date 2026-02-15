@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Content Provider Helper - Playground</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <header>
+        <h1>Content Provider Helper</h1>
+        <p class="subtitle">Test and explore content providers</p>
+      </header>
+
+      <!-- Breadcrumb navigation -->
+      <nav id="breadcrumb" class="breadcrumb hidden">
+        <button id="back-btn" class="back-btn">&larr; Back</button>
+        <span id="breadcrumb-path"></span>
+      </nav>
+
+      <!-- Tab navigation -->
+      <nav id="main-tabs" class="main-tabs">
+        <button class="tab-btn active" data-tab="providers">Providers</button>
+        <button class="tab-btn" data-tab="docs">API Documentation</button>
+      </nav>
+
+      <!-- Provider grid view -->
+      <section id="providers-view">
+        <h2>Available Providers</h2>
+        <div id="providers-grid" class="grid"></div>
+      </section>
+
+      <!-- API Documentation view -->
+      <section id="docs-view" class="hidden">
+        <div class="docs-container">
+          <h2>API Documentation</h2>
+
+          <div class="docs-section">
+            <h3>Main Methods</h3>
+
+            <div class="docs-method">
+              <h4><code>browse(folder?, auth?)</code></h4>
+              <p class="docs-desc">Browse the content hierarchy. If folder is null/undefined, returns root-level items. If folder is provided, returns items within that folder.</p>
+              <div class="docs-returns">
+                <strong>Returns:</strong> <code>Promise&lt;ContentItem[]&gt;</code>
+              </div>
+            </div>
+
+            <div class="docs-method">
+              <h4><code>getPresentations(folder, auth?)</code></h4>
+              <p class="docs-desc">Get a structured plan with sections and presentations for a folder.</p>
+              <div class="docs-returns">
+                <strong>Returns:</strong> <code>Promise&lt;Plan | null&gt;</code>
+              </div>
+            </div>
+
+            <div class="docs-method">
+              <h4><code>getPlaylist(folder, auth?, resolution?)</code></h4>
+              <p class="docs-desc">Get a flat list of media files (playlist) for a folder.</p>
+              <div class="docs-returns">
+                <strong>Returns:</strong> <code>Promise&lt;ContentFile[] | null&gt;</code>
+              </div>
+            </div>
+
+            <div class="docs-method">
+              <h4><code>getExpandedInstructions(folder, auth?)</code></h4>
+              <p class="docs-desc">Get expanded instruction data with actions for a folder.</p>
+              <div class="docs-returns">
+                <strong>Returns:</strong> <code>Promise&lt;Instructions | null&gt;</code>
+              </div>
+            </div>
+          </div>
+
+          <div class="docs-section">
+            <h3>Provider Info Methods</h3>
+
+            <div class="docs-method">
+              <h4><code>requiresAuth()</code></h4>
+              <p class="docs-desc">Check if this provider requires authentication.</p>
+              <div class="docs-returns">
+                <strong>Returns:</strong> <code>boolean</code>
+              </div>
+            </div>
+
+            <div class="docs-method">
+              <h4><code>getCapabilities()</code></h4>
+              <p class="docs-desc">Get the capabilities supported by this provider.</p>
+              <div class="docs-returns">
+                <strong>Returns:</strong> <code>ProviderCapabilities</code>
+              </div>
+            </div>
+
+            <div class="docs-method">
+              <h4><code>getAuthTypes()</code></h4>
+              <p class="docs-desc">Get the authentication types supported by this provider.</p>
+              <div class="docs-returns">
+                <strong>Returns:</strong> <code>AuthType[]</code> — <code>'none' | 'oauth_pkce' | 'device_flow'</code>
+              </div>
+            </div>
+          </div>
+
+          <div class="docs-section">
+            <h3>Data Structures</h3>
+
+            <div class="docs-type">
+              <h4>ContentItem</h4>
+              <p class="docs-desc">A content item - either a folder or a file.</p>
+              <pre class="docs-code">type ContentItem = ContentFolder | ContentFile</pre>
+            </div>
+
+            <div class="docs-type">
+              <h4>ContentFolder</h4>
+              <p class="docs-desc">A folder in the content hierarchy. Can be navigated into.</p>
+              <pre class="docs-code">{
+  type: 'folder',        // Discriminator (always 'folder')
+  id: string,            // Unique identifier
+  title: string,         // Display title
+  image?: string,        // Optional thumbnail URL
+  path: string           // Navigation path
+}</pre>
+            </div>
+
+            <div class="docs-type">
+              <h4>ContentFile</h4>
+              <p class="docs-desc">A playable media file (video or image).</p>
+              <pre class="docs-code">{
+  type: 'file',                    // Discriminator (always 'file')
+  id: string,                      // Unique identifier
+  title: string,                   // Display title
+  mediaType: 'video' | 'image',    // Media type
+  thumbnail?: string,              // Optional thumbnail URL
+  url: string,                     // Media file URL
+  muxPlaybackId?: string,          // Mux playback ID (if applicable)
+  seconds?: number,                // Duration in seconds
+  loop?: boolean,                  // Loop playback
+  loopVideo?: boolean,             // Loop video playback
+  streamUrl?: string               // Alternative streaming URL
+}</pre>
+            </div>
+
+            <div class="docs-type">
+              <h4>Plan</h4>
+              <p class="docs-desc">A complete plan/service with sections and presentations. Returned by <code>getPresentations()</code>.</p>
+              <pre class="docs-code">{
+  id: string,
+  name: string,
+  description?: string,
+  image?: string,
+  sections: PlanSection[],
+  allFiles: ContentFile[]
+}</pre>
+            </div>
+
+            <div class="docs-type">
+              <h4>PlanSection</h4>
+              <p class="docs-desc">A section within a plan containing presentations.</p>
+              <pre class="docs-code">{
+  id: string,
+  name: string,                    // e.g., "Worship", "Message"
+  presentations: PlanPresentation[]
+}</pre>
+            </div>
+
+            <div class="docs-type">
+              <h4>PlanPresentation</h4>
+              <p class="docs-desc">A presentation within a section (e.g., a song, video, or activity).</p>
+              <pre class="docs-code">{
+  id: string,
+  name: string,
+  actionType: 'play' | 'other',
+  files: ContentFile[]
+}</pre>
+              <div class="docs-values">
+                <strong>actionType values:</strong>
+                <ul>
+                  <li><code>'play'</code> — Main playable content</li>
+                  <li><code>'other'</code> — Non-playable item (lyrics, notes, etc.)</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="docs-type">
+              <h4>Instructions</h4>
+              <p class="docs-desc">Instructions/run sheet for a venue. Returned by <code>getInstructions()</code>.</p>
+              <pre class="docs-code">{
+  name?: string,
+  items: InstructionItem[]
+}</pre>
+            </div>
+
+            <div class="docs-type">
+              <h4>InstructionItem</h4>
+              <p class="docs-desc">An item in the instruction hierarchy.</p>
+              <pre class="docs-code">{
+  id?: string,
+  itemType?: string,       // e.g., 'header', 'lessonSection', 'lessonAction'
+  relatedId?: string,
+  label?: string,
+  description?: string,
+  seconds?: number,
+  children?: InstructionItem[],
+  downloadUrl?: string
+}</pre>
+            </div>
+
+            <div class="docs-type">
+              <h4>ProviderCapabilities</h4>
+              <p class="docs-desc">Capabilities supported by a content provider.</p>
+              <pre class="docs-code">{
+  browse: boolean,              // Supports browsing content hierarchy
+  presentations: boolean,       // getPresentations() returns data
+  playlist: boolean,            // getPlaylist() returns data
+  expandedInstructions: boolean // getExpandedInstructions() returns data
+}</pre>
+            </div>
+
+            <div class="docs-type">
+              <h4>ProviderInfo</h4>
+              <p class="docs-desc">Information about a content provider.</p>
+              <pre class="docs-code">{
+  id: string,
+  name: string,
+  logos: { light: string, dark: string },
+  implemented: boolean,
+  requiresAuth: boolean,
+  authTypes: AuthType[],
+  capabilities: ProviderCapabilities
+}</pre>
+            </div>
+          </div>
+
+          <div class="docs-section">
+            <h3>Authentication</h3>
+
+            <div class="docs-type">
+              <h4>AuthType</h4>
+              <p class="docs-desc">Authentication type supported by a provider.</p>
+              <pre class="docs-code">type AuthType = 'none' | 'oauth_pkce' | 'device_flow'</pre>
+              <div class="docs-values">
+                <ul>
+                  <li><code>'none'</code> — No authentication required (public API)</li>
+                  <li><code>'oauth_pkce'</code> — OAuth 2.0 with PKCE</li>
+                  <li><code>'device_flow'</code> — OAuth 2.0 Device Authorization Flow (RFC 8628)</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="docs-type">
+              <h4>ContentProviderAuthData</h4>
+              <p class="docs-desc">OAuth token data returned after successful authentication.</p>
+              <pre class="docs-code">{
+  access_token: string,
+  refresh_token: string,
+  token_type: string,      // Typically "Bearer"
+  created_at: number,      // Unix timestamp (seconds)
+  expires_in: number,      // Token lifetime in seconds
+  scope: string
+}</pre>
+            </div>
+          </div>
+
+          <div class="docs-section">
+            <h3>Utility Functions</h3>
+
+            <div class="docs-method">
+              <h4><code>detectMediaType(url, explicitType?)</code></h4>
+              <p class="docs-desc">Detects whether a URL points to a video or image file.</p>
+              <div class="docs-returns">
+                <strong>Returns:</strong> <code>'video' | 'image'</code>
+              </div>
+              <div class="docs-values">
+                <strong>Video patterns detected:</strong> <code>.mp4</code>, <code>.webm</code>, <code>.m3u8</code>, <code>.mov</code>, <code>stream.mux.com</code>
+              </div>
+            </div>
+
+            <div class="docs-method">
+              <h4><code>isContentFolder(item)</code></h4>
+              <p class="docs-desc">Type guard to check if a ContentItem is a ContentFolder.</p>
+              <div class="docs-returns">
+                <strong>Returns:</strong> <code>item is ContentFolder</code>
+              </div>
+            </div>
+
+            <div class="docs-method">
+              <h4><code>isContentFile(item)</code></h4>
+              <p class="docs-desc">Type guard to check if a ContentItem is a ContentFile.</p>
+              <div class="docs-returns">
+                <strong>Returns:</strong> <code>item is ContentFile</code>
+              </div>
+            </div>
+          </div>
+
+          <div class="docs-section">
+            <h3>Registry Functions</h3>
+
+            <div class="docs-method">
+              <h4><code>getProvider(providerId)</code></h4>
+              <p class="docs-desc">Get a provider instance by ID.</p>
+              <div class="docs-returns">
+                <strong>Returns:</strong> <code>ContentProvider | null</code>
+              </div>
+            </div>
+
+            <div class="docs-method">
+              <h4><code>getAllProviders()</code></h4>
+              <p class="docs-desc">Get all registered provider instances.</p>
+              <div class="docs-returns">
+                <strong>Returns:</strong> <code>ContentProvider[]</code>
+              </div>
+            </div>
+
+            <div class="docs-method">
+              <h4><code>getAvailableProviders()</code></h4>
+              <p class="docs-desc">Get list of all providers (implemented and coming soon) with their info.</p>
+              <div class="docs-returns">
+                <strong>Returns:</strong> <code>ProviderInfo[]</code>
+              </div>
+            </div>
+
+            <div class="docs-method">
+              <h4><code>registerProvider(provider)</code></h4>
+              <p class="docs-desc">Register a custom provider.</p>
+              <div class="docs-returns">
+                <strong>Returns:</strong> <code>void</code>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Content browser view -->
+      <section id="browser-view" class="hidden">
+        <h2 id="browser-title">Content</h2>
+        <div id="content-grid" class="grid"></div>
+        <div id="loading" class="loading hidden">Loading...</div>
+        <div id="empty" class="empty hidden">No content found</div>
+      </section>
+
+      <!-- Status/error messages -->
+      <div id="status" class="status hidden"></div>
+
+      <!-- Device Flow Auth Modal -->
+      <div id="device-flow-modal" class="modal hidden">
+        <div class="modal-content">
+          <button id="modal-close" class="modal-close">&times;</button>
+          <h2 id="modal-title">Connect to Provider</h2>
+
+          <div id="device-flow-loading" class="modal-loading">
+            <div class="spinner"></div>
+            <p>Initiating device authorization...</p>
+          </div>
+
+          <div id="device-flow-code" class="device-code-section hidden">
+            <p>Visit this URL and enter the code:</p>
+            <a id="verification-url" href="#" target="_blank" class="verification-url"></a>
+            <div class="user-code-wrapper">
+              <span id="user-code" class="user-code"></span>
+              <button id="copy-code-btn" class="copy-btn" title="Copy code">📋</button>
+            </div>
+            <div class="qr-section">
+              <img id="qr-code" class="qr-code" alt="QR Code" />
+            </div>
+            <p class="polling-status">
+              <span class="spinner-small"></span>
+              Waiting for authorization...
+            </p>
+          </div>
+
+          <div id="device-flow-success" class="modal-success hidden">
+            <div class="success-icon">✓</div>
+            <p>Successfully connected!</p>
+          </div>
+
+          <div id="device-flow-error" class="modal-error hidden">
+            <p id="error-message">An error occurred</p>
+            <button id="retry-btn" class="retry-btn">Try Again</button>
+          </div>
+
+          <!-- Auth Method Choice section -->
+          <div id="auth-choice-section" class="auth-choice-section hidden">
+            <p>Choose your preferred connection method:</p>
+            <div class="auth-choice-buttons">
+              <button id="auth-choice-device" class="auth-choice-btn">
+                <span class="auth-choice-icon">📱</span>
+                <span class="auth-choice-title">Device Flow</span>
+                <span class="auth-choice-desc">Scan QR code or enter code on another device</span>
+              </button>
+              <button id="auth-choice-oauth" class="auth-choice-btn">
+                <span class="auth-choice-icon">🔐</span>
+                <span class="auth-choice-title">Browser Sign In</span>
+                <span class="auth-choice-desc">Sign in directly in this browser</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Presentation Detail Section -->
+          <div id="presentation-detail-section" class="presentation-detail-section hidden">
+            <h3 id="presentation-detail-title" class="presentation-detail-title"></h3>
+            <div class="presentation-detail-meta">
+              <span id="presentation-detail-type" class="action-badge"></span>
+              <span id="presentation-detail-count" class="file-count"></span>
+            </div>
+            <div id="presentation-detail-files" class="presentation-detail-files"></div>
+            <div class="presentation-detail-actions">
+              <button id="presentation-play-all-btn" class="play-all-btn">▶ Play All</button>
+              <button id="presentation-close-btn" class="btn-secondary">Close</button>
+            </div>
+          </div>
+
+          <!-- Playlist Queue Section -->
+          <div id="playlist-queue-section" class="playlist-queue-section hidden">
+            <h3>Now Playing</h3>
+            <div id="queue-current" class="queue-current">
+              <span id="queue-current-title" class="queue-current-title"></span>
+              <span id="queue-current-index" class="queue-current-index"></span>
+            </div>
+            <div class="queue-controls">
+              <button id="queue-prev-btn" class="queue-nav-btn" disabled>← Previous</button>
+              <button id="queue-next-btn" class="queue-nav-btn">Next →</button>
+            </div>
+            <div id="queue-list" class="queue-list"></div>
+            <button id="queue-close-btn" class="btn-secondary">Close Queue</button>
+          </div>
+
+          <!-- OAuth PKCE flow section -->
+          <div id="oauth-flow-section" class="oauth-section hidden">
+            <p>Click the button below to sign in with your account:</p>
+            <button id="oauth-signin-btn" class="oauth-signin-btn">Sign In</button>
+            <p class="oauth-note">You'll be redirected to the provider's login page.</p>
+          </div>
+
+          <!-- Form Login section -->
+          <div id="form-login-section" class="form-login-section hidden">
+            <p>Enter your credentials to sign in:</p>
+            <div class="form-group">
+              <label for="login-email">Email</label>
+              <input type="email" id="login-email" class="form-input" placeholder="email@example.com" autocomplete="email">
+            </div>
+            <div class="form-group">
+              <label for="login-password">Password</label>
+              <input type="password" id="login-password" class="form-input" placeholder="Password" autocomplete="current-password">
+            </div>
+            <p id="form-login-error" class="form-error hidden"></p>
+            <button id="form-login-btn" class="form-login-btn">Sign In</button>
+          </div>
+
+          <div id="oauth-processing" class="modal-loading hidden">
+            <div class="spinner"></div>
+            <p>Processing authorization...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="main.ts"></script>
+  </body>
+</html>

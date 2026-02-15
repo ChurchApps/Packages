@@ -1,0 +1,25 @@
+# Source files (dist is published)
+src/
+
+# Playground
+playground/
+
+# Config files
+tsconfig.json
+tsup.config.ts
+vite.config.ts
+
+# Development
+.github/
+.vscode/
+*.tsbuildinfo
+
+# Tests
+*.test.ts
+*.spec.ts
+__tests__/
+
+# Other
+.gitignore
+.eslintrc*
+.prettierrc*

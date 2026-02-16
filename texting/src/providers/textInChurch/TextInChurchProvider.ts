@@ -1,10 +1,15 @@
 import axios from "axios";
-import { ITextingProvider, TextingProviderConfig, TextingSendResult } from "../../interfaces.js";
+import { ITextingProvider, TextingProviderConfig, TextingSendResult, ProviderCapabilities, AddSubscriberOptions, SubscriberResult, ListsResult } from "../../interfaces.js";
 
-const BASE_URL = "https://api.textinchurch.com/API/1_0";
+const DEFAULT_BASE_URL = "https://api.textinchurch.com/API/1_0";
 
 export class TextInChurchProvider implements ITextingProvider {
   readonly name = "TextInChurch";
+  readonly capabilities: ProviderCapabilities = { addSubscriber: false, getLists: false };
+
+  private getBaseUrl(config: TextingProviderConfig) {
+    return config.baseUrl || DEFAULT_BASE_URL;
+  }
 
   private getHeaders(config: TextingProviderConfig) {
     return {
@@ -27,7 +32,7 @@ export class TextInChurchProvider implements ITextingProvider {
       params.append("msg_type", "sms");
       params.append("msg_content", message);
 
-      const response = await axios.post(`${BASE_URL}/message.php`, params, {
+      const response = await axios.post(`${this.getBaseUrl(config)}/message.php`, params, {
         headers: this.getHeaders(config)
       });
 
@@ -54,7 +59,7 @@ export class TextInChurchProvider implements ITextingProvider {
 
   async validateCredentials(config: TextingProviderConfig): Promise<boolean> {
     try {
-      const response = await axios.get(`${BASE_URL}/getMe.php`, {
+      const response = await axios.get(`${this.getBaseUrl(config)}/getMe.php`, {
         headers: this.getHeaders(config)
       });
       return response.status === 200;
@@ -63,9 +68,17 @@ export class TextInChurchProvider implements ITextingProvider {
     }
   }
 
+  async addSubscriber(_config: TextingProviderConfig, _mobileNumber: string, _options?: AddSubscriberOptions): Promise<SubscriberResult> {
+    return { success: false, error: "TextInChurch does not support adding subscribers via API" };
+  }
+
+  async getLists(_config: TextingProviderConfig): Promise<ListsResult> {
+    return { success: false, error: "TextInChurch does not support listing via API" };
+  }
+
   private async lookupContactByPhone(config: TextingProviderConfig, phone: string): Promise<string | null> {
     try {
-      const response = await axios.get(`${BASE_URL}/contact.php`, {
+      const response = await axios.get(`${this.getBaseUrl(config)}/contact.php`, {
         headers: this.getHeaders(config),
         params: { primary_phone: phone }
       });

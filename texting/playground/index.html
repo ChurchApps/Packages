@@ -36,6 +36,33 @@
           <div id="validate-result" class="result hidden"></div>
         </section>
 
+        <!-- Add Subscriber Panel (Clearstream only) -->
+        <section class="panel hidden" id="subscriber-panel">
+          <h2>Add Subscriber</h2>
+          <p class="help-text">Clearstream requires phone numbers to be registered as subscribers before you can send them messages.</p>
+          <div class="form-group">
+            <label for="sub-phone">Phone Number</label>
+            <input type="tel" id="sub-phone" placeholder="+15551234567" />
+          </div>
+          <div class="form-group">
+            <label for="sub-first">First Name (optional)</label>
+            <input type="text" id="sub-first" placeholder="John" />
+          </div>
+          <div class="form-group">
+            <label for="sub-last">Last Name (optional)</label>
+            <input type="text" id="sub-last" placeholder="Doe" />
+          </div>
+          <div class="form-group">
+            <label for="sub-list">List (optional)</label>
+            <select id="sub-list">
+              <option value="">No list</option>
+            </select>
+            <button id="load-lists-btn" class="btn btn-small" style="margin-top:6px;width:auto">Load Lists</button>
+          </div>
+          <button id="add-sub-btn" class="btn btn-primary" disabled>Add Subscriber</button>
+          <div id="add-sub-result" class="result hidden"></div>
+        </section>
+
         <!-- Send Panel -->
         <section class="panel">
           <h2>Send Message</h2>

@@ -9,6 +9,15 @@ const apiSecretGroup = document.getElementById("api-secret-group") as HTMLDivEle
 const validateBtn = document.getElementById("validate-btn") as HTMLButtonElement;
 const validateResult = document.getElementById("validate-result") as HTMLDivElement;
 
+const subscriberPanel = document.getElementById("subscriber-panel") as HTMLElement;
+const subPhoneInput = document.getElementById("sub-phone") as HTMLInputElement;
+const subFirstInput = document.getElementById("sub-first") as HTMLInputElement;
+const subLastInput = document.getElementById("sub-last") as HTMLInputElement;
+const subListSelect = document.getElementById("sub-list") as HTMLSelectElement;
+const loadListsBtn = document.getElementById("load-lists-btn") as HTMLButtonElement;
+const addSubBtn = document.getElementById("add-sub-btn") as HTMLButtonElement;
+const addSubResult = document.getElementById("add-sub-result") as HTMLDivElement;
+
 const phoneInput = document.getElementById("phone-number") as HTMLInputElement;
 const messageInput = document.getElementById("message") as HTMLTextAreaElement;
 const charCountEl = document.getElementById("char-count") as HTMLSpanElement;
@@ -44,11 +53,18 @@ function showResult(el: HTMLDivElement, message: string, success: boolean) {
   el.classList.remove("hidden");
 }
 
+// Proxy paths to avoid CORS when running in the browser
+const proxyBaseUrls: Record<string, string> = {
+  clearstream: "/proxy/clearstream",
+  textinchurch: "/proxy/textinchurch",
+};
+
 function getConfig(): TextingProviderConfig {
   return {
     churchId: "playground",
     apiKey: apiKeyInput.value.trim(),
     apiSecret: apiSecretInput.value.trim(),
+    baseUrl: proxyBaseUrls[providerSelect.value] || undefined,
   };
 }
 
@@ -58,6 +74,7 @@ function updateSendButtons() {
   validateBtn.disabled = !hasProvider || !hasKey;
   sendBtn.disabled = !hasProvider || !hasKey || !phoneInput.value.trim() || !messageInput.value.trim();
   bulkSendBtn.disabled = !hasProvider || !hasKey || !bulkPhonesInput.value.trim() || !bulkMessageInput.value.trim();
+  addSubBtn.disabled = !hasProvider || !hasKey || !subPhoneInput.value.trim();
 }
 
 function updateCharCount() {
@@ -79,6 +96,20 @@ function init() {
   });
 
   log(`Loaded ${providers.length} provider(s): ${providers.map((p) => p.name).join(", ")}`);
+
+  // Auto-select provider and pre-fill API key from env vars
+  const defaultProvider = import.meta.env.VITE_DEFAULT_PROVIDER;
+  const defaultApiKey = import.meta.env.VITE_CLEARSTREAM_API_KEY;
+
+  if (defaultProvider) {
+    providerSelect.value = defaultProvider;
+    providerSelect.dispatchEvent(new Event("change"));
+  }
+  if (defaultApiKey) {
+    apiKeyInput.value = defaultApiKey;
+    apiKeyInput.dispatchEvent(new Event("input"));
+    log("API key loaded from environment");
+  }
 }
 
 // Event: provider changed
@@ -91,6 +122,7 @@ providerSelect.addEventListener("change", () => {
     currentProviderInfo = null;
     providerHelp.classList.add("hidden");
     apiSecretGroup.classList.add("hidden");
+    subscriberPanel.classList.add("hidden");
     updateSendButtons();
     return;
   }
@@ -113,6 +145,15 @@ providerSelect.addEventListener("change", () => {
     }
   }
 
+  // Show subscriber panel when the provider supports it
+  if (currentProvider.capabilities.addSubscriber) {
+    subscriberPanel.classList.remove("hidden");
+    loadListsBtn.classList.toggle("hidden", !currentProvider.capabilities.getLists);
+    subListSelect.closest(".form-group")!.classList.toggle("hidden", !currentProvider.capabilities.getLists);
+  } else {
+    subscriberPanel.classList.add("hidden");
+  }
+
   log(`Selected provider: ${currentProvider.name}`);
   updateSendButtons();
 });
@@ -120,6 +161,7 @@ providerSelect.addEventListener("change", () => {
 // Event: inputs changed
 apiKeyInput.addEventListener("input", updateSendButtons);
 apiSecretInput.addEventListener("input", updateSendButtons);
+subPhoneInput.addEventListener("input", updateSendButtons);
 phoneInput.addEventListener("input", updateSendButtons);
 messageInput.addEventListener("input", () => { updateCharCount(); updateSendButtons(); });
 bulkPhonesInput.addEventListener("input", updateSendButtons);
@@ -203,6 +245,71 @@ bulkSendBtn.addEventListener("click", async () => {
   } finally {
     bulkSendBtn.disabled = false;
     bulkSendBtn.textContent = "Send to All";
+  }
+});
+
+// Event: load lists
+loadListsBtn.addEventListener("click", async () => {
+  if (!currentProvider?.capabilities.getLists) return;
+  loadListsBtn.disabled = true;
+  loadListsBtn.textContent = "Loading...";
+  log(`Fetching ${currentProvider.name} lists...`);
+
+  try {
+    const result = await currentProvider.getLists(getConfig());
+    if (result.success && result.lists) {
+      // Clear existing options except the first
+      subListSelect.length = 1;
+      result.lists.forEach((l) => {
+        const opt = document.createElement("option");
+        opt.value = l.id.toString();
+        opt.textContent = l.name;
+        subListSelect.appendChild(opt);
+      });
+      log(`Loaded ${result.lists.length} list(s)`, "success");
+    } else {
+      log(`Failed to load lists: ${result.error}`, "error");
+    }
+  } catch (err: any) {
+    log(`Error loading lists: ${err.message}`, "error");
+  } finally {
+    loadListsBtn.disabled = false;
+    loadListsBtn.textContent = "Load Lists";
+  }
+});
+
+// Event: add subscriber
+addSubBtn.addEventListener("click", async () => {
+  if (!currentProvider?.capabilities.addSubscriber) return;
+  const phone = subPhoneInput.value.trim();
+  if (!phone) return;
+
+  addSubBtn.disabled = true;
+  addSubBtn.textContent = "Adding...";
+  log(`Adding subscriber ${phone}...`);
+
+  try {
+    const result = await currentProvider.addSubscriber(getConfig(), phone, {
+      lists: subListSelect.value || undefined,
+      firstName: subFirstInput.value.trim() || undefined,
+      lastName: subLastInput.value.trim() || undefined,
+    });
+    if (result.success) {
+      showResult(addSubResult, `Subscriber added! Status: ${result.data?.status || "active"}`, true);
+      log(`Subscriber ${phone} added successfully`, "success");
+      // Pre-fill the send phone field for convenience
+      phoneInput.value = phone;
+      updateSendButtons();
+    } else {
+      showResult(addSubResult, `Failed: ${result.error}`, false);
+      log(`Add subscriber failed: ${result.error}`, "error");
+    }
+  } catch (err: any) {
+    showResult(addSubResult, `Error: ${err.message}`, false);
+    log(`Add subscriber error: ${err.message}`, "error");
+  } finally {
+    addSubBtn.disabled = false;
+    addSubBtn.textContent = "Add Subscriber";
   }
 });
 

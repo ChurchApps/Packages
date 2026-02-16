@@ -1,20 +1,20 @@
-import React from "react";
-import { Container, Box, Typography, Alert, Stack, Divider } from "@mui/material";
-import { Link } from "react-router-dom";
-import type { Stripe } from "@stripe/stripe-js";
-import { ErrorBoundary } from "../ErrorBoundary";
-import UserContext from "../UserContext";
-import {
-  NonAuthDonation,
-  MultiGatewayDonationForm,
-  PaymentMethods,
+import React from 'react';
+import { Container, Box, Typography, Alert, Stack, Divider } from '@mui/material';
+import { Link } from 'react-router-dom';
+import type { Stripe } from '@stripe/stripe-js';
+import { ErrorBoundary } from '../ErrorBoundary';
+import UserContext from '../UserContext';
+import { 
+  NonAuthDonation, 
+  MultiGatewayDonationForm, 
+  PaymentMethods, 
   RecurringDonations,
-  StripePaymentMethod
-} from "../../../src";
-import type { PaymentMethod, PaymentGateway } from "../../../src";
-import { ApiHelper } from "@churchapps/helpers";
-import { Elements } from "@stripe/react-stripe-js";
-import { loadStripe } from "@stripe/stripe-js";
+  StripePaymentMethod,
+} from '@churchapps/apphelper-donations';
+import type { PaymentMethod, PaymentGateway } from '@churchapps/apphelper-donations';
+import { ApiHelper } from '@churchapps/helpers';
+import { Elements } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
 
 export default function DonationPage() {
   const context = React.useContext(UserContext);
@@ -23,7 +23,7 @@ export default function DonationPage() {
   const [stripePromise, setStripePromise] = React.useState<Promise<Stripe | null> | null>(null);
 
   // Live data state for authenticated donation features
-  const [customerId, setCustomerId] = React.useState<string>("");
+  const [customerId, setCustomerId] = React.useState<string>('');
   const [stripePaymentMethods, setStripePaymentMethods] = React.useState<StripePaymentMethod[]>([]);
   const [paymentMethodsAll, setPaymentMethodsAll] = React.useState<PaymentMethod[]>([]);
   const [paymentGateways, setPaymentGateways] = React.useState<PaymentGateway[]>([]);
@@ -38,30 +38,31 @@ export default function DonationPage() {
       setLoadingAuthData(true);
       try {
         // Gateways for the selected church
-        const gws: any[] = await ApiHelper.get("/gateways", "GivingApi");
+        const gws: any[] = await ApiHelper.get('/gateways', 'GivingApi');
         const pg: PaymentGateway[] = (gws || []).map((g: any) => ({
           id: g.id,
           provider: g.provider,
           publicKey: g.publicKey,
-          enabled: g.enabled !== false
+          enabled: g.enabled !== false,
+          currency: g?.currency || "usd",
         }));
         setPaymentGateways(pg);
 
         // Initialize Stripe with the public key from gateway
-        const stripeGateway = pg.find(g => g.provider?.toLowerCase() === "stripe");
+        const stripeGateway = pg.find(g => g.provider?.toLowerCase() === 'stripe');
         if (stripeGateway?.publicKey) {
           setStripePromise(loadStripe(stripeGateway.publicKey));
         }
 
         // Load payment methods - API now returns normalized format
         try {
-          const pms = await ApiHelper.get(`/paymentmethods/personid/${context.person.id}`, "GivingApi");
+          const pms = await ApiHelper.get(`/paymentmethods/personid/${context.person.id}`, 'GivingApi');
           const stripePMs: StripePaymentMethod[] = [];
           const allPMs: PaymentMethod[] = [];
 
           if (Array.isArray(pms)) {
             for (const pm of pms) {
-              if (pm.provider === "stripe") {
+              if (pm.provider === 'stripe') {
                 stripePMs.push(new StripePaymentMethod(pm));
               }
               allPMs.push(pm);
@@ -83,10 +84,10 @@ export default function DonationPage() {
 
         // Donation history (best-effort)
         try {
-          const hist = await ApiHelper.get(`/donations?personId=${context.person.id}`, "GivingApi");
+          const hist = await ApiHelper.get(`/donations?personId=${context.person.id}`, 'GivingApi');
           if (Array.isArray(hist)) setHistory(hist);
         } catch (e: any) {
-          setHistoryError("Donation history unavailable");
+          setHistoryError('Donation history unavailable');
         }
       } finally {
         setLoadingAuthData(false);
@@ -109,15 +110,15 @@ export default function DonationPage() {
           </Typography>
           <ul style={{ marginTop: 8, marginBottom: 0 }}>
             <li>
-              <strong>Stripe</strong>: Card <code>4242 4242 4242 4242</code>, any future expiry, any 3-digit CVC, any ZIP.
+              <strong>Stripe</strong>: Card <code>4242 4242 4242 4242</code>, any future expiry, any 3‑digit CVC, any ZIP.
             </li>
             <li>
-              <strong>PayPal (Advanced Cards)</strong>:
+              <strong>PayPal (Advanced Cards)</strong>: 
               Visa <code>4111 1111 1111 1111</code> or Mastercard <code>5555 5555 5555 4444</code> or Amex <code>3782 822463 10005</code>, any future expiry, any valid CVV.
             </li>
           </ul>
         </Alert>
-
+        
         <ErrorBoundary>
           {!context?.user ? (
             // Non-authenticated donation form as specified in PRD
@@ -128,10 +129,10 @@ export default function DonationPage() {
                 You can make a donation without logging in using our secure payment forms.
                 This form supports both Stripe and PayPal payment gateways.
               </Alert>
-
+              
               <NonAuthDonation
                 churchId="AOjIt0W-SeY"
-                recaptchaSiteKey={(import.meta as any).env.VITE_RECAPTCHA_SITE_KEY || ""}
+                recaptchaSiteKey={(import.meta as any).env.VITE_RECAPTCHA_SITE_KEY || ''}
                 churchLogo="https://via.placeholder.com/100x100/0066cc/ffffff?text=Church"
                 showHeader={true}
               />
@@ -186,13 +187,13 @@ export default function DonationPage() {
                       dataUpdate={(_message?: string) => {
                         // Reload methods after add/edit/delete
                         if (context?.person?.id) {
-                          ApiHelper.get(`/paymentmethods/personid/${context.person.id}`, "GivingApi")
+                          ApiHelper.get(`/paymentmethods/personid/${context.person.id}`, 'GivingApi')
                             .then((pms: any[]) => {
                               const stripePMs: StripePaymentMethod[] = [];
                               const allPMs: PaymentMethod[] = [];
 
                               for (const pm of pms || []) {
-                                if (pm.provider === "stripe") {
+                                if (pm.provider === 'stripe') {
                                   stripePMs.push(new StripePaymentMethod(pm));
                                 }
                                 allPMs.push(pm);
@@ -206,7 +207,7 @@ export default function DonationPage() {
                               setStripePaymentMethods(stripePMs);
                               setPaymentMethodsAll(allPMs);
                             })
-                            .catch(() => { /* ignore */ });
+                            .catch(() => {/* ignore */});
                         }
                       }}
                     />
@@ -227,10 +228,10 @@ export default function DonationPage() {
                     <Alert severity="info">Loading subscriptions…</Alert>
                   ) : (
                     <RecurringDonations
-                      customerId={customerId || ""}
+                      customerId={customerId || ''}
                       paymentMethods={stripePaymentMethods}
                       appName="AppHelper Playground"
-                      dataUpdate={(_message?: string) => { /* no-op */ }}
+                      dataUpdate={(_message?: string) => {/* no-op */}}
                     />
                   )}
                 </Elements>
@@ -255,7 +256,7 @@ export default function DonationPage() {
                         {d.funds && Array.isArray(d.funds) && d.funds.length > 0 && (
                           <>
                             {` — `}
-                            {d.funds.map((f: any) => `${f.name || ""} $${f.amount}`).join(", ")}
+                            {d.funds.map((f: any) => `${f.name || ''} $${f.amount}`).join(', ')}
                           </>
                         )}
                       </li>
@@ -267,7 +268,7 @@ export default function DonationPage() {
           )}
         </ErrorBoundary>
 
-
+        
       </Box>
     </Container>
   );

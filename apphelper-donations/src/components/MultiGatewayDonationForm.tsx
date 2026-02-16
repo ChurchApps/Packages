@@ -27,7 +27,7 @@ import {
 } from "@mui/material";
 import type { SelectChangeEvent } from "@mui/material";
 
-interface Props {
+interface Props { 
   person: PersonInterface;
   customerId: string;
   paymentMethods: PaymentMethod[];
@@ -49,7 +49,7 @@ export const MultiGatewayDonationForm: React.FC<Props> = (props) => {
   const [payFee, setPayFee] = useState<number>(0);
   const [total, setTotal] = useState<number>(0);
   const [paymentMethodName, setPaymentMethodName] = useState<string>(
-    props?.paymentMethods?.length > 0 ? `${props.paymentMethods[0].name} ${props.paymentMethods[0].last4 ? `****${props.paymentMethods[0].last4}` : props.paymentMethods[0].email || ""}` : ""
+    props?.paymentMethods?.length > 0 ? `${props.paymentMethods[0].name} ${props.paymentMethods[0].last4 ? `****${props.paymentMethods[0].last4}` : props.paymentMethods[0].email || ''}` : ""
   );
   const [selectedGateway, setSelectedGateway] = useState<string>(
     DonationHelper.normalizeProvider(props?.paymentGateways?.find(g => g.enabled !== false)?.provider || "stripe")
@@ -88,7 +88,8 @@ export const MultiGatewayDonationForm: React.FC<Props> = (props) => {
       interval: "month"
     },
     funds: [],
-    gatewayId: props?.paymentMethods?.length > 0 ? props.paymentMethods[0].gatewayId : selectedGatewayObj?.id
+    gatewayId: props?.paymentMethods?.length > 0 ? props.paymentMethods[0].gatewayId : selectedGatewayObj?.id,
+    currency: selectedGatewayObj?.currency || "usd"
   });
 
   const loadFunds = useCallback(async () => {
@@ -144,12 +145,13 @@ export const MultiGatewayDonationForm: React.FC<Props> = (props) => {
         d.provider = value as "stripe" | "paypal";
         const matchedGateway = props.paymentGateways.find(g => DonationHelper.normalizeProvider(g.provider) === value);
         d.gatewayId = matchedGateway?.id;
+        d.currency = matchedGateway?.currency || "usd";
         // Reset payment method when changing gateways
         const availableMethods = props.paymentMethods.filter(pm => DonationHelper.normalizeProvider(pm.provider) === value);
         if (availableMethods.length > 0) {
           d.id = availableMethods[0].id;
           d.type = availableMethods[0].type as "card" | "bank" | "paypal";
-          setPaymentMethodName(`${availableMethods[0].name} ${availableMethods[0].last4 ? `****${availableMethods[0].last4}` : availableMethods[0].email || ""}`);
+          setPaymentMethodName(`${availableMethods[0].name} ${availableMethods[0].last4 ? `****${availableMethods[0].last4}` : availableMethods[0].email || ''}`);
         } else {
           d.id = "";
           if (value === "paypal") d.type = "paypal";
@@ -162,7 +164,7 @@ export const MultiGatewayDonationForm: React.FC<Props> = (props) => {
           d.type = pm.type as "card" | "bank" | "paypal";
           d.provider = DonationHelper.normalizeProvider(pm.provider) as "stripe" | "paypal";
           d.gatewayId = pm.gatewayId || gateway?.id || selectedGatewayObj?.id;
-          setPaymentMethodName(`${pm.name} ${pm.last4 ? `****${pm.last4}` : pm.email || ""}`);
+          setPaymentMethodName(`${pm.name} ${pm.last4 ? `****${pm.last4}` : pm.email || ''}`);
         }
         break;
       case "type": setDonationType(value); break;
@@ -265,16 +267,14 @@ export const MultiGatewayDonationForm: React.FC<Props> = (props) => {
       setShowDonationPreviewModal(false);
       setErrorMessage(Locale.label("donation.common.error") + ": " + (results?.raw?.message || results?.message));
     }
-  }, [
-    donation, donationType, gateway?.id, paypalClientId, props.church?.name, props.church?.subDomain, props.churchLogo, props.donationSuccess, selectedGateway, selectedGatewayObj?.id, total, stripe
-  ]);
+  }, [donation, donationType, gateway?.id, paypalClientId, props.church?.name, props.church?.subDomain, props.churchLogo, props.donationSuccess, selectedGateway, selectedGatewayObj?.id, total, stripe]);
 
   const getTransactionFee = useCallback(async (amount: number, activeGatewayId?: string, provider: "stripe" | "paypal" = "stripe") => {
     if (amount > 0) {
       try {
         const response = await ApiHelper.post(
           "/donate/fee?churchId=" + (props?.church?.id || ""),
-          { amount, provider, gatewayId: activeGatewayId },
+          { amount, provider, gatewayId: activeGatewayId, currency: gateway?.currency || "USD" },
           "GivingApi"
         );
         return response.calculatedFee;
@@ -348,9 +348,9 @@ export const MultiGatewayDonationForm: React.FC<Props> = (props) => {
       const nextProvider = prev.provider || (selectedGateway as "stripe" | "paypal");
       const nextGatewayId = selectedGatewayObj?.id || prev.gatewayId;
       if (nextProvider === prev.provider && nextGatewayId === prev.gatewayId) return prev;
-      return { ...prev, provider: nextProvider, gatewayId: nextGatewayId };
+      return { ...prev, provider: nextProvider, gatewayId: nextGatewayId, currency: selectedGatewayObj?.currency || "usd" };
     });
-  }, [selectedGateway, selectedGatewayObj?.id]);
+  }, [selectedGateway, selectedGatewayObj?.id, selectedGatewayObj?.currency]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -374,13 +374,14 @@ export const MultiGatewayDonationForm: React.FC<Props> = (props) => {
         No donation funds have been configured for this church. Please contact your administrator.
       </Alert>
     );
-  } else {
+  }
+  else {
     return (
       <>
-        <DonationPreviewModal
-          show={showDonationPreviewModal}
-          onHide={() => setShowDonationPreviewModal(false)}
-          handleDonate={makeDonation}
+        <DonationPreviewModal 
+          show={showDonationPreviewModal} 
+          onHide={() => setShowDonationPreviewModal(false)} 
+          handleDonate={makeDonation} 
           donation={{
             ...donation,
             person: {
@@ -388,44 +389,44 @@ export const MultiGatewayDonationForm: React.FC<Props> = (props) => {
               email: donation.person?.email || "",
               name: donation.person?.name || ""
             }
-          } as any}
-          donationType={donationType || ""}
-          payFee={payFee}
-          paymentMethodName={paymentMethodName}
-          funds={funds}
+          } as any} 
+          donationType={donationType || ""} 
+          payFee={payFee} 
+          paymentMethodName={paymentMethodName} 
+          funds={funds} 
         />
-        <InputBox
-          id="donation-form"
-          aria-label="donation-box"
-          headerIcon="volunteer_activism"
-          headerText={Locale.label("donation.donationForm.donate")}
-          ariaLabelSave="save-button"
-          cancelFunction={donationType ? handleCancel : undefined}
-          saveFunction={donationType ? handleSave : undefined}
+        <InputBox 
+          id="donation-form" 
+          aria-label="donation-box" 
+          headerIcon="volunteer_activism" 
+          headerText={Locale.label("donation.donationForm.donate")} 
+          ariaLabelSave="save-button" 
+          cancelFunction={donationType ? handleCancel : undefined} 
+          saveFunction={donationType ? handleSave : undefined} 
           saveText={Locale.label("donation.donationForm.preview")}
         >
           <Grid id="donation-type-selector" container spacing={3}>
             <Grid size={{ xs: 12, md: 6 }}>
-              <Button
-                id="single-donation-button"
-                aria-label="single-donation"
-                size="small"
-                fullWidth
-                style={{ minHeight: "50px" }}
-                variant={donationType === "once" ? "contained" : "outlined"}
+              <Button 
+                id="single-donation-button" 
+                aria-label="single-donation" 
+                size="small" 
+                fullWidth 
+                style={{ minHeight: "50px" }} 
+                variant={donationType === "once" ? "contained" : "outlined"} 
                 onClick={handleSingleDonationClick}
               >
                 {Locale.label("donation.donationForm.make")}
               </Button>
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
-              <Button
-                id="recurring-donation-button"
-                aria-label="recurring-donation"
-                size="small"
-                fullWidth
-                style={{ minHeight: "50px" }}
-                variant={donationType === "recurring" ? "contained" : "outlined"}
+              <Button 
+                id="recurring-donation-button" 
+                aria-label="recurring-donation" 
+                size="small" 
+                fullWidth 
+                style={{ minHeight: "50px" }} 
+                variant={donationType === "recurring" ? "contained" : "outlined"} 
                 onClick={handleRecurringDonationClick}
               >
                 {Locale.label("donation.donationForm.makeRecurring")}
@@ -439,12 +440,12 @@ export const MultiGatewayDonationForm: React.FC<Props> = (props) => {
                   <Grid size={{ xs: 12 }}>
                     <FormControl fullWidth>
                       <InputLabel>Payment Provider</InputLabel>
-                      <Select
-                        id="gateway-select"
-                        label="Payment Provider"
-                        name="gateway"
-                        aria-label="gateway"
-                        value={selectedGateway}
+                      <Select 
+                        id="gateway-select" 
+                        label="Payment Provider" 
+                        name="gateway" 
+                        aria-label="gateway" 
+                        value={selectedGateway} 
                         onChange={handleChange}
                       >
                         {availableGateways.map((gw) => (
@@ -460,18 +461,18 @@ export const MultiGatewayDonationForm: React.FC<Props> = (props) => {
                   <Grid size={{ xs: 12 }}>
                     <FormControl fullWidth>
                       <InputLabel>{Locale.label("donation.donationForm.method")}</InputLabel>
-                      <Select
-                        id="payment-method-select"
-                        label={Locale.label("donation.donationForm.method")}
-                        name="method"
-                        aria-label="method"
-                        value={donation.id}
-                        className="capitalize"
+                      <Select 
+                        id="payment-method-select" 
+                        label={Locale.label("donation.donationForm.method")} 
+                        name="method" 
+                        aria-label="method" 
+                        value={donation.id} 
+                        className="capitalize" 
                         onChange={handleChange}
                       >
                         {availablePaymentMethods.map((paymentMethod: PaymentMethod) => (
                           <MenuItem key={paymentMethod.id} value={paymentMethod.id}>
-                            {paymentMethod.name} {paymentMethod.last4 ? `****${paymentMethod.last4}` : paymentMethod.email || ""}
+                            {paymentMethod.name} {paymentMethod.last4 ? `****${paymentMethod.last4}` : paymentMethod.email || ''}
                           </MenuItem>
                         ))}
                       </Select>
@@ -530,27 +531,27 @@ export const MultiGatewayDonationForm: React.FC<Props> = (props) => {
               {donationType === "recurring" && (
                 <Grid container spacing={3} style={{ marginTop: 10 }}>
                   <Grid size={{ xs: 12, md: 6 }}>
-                    <TextField
-                      id="start-date-field"
-                      fullWidth
-                      name="date"
-                      type="date"
-                      aria-label="date"
-                      label={Locale.label("donation.donationForm.startDate")}
-                      value={DateHelper.formatHtml5Date(new Date(donation.billing_cycle_anchor || Date.now()))}
-                      onChange={handleChange}
-                      onKeyDown={handleKeyDown}
+                    <TextField 
+                      id="start-date-field" 
+                      fullWidth 
+                      name="date" 
+                      type="date" 
+                      aria-label="date" 
+                      label={Locale.label("donation.donationForm.startDate")} 
+                      value={DateHelper.formatHtml5Date(new Date(donation.billing_cycle_anchor || Date.now()))} 
+                      onChange={handleChange} 
+                      onKeyDown={handleKeyDown} 
                     />
                   </Grid>
                   <Grid size={{ xs: 12, md: 6 }}>
                     <FormControl fullWidth>
                       <InputLabel>{Locale.label("donation.donationForm.frequency")}</InputLabel>
-                      <Select
-                        id="frequency-select"
-                        label={Locale.label("donation.donationForm.frequency")}
-                        name="interval"
-                        aria-label="interval"
-                        value={interval}
+                      <Select 
+                        id="frequency-select" 
+                        label={Locale.label("donation.donationForm.frequency")} 
+                        name="interval" 
+                        aria-label="interval" 
+                        value={interval} 
                         onChange={handleChange}
                       >
                         <MenuItem value="one_week">{Locale.label("donation.donationForm.weekly")}</MenuItem>
@@ -567,38 +568,38 @@ export const MultiGatewayDonationForm: React.FC<Props> = (props) => {
                 {funds && fundDonations && (
                   <>
                     <h4>{Locale.label("donation.donationForm.fund")}</h4>
-                    <FundDonations fundDonations={fundDonations} funds={funds} updatedFunction={handleFundDonationsChange} />
+                    <FundDonations fundDonations={fundDonations} funds={funds} updatedFunction={handleFundDonationsChange} currency={gateway?.currency} />
                   </>
                 )}
                 {fundsTotal > 0 && (
                   <>
                     {(gateway?.payFees === true) ? (
                       <Typography fontSize={14} fontStyle="italic">
-                        *{Locale.label("donation.donationForm.fees").replace("{}", CurrencyHelper.formatCurrency(transactionFee))}
+                        *{Locale.label("donation.donationForm.fees").replace("{}", CurrencyHelper.formatCurrencyWithLocale(transactionFee, gateway?.currency || "USD"))}
                       </Typography>
                     ) : (
                       <FormGroup>
-                        <FormControlLabel
-                          control={<Checkbox />}
-                          name="transaction-fee"
-                          label={Locale.label("donation.donationForm.cover").replace("{}", CurrencyHelper.formatCurrency(transactionFee))}
-                          onChange={handleCheckChange}
+                        <FormControlLabel 
+                          control={<Checkbox />} 
+                          name="transaction-fee" 
+                          label={Locale.label("donation.donationForm.cover").replace("{}", CurrencyHelper.formatCurrencyWithLocale(transactionFee, gateway?.currency || "USD"))} 
+                          onChange={handleCheckChange} 
                         />
                       </FormGroup>
                     )}
-                    <p>{Locale.label("donation.donationForm.total")}: ${total}</p>
+                    <p>{Locale.label("donation.donationForm.total")}: {CurrencyHelper.formatCurrencyWithLocale(total, gateway?.currency || "USD")}</p>
                   </>
                 )}
-                <TextField
-                  id="donation-notes"
-                  fullWidth
-                  label="Memo (optional)"
-                  multiline
-                  aria-label="note"
-                  name="notes"
-                  value={donation.notes || ""}
-                  onChange={handleChange}
-                  onKeyDown={handleKeyDown}
+                <TextField 
+                  id="donation-notes" 
+                  fullWidth 
+                  label="Memo (optional)" 
+                  multiline 
+                  aria-label="note" 
+                  name="notes" 
+                  value={donation.notes || ""} 
+                  onChange={handleChange} 
+                  onKeyDown={handleKeyDown} 
                 />
               </div>
               {errorMessage && <ErrorMessages errors={[errorMessage]}></ErrorMessages>}

@@ -19,4 +19,5 @@ export interface MultiGatewayDonationInterface {
   };
   funds?: FundDonationInterface[];
   notes?: string;
+  currency?: string;
 }

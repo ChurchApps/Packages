@@ -4,7 +4,9 @@ import React, { useState } from "react";
 import { DateHelper, CurrencyHelper } from "@churchapps/helpers";
 import { Locale } from "../helpers";
 import { StripeDonationInterface } from "@churchapps/helpers";
-import { Table, TableBody, TableRow, TableCell, Dialog, DialogTitle, DialogContent, DialogActions, Button } from "@mui/material";
+import {
+ Table, TableBody, TableRow, TableCell, Dialog, DialogTitle, DialogContent, DialogActions, Button 
+} from "@mui/material";
 
 interface Props {
   show: boolean;
@@ -36,8 +38,8 @@ export const DonationPreviewModal: React.FC<Props> = (props) => {
   };
 
   return (
-    <Dialog
-      open={props.show}
+    <Dialog 
+      open={props.show} 
       onClose={props.onHide}
       aria-labelledby="donation-preview-title"
       aria-describedby="donation-preview-content"
@@ -59,9 +61,9 @@ export const DonationPreviewModal: React.FC<Props> = (props) => {
                 <TableRow><TableCell>{Locale.label("donation.preview.every")}:</TableCell><TableCell className="capitalize">{formatInterval()}</TableCell></TableRow>
               </>
             }
-            <TableRow><TableCell>{Locale.label("donation.preview.funds")}:</TableCell><TableCell>{props.donation.funds?.map((fund: any) => <p key={fund.id || fund.name}>{CurrencyHelper.formatCurrency(fund.amount)} - {fund.name}</p>)}</TableCell></TableRow>
-            {props.payFee > 0 && <TableRow><TableCell>{Locale.label("donation.preview.fee")}:</TableCell><TableCell>{CurrencyHelper.formatCurrency(props.payFee)}</TableCell></TableRow>}
-            <TableRow><TableCell>{Locale.label("donation.preview.total")}:</TableCell><TableCell><h4>{CurrencyHelper.formatCurrency(props.donation.amount || 0)}</h4></TableCell></TableRow>
+            <TableRow><TableCell>{Locale.label("donation.preview.funds")}:</TableCell><TableCell>{props.donation.funds?.map((fund: any) => <p key={fund.id || fund.name}>{CurrencyHelper.formatCurrencyWithLocale(fund.amount, props.donation?.currency || "usd")} - {fund.name}</p>)}</TableCell></TableRow>
+            {props.payFee > 0 && <TableRow><TableCell>{Locale.label("donation.preview.fee")}:</TableCell><TableCell>{CurrencyHelper.formatCurrencyWithLocale(props.payFee, props.donation?.currency || "usd")}</TableCell></TableRow>}
+            <TableRow><TableCell>{Locale.label("donation.preview.total")}:</TableCell><TableCell><h4>{CurrencyHelper.formatCurrencyWithLocale(props.donation.amount || 0, props.donation?.currency || "usd")}</h4></TableCell></TableRow>
           </TableBody>
         </Table>
       </DialogContent>

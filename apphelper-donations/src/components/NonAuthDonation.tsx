@@ -11,7 +11,7 @@ import { DonationHelper } from "../helpers";
 import { FormControl, InputLabel, Select, MenuItem, Box, Typography, ToggleButtonGroup, ToggleButton } from "@mui/material";
 import type { PaperProps } from "@mui/material/Paper";
 
-interface Props {
+interface Props { 
   churchId: string;
   mainContainerCssProps?: PaperProps;
   showHeader?: boolean;
@@ -50,7 +50,7 @@ export const NonAuthDonation: React.FC<Props> = ({ mainContainerCssProps, showHe
     setSelectedGateway(event.target.value);
   };
 
-  useEffect(init, []);
+  useEffect(init, []); //eslint-disable-line
 
   if (loading) {
     return <Box sx={{ p: 3 }}><Typography>Loading payment options...</Typography></Box>;
@@ -85,7 +85,9 @@ export const NonAuthDonation: React.FC<Props> = ({ mainContainerCssProps, showHe
 
   const renderPaymentTypeSelector = () => {
     // Only show if Stripe is available (ACH requires Stripe)
+    // Only show ACH if the currency is USD
     const stripeGateway = DonationHelper.findGatewayByProvider(availableGateways, "stripe");
+    const currency = stripeGateway?.currency || "usd";
     if (!stripeGateway || selectedGateway !== "stripe") return null;
 
     return (
@@ -98,7 +100,7 @@ export const NonAuthDonation: React.FC<Props> = ({ mainContainerCssProps, showHe
           size="small"
         >
           <ToggleButton value="card">Credit/Debit Card</ToggleButton>
-          <ToggleButton value="bank">Bank Account (ACH)</ToggleButton>
+          {currency === "usd" && <ToggleButton value="bank">Bank Account (ACH)</ToggleButton>}
         </ToggleButtonGroup>
       </Box>
     );
@@ -108,11 +110,11 @@ export const NonAuthDonation: React.FC<Props> = ({ mainContainerCssProps, showHe
     if (selectedGateway === "paypal") {
       const paypalGateway = DonationHelper.findGatewayByProvider(availableGateways, "paypal");
       return (
-        <PayPalNonAuthDonationInner
-          churchId={props.churchId}
-          mainContainerCssProps={mainContainerCssProps}
+        <PayPalNonAuthDonationInner 
+          churchId={props.churchId} 
+          mainContainerCssProps={mainContainerCssProps} 
           showHeader={false} // We'll show our own header with gateway selector
-          recaptchaSiteKey={props.recaptchaSiteKey}
+          recaptchaSiteKey={props.recaptchaSiteKey} 
           churchLogo={props?.churchLogo}
           paypalClientId={paypalGateway?.publicKey || null}
         />

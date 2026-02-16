@@ -66,7 +66,7 @@ export class Permissions {
 
   static messagingApi = {
     texting: {
-      edit: { api: "MessagingApi", contentType: "Texting", action: "Edit" }
+      send: { api: "MessagingApi", contentType: "Texting", action: "Send" }
     }
   };
 

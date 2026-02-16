@@ -104,6 +104,7 @@ export interface StripeDonationInterface {
   id?: string;
   type?: string;
   amount?: number;
+  currency?: string;
   customerId?: string;
   billing_cycle_anchor?: number;
   proration_behavior?: string;

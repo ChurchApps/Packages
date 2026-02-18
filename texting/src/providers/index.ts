@@ -13,21 +13,24 @@ providers.set("mutualministry", new MutualMinistryProvider());
 const providerMeta: Record<string, Omit<ProviderInfo, "id">> = {
   clearstream: {
     name: "Clearstream",
+    requiresApiKey: true,
     requiresSecret: false,
     settingsUrl: "https://app.clearstream.io/settings/api/keys",
     helpText: "Create an API Key in your Clearstream Account Settings under API Keys."
   },
   textinchurch: {
     name: "Text In Church",
+    requiresApiKey: true,
     requiresSecret: false,
     settingsUrl: "https://textinchurch.com/support",
     helpText: "Visit Text In Church Support to request developer API access. Once approved, create an API Key in your Account Settings > Developer API section."
   },
   mutualministry: {
     name: "Mutual Ministry",
+    requiresApiKey: false,
     requiresSecret: false,
     settingsUrl: "",
-    helpText: "Uses AWS SNS for SMS delivery. No API keys required - authentication is handled via AWS IAM roles. Requires a Mutual Ministry texting subscription with available credits."
+    helpText: "Uses AWS End User Messaging for SMS delivery. No API keys required - authentication is handled via AWS IAM roles. Requires a Mutual Ministry texting subscription with available credits."
   }
 };
 
@@ -54,7 +57,7 @@ export function isProviderAvailable(providerName: string): boolean {
 export function getProviderInfo(): ProviderInfo[] {
   return Array.from(providers.keys()).map((id) => ({
     id,
-    ...(providerMeta[id] || { name: providers.get(id)!.name, requiresSecret: false, settingsUrl: "", helpText: "" })
+    ...(providerMeta[id] || { name: providers.get(id)!.name, requiresApiKey: true, requiresSecret: false, settingsUrl: "", helpText: "" })
   }));
 }
 

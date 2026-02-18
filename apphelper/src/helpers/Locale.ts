@@ -1,7 +1,6 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next/initReactI18next";
 import LanguageDetector from "i18next-browser-languagedetector";
-import Backend from "i18next-chained-backend";
 
 interface TranslationResources {
 	[key: string]: {
@@ -346,7 +345,6 @@ export class Locale {
 
     // Initialize i18n
     await i18n
-      .use(Backend)
       .use(LanguageDetector)
       .use(initReactI18next)
       .init({

@@ -3,6 +3,7 @@ import { getProvider, getProviderInfo, type TextingProviderConfig, type ITexting
 // Elements
 const providerSelect = document.getElementById("provider-select") as HTMLSelectElement;
 const providerHelp = document.getElementById("provider-help") as HTMLDivElement;
+const apiKeyGroup = document.getElementById("api-key-group") as HTMLDivElement;
 const apiKeyInput = document.getElementById("api-key") as HTMLInputElement;
 const apiSecretInput = document.getElementById("api-secret") as HTMLInputElement;
 const apiSecretGroup = document.getElementById("api-secret-group") as HTMLDivElement;
@@ -70,7 +71,8 @@ function getConfig(): TextingProviderConfig {
 
 function updateSendButtons() {
   const hasProvider = !!currentProvider;
-  const hasKey = apiKeyInput.value.trim().length > 0;
+  const needsKey = currentProviderInfo?.requiresApiKey !== false;
+  const hasKey = !needsKey || apiKeyInput.value.trim().length > 0;
   validateBtn.disabled = !hasProvider || !hasKey;
   sendBtn.disabled = !hasProvider || !hasKey || !phoneInput.value.trim() || !messageInput.value.trim();
   bulkSendBtn.disabled = !hasProvider || !hasKey || !bulkPhonesInput.value.trim() || !bulkMessageInput.value.trim();
@@ -121,6 +123,7 @@ providerSelect.addEventListener("change", () => {
     currentProvider = null;
     currentProviderInfo = null;
     providerHelp.classList.add("hidden");
+    apiKeyGroup.classList.remove("hidden");
     apiSecretGroup.classList.add("hidden");
     subscriberPanel.classList.add("hidden");
     updateSendButtons();
@@ -136,6 +139,13 @@ providerSelect.addEventListener("change", () => {
       : "";
     providerHelp.innerHTML = `${currentProviderInfo.helpText}${link ? "<br/>" + link : ""}`;
     providerHelp.classList.remove("hidden");
+
+    if (currentProviderInfo.requiresApiKey === false) {
+      apiKeyGroup.classList.add("hidden");
+      apiKeyInput.value = "";
+    } else {
+      apiKeyGroup.classList.remove("hidden");
+    }
 
     if (currentProviderInfo.requiresSecret) {
       apiSecretGroup.classList.remove("hidden");

@@ -26,7 +26,7 @@ export default defineConfig(({ mode }) => {
     },
     define: {
       // MutualMinistry provider reads process.env.STORE_API_URL at runtime
-      "process.env.STORE_API_URL": JSON.stringify(env.VITE_API_BASE_URL || "http://localhost:8084")
+      "process.env.STORE_API_URL": JSON.stringify(env.VITE_API_BASE_URL || "http://localhost:8096")
     }
   };
 });

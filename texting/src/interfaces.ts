@@ -55,6 +55,7 @@ export interface ITextingProvider {
 export interface ProviderInfo {
   id: string;
   name: string;
+  requiresApiKey: boolean;
   requiresSecret: boolean;
   settingsUrl: string;
   helpText: string;

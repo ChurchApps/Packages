@@ -39,6 +39,7 @@ export { DropboxProvider } from "./providers/dropbox";
 export { PlanningCenterProvider } from "./providers/planningCenter";
 export { BibleProjectProvider } from "./providers/bibleProject";
 export { HighVoltageKidsProvider } from "./providers/highVoltage";
+export { JesusFilmProvider } from "./providers/jesusFilm";
 
 // Registry functions
 export {

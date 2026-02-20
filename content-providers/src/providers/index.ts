@@ -7,12 +7,14 @@ import { HighVoltageKidsProvider } from "./highVoltage";
 import { LessonsChurchProvider } from "./lessonsChurch";
 import { PlanningCenterProvider } from "./planningCenter";
 import { SignPresenterProvider } from "./signPresenter";
+import { JesusFilmProvider } from "./jesusFilm";
 
 export { APlayProvider } from "./aPlay";
 export { B1ChurchProvider } from "./b1Church";
 export { DropboxProvider } from "./dropbox";
 export { BibleProjectProvider } from "./bibleProject";
 export { HighVoltageKidsProvider } from "./highVoltage";
+export { JesusFilmProvider } from "./jesusFilm";
 export { LessonsChurchProvider } from "./lessonsChurch";
 export { PlanningCenterProvider } from "./planningCenter";
 export { SignPresenterProvider } from "./signPresenter";
@@ -88,12 +90,14 @@ function initializeProviders() {
   const lessonsChurch = new LessonsChurchProvider();
   const planningCenter = new PlanningCenterProvider();
   const signPresenter = new SignPresenterProvider();
+  const jesusFilm = new JesusFilmProvider();
 
   providerRegistry.set(aplay.id, aplay);
   providerRegistry.set(b1Church.id, b1Church);
   providerRegistry.set(dropbox.id, dropbox);
   providerRegistry.set(bibleProject.id, bibleProject);
   providerRegistry.set(highVoltageKids.id, highVoltageKids);
+  providerRegistry.set(jesusFilm.id, jesusFilm);
   providerRegistry.set(lessonsChurch.id, lessonsChurch);
   providerRegistry.set(planningCenter.id, planningCenter);
   providerRegistry.set(signPresenter.id, signPresenter);

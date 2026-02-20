@@ -1,5 +1,5 @@
 /**
- * @churchapps/content-provider-helper
+ * @churchapps/content-providers
  * Helper classes for interacting with third party content providers
  */
 

@@ -1,13 +1,13 @@
 <img align="right" width="150" src="https://raw.githubusercontent.com/ChurchApps/B1Admin/main/public/images/logo.png">
 
-# @churchapps/content-provider-helper
+# @churchapps/content-providers
 
 > **ContentProviderHelper** is a TypeScript library for integrating with third-party content providers like Planning Center, Lessons.church, and more. It provides a unified interface for browsing media libraries, handling OAuth authentication, and retrieving content for playback in church presentation software.
 
 ## Installation
 
 ```bash
-npm install @churchapps/content-provider-helper
+npm install @churchapps/content-providers
 ```
 
 ## Usage
@@ -15,7 +15,7 @@ npm install @churchapps/content-provider-helper
 ### Browse Available Providers
 
 ```typescript
-import { getAllProviders, getAvailableProviders } from '@churchapps/content-provider-helper';
+import { getAllProviders, getAvailableProviders } from '@churchapps/content-providers';
 
 // Get all registered providers
 const providers = getAllProviders();
@@ -28,7 +28,7 @@ console.log(available); // [{ id: 'planningcenter', name: 'Planning Center', ...
 ### Use a Specific Provider
 
 ```typescript
-import { getProvider } from '@churchapps/content-provider-helper';
+import { getProvider } from '@churchapps/content-providers';
 
 const provider = getProvider('planningcenter');
 
@@ -51,7 +51,7 @@ const plan = await provider.getPresentations(serviceId);
 ### Create a Custom Provider
 
 ```typescript
-import { ContentProvider, registerProvider } from '@churchapps/content-provider-helper';
+import { ContentProvider, registerProvider } from '@churchapps/content-providers';
 
 class MyProvider extends ContentProvider {
   // Implement required methods
@@ -63,7 +63,7 @@ registerProvider(new MyProvider());
 ### Utilities
 
 ```typescript
-import { detectMediaType } from '@churchapps/content-provider-helper';
+import { detectMediaType } from '@churchapps/content-providers';
 
 detectMediaType('https://example.com/video.mp4'); // 'video'
 detectMediaType('https://example.com/image.png'); // 'image'

@@ -15,7 +15,8 @@ import { convertAddOnToFile, convertAddOnCategoryToInstructions, buildSectionAct
  *   /lessons/{programId}/{studyId}/{lessonId}/{venueId} -> playlist files
  *
  *   /addons                                             -> categories
- *   /addons/{category}                                  -> add-on files
+ *   /addons/{category}                                  -> individual add-ons
+ *   /addons/{category}/{addOnId}                        -> single add-on file
  */
 export class LessonsChurchProvider implements IProvider {
   readonly id = "lessonschurch";
@@ -30,6 +31,13 @@ export class LessonsChurchProvider implements IProvider {
   readonly capabilities: ProviderCapabilities = { browse: true, presentations: true, playlist: true, instructions: true, mediaLicensing: false };
 
   async getPlaylist(path: string, _auth?: ContentProviderAuthData | null, resolution?: number): Promise<ContentFile[] | null> {
+    const { segments } = parsePath(path);
+    if (segments[0] === "addons" && segments.length >= 3) {
+      const addOnId = segments[2];
+      const file = await convertAddOnToFile({ id: addOnId });
+      return file ? [file] : null;
+    }
+
     const venueId = getSegment(path, 4);
     if (!venueId) return null;
 
@@ -155,13 +163,19 @@ export class LessonsChurchProvider implements IProvider {
     return files || [];
   }
 
-  private async browseAddOns(_currentPath: string, segments: string[]): Promise<ContentItem[]> {
+  private async browseAddOns(currentPath: string, segments: string[]): Promise<ContentItem[]> {
     const depth = segments.length;
 
     if (depth === 1) return this.getAddOnCategories();
-    if (depth === 2) return this.getAddOnsByCategory(segments[1]);
+    if (depth === 2) return this.getAddOnsByCategory(segments[1], currentPath);
+    if (depth === 3) return this.getAddOnFiles(segments[2]);
 
     return [];
+  }
+
+  private async getAddOnFiles(addOnId: string): Promise<ContentItem[]> {
+    const file = await convertAddOnToFile({ id: addOnId });
+    return file ? [file] : [];
   }
 
   private async getAddOnCategories(): Promise<ContentItem[]> {
@@ -175,12 +189,11 @@ export class LessonsChurchProvider implements IProvider {
       type: "folder" as const,
       id: `category-${category}`,
       title: category,
-      isLeaf: true,
       path: `/addons/${encodeURIComponent(category)}`
     }));
   }
 
-  private async getAddOnsByCategory(category: string): Promise<ContentItem[]> {
+  private async getAddOnsByCategory(category: string, currentPath: string): Promise<ContentItem[]> {
     const decodedCategory = decodeURIComponent(category);
 
     const response = await apiRequest<Record<string, unknown>[]>(this.config.endpoints.addOns as string);
@@ -189,12 +202,14 @@ export class LessonsChurchProvider implements IProvider {
     const allAddOns = Array.isArray(response) ? response : [];
     const filtered = allAddOns.filter((a) => a.category === decodedCategory);
 
-    const files: ContentFile[] = [];
-    for (const addOn of filtered) {
-      const file = await convertAddOnToFile(addOn);
-      if (file) files.push(file);
-    }
-    return files;
+    return filtered.map((addOn) => ({
+      type: "folder" as const,
+      id: addOn.id as string,
+      title: addOn.name as string,
+      thumbnail: addOn.image as string | undefined,
+      isLeaf: true,
+      path: `${currentPath}/${addOn.id}`
+    }));
   }
 
   // async getPresentations(path: string, _auth?: ContentProviderAuthData | null): Promise<Plan | null> {
@@ -231,6 +246,22 @@ export class LessonsChurchProvider implements IProvider {
     }
 
     const { segments } = parsePath(path);
+    if (segments[0] === "addons" && segments.length === 3) {
+      const addOnId = segments[2];
+      const file = await convertAddOnToFile({ id: addOnId });
+      if (!file) return null;
+      return {
+        name: file.title,
+        items: [{
+          id: addOnId,
+          itemType: "action",
+          relatedId: addOnId,
+          label: file.title,
+          seconds: file.seconds,
+          children: [{ id: addOnId + "-file", itemType: "file", label: file.title, seconds: file.seconds, downloadUrl: file.url, thumbnail: file.thumbnail }]
+        }]
+      };
+    }
     if (segments[0] === "addons" && segments.length === 2) {
       return convertAddOnCategoryToInstructions(segments[1]);
     }

@@ -22,8 +22,8 @@ export class DropboxProvider implements IProvider {
   readonly name = "Dropbox";
 
   readonly logos: ProviderLogos = {
-    light: "https://cfl.dropboxstatic.com/static/images/logo_catalog/dropbox_logo_glyph_2015_m1.svg",
-    dark: "https://cfl.dropboxstatic.com/static/images/logo_catalog/dropbox_logo_glyph_2015_m1.svg"
+    light: "https://cdn.prod.website-files.com/66c503d081b2f012369fc5d2/674000d6c0a42d41f8c331be_dropbox-2-logo-png-transparent.png",
+    dark: "https://cdn.prod.website-files.com/66c503d081b2f012369fc5d2/674000d6c0a42d41f8c331be_dropbox-2-logo-png-transparent.png"
   };
 
   readonly config: ContentProviderConfig = {

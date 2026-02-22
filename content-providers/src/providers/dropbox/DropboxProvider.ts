@@ -31,7 +31,7 @@ export class DropboxProvider implements IProvider {
     name: "Dropbox",
     apiBase: "https://api.dropboxapi.com",
     oauthBase: "https://www.dropbox.com/oauth2",
-    clientId: "edggy1jh5vvnxyd",
+    clientId: "9io0q0q9angdz9j",
     scopes: [],
     endpoints: {
       listFolder: "/2/files/list_folder",

@@ -43,3 +43,9 @@ export interface ArclightLanguageVariant {
   };
   shareUrl?: string;
 }
+
+export interface ArclightMediaComponentLinksResponse {
+  linkedMediaComponentIds: {
+    contains: string[];
+  };
+}

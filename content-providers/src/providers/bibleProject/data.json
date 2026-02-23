@@ -1394,12 +1394,11 @@
       "image": "https://ik.imagekit.io/bpweb1/web/media/video-collection-images/spiritual-beings/tr:q-65,w-300/spiritual-beings_16.9.jpg",
       "videos": [
         {
-          "id": "placeholder-god",
+          "id": "bp-besUIzra",
           "title": "God",
           "filename": "god",
-          "muxPlaybackId": "",
-          "videoUrl": "",
-          "thumbnailUrl": ""
+          "muxPlaybackId": "besUIzraM02kEUPHAGjHCuPwxBhiCST1eEtxFJRNmop8",
+          "videoUrl": "https://stream.mux.com/besUIzraM02kEUPHAGjHCuPwxBhiCST1eEtxFJRNmop8/high.mp4"
         },
         {
           "id": "bp-PTRGt1Vg",
@@ -1409,12 +1408,11 @@
           "videoUrl": "https://stream.mux.com/PTRGt1VgegLyZHYTaOcXu003Q3BkJZ2Uqh01cOCrzn02pQ/high.mp4"
         },
         {
-          "id": "placeholder-elohim",
+          "id": "bp-N3AnsNCz",
           "title": "Elohim",
           "filename": "elohim",
-          "muxPlaybackId": "",
-          "videoUrl": "",
-          "thumbnailUrl": ""
+          "muxPlaybackId": "N3AnsNCz1OIXI700w5rGO00JX01LmfzoRntluIj9NTH2HI",
+          "videoUrl": "https://stream.mux.com/N3AnsNCz1OIXI700w5rGO00JX01LmfzoRntluIj9NTH2HI/high.mp4"
         },
         {
           "id": "bp-BcTDDkHz",
@@ -1445,12 +1443,11 @@
           "videoUrl": "https://stream.mux.com/wfNFTuM9dhzOfOk8UJmSEBgQcHXXLvATzKw402Fhskik/high.mp4"
         },
         {
-          "id": "placeholder-thenewhumanity",
+          "id": "bp-mHZLgFJe",
           "title": "The New Humanity",
           "filename": "thenewhumanity",
-          "muxPlaybackId": "",
-          "videoUrl": "",
-          "thumbnailUrl": ""
+          "muxPlaybackId": "mHZLgFJeSEftylHwz4lrEJmntFEfI3p1wRozJLy3M48",
+          "videoUrl": "https://stream.mux.com/mHZLgFJeSEftylHwz4lrEJmntFEfI3p1wRozJLy3M48/high.mp4"
         }
       ]
     },

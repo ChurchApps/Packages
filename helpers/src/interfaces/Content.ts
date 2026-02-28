@@ -61,6 +61,12 @@ export interface EventInterface {
   visibility?: string;
   recurrenceRule?: string;
   exceptionDates?: Date[];
+  registrationEnabled?: boolean;
+  capacity?: number;
+  registrationOpenDate?: Date;
+  registrationCloseDate?: Date;
+  tags?: string;
+  formId?: string;
 }
 export interface EventExceptionInterface {
   id?: string;

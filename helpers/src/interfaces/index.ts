@@ -11,4 +11,5 @@ export * from "./Donation.js";
 export * from "./Lessons.js";
 export * from "./Membership.js";
 export * from "./Messaging.js";
+export * from "./Registration.js";
 export * from "./Reporting.js";

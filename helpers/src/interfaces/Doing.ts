@@ -58,10 +58,11 @@ export interface PlanInterface {
   notes?: string;
   contentType?: string;
   contentId?: string;
-  // Content provider fields
   providerId?: string;
-  providerPlanId?: string;  // Path to the content in the provider
+  providerPlanId?: string;
   providerPlanName?: string;
+  signupDeadlineHours?: number;
+  showVolunteerNames?: boolean;
 }
 export interface PositionInterface {
   id?: string;
@@ -71,6 +72,8 @@ export interface PositionInterface {
   name?: string;
   count?: number;
   groupId?: string;
+  allowSelfSignup?: boolean;
+  description?: string;
 }
 export interface AssignmentInterface {
   id?: string;
@@ -110,16 +113,16 @@ export interface ContentFileInterface {
   id?: string;
   name?: string;
   url?: string;
-  fileType?: string;  // "image", "video", "audio", "document"
+  fileType?: string;
   seconds?: number;
 }
 
 export interface PlanItemContentInterface {
-  provider: string;           // "lessons", "songs", "media", "church"
-  embedUrl?: string;          // URL for iframe embed
-  html?: string;              // Raw HTML content
+  provider: string;
+  embedUrl?: string;
+  html?: string;
   files?: ContentFileInterface[];
-  metadata?: Record<string, any>;  // Provider-specific data
+  metadata?: Record<string, any>;
 }
 
 export interface PlanItemInterface {
@@ -127,16 +130,16 @@ export interface PlanItemInterface {
   planId?: string;
   parentId?: string;
   sort?: number;
-  itemType?: string;  // "header", "song", "lessonAction", "lessonAddOn", "lessonSection", "item"
+  itemType?: string;
   relatedId?: string;
   label?: string;
   description?: string;
   seconds?: number;
   link?: string;
   children?: PlanItemInterface[];
-  content?: PlanItemContentInterface;  // Populated by PlanHelper
-  providerId?: string;  // Provider that owns this item's content
-  providerPath?: string;  // Path to fetch instructions from provider
-  providerContentPath?: string;  // Dot-notation path to specific content item (e.g. "0.2.1")
+  content?: PlanItemContentInterface;
+  providerId?: string;
+  providerPath?: string;
+  providerContentPath?: string;
   thumbnailUrl?: string;
 }

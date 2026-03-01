@@ -76,7 +76,6 @@ export const LoginSetPassword: React.FC<Props> = props => {
   }, []);
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "white", display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" }}>
       <Card sx={{
         width: "100%",
         maxWidth: { xs: "400px", sm: "500px" },
@@ -267,6 +266,5 @@ export const LoginSetPassword: React.FC<Props> = props => {
           )}
         </CardContent>
       </Card>
-    </div>
   );
 };

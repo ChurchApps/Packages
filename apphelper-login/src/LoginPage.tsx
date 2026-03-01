@@ -31,6 +31,7 @@ interface Props {
 	loginContainerCssProps?: PaperProps;
 	defaultEmail?: string;
 	defaultPassword?: string;
+	containerStyle?: React.CSSProperties;
 	handleRedirect?: (url: string, user?: UserInterface, person?: PersonInterface, userChurch?: LoginUserChurchInterface, userChurches?: LoginUserChurchInterface[]) => void; // Function to handle redirects from parent component
 }
 
@@ -290,15 +291,26 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
 
 	React.useEffect(init, []); //eslint-disable-line
 
+  const defaultContainerStyle: React.CSSProperties = {
+    minHeight: "100vh",
+    backgroundColor: "white",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "16px",
+    position: "relative",
+  };
+
   return (
-		<>
+		<div style={{ ...defaultContainerStyle, ...props.containerStyle }}>
 			<ErrorMessages errors={errors} />
 			{getWelcomeBack()}
 			{getCheckEmail()}
 			{!pendingAutoLogin && getInputBox()}
 			<SelectChurchModal show={showSelectModal} userChurches={loginResponse?.userChurches} selectChurch={selectChurch} registeredChurchCallback={handleChurchRegistered} errors={errors} appName={props.appName} handleRedirect={props.handleRedirect} />
 			<FloatingSupport appName={props.appName} />
-		</>
+		</div>
   );
 
 };

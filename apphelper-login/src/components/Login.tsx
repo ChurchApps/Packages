@@ -43,7 +43,7 @@ export const Login: React.FC<Props> = ({ mainContainerCssProps = {}, ...props })
   };
 
   return (
-		<div id="login-container" style={{ minHeight: "100vh", backgroundColor: "white", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "16px", position: "relative" }}>
+		<>
 			<Card id="login-card" sx={{
 			  width: "100%",
 			  maxWidth: { xs: "400px", sm: "500px" },
@@ -279,6 +279,6 @@ export const Login: React.FC<Props> = ({ mainContainerCssProps = {}, ...props })
 					</a>
 				</div>
 			)}
-		</div>
+		</>
   );
 };

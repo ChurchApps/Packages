@@ -81,7 +81,6 @@ export const Register: React.FC<Props> = (props) => {
 
   if (registered) {
     return (
-      <div style={{ minHeight: "100vh", backgroundColor: "white", display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" }}>
         <Card sx={{
           width: "100%",
           maxWidth: { xs: "400px", sm: "500px" },
@@ -136,12 +135,10 @@ export const Register: React.FC<Props> = (props) => {
             </button>
           </CardContent>
         </Card>
-      </div>
     );
   }
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "white", display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" }}>
       <Card sx={{
         width: "100%",
         maxWidth: { xs: "400px", sm: "500px" },
@@ -338,6 +335,5 @@ export const Register: React.FC<Props> = (props) => {
           </form>
         </CardContent>
       </Card>
-    </div>
   );
 };

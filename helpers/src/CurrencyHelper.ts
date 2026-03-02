@@ -1,4 +1,12 @@
+import { ApiHelper } from "./ApiHelper.js";
+
 export class CurrencyHelper {
+  static loadCurrency = async () => {
+    const gateways = await ApiHelper.get("/gateways", "GivingApi");
+    if (gateways.length === 0) return "usd";
+    return gateways[0].currency || "usd";
+  };
+
   static formatCurrency(amount: number) {
     const formatter = new Intl.NumberFormat("en-US", {
       style: "currency",
@@ -8,16 +16,24 @@ export class CurrencyHelper {
     return formatter.format(amount);
   }
 
-  static formatCurrencyWithLocale(amount: number, currency: string = "USD") {
+
+  static formatCurrencyWithLocale(amount: number, currency: string = "usd", fractionDigits: number = 2) {
+    const symbol = this.getCurrencySymbol(currency);
+
     const normalizedCurrency = currency.toUpperCase();
     const locale = this.getLocaleForCurrency(normalizedCurrency);
 
     const formatter = new Intl.NumberFormat(locale, {
       style: "currency",
       currency: normalizedCurrency,
-      minimumFractionDigits: 2
+      currencyDisplay: "code",
+      minimumFractionDigits: fractionDigits,
+      maximumFractionDigits: fractionDigits,
     });
-    return formatter.format(amount);
+
+    // replace the currency code with the symbol
+    const formattedAmount = formatter.format(amount);
+    return formattedAmount.replace(normalizedCurrency, symbol);
   }
 
   static getCurrencySymbol(currency?: string) {
@@ -26,8 +42,8 @@ export class CurrencyHelper {
       usd: { percent: 2.9, fixed: 0.3, symbol: "$" },
       eur: { percent: 2.9, fixed: 0.25, symbol: "€" },
       gbp: { percent: 2.9, fixed: 0.2, symbol: "£" },
-      cad: { percent: 2.9, fixed: 0.3, symbol: "CA$" },
-      aud: { percent: 2.9, fixed: 0.3, symbol: "AU$" },
+      cad: { percent: 2.9, fixed: 0.3, symbol: "C$" },
+      aud: { percent: 2.9, fixed: 0.3, symbol: "A$" },
       inr: { percent: 2.9, fixed: 3.0, symbol: "₹" },
       jpy: { percent: 2.9, fixed: 30.0, symbol: "¥" },
       sgd: { percent: 2.9, fixed: 0.5, symbol: "S$" },

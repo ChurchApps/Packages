@@ -64,11 +64,7 @@ export class Permissions {
     }
   };
 
-  static messagingApi = {
-    texting: {
-      send: { api: "MessagingApi", contentType: "Texting", action: "Send" }
-    }
-  };
+  static messagingApi = { texting: { send: { api: "MessagingApi", contentType: "Texting", action: "Send" } } };
 
   static contentApi = {
     chat: { host: { api: "ContentApi", contentType: "Chat", action: "Host" } },

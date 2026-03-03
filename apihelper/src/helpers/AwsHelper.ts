@@ -20,7 +20,6 @@ export class AwsHelper {
     return result;
   }
 
-
   private static _client: S3Client;
 
   private static getClient(): S3Client {

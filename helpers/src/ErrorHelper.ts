@@ -1,6 +1,5 @@
 import { ErrorLogInterface, ErrorAppDataInterface } from "./interfaces/Error.js";
 
-
 export class ErrorHelper {
 
   static getAppData: () => { churchId: string, userId: string, originUrl: string, application: string };
@@ -12,8 +11,6 @@ export class ErrorHelper {
   };
 
   static logError = (errorType: string, message: string, details: string) => {
-
-
     if (this.getAppData) {
       const data = this.getAppData();
       const log: ErrorLogInterface = {
@@ -33,6 +30,5 @@ export class ErrorHelper {
       if (ErrorHelper.customErrorHandler) ErrorHelper.customErrorHandler(log);
     }
   };
-
 
 }

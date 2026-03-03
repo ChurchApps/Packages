@@ -103,110 +103,110 @@ export const NewPrivateMessage: React.FC<Props> = (props) => {
 
   if (!selectedPerson) {
     return (
-    <Paper elevation={0} sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
-      <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
-        <Stack direction="row" alignItems="center" spacing={2}>
-          <IconButton onClick={props.onBack}>
-            <ArrowBackIcon />
-          </IconButton>
-          <Typography variant="h6" component="h2">
-            {Locale.label("wrapper.newPrivateMessage", "New Private Message")}
-          </Typography>
-        </Stack>
-      </Box>
-
-      <Box sx={{ p: 3 }}>
-        <Stack spacing={3}>
-          <Box>
-            <Typography variant="body1" color="textSecondary" gutterBottom>
-              {Locale.label("wrapper.searchForPerson", "Search for a person to message")}
+      <Paper elevation={0} sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
+        <Box sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
+          <Stack direction="row" alignItems="center" spacing={2}>
+            <IconButton onClick={props.onBack}>
+              <ArrowBackIcon />
+            </IconButton>
+            <Typography variant="h6" component="h2">
+              {Locale.label("wrapper.newPrivateMessage", "New Private Message")}
             </Typography>
-            <TextField
-              fullWidth
-              placeholder="Search by name..."
-              id="searchText"
-              data-testid="search-input"
-              value={searchText}
-              onChange={handleChange}
-              onKeyDown={(e) => {
-                e.stopPropagation();
-                if (e.key === "Enter") handleSearchSubmit(null);
-              }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <PersonSearchIcon color="action" />
-                  </InputAdornment>
-                ),
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <Button
-                      variant="contained"
-                      size="small"
-                      onClick={handleSearchSubmit}
-                      disabled={!searchText.trim() || isSearching}
-                    >
-                      {Locale.label("common.search", "Search")}
-                    </Button>
-                  </InputAdornment>
-                )
-              }}
-              sx={{ mt: 1 }}
-            />
-          </Box>
+          </Stack>
+        </Box>
 
-          {isSearching && (
+        <Box sx={{ p: 3 }}>
+          <Stack spacing={3}>
             <Box>
-              {[...Array(3)].map((_, index) => (
-                <Box key={`skeleton-${index}`} sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                  <Skeleton variant="circular" width={48} height={48} sx={{ mr: 2 }} />
-                  <Skeleton variant="text" width="60%" height={24} />
-                </Box>
-              ))}
-            </Box>
-          )}
-
-          {!isSearching && searchResults.length > 0 && (
-            <Box>
-              <Typography variant="subtitle2" color="textSecondary" gutterBottom>
-                {searchResults.length} {searchResults.length === 1 ? "person" : "people"} found
+              <Typography variant="body1" color="textSecondary" gutterBottom>
+                {Locale.label("wrapper.searchForPerson", "Search for a person to message")}
               </Typography>
-              <List sx={{ bgcolor: "background.paper", borderRadius: 1 }}>
-                {searchResults.map((person, index) => (
-                  <React.Fragment key={person.id}>
-                    <ListItemButton
-                      onClick={() => handlePersonSelected(person)}
-                      sx={{ py: 2 }}
-                    >
-                      <ListItemAvatar>
-                        <PersonAvatar person={person} size="small" />
-                      </ListItemAvatar>
-                      <ListItemText
-                        primary={person.name.display}
-                        secondary={person.contactInfo?.email || ""}
-                      />
-                    </ListItemButton>
-                    {index < searchResults.length - 1 && <Divider />}
-                  </React.Fragment>
+              <TextField
+                fullWidth
+                placeholder="Search by name..."
+                id="searchText"
+                data-testid="search-input"
+                value={searchText}
+                onChange={handleChange}
+                onKeyDown={(e) => {
+                  e.stopPropagation();
+                  if (e.key === "Enter") handleSearchSubmit(null);
+                }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <PersonSearchIcon color="action" />
+                    </InputAdornment>
+                  ),
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <Button
+                        variant="contained"
+                        size="small"
+                        onClick={handleSearchSubmit}
+                        disabled={!searchText.trim() || isSearching}
+                      >
+                        {Locale.label("common.search", "Search")}
+                      </Button>
+                    </InputAdornment>
+                  )
+                }}
+                sx={{ mt: 1 }}
+              />
+            </Box>
+
+            {isSearching && (
+              <Box>
+                {[...Array(3)].map((_, index) => (
+                  <Box key={`skeleton-${index}`} sx={{ display: "flex", alignItems: "center", mb: 2 }}>
+                    <Skeleton variant="circular" width={48} height={48} sx={{ mr: 2 }} />
+                    <Skeleton variant="text" width="60%" height={24} />
+                  </Box>
                 ))}
-              </List>
-            </Box>
-          )}
+              </Box>
+            )}
 
-          {!isSearching && searchText && searchResults.length === 0 && (
-            <Box sx={{ textAlign: "center", py: 4 }}>
-              <PersonSearchIcon sx={{ fontSize: 48, color: "grey.400", mb: 2 }} />
-              <Typography variant="h6" color="textSecondary">
+            {!isSearching && searchResults.length > 0 && (
+              <Box>
+                <Typography variant="subtitle2" color="textSecondary" gutterBottom>
+                  {searchResults.length} {searchResults.length === 1 ? "person" : "people"} found
+                </Typography>
+                <List sx={{ bgcolor: "background.paper", borderRadius: 1 }}>
+                  {searchResults.map((person, index) => (
+                    <React.Fragment key={person.id}>
+                      <ListItemButton
+                        onClick={() => handlePersonSelected(person)}
+                        sx={{ py: 2 }}
+                      >
+                        <ListItemAvatar>
+                          <PersonAvatar person={person} size="small" />
+                        </ListItemAvatar>
+                        <ListItemText
+                          primary={person.name.display}
+                          secondary={person.contactInfo?.email || ""}
+                        />
+                      </ListItemButton>
+                      {index < searchResults.length - 1 && <Divider />}
+                    </React.Fragment>
+                  ))}
+                </List>
+              </Box>
+            )}
+
+            {!isSearching && searchText && searchResults.length === 0 && (
+              <Box sx={{ textAlign: "center", py: 4 }}>
+                <PersonSearchIcon sx={{ fontSize: 48, color: "grey.400", mb: 2 }} />
+                <Typography variant="h6" color="textSecondary">
                 No people found
-              </Typography>
-              <Typography variant="body2" color="textSecondary">
+                </Typography>
+                <Typography variant="body2" color="textSecondary">
                 Try searching with a different name
-              </Typography>
-            </Box>
-          )}
-        </Stack>
-      </Box>
-    </Paper>
+                </Typography>
+              </Box>
+            )}
+          </Stack>
+        </Box>
+      </Paper>
     );
   } else {
     return (

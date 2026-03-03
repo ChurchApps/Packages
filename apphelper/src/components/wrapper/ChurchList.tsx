@@ -123,22 +123,22 @@ export const ChurchList: React.FC<Props> = props => {
     const userChurch = uc;
     const churchName = uc.church.name;
     result.push(<NavItem
-			key={userChurch.church.id}
-			selected={(uc.church.id === props.currentUserChurch.church.id) && true}
-			onClick={async () => {
+      key={userChurch.church.id}
+      selected={(uc.church.id === props.currentUserChurch.church.id) && true}
+      onClick={async () => {
 			  await UserHelper.selectChurch(props.context, userChurch.church.id, null);
 
 			  // Call the onChurchChange callback if provided
 			  if (props.onChurchChange) {
 			    props.onChurchChange();
 			  }
-			}}
-			label={churchName || "Unknown"}
-			icon="church"
-			deleteIcon={uc.church.id !== props.currentUserChurch.church.id ? "delete" : null}
-			deleteLabel={getLabel("wrapper.deleteChurch", "Delete")}
-			deleteFunction={() => { handleDelete(uc); }}
-		/>);
+      }}
+      label={churchName || "Unknown"}
+      icon="church"
+      deleteIcon={uc.church.id !== props.currentUserChurch.church.id ? "delete" : null}
+      deleteLabel={getLabel("wrapper.deleteChurch", "Delete")}
+      deleteFunction={() => { handleDelete(uc); }}
+    />);
   });
 
   return <div id="church-list">{result}</div>;

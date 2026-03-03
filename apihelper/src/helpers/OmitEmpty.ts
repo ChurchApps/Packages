@@ -3,7 +3,6 @@
 
 "use strict";
 
-
 interface OmitEmptyOptions {
     omitZero?: boolean;
     omitEmptyArray?: boolean;
@@ -49,7 +48,6 @@ export class OmitEmpty {
     }
     return res;
   }
-
 
   private static _buildRuntimeOpts(options: OmitEmptyOptions = {}): RuntimeOptions {
     return {

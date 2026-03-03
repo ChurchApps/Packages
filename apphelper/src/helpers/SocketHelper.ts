@@ -12,7 +12,6 @@ export class SocketHelper {
     if (pc?.personId && pc.personId && pc.churchId !== this.personIdChurchId.churchId && pc.personId !== this.personIdChurchId.personId) {
       this.personIdChurchId = pc;
       this.createAlertConnection();
-    } else {
     }
   };
 

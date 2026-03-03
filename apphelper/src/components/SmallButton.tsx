@@ -32,11 +32,11 @@ export const SmallButton = React.forwardRef<HTMLDivElement, Props>((props, ref) 
   if (redirectUrl) return <Navigate to={redirectUrl} />;
   else {
     return (
-    <Tooltip title={props.toolTip || ""} arrow placement="top">
-      <Button sx={style} disabled={props.disabled} variant={props.text ? "outlined" : "text"} color={props.color} aria-label={props.ariaLabel || "editButton"} onClick={handleClick} size="small" data-testid={props["data-testid"] || `small-button-${props.icon}`}>
-        <Icon>{props.icon}</Icon>{(props.text) ? props.text : ""}
-      </Button>
-    </Tooltip>
+      <Tooltip title={props.toolTip || ""} arrow placement="top">
+        <Button sx={style} disabled={props.disabled} variant={props.text ? "outlined" : "text"} color={props.color} aria-label={props.ariaLabel || "editButton"} onClick={handleClick} size="small" data-testid={props["data-testid"] || `small-button-${props.icon}`}>
+          <Icon>{props.icon}</Icon>{(props.text) ? props.text : ""}
+        </Button>
+      </Tooltip>
     );
   }
 });

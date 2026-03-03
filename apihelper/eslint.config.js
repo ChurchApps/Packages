@@ -1,32 +1,14 @@
-import eslint from "@eslint/js";
 import tseslint from "@typescript-eslint/eslint-plugin";
-import parser from "@typescript-eslint/parser";
+import tsparser from "@typescript-eslint/parser";
 import unusedImports from "eslint-plugin-unused-imports";
 
 export default [
-  eslint.configs.recommended,
+  { ignores: ["node_modules/", "dist/", "build/", ".next/", "coverage/", "*.config.js"] },
   {
     files: ["**/*.{ts,tsx,js,jsx}"],
     languageOptions: {
-      parser: parser,
-      parserOptions: {
-        ecmaVersion: 2020,
-        sourceType: "module"
-      },
-      globals: {
-        console: "readonly",
-        process: "readonly",
-        Buffer: "readonly",
-        __dirname: "readonly",
-        global: "readonly",
-        setTimeout: "readonly",
-        clearTimeout: "readonly",
-        setInterval: "readonly",
-        clearInterval: "readonly",
-        URL: "readonly",
-        URLSearchParams: "readonly",
-        File: "readonly"
-      }
+      parser: tsparser,
+      parserOptions: { ecmaVersion: "latest", sourceType: "module" }
     },
     plugins: {
       "@typescript-eslint": tseslint,
@@ -36,7 +18,6 @@ export default [
       "prefer-const": "error",
       "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/no-unused-vars": ["warn", { args: "all", argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
-      "no-unused-vars": "off",
       "unused-imports/no-unused-imports": "error",
       "no-trailing-spaces": "error",
       "eol-last": ["error", "always"],
@@ -51,27 +32,17 @@ export default [
       "no-multi-spaces": ["error", { ignoreEOLComments: true }],
       "block-spacing": ["error", "always"],
       "brace-style": ["error", "1tbs", { allowSingleLine: true }],
-      "curly": ["error", "multi-line"],
+      curly: ["error", "multi-line"],
       "nonblock-statement-body-position": ["error", "beside"],
       "object-curly-spacing": ["error", "always"],
-      "object-curly-newline": ["error", {
-        ObjectExpression: { multiline: true },
-        ObjectPattern: { multiline: true },
-        ImportDeclaration: { multiline: true },
-        ExportDeclaration: { multiline: true }
-      }],
+      "object-curly-newline": ["error", { ObjectExpression: { multiline: true }, ObjectPattern: { multiline: true }, ImportDeclaration: { multiline: true }, ExportDeclaration: { multiline: true } }],
       "object-property-newline": ["error", { allowAllPropertiesOnSameLine: true }],
       "array-bracket-spacing": ["error", "never"],
       "array-bracket-newline": ["error", { multiline: true, minItems: 8 }],
       "array-element-newline": ["error", { ArrayExpression: "consistent", ArrayPattern: { minItems: 8 } }],
       "function-paren-newline": ["error", "consistent"],
       "function-call-argument-newline": ["error", "consistent"],
-      "max-len": ["warn", { code: 250, ignoreStrings: true, ignoreTemplateLiterals: true, ignoreComments: true, ignoreUrls: true, ignoreRegExpLiterals: true }],
-      "no-useless-catch": "off",
-      "no-console": "off"
+      "max-len": ["warn", { code: 250, ignoreStrings: true, ignoreTemplateLiterals: true, ignoreComments: true, ignoreUrls: true, ignoreRegExpLiterals: true }]
     }
-  },
-  {
-    ignores: ["node_modules/", "dist/", "build/", ".next/", "coverage/", "*.config.js"]
   }
 ];

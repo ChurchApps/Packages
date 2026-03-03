@@ -31,7 +31,8 @@ export class ErrorHelper {
       try {
         // Error posting to /errors endpoint disabled
         // ApiHelper.postAnonymous("/clientErrors", [log], "MembershipApi");
-      } catch (error) {
+      } catch (_error) {
+        // Error posting disabled
       }
       if (ErrorHelper.customErrorHandler) ErrorHelper.customErrorHandler(log);
     }

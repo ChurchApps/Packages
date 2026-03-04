@@ -35,6 +35,8 @@ interface Props {
 	handleRedirect?: (url: string, user?: UserInterface, person?: PersonInterface, userChurch?: LoginUserChurchInterface, userChurches?: LoginUserChurchInterface[]) => void; // Function to handle redirects from parent component
 }
 
+const COOKIE_MAX_AGE = 180 * 24 * 60 * 60; // 180 days in seconds (matches user JWT expiry)
+
 const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssProps, ...props }) => {
   const [welcomeBackName, setWelcomeBackName] = React.useState("");
   const [pendingAutoLogin, setPendingAutoLogin] = React.useState(false);
@@ -121,8 +123,8 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
     resp.userChurches.forEach(uc => { if (!uc.apis) uc.apis = []; });
     UserHelper.userChurches = resp.userChurches;
 
-    setCookie("name", `${resp.user.firstName} ${resp.user.lastName}`, { path: "/" });
-    setCookie("email", resp.user.email, { path: "/" });
+    setCookie("name", `${resp.user.firstName} ${resp.user.lastName}`, { path: "/", maxAge: COOKIE_MAX_AGE });
+    setCookie("email", resp.user.email, { path: "/", maxAge: COOKIE_MAX_AGE });
     UserHelper.user = resp.user;
 
     // JWT church selection is handled by the server response, no client-side decoding needed
@@ -141,7 +143,7 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
   const selectChurchById = async () => {
     await UserHelper.selectChurch(props.context, selectedChurchId, undefined);
 
-    setCookie("lastChurchId", selectedChurchId, { path: "/" });
+    setCookie("lastChurchId", selectedChurchId, { path: "/", maxAge: COOKIE_MAX_AGE });
 
     if (registeredChurch) {
       AnalyticsHelper.logEvent("Church", "Register", UserHelper.currentUserChurch.church.name);
@@ -163,7 +165,7 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
     if (!ArrayHelper.getOne(UserHelper.userChurches, "church.subDomain", props.keyName)) {
       const userChurch: LoginUserChurchInterface = await ApiHelper.post("/churches/select", { subDomain: props.keyName }, "MembershipApi");
       UserHelper.setupApiHelper(userChurch);
-      setCookie("lastChurchId", userChurch.church.id, { path: "/" });
+      setCookie("lastChurchId", userChurch.church.id, { path: "/", maxAge: COOKIE_MAX_AGE });
       //create/claim the person record and relogin
       await ApiHelper.get("/people/claim/" + userChurch.church.id, "MembershipApi");
       login({ jwt: userJwt || userJwtBackup });
@@ -171,16 +173,15 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
     }
     await UserHelper.selectChurch(props.context, undefined, props.keyName);
     const selectedChurch = ArrayHelper.getOne(UserHelper.userChurches, "church.subDomain", props.keyName);
-    if (selectedChurch) setCookie("lastChurchId", selectedChurch.church.id, { path: "/" });
+    if (selectedChurch) setCookie("lastChurchId", selectedChurch.church.id, { path: "/", maxAge: COOKIE_MAX_AGE });
     await continueLoginProcess();
     return;
   };
 
   async function continueLoginProcess() {
     if (UserHelper.currentUserChurch) {
-      UserHelper.currentUserChurch.apis.forEach(api => {
-        if (api.keyName === "MembershipApi") setCookie("jwt", api.jwt, { path: "/" });
-      });
+      // Store the user JWT (180-day) for session persistence, not the API JWT (2-day)
+      setCookie("jwt", userJwt || userJwtBackup, { path: "/", maxAge: COOKIE_MAX_AGE });
       try {
         if (UserHelper.currentUserChurch.church.id) ApiHelper.patch(`/userChurch/${UserHelper.user.id}`, { churchId: UserHelper.currentUserChurch.church.id, appName: props.appName, lastAccessed: new Date() }, "MembershipApi");
       } catch (e) {
@@ -219,7 +220,7 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
     try {
       setErrors([]);
       selectedChurchId = churchId;
-      setCookie("lastChurchId", churchId, { path: "/" });
+      setCookie("lastChurchId", churchId, { path: "/", maxAge: COOKIE_MAX_AGE });
       if (!ArrayHelper.getOne(UserHelper.userChurches, "church.id", churchId)) {
         const userChurch: LoginUserChurchInterface = await ApiHelper.post("/churches/select", { churchId: churchId }, "MembershipApi");
         UserHelper.setupApiHelper(userChurch);

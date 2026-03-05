@@ -12,7 +12,7 @@ interface PageHeaderProps {
 export const PageHeader: React.FC<PageHeaderProps> = ({ icon, title, subtitle, children, statistics }) => {
   return (
     <Box id="page-header" sx={{
-      backgroundColor: "var(--c1l2)",
+      background: "linear-gradient(135deg, var(--c1d3, #0D3B6E) 0%, var(--c1, #1565C0) 40%, var(--c1l2, #568BDA) 100%)",
       color: "#FFF",
       position: "relative",
       left: "50%",
@@ -20,14 +20,39 @@ export const PageHeader: React.FC<PageHeaderProps> = ({ icon, title, subtitle, c
       marginLeft: "-50vw",
       marginRight: "-50vw",
       width: "100vw",
+      overflow: "hidden",
       "--c1": "#1565C0",
       "--c1d1": "#1358AD",
       "--c1d2": "#114A99",
-      "--c1l2": "#568BDA"
+      "--c1l2": "#568BDA",
+      "&::before": {
+        content: "''",
+        position: "absolute",
+        top: -100,
+        right: -100,
+        width: 400,
+        height: 400,
+        borderRadius: "50%",
+        background: "rgba(255,255,255,0.05)",
+        pointerEvents: "none",
+      },
+      "&::after": {
+        content: "''",
+        position: "absolute",
+        bottom: -80,
+        left: -80,
+        width: 300,
+        height: 300,
+        borderRadius: "50%",
+        background: "rgba(255,255,255,0.04)",
+        pointerEvents: "none",
+      },
     }}>
       <Box sx={{
         paddingX: { xs: 2, sm: 3, md: 4 },
-        paddingY: 3
+        paddingY: 3,
+        position: "relative",
+        zIndex: 1,
       }}>
         <Stack direction={{ xs: "column", md: "row" }} spacing={{ xs: 2, md: 4 }} alignItems={{ xs: "flex-start", md: "center" }} sx={{ width: "100%" }}>
           {/* Left side: Title and Icon */}

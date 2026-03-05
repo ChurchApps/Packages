@@ -261,12 +261,14 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
 
   const getWelcomeBack = () => {
     if (welcomeBackName !== "") {
-      const label = Locale.label("login.welcomeName") || "Welcome back, {}!";
+      const label = Locale.label("login.welcomeName") || "Welcome back, <b>{}</b>!";
       const parts = label.split("{}");
+      const before = parts[0].replace(/<b>/g, "").replace(/<\/b>/g, "");
+      const after = (parts[1] || "").replace(/<b>/g, "").replace(/<\/b>/g, "");
       return (
 				<>
 					<Alert severity="info">
-						{parts[0]}{welcomeBackName}{parts[1] || ""}
+						{before}<b>{welcomeBackName}</b>{after}
 					</Alert>
 					<Loading />
 				</>

@@ -388,21 +388,31 @@ export class B1ChurchProvider implements IProvider {
   }
 
   async getPlaylist(path: string, authData?: ContentProviderAuthData | null, resolution?: number): Promise<ContentFile[] | null> {
+    console.log(`[B1Church] getPlaylist called with path=${path}`);
     const { segments, depth } = parsePath(path);
 
-    if (depth < 4 || segments[0] !== "ministries") return null;
+    if (depth < 4 || segments[0] !== "ministries") {
+      console.warn(`[B1Church] getPlaylist: invalid path depth=${depth} segments=${JSON.stringify(segments)}`);
+      return null;
+    }
 
     const ministryId = segments[1];
     const planId = segments[3];
     const planTypeId = segments[2];
+    console.log(`[B1Church] getPlaylist: ministryId=${ministryId}, planTypeId=${planTypeId}, planId=${planId}`);
 
     // Need to fetch plan details to get churchId and contentId
     const plans = await fetchPlans(planTypeId, authData);
+    console.log(`[B1Church] getPlaylist: fetchPlans returned ${plans.length} plans`);
     const planFolder = plans.find(p => p.id === planId);
-    if (!planFolder) return null;
+    if (!planFolder) {
+      console.warn(`[B1Church] getPlaylist: plan ${planId} not found in ${plans.length} plans (ids: ${plans.map(p => p.id).join(", ")})`);
+      return null;
+    }
 
     const churchId = planFolder.churchId;
     const venueId = planFolder.contentId;
+    console.log(`[B1Church] getPlaylist: planFolder found — churchId=${churchId}, venueId=${venueId}, providerId=${planFolder.providerId}, providerPlanId=${planFolder.providerPlanId}`);
 
     if (!churchId) {
       console.warn("[B1Church getPlaylist] planFolder missing churchId:", planFolder.id);
@@ -411,9 +421,11 @@ export class B1ChurchProvider implements IProvider {
 
     const pathFn = this.config.endpoints.planItems as (churchId: string, planId: string) => string;
     const planItems = await this.apiRequest<B1PlanItem[]>(pathFn(churchId, planId), authData);
+    console.log(`[B1Church] getPlaylist: planItems=${planItems ? (Array.isArray(planItems) ? planItems.length + " sections" : typeof planItems) : "null"}`);
 
     // If no planItems but plan has associated provider content, fetch from that provider
     if ((!planItems || planItems.length === 0) && planFolder.providerId && planFolder.providerPlanId) {
+      console.log(`[B1Church] getPlaylist: no planItems, trying external provider ${planFolder.providerId} with path ${planFolder.providerPlanId}`);
       const externalFiles = await fetchFromProviderProxy(
         "getPlaylist",
         ministryId,
@@ -422,24 +434,38 @@ export class B1ChurchProvider implements IProvider {
         authData,
         resolution
       );
+      console.log(`[B1Church] getPlaylist: external provider returned ${externalFiles ? (Array.isArray(externalFiles) ? externalFiles.length + " files" : typeof externalFiles) : "null"}`);
       return externalFiles || null;
     }
 
-    if (!planItems || !Array.isArray(planItems)) return null;
+    if (!planItems || !Array.isArray(planItems)) {
+      console.warn(`[B1Church] getPlaylist: planItems is null/not-array and no external provider fallback. providerId=${planFolder.providerId}, providerPlanId=${planFolder.providerPlanId}`);
+      return null;
+    }
 
+    console.log(`[B1Church] getPlaylist: processing ${planItems.length} sections, venueId=${venueId || "none"}`);
     const venueFeed = venueId ? await fetchVenueFeed(venueId) : null;
+    if (venueId && !venueFeed) {
+      console.warn(`[B1Church] getPlaylist: venueFeed is null for venueId=${venueId}`);
+    }
     const files: ContentFile[] = [];
 
     for (const sectionItem of planItems) {
+      console.log(`[B1Church] getPlaylist: section "${sectionItem.label || sectionItem.id}" has ${sectionItem.children?.length || 0} children`);
       for (const child of sectionItem.children || []) {
         const childItemType = child.itemType;
+        console.log(`[B1Church] getPlaylist:   child itemType=${childItemType}, relatedId=${child.relatedId}, providerId=${child.providerId}, providerPath=${child.providerPath}, link=${child.link ? "yes" : "no"}`);
 
         // Check if this is a section that can be expanded from the local venue feed
         const isSectionType = childItemType === "section" || childItemType === "lessonSection" || childItemType === "providerSection";
         const canExpandLocally = isSectionType && venueFeed && child.relatedId;
 
-        // Try external provider resolution first (cached, uses providerContentPath)
-        if (isExternalProviderItem(child) && child.providerId && child.providerPath) {
+        // Prefer local venue feed resolution when possible (matches processInstructionItems behavior)
+        if (canExpandLocally) {
+          const itemFiles = getFilesFromVenueFeed(venueFeed, childItemType!, child.relatedId);
+          files.push(...itemFiles);
+        } else if (isExternalProviderItem(child) && child.providerId && child.providerPath) {
+          // External provider resolution (cached, uses providerContentPath)
           const cacheKey = `${child.providerId}:${child.providerPath}`;
 
           if (child.providerContentPath) {
@@ -492,10 +518,6 @@ export class B1ChurchProvider implements IProvider {
               files.push(...externalFiles);
             }
           }
-        } else if (canExpandLocally) {
-          // Get files from venue feed for section items
-          const itemFiles = getFilesFromVenueFeed(venueFeed, childItemType!, child.relatedId);
-          files.push(...itemFiles);
         } else if ((childItemType === "providerFile" || childItemType === "providerPresentation") && child.link) {
           // Fallback: use stored link when no provider info available
           const file = getFileFromProviderFileItem(child);
@@ -509,6 +531,10 @@ export class B1ChurchProvider implements IProvider {
       }
     }
 
+    console.log(`[B1Church] getPlaylist: total files collected = ${files.length}`);
+    if (files.length === 0) {
+      console.warn(`[B1Church] getPlaylist: returning null — no files found for path=${path}`);
+    }
     return files.length > 0 ? files : null;
   }
 

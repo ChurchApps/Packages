@@ -20,10 +20,17 @@ async function authFetch<T>(url: string, auth: ContentProviderAuthData | null | 
     if (auth) {
       headers["Authorization"] = `Bearer ${auth.access_token}`;
     }
+    console.log(`[B1Church] authFetch: ${url}`);
     const response = await fetch(url, { method: "GET", headers });
-    if (!response.ok) return null;
-    return await response.json();
-  } catch {
+    if (!response.ok) {
+      console.warn(`[B1Church] authFetch failed: ${url} → HTTP ${response.status} ${response.statusText}`);
+      return null;
+    }
+    const data = await response.json();
+    console.log(`[B1Church] authFetch OK: ${url} → ${Array.isArray(data) ? data.length + " items" : typeof data}`);
+    return data;
+  } catch (err) {
+    console.error(`[B1Church] authFetch error: ${url}`, err);
     return null;
   }
 }
@@ -46,10 +53,17 @@ export async function fetchPlans(planTypeId: string, auth: ContentProviderAuthDa
 export async function fetchVenueFeed(venueId: string): Promise<FeedVenueInterface | null> {
   try {
     const url = `${LESSONS_API_BASE}/venues/public/feed/${venueId}`;
+    console.log(`[B1Church] fetchVenueFeed: ${url}`);
     const response = await fetch(url, { method: "GET", headers: { Accept: "application/json" } });
-    if (!response.ok) return null;
-    return await response.json();
-  } catch {
+    if (!response.ok) {
+      console.warn(`[B1Church] fetchVenueFeed failed: HTTP ${response.status} ${response.statusText} for venueId=${venueId}`);
+      return null;
+    }
+    const data = await response.json();
+    console.log(`[B1Church] fetchVenueFeed OK: venueId=${venueId}, sections=${data?.sections?.length ?? "none"}`);
+    return data;
+  } catch (err) {
+    console.error(`[B1Church] fetchVenueFeed error: venueId=${venueId}`, err);
     return null;
   }
 }
@@ -68,10 +82,17 @@ export async function fetchVenuePlanItems(venueId: string): Promise<{ venueName?
 export async function fetchVenueActions(venueId: string): Promise<VenueActionsResponseInterface | null> {
   try {
     const url = `${LESSONS_API_BASE}/venues/public/actions/${venueId}`;
+    console.log(`[B1Church] fetchVenueActions: ${url}`);
     const response = await fetch(url, { method: "GET", headers: { Accept: "application/json" } });
-    if (!response.ok) return null;
-    return await response.json();
-  } catch {
+    if (!response.ok) {
+      console.warn(`[B1Church] fetchVenueActions failed: HTTP ${response.status} ${response.statusText} for venueId=${venueId}`);
+      return null;
+    }
+    const data = await response.json();
+    console.log(`[B1Church] fetchVenueActions OK: venueId=${venueId}`);
+    return data;
+  } catch (err) {
+    console.error(`[B1Church] fetchVenueActions error: venueId=${venueId}`, err);
     return null;
   }
 }
@@ -108,15 +129,22 @@ export async function fetchFromProviderProxy<M extends ProxyMethod>(
     const body: Record<string, unknown> = { ministryId, providerId, path };
     if (resolution !== undefined) body.resolution = resolution;
 
+    console.log(`[B1Church] providerProxy: ${method} providerId=${providerId} path=${path}`);
     const response = await fetch(url, {
       method: "POST",
       headers,
       body: JSON.stringify(body)
     });
 
-    if (!response.ok) return null;
-    return await response.json();
-  } catch {
+    if (!response.ok) {
+      console.warn(`[B1Church] providerProxy failed: ${method} → HTTP ${response.status} ${response.statusText}`);
+      return null;
+    }
+    const data = await response.json();
+    console.log(`[B1Church] providerProxy OK: ${method} → ${Array.isArray(data) ? data.length + " items" : typeof data}`);
+    return data;
+  } catch (err) {
+    console.error(`[B1Church] providerProxy error: ${method}`, err);
     return null;
   }
 }

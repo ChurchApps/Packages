@@ -127,7 +127,7 @@ export const SiteHeader = React.memo((props:Props) => {
       backgroundColor: "var(--c1)",
       color: "#FFF"
     } as React.CSSProperties}>
-      <CustomAppBar id="site-app-bar" position="absolute">
+      <CustomAppBar id="site-app-bar" position="absolute" elevation={1}>
         <Toolbar id="site-toolbar" sx={{ pr: "24px", backgroundColor: "var(--c1)", minHeight: "64px !important" }}>
           <PrimaryMenu label={props.primaryMenuLabel} menuItems={props.primaryMenuItems} onNavigate={props.onNavigate} />
           <SecondaryMenu label={props.secondaryMenuLabel} menuItems={props.secondaryMenuItems} onNavigate={props.onNavigate} />

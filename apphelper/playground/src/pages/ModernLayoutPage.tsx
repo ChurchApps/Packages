@@ -50,7 +50,6 @@ export default function ModernLayoutPage() {
             { url: "/attendance", label: "Attendance" }
           ],
           pageHeader: {
-            icon: <PersonIcon />,
             title: "People",
             subtitle: "Manage your church members and visitors",
             statistics: [
@@ -89,7 +88,6 @@ export default function ModernLayoutPage() {
             { url: "/donations/funds", label: "Funds" }
           ],
           pageHeader: {
-            icon: <VolunteerActivismIcon />,
             title: "Donations",
             subtitle: "Track and manage donations and giving",
             statistics: [
@@ -127,7 +125,6 @@ export default function ModernLayoutPage() {
             { url: "/tasks", label: "Tasks" }
           ],
           pageHeader: {
-            icon: <AssignmentIcon />,
             title: "Service Plans",
             subtitle: "Manage worship services and team assignments",
             statistics: [
@@ -159,7 +156,6 @@ export default function ModernLayoutPage() {
             { url: "/attendance", label: "Attendance" }
           ],
           pageHeader: {
-            icon: <PersonIcon />,
             title: "People",
             subtitle: "Manage your church members and visitors",
             statistics: [],
@@ -219,7 +215,6 @@ export default function ModernLayoutPage() {
 									} as React.CSSProperties}>
 
 										<PageHeader
-											icon={sectionConfig.pageHeader.icon}
 											title={sectionConfig.pageHeader.title}
 											subtitle={sectionConfig.pageHeader.subtitle}
 											statistics={sectionConfig.pageHeader.statistics}
@@ -282,7 +277,6 @@ export default function ModernLayoutPage() {
 											<Box sx={{ "& .MuiBox-root:first-child": { marginTop: 0 } }}>
 												<div style={{ "--c1l2": "#568BDA" } as React.CSSProperties}>
 													<PageHeader
-														icon={<GroupIcon />}
 														title="Group Management"
 														subtitle="Organize and manage your small groups"
 														statistics={[

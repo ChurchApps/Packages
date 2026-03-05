@@ -80,13 +80,12 @@ export default function AppHelperWrappersPage() {
 
 // New approach with SiteHeader + PageHeader
 <>
-  <SiteHeader 
+  <SiteHeader
     primaryMenuItems={menuItems}
     context={context}
     appName="YourApp"
   />
   <PageHeader
-    icon={<PersonIcon />}
     title="People"
     subtitle="Manage members"
   />

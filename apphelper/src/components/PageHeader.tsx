@@ -1,8 +1,8 @@
 import React, { ReactNode } from "react";
-import { Box, Typography, Stack } from "@mui/material";
+import { Box, Typography, Stack, Container } from "@mui/material";
 
 interface PageHeaderProps {
-  icon: ReactNode;
+  icon?: ReactNode;
   title: string;
   subtitle?: string;
   children?: ReactNode; // For action buttons or tabs
@@ -21,10 +21,6 @@ export const PageHeader: React.FC<PageHeaderProps> = ({ icon, title, subtitle, c
       marginRight: "-50vw",
       width: "100vw",
       overflow: "hidden",
-      "--c1": "#1565C0",
-      "--c1d1": "#1358AD",
-      "--c1d2": "#114A99",
-      "--c1l2": "#568BDA",
       "&::before": {
         content: "''",
         position: "absolute",
@@ -48,54 +44,50 @@ export const PageHeader: React.FC<PageHeaderProps> = ({ icon, title, subtitle, c
         pointerEvents: "none",
       },
     }}>
-      <Box sx={{
-        paddingX: { xs: 2, sm: 3, md: 4 },
-        paddingY: 3,
-        position: "relative",
-        zIndex: 1,
-      }}>
+      <Container maxWidth="xl" sx={{ position: "relative", zIndex: 1, paddingY: 6 }}>
         <Stack direction={{ xs: "column", md: "row" }} spacing={{ xs: 2, md: 4 }} alignItems={{ xs: "flex-start", md: "center" }} sx={{ width: "100%" }}>
-          {/* Left side: Title and Icon */}
-          <Stack id="page-header-title-section" direction="row" spacing={2} alignItems="center" sx={{ flex: 1 }}>
-            <Box
-              id="page-header-icon"
-              sx={{
-                backgroundColor: "rgba(255,255,255,0.2)",
-                borderRadius: "12px",
-                p: 1.5,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center"
-              }}
-            >
-              {React.cloneElement(icon as React.ReactElement<any>, { sx: { fontSize: 32, color: "#FFF" } })}
-            </Box>
-            <Box id="page-header-text">
-              <Typography
-                id="page-header-title"
-                variant="h4"
-                sx={{
-                  fontWeight: 600,
-                  mb: 0.5,
-                  fontSize: { xs: "1.75rem", md: "2.125rem" }
-                }}
-              >
-                {title}
-              </Typography>
-              {subtitle && (
-                <Typography
-                  id="page-header-subtitle"
-                  variant="body1"
+          {/* Left side: Title and optional Icon */}
+          {icon
+            ? (
+              <Stack id="page-header-title-section" direction="row" spacing={2} alignItems="center" sx={{ flex: 1 }}>
+                <Box
+                  id="page-header-icon"
                   sx={{
-                    color: "rgba(255,255,255,0.9)",
-                    fontSize: { xs: "0.875rem", md: "1rem" }
+                    backgroundColor: "rgba(255,255,255,0.2)",
+                    borderRadius: "12px",
+                    p: 1.5,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center"
                   }}
                 >
-                  {subtitle}
+                  {React.cloneElement(icon as React.ReactElement<any>, { sx: { fontSize: 32, color: "#FFF" } })}
+                </Box>
+                <Box id="page-header-text">
+                  <Typography id="page-header-title" variant="h3" sx={{ fontWeight: 500, mb: 1 }}>
+                    {title}
+                  </Typography>
+                  {subtitle && (
+                    <Typography id="page-header-subtitle" variant="h6" sx={{ color: "rgba(255,255,255,0.85)", fontWeight: 400 }}>
+                      {subtitle}
+                    </Typography>
+                  )}
+                </Box>
+              </Stack>
+            )
+            : (
+              <Box id="page-header-text" sx={{ flex: 1 }}>
+                <Typography id="page-header-title" variant="h3" sx={{ fontWeight: 500, mb: 1 }}>
+                  {title}
                 </Typography>
-              )}
-            </Box>
-          </Stack>
+                {subtitle && (
+                  <Typography id="page-header-subtitle" variant="h6" sx={{ color: "rgba(255,255,255,0.85)", fontWeight: 400 }}>
+                    {subtitle}
+                  </Typography>
+                )}
+              </Box>
+            )
+          }
 
           {/* Right side: Action Buttons/Tabs */}
           {children && (
@@ -130,7 +122,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({ icon, title, subtitle, c
             ))}
           </Stack>
         )}
-      </Box>
+      </Container>
     </Box>
   );
 };

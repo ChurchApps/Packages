@@ -6,7 +6,6 @@ import { CookiesProvider } from "react-cookie";
 import UserContext, { UserProvider } from "./UserContext";
 import RequireAuth from "./components/RequireAuth";
 import { SiteHeader, PageHeader } from "../../src";
-import HomeIcon from "@mui/icons-material/Home";
 
 // Import apphelper playground pages
 import AppHelperHelpersPage from "./pages/AppHelperHelpersPage";
@@ -258,7 +257,6 @@ function AppContent() {
         onNavigate={handleNavigate}
       />
       <PageHeader
-        icon={<HomeIcon />}
         title="AppHelper Component Playground"
         subtitle="Test and preview all exported components from @churchapps/apphelper"
       />

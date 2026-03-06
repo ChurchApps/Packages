@@ -1,7 +1,7 @@
 "use client";
 
 import React, { FormEventHandler } from "react";
-import { LoginResponseInterface, RegisterUserInterface, UserInterface } from "@churchapps/helpers";
+import { LoginResponseInterface, RegisterUserInterface, UserInterface, CheckEmailResponseInterface } from "@churchapps/helpers";
 import { ApiHelper } from "@churchapps/helpers";
 import { AnalyticsHelper, Locale } from "../helpers";
 import { TextField, Card, CardContent, Typography, Button, Alert } from "@mui/material";
@@ -34,6 +34,27 @@ export const Register: React.FC<Props> = (props) => {
   const [user, setUser] = React.useState<RegisterUserInterface>({ firstName: props.defaultFirstName || "", lastName: props.defaultLastName || "", email: props.defaultEmail || "", appName: props.appName, appUrl: cleanAppUrl(), churchId: props.defaultChurchId || undefined });
   const [errors, setErrors] = React.useState([]);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [matchedChurchName, setMatchedChurchName] = React.useState(props.defaultChurchName || "");
+
+  const checkEmailForMatch = async (emailToCheck: string) => {
+    if (!emailToCheck || !validateEmail(emailToCheck)) return;
+    try {
+      const resp: CheckEmailResponseInterface = await ApiHelper.postAnonymous("/users/checkEmail", { email: emailToCheck }, "MembershipApi");
+      if (resp.exists) {
+        props.updateErrors(["An account already exists for this email. Please sign in instead."]);
+      } else if (resp.peopleMatches.length > 0) {
+        const match = resp.peopleMatches[0];
+        const u = { ...user, email: emailToCheck };
+        if (!u.firstName) u.firstName = match.firstName;
+        if (!u.lastName) u.lastName = match.lastName;
+        if (resp.peopleMatches.length === 1) {
+          u.churchId = match.churchId;
+          setMatchedChurchName(match.churchName);
+        }
+        setUser(u);
+      }
+    } catch { /* silently ignore lookup failures */ }
+  };
 
   const handleRegisterErrors = (errors: string[]) => {
     props.updateErrors(errors);
@@ -187,9 +208,9 @@ export const Register: React.FC<Props> = (props) => {
           </Typography>
 
           <form onSubmit={register} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-            {props.defaultChurchName && (
+            {matchedChurchName && (
               <Alert severity="info" sx={{ textAlign: "left" }}>
-                We found your record at <b>{props.defaultChurchName}</b>. Complete registration to link your account.
+                We found your record at <b>{matchedChurchName}</b>. Complete registration to link your account.
               </Alert>
             )}
             {errors.length > 0 && (
@@ -281,6 +302,7 @@ export const Register: React.FC<Props> = (props) => {
                 placeholder="Email"
                 value={user.email}
                 onChange={handleChange}
+                onBlur={(e) => checkEmailForMatch(e.target.value)}
                 required
                 autoComplete="email"
                 variant="outlined"

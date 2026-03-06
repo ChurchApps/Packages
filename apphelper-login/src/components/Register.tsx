@@ -4,7 +4,7 @@ import React, { FormEventHandler } from "react";
 import { LoginResponseInterface, RegisterUserInterface, UserInterface } from "@churchapps/helpers";
 import { ApiHelper } from "@churchapps/helpers";
 import { AnalyticsHelper, Locale } from "../helpers";
-import { TextField, Card, CardContent, Typography, Button } from "@mui/material";
+import { TextField, Card, CardContent, Typography, Button, Alert } from "@mui/material";
 
 interface Props {
   appName?: string,
@@ -12,6 +12,11 @@ interface Props {
   updateErrors: (errors: string[]) => void,
   loginCallback?: () => void
   userRegisteredCallback?: (user: UserInterface) => Promise<void>;
+  defaultEmail?: string;
+  defaultFirstName?: string;
+  defaultLastName?: string;
+  defaultChurchId?: string;
+  defaultChurchName?: string;
 }
 
 export const Register: React.FC<Props> = (props) => {
@@ -26,7 +31,7 @@ export const Register: React.FC<Props> = (props) => {
   };
 
   const [registered, setRegistered] = React.useState(false);
-  const [user, setUser] = React.useState<RegisterUserInterface>({ firstName: "", lastName: "", email: "", appName: props.appName, appUrl: cleanAppUrl() });
+  const [user, setUser] = React.useState<RegisterUserInterface>({ firstName: props.defaultFirstName || "", lastName: props.defaultLastName || "", email: props.defaultEmail || "", appName: props.appName, appUrl: cleanAppUrl(), churchId: props.defaultChurchId || undefined });
   const [errors, setErrors] = React.useState([]);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
@@ -182,6 +187,11 @@ export const Register: React.FC<Props> = (props) => {
           </Typography>
 
           <form onSubmit={register} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            {props.defaultChurchName && (
+              <Alert severity="info" sx={{ textAlign: "left" }}>
+                We found your record at <b>{props.defaultChurchName}</b>. Complete registration to link your account.
+              </Alert>
+            )}
             {errors.length > 0 && (
               <div style={{
                 backgroundColor: "#fef2f2",

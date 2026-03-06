@@ -11,6 +11,7 @@ interface Props {
 	setShowRegister: (showRegister: boolean) => void,
 	setShowForgot: (showForgot: boolean) => void,
 	setErrors: (errors: string[]) => void;
+	onRegisterClick?: (email: string) => void;
 	mainContainerCssProps?: PaperProps;
 	defaultEmail?: string;
 	defaultPassword?: string;
@@ -39,6 +40,7 @@ export const Login: React.FC<Props> = ({ mainContainerCssProps = {}, ...props })
 
   const handleShowRegister = (e: React.MouseEvent) => {
     e.preventDefault();
+    if (props.onRegisterClick) props.onRegisterClick(email);
     props.setShowRegister(true);
   };
 

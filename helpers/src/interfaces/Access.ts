@@ -61,6 +61,17 @@ export interface RegisterUserInterface {
   email?: string;
   appName: string;
   appUrl: string;
+  churchId?: string;
+}
+export interface PeopleMatchInterface {
+  firstName: string;
+  lastName: string;
+  churchId: string;
+  churchName: string;
+}
+export interface CheckEmailResponseInterface {
+  exists: boolean;
+  peopleMatches: PeopleMatchInterface[];
 }
 export interface RoleInterface {
   id?: string;

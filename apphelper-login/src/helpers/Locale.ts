@@ -53,6 +53,7 @@ export class Locale {
       "forgot": "Forgot Password",
       "goLogin": "Go to Login",
       "login": "Login",
+      "noAccountFound": "No account found for this email. Create one to get started.",
       "password": "Password",
       "register": "Register",
       "registerThankYou": "Thank you for registering! Please check your email to verify your account.",

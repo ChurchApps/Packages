@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { ErrorMessages, FloatingSupport, Loading } from "@churchapps/apphelper";
-import { LoginResponseInterface, UserContextInterface, ChurchInterface, UserInterface, LoginUserChurchInterface, PersonInterface } from "@churchapps/helpers";
+import { LoginResponseInterface, UserContextInterface, ChurchInterface, UserInterface, LoginUserChurchInterface, PersonInterface, CheckEmailResponseInterface } from "@churchapps/helpers";
 import { ApiHelper, ArrayHelper, UserHelper, CommonEnvironmentHelper } from "@churchapps/helpers";
 import { AnalyticsHelper, Locale } from "./helpers";
 import { useCookies, CookiesProvider } from "react-cookie";
@@ -48,6 +48,10 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
   const [loginResponse, setLoginResponse] = React.useState<LoginResponseInterface>(null);
   const [userJwt, setUserJwt] = React.useState("");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [registrationData, setRegistrationData] = React.useState<{
+    email: string; firstName?: string; lastName?: string;
+    churchId?: string; churchName?: string;
+  } | null>(null);
 
   const loginFormRef = React.useRef(null);
   const location = typeof window !== "undefined" && window.location;
@@ -239,9 +243,39 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
 
   }
 
-  const handleLoginErrors = (errors: string[]) => {
+  const handleLoginErrors = async (errors: string[], loginEmail?: string) => {
     setWelcomeBackName("");
-    setErrors([Locale.label("login.validate.invalid")]);
+
+    if (!loginEmail) {
+      setErrors([Locale.label("login.validate.invalid")]);
+      return;
+    }
+
+    try {
+      const resp: CheckEmailResponseInterface = await ApiHelper.postAnonymous("/users/checkEmail", { email: loginEmail }, "MembershipApi");
+
+      if (resp.exists) {
+        setErrors([Locale.label("login.validate.invalid")]);
+      } else {
+        const regData: { email: string; firstName?: string; lastName?: string; churchId?: string; churchName?: string } = { email: loginEmail };
+        if (resp.peopleMatches.length === 1) {
+          const match = resp.peopleMatches[0];
+          regData.firstName = match.firstName;
+          regData.lastName = match.lastName;
+          regData.churchId = match.churchId;
+          regData.churchName = match.churchName;
+        } else if (resp.peopleMatches.length > 1) {
+          const match = resp.peopleMatches[0];
+          regData.firstName = match.firstName;
+          regData.lastName = match.lastName;
+        }
+        setRegistrationData(regData);
+        setShowRegister(true);
+        setErrors([Locale.label("login.noAccountFound")]);
+      }
+    } catch {
+      setErrors([Locale.label("login.validate.invalid")]);
+    }
   };
 
   const login = async (data: any) => {
@@ -254,10 +288,10 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
     } catch (e: any) {
       setPendingAutoLogin(false);
       setWelcomeBackName("");
-      if (!data.jwt) handleLoginErrors([e.toString()]);
+      if (!data.jwt) handleLoginErrors([e.toString()], data.email);
       setIsSubmitting(false);
     }
-  };;
+  };
 
   const getWelcomeBack = () => {
     if (welcomeBackName !== "") {
@@ -277,19 +311,19 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
   };
   const getCheckEmail = () => { if (new URLSearchParams(location?.search).get("checkEmail") === "1") return <Alert severity="info">{Locale.label("login.registerThankYou")}</Alert>; };
   const handleRegisterCallback = () => { setShowForgot(false); setShowRegister(true); };
-  const handleLoginCallback = () => { setShowForgot(false); setShowRegister(false); };
+  const handleLoginCallback = () => { setShowForgot(false); setShowRegister(false); setRegistrationData(null); };
   const handleChurchRegistered = (church: ChurchInterface) => { registeredChurch = church; setShowRegister(false); };
 
   const getInputBox = () => {
     if (showRegister) {
       return (
 
-			<Register updateErrors={setErrors} appName={props.appName} appUrl={cleanAppUrl()} loginCallback={handleLoginCallback} userRegisteredCallback={props.userRegisteredCallback} />
+			<Register updateErrors={setErrors} appName={props.appName} appUrl={cleanAppUrl()} loginCallback={handleLoginCallback} userRegisteredCallback={props.userRegisteredCallback} defaultEmail={registrationData?.email} defaultFirstName={registrationData?.firstName} defaultLastName={registrationData?.lastName} defaultChurchId={registrationData?.churchId} defaultChurchName={registrationData?.churchName} />
 
       );
     } else if (showForgot) return (<Forgot registerCallback={handleRegisterCallback} loginCallback={handleLoginCallback} />);
     else if (props.auth) return (<LoginSetPassword setErrors={setErrors} setShowForgot={setShowForgot} isSubmitting={isSubmitting} auth={props.auth} login={login} appName={props.appName} appUrl={cleanAppUrl()} />);
-    else return <Login setShowRegister={setShowRegister} setShowForgot={setShowForgot} setErrors={setErrors} isSubmitting={isSubmitting} login={login} mainContainerCssProps={loginContainerCssProps} defaultEmail={props.defaultEmail} defaultPassword={props.defaultPassword} showFooter={props.showFooter} />;
+    else return <Login setShowRegister={setShowRegister} setShowForgot={setShowForgot} setErrors={setErrors} isSubmitting={isSubmitting} login={login} mainContainerCssProps={loginContainerCssProps} defaultEmail={props.defaultEmail} defaultPassword={props.defaultPassword} showFooter={props.showFooter} onRegisterClick={(email) => { setRegistrationData({ email }); }} />;
   };
 
 	React.useEffect(init, []); //eslint-disable-line

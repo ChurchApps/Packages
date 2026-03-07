@@ -69,7 +69,7 @@ export const QuestionEdit = React.forwardRef<any, Props>(({ noBackground = false
       }
       case "Checkbox": {
         input = (
-          <FormControl fullWidth sx={{ marginLeft: 1 }}>
+          <FormControl fullWidth style={noBackground ? { backgroundColor: "white", borderRadius: "4px" } : {}} sx={{ marginLeft: 1, padding: 1 }}>
             <FormLabel sx={{ fontWeight: "bold" }}>{q.title}</FormLabel>
             <FormGroup>
               {choiceOptions}

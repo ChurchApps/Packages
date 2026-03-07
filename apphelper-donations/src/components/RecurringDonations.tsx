@@ -14,6 +14,7 @@ export const RecurringDonations: React.FC<Props> = (props) => {
   const [subscriptions, setSubscriptions] = useState<SubscriptionInterface[]>([]);
   const [mode, setMode] = useState("display");
   const [editSubscription, setEditSubscription] = useState<SubscriptionInterface>();
+  const [currency, setCurrency] = useState<string>("usd");
 
   const loadData = () => {
     if (props.customerId) {
@@ -74,12 +75,12 @@ export const RecurringDonations: React.FC<Props> = (props) => {
     const result: React.ReactElement[] = [];
     subscription.funds?.forEach((fund: any) => {
       result.push(<div key={subscription.id + fund.id}>
-          {fund.name} <span style={{ float: "right" }}>{CurrencyHelper.formatCurrency(fund.amount)}</span>
+          {fund.name} <span style={{ float: "right" }}>{CurrencyHelper.formatCurrencyWithLocale(fund.amount, currency)}</span>
         </div>);
     });
     const total = ((subscription.plan?.amount || 0) / 100);
     result.push(<div key={subscription.id + "-total"} style={{ borderTop: "solid #dee2e6 1px" }}>
-        Total <span style={{ float: "right" }}>{CurrencyHelper.formatCurrency(total)}</span>
+        Total <span style={{ float: "right" }}>{CurrencyHelper.formatCurrencyWithLocale(total, currency)}</span>
       </div>);
     return result;
   };
@@ -126,6 +127,12 @@ export const RecurringDonations: React.FC<Props> = (props) => {
   );
 
   useEffect(loadData, []);
+
+  useEffect(() => {
+    CurrencyHelper.loadCurrency().then((result) => {
+      setCurrency(currency);
+    })
+  }, []);
 
   if (mode === "display") {
     return (

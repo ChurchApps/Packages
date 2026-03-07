@@ -13,9 +13,9 @@ import { PersonInterface, StripeDonationInterface, FundDonationInterface, FundIn
 import { Grid, InputLabel, MenuItem, Select, TextField, FormControl, Button, FormControlLabel, Checkbox, FormGroup, Typography } from "@mui/material";
 import type { SelectChangeEvent } from "@mui/material";
 
-interface Props { person: PersonInterface, customerId: string, paymentMethods: StripePaymentMethod[], stripePromise: Promise<Stripe>, donationSuccess: (message: string) => void, church?: ChurchInterface, churchLogo?: string }
+interface Props { person: PersonInterface, customerId: string, paymentMethods: StripePaymentMethod[], stripePromise: Promise<Stripe>, donationSuccess: (message: string) => void, church?: ChurchInterface, churchLogo?: string, currency?: string }
 
-export const DonationForm: React.FC<Props> = (props) => {
+export const DonationForm: React.FC<Props> = ({ currency = "usd", ...props }) => {
   const stripe = useStripe();
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
   const [fundDonations, setFundDonations] = useState<FundDonationInterface[]>();
@@ -283,12 +283,12 @@ export const DonationForm: React.FC<Props> = (props) => {
               )}
               {fundsTotal > 0 && (
                 <>
-                  {(gateway && gateway.payFees === true) ? <Typography fontSize={14} fontStyle="italic">*{Locale.label("donation.donationForm.fees").replace("{}", CurrencyHelper.formatCurrency(transactionFee))}</Typography> : (
+                  {(gateway && gateway.payFees === true) ? <Typography fontSize={14} fontStyle="italic">*{Locale.label("donation.donationForm.fees").replace("{}", CurrencyHelper.formatCurrencyWithLocale(transactionFee, currency))}</Typography> : (
                     <FormGroup>
-                      <FormControlLabel control={<Checkbox />} name="transaction-fee" label={Locale.label("donation.donationForm.cover").replace("{}", CurrencyHelper.formatCurrency(transactionFee))} onChange={handleCheckChange} />
+                      <FormControlLabel control={<Checkbox />} name="transaction-fee" label={Locale.label("donation.donationForm.cover").replace("{}", CurrencyHelper.formatCurrencyWithLocale(transactionFee, currency))} onChange={handleCheckChange} />
                     </FormGroup>
                   )}
-                  <p>{Locale.label("donation.donationForm.total")}: ${total}</p>
+                  <p>{Locale.label("donation.donationForm.total")}: {CurrencyHelper.getCurrencySymbol(currency)}{total}</p>
                 </>
               )}
               <TextField id="donation-notes" fullWidth label="Memo (optional)" multiline aria-label="note" name="notes" value={donation.notes || ""} onChange={handleChange} onKeyDown={handleKeyDown} />

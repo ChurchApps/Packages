@@ -41,12 +41,12 @@ export class EventHelper {
 
     const dates = rrule.between(startDate, endDate);
 
-    dates.forEach((d: Date) => {
-      d.setHours(start.getHours());
-      d.setMinutes(start.getMinutes());
-      d.setSeconds(start.getSeconds());
-    });
-    return dates;
+    // RRule returns UTC dates. Use UTC components to get the intended calendar date,
+    // then construct a local Date with the event's original time.
+    return dates.map((d: Date) => new Date(
+      d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(),
+      start.getHours(), start.getMinutes(), start.getSeconds()
+    ));
   };
 
   static getFullRRule = (event:EventInterface) => {

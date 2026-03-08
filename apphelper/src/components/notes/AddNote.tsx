@@ -13,6 +13,7 @@ import {
   Avatar,
   Icon
 } from "@mui/material";
+import { EmojiPicker } from "./EmojiPicker";
 import { ErrorMessages } from "../ErrorMessages";
 
 type Props = {
@@ -28,6 +29,7 @@ export function AddNote({ context, onCancel, ...props }: Props) {
   const [message, setMessage] = useState<MessageInterface>();
   const [errors, setErrors] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [emojiAnchorEl, setEmojiAnchorEl] = useState<HTMLElement | null>(null);
   const headerText = props.messageId ? "Edit note" : "Add a note";
   const churchId = UserHelper.currentUserChurch?.church?.id || "";
 
@@ -148,8 +150,16 @@ export function AddNote({ context, onCancel, ...props }: Props) {
               {/* Spacer */}
               <Box sx={{ flex: 1 }} />
 
-              {/* Right buttons: Delete + Send */}
+              {/* Right buttons: Emoji + Delete + Send */}
               <Box sx={{ display: "flex", gap: 0.5 }}>
+                <IconButton
+                  size="small"
+                  onClick={(e) => setEmojiAnchorEl(e.currentTarget)}
+                  disabled={isSubmitting}
+                  sx={{ color: "grey.600" }}
+                >
+                  <Icon fontSize="small">sentiment_satisfied_alt</Icon>
+                </IconButton>
                 {deleteFunction && (
                   <IconButton
                     size="small"
@@ -180,6 +190,12 @@ export function AddNote({ context, onCancel, ...props }: Props) {
           </Box>
         </Stack>
       </Paper>
+      <EmojiPicker
+        anchorEl={emojiAnchorEl}
+        open={Boolean(emojiAnchorEl)}
+        onClose={() => setEmojiAnchorEl(null)}
+        onSelect={(emoji) => setMessage({ ...message, content: (message?.content || "") + emoji })}
+      />
     </Box>
   );
 }

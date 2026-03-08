@@ -3,7 +3,7 @@
 import { forwardRef, useImperativeHandle, useState, useEffect } from "react";
 import { CardElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import { Box, Grid, TextField } from "@mui/material";
-import { QuestionInterface } from "@churchapps/helpers";
+import { CurrencyHelper, QuestionInterface } from "@churchapps/helpers";
 import { ApiHelper, UserInterface, PersonInterface, StripeDonationInterface, ChurchInterface, FundInterface, ArrayHelper, UserHelper } from "@churchapps/helpers";
 import { Locale, StripePaymentMethod, PaymentGateway, DonationHelper } from "../helpers";
 
@@ -181,7 +181,7 @@ export const FormCardPayment = forwardRef((props: Props, ref) => {
         <TextField fullWidth required size="small" margin="none" style={{ backgroundColor: "white", borderRadius: "4px" }} InputLabelProps={{ sx: { fontWeight: "bold" } }} label={Locale.label("person.lastName")} value={lastName} onChange={(e) => setLastName(e.target.value)} disabled={ApiHelper.isAuthenticated && (UserHelper.user?.lastName || "") !== ""} />
       </Grid>
       <Grid size={12}>
-        <Box sx={{ backgroundColor: "white", padding: 1.5, borderRadius: 1, color: "gray", fontWeight: "bold", fontSize: 18 }}>$ {amt}</Box>
+        <Box sx={{ backgroundColor: "white", padding: 1.5, borderRadius: 1, color: "gray", fontWeight: "bold", fontSize: 18 }}>{CurrencyHelper.getCurrencySymbol(gateway?.currency || "usd")} {amt}</Box>
       </Grid>
       <Grid size={12}>
         <div style={{ padding: 10, border: "1px solid #CCC", borderRadius: 5, backgroundColor: "white" }}>

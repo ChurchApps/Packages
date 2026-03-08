@@ -12,7 +12,7 @@ import {
   StripePaymentMethod,
 } from '@churchapps/apphelper-donations';
 import type { PaymentMethod, PaymentGateway } from '@churchapps/apphelper-donations';
-import { ApiHelper } from '@churchapps/helpers';
+import { ApiHelper, CurrencyHelper } from '@churchapps/helpers';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 
@@ -252,11 +252,11 @@ export default function DonationPage() {
                     {history.slice(0, 10).map((d: any) => (
                       <li key={d.id || d.donationId || `${d.date}-${d.amount}`}>
                         {new Date(d.date || d.created || d.timestamp || Date.now()).toLocaleDateString()} —
-                        {` $${(d.amount || d.total || 0) / (d.amount && d.amount > 1000 ? 100 : 1)}`}
+                        {` ${CurrencyHelper.getCurrencySymbol(d.currency || "usd")} ${(d.amount || d.total || 0) / (d.amount && d.amount > 1000 ? 100 : 1)}`}
                         {d.funds && Array.isArray(d.funds) && d.funds.length > 0 && (
                           <>
                             {` — `}
-                            {d.funds.map((f: any) => `${f.name || ''} $${f.amount}`).join(', ')}
+                            {d.funds.map((f: any) => `${f.name || ''} ${CurrencyHelper.getCurrencySymbol(d.currency || "usd")} ${f.amount}`).join(', ')}
                           </>
                         )}
                       </li>

@@ -33,6 +33,10 @@ export class BibleProjectProvider implements IProvider {
 
   private data: BibleProjectData = bibleProjectData;
 
+  private getMuxThumbnail(muxPlaybackId: string, width = 400, height = 225): string {
+    return `https://image.mux.com/${muxPlaybackId}/thumbnail.jpg?width=${width}&height=${height}`;
+  }
+
   readonly requiresAuth = false;
   readonly authTypes: AuthType[] = ["none"];
   readonly capabilities: ProviderCapabilities = {
@@ -87,7 +91,7 @@ export class BibleProjectProvider implements IProvider {
       type: "folder" as const,
       id: video.id,
       title: video.title,
-      thumbnail: video.thumbnailUrl,
+      thumbnail: this.getMuxThumbnail(video.muxPlaybackId),
       isLeaf: true,
       path: `${currentPath}/${video.id}`
     }));
@@ -116,7 +120,7 @@ export class BibleProjectProvider implements IProvider {
   //   if (depth === 1) {
   //     const allFiles: ContentFile[] = [];
   //     const presentations: PlanPresentation[] = collection.videos.map(video => {
-  //       const file: ContentFile = { type: "file", id: video.id, title: video.title, mediaType: "video", url: video.videoUrl, thumbnail: video.thumbnailUrl, muxPlaybackId: video.muxPlaybackId, seconds: 0 };
+  //       const file: ContentFile = { type: "file", id: video.id, title: video.title, mediaType: "video", url: video.videoUrl, thumbnail: this.getMuxThumbnail(video.muxPlaybackId), muxPlaybackId: video.muxPlaybackId, seconds: 0 };
   //       allFiles.push(file);
   //       return { id: video.id, name: video.title, actionType: "play" as const, files: [file] };
   //     });
@@ -130,8 +134,8 @@ export class BibleProjectProvider implements IProvider {
   //     const video = collection.videos.find(v => v.id === videoId);
   //     if (!video) return null;
 
-  //     const file: ContentFile = { type: "file", id: video.id, title: video.title, mediaType: "video", url: video.videoUrl, thumbnail: video.thumbnailUrl, muxPlaybackId: video.muxPlaybackId, seconds: 0 };
-  //     return { id: video.id, name: video.title, thumbnail: video.thumbnailUrl, sections: [{ id: "main", name: "Content", presentations: [{ id: video.id, name: video.title, actionType: "play", files: [file] }] }], allFiles: [file] };
+  //     const file: ContentFile = { type: "file", id: video.id, title: video.title, mediaType: "video", url: video.videoUrl, thumbnail: this.getMuxThumbnail(video.muxPlaybackId), muxPlaybackId: video.muxPlaybackId, seconds: 0 };
+  //     return { id: video.id, name: video.title, thumbnail: this.getMuxThumbnail(video.muxPlaybackId), sections: [{ id: "main", name: "Content", presentations: [{ id: video.id, name: video.title, actionType: "play", files: [file] }] }], allFiles: [file] };
   //   }
 
   //   return null;
@@ -148,7 +152,7 @@ export class BibleProjectProvider implements IProvider {
 
     // For collection level, return all videos
     if (depth === 1) {
-      const files = collection.videos.map(video => ({ type: "file" as const, id: video.id, title: video.title, mediaType: "video" as const, url: video.videoUrl, thumbnail: video.thumbnailUrl, muxPlaybackId: video.muxPlaybackId, seconds: 0 }));
+      const files = collection.videos.map(video => ({ type: "file" as const, id: video.id, title: video.title, mediaType: "video" as const, url: video.videoUrl, thumbnail: this.getMuxThumbnail(video.muxPlaybackId), muxPlaybackId: video.muxPlaybackId, seconds: 0 }));
       return files.length > 0 ? files : null;
     }
 
@@ -157,7 +161,7 @@ export class BibleProjectProvider implements IProvider {
       const videoId = segments[1];
       const video = collection.videos.find(v => v.id === videoId);
       if (!video) return null;
-      return [{ type: "file", id: video.id, title: video.title, mediaType: "video", url: video.videoUrl, thumbnail: video.thumbnailUrl, muxPlaybackId: video.muxPlaybackId, seconds: 0 }];
+      return [{ type: "file", id: video.id, title: video.title, mediaType: "video", url: video.videoUrl, thumbnail: this.getMuxThumbnail(video.muxPlaybackId), muxPlaybackId: video.muxPlaybackId, seconds: 0 }];
     }
 
     return null;
@@ -185,7 +189,7 @@ export class BibleProjectProvider implements IProvider {
             itemType: "file",
             label: video.title,
             downloadUrl: video.videoUrl,
-            thumbnail: video.thumbnailUrl
+            thumbnail: this.getMuxThumbnail(video.muxPlaybackId)
           }
         ]
       }));
@@ -218,7 +222,7 @@ export class BibleProjectProvider implements IProvider {
             itemType: "file",
             label: video.title,
             downloadUrl: video.videoUrl,
-            thumbnail: video.thumbnailUrl
+            thumbnail: this.getMuxThumbnail(video.muxPlaybackId)
           }
         ]
       };

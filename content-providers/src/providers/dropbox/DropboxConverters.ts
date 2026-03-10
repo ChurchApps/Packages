@@ -2,7 +2,9 @@ import { ContentFile, ContentFolder, Instructions, InstructionItem } from "../..
 import { DropboxEntry, DropboxFileEntry, DropboxFolderEntry } from "./DropboxInterfaces";
 
 const VIDEO_EXTENSIONS = new Set([".mp4", ".mov", ".avi", ".mkv", ".webm", ".m4v"]);
-const IMAGE_EXTENSIONS = new Set([".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg", ".webp", ".tiff", ".tif"]);
+const IMAGE_EXTENSIONS = new Set([
+  ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg", ".webp", ".tiff", ".tif"
+]);
 const MEDIA_EXTENSIONS = new Set([...VIDEO_EXTENSIONS, ...IMAGE_EXTENSIONS]);
 
 export function getFileExtension(filename: string): string {
@@ -50,14 +52,16 @@ export function buildInstructionsFromFiles(files: ContentFile[], folderName: str
     itemType: "action",
     label: file.title,
     actionType: "play",
-    children: [{
-      id: file.id,
-      itemType: "file",
-      label: file.title,
-      seconds: file.seconds,
-      downloadUrl: file.downloadUrl || file.url,
-      thumbnail: file.thumbnail
-    }]
+    children: [
+      {
+        id: file.id,
+        itemType: "file",
+        label: file.title,
+        seconds: file.seconds,
+        downloadUrl: file.downloadUrl || file.url,
+        thumbnail: file.thumbnail
+      }
+    ]
   }));
 
   const sectionItem: InstructionItem = {

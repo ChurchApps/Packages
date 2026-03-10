@@ -1,6 +1,7 @@
 import { ContentProviderConfig, ContentProviderAuthData, ContentItem, ContentFile, ProviderLogos, Plan, PlanPresentation, Instructions, ProviderCapabilities, DeviceAuthorizationResponse, DeviceFlowPollResult, IProvider, AuthType, InstructionItem } from "../../interfaces";
 import { parsePath } from "../../pathUtils";
 import { navigateToPath } from "../../instructionPathUtils";
+import { instructionsToPlaylist } from "../../FormatConverters";
 import { ApiHelper } from "../../helpers";
 import { B1PlanItem } from "./B1ChurchTypes";
 import * as B1ChurchAuth from "./B1ChurchAuth";
@@ -498,6 +499,13 @@ export class B1ChurchProvider implements IProvider {
               const matchingPresentation = this.findPresentationByPath(externalPlan, externalInstructions, child.providerContentPath);
               if (matchingPresentation?.files && Array.isArray(matchingPresentation.files)) {
                 files.push(...matchingPresentation.files);
+              }
+            } else if (externalInstructions) {
+              // Fallback: extract files from instructions when presentations aren't available
+              const matchingItem = this.findItemByPath(externalInstructions, child.providerContentPath);
+              if (matchingItem) {
+                const miniInstructions: Instructions = { name: matchingItem.label || "", items: [matchingItem] };
+                files.push(...instructionsToPlaylist(miniInstructions));
               }
             }
           } else {

@@ -252,14 +252,16 @@ export class LessonsChurchProvider implements IProvider {
       if (!file) return null;
       return {
         name: file.title,
-        items: [{
-          id: addOnId,
-          itemType: "action",
-          relatedId: addOnId,
-          label: file.title,
-          seconds: file.seconds,
-          children: [{ id: addOnId + "-file", itemType: "file", label: file.title, seconds: file.seconds, downloadUrl: file.url, thumbnail: file.thumbnail }]
-        }]
+        items: [
+          {
+            id: addOnId,
+            itemType: "action",
+            relatedId: addOnId,
+            label: file.title,
+            seconds: file.seconds,
+            children: [{ id: addOnId + "-file", itemType: "file", label: file.title, seconds: file.seconds, downloadUrl: file.url, thumbnail: file.thumbnail }]
+          }
+        ]
       };
     }
     if (segments[0] === "addons" && segments.length === 2) {

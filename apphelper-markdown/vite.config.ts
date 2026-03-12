@@ -11,5 +11,11 @@ export default defineConfig({
   },
   define: {
     "process.env": {}
+  },
+  resolve: {
+    alias: {
+      "@stripe/react-stripe-js": resolve(__dirname, "src/stubs/stripe.ts"),
+      "@stripe/stripe-js": resolve(__dirname, "src/stubs/stripe.ts")
+    }
   }
 });

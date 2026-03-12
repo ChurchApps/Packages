@@ -81,7 +81,7 @@ export function AddNote({ context, onCancel, ...props }: Props) {
 
   async function deleteNote() {
     if (!props.messageId) return;
-    await ApiHelper.delete(`/messages/${churchId}/${props.messageId}`, "MessagingApi");
+    await ApiHelper.delete(`/messages/${props.messageId}`, "MessagingApi");
     props.onUpdate();
   }
 

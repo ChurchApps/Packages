@@ -121,7 +121,7 @@ export class LessonsChurchProvider implements IProvider {
       title: s.name as string,
       thumbnail: s.image as string | undefined,
       path: `${currentPath}/${s.id}`
-    }));
+    })).sort((a, b) => a.title.localeCompare(b.title));
   }
 
   private async getLessons(studyId: string, currentPath: string): Promise<ContentItem[]> {

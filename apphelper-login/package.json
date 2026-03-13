@@ -1,6 +1,6 @@
 {
   "name": "@churchapps/apphelper-login",
-  "version": "0.6.18",
+  "version": "0.6.19",
   "description": "Login components for ChurchApps AppHelper",
   "type": "module",
   "main": "dist/index.js",
@@ -57,7 +57,9 @@
     "react-router-dom": "^7.6.3"
   },
   "peerDependenciesMeta": {
-    "react-google-recaptcha": { "optional": true }
+    "react-google-recaptcha": {
+      "optional": true
+    }
   },
   "dependencies": {
     "@mui/icons-material": "^7.3.1",
@@ -65,7 +67,7 @@
   },
   "devDependencies": {
     "@churchapps/apphelper": "^0.6.0",
-    "@churchapps/helpers": "^1.2.19",
+    "@churchapps/helpers": "^1.2.31",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@eslint/js": "^9.28.0",

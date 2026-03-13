@@ -1,6 +1,6 @@
 {
   "name": "@churchapps/apihelper",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "description": "Library of helper functions not specific to any one ChurchApps project or framework.",
   "type": "module",
   "main": "dist/index.js",

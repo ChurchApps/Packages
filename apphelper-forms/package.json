@@ -1,6 +1,6 @@
 {
   "name": "@churchapps/apphelper-forms",
-  "version": "0.6.14",
+  "version": "0.6.15",
   "description": "Form components for ChurchApps AppHelper - general forms without payment processing",
   "type": "module",
   "main": "dist/index.js",
@@ -58,7 +58,7 @@
   },
   "devDependencies": {
     "@churchapps/apphelper": "^0.6.0",
-    "@churchapps/helpers": "^1.2.19",
+    "@churchapps/helpers": "^1.2.31",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@eslint/js": "^9.28.0",

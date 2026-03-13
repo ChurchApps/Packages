@@ -1,6 +1,6 @@
 {
   "name": "@churchapps/apphelper-donations",
-  "version": "0.6.17",
+  "version": "0.6.18",
   "description": "Donation components for ChurchApps AppHelper",
   "type": "module",
   "main": "dist/index.js",
@@ -41,11 +41,11 @@
   "homepage": "https://github.com/ChurchApps/Packages#readme",
   "peerDependencies": {
     "@churchapps/apphelper": "^0.6.0",
-    "@churchapps/helpers": "^1.2.19",
+    "@churchapps/helpers": "file:../helpers",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
-    "@mui/material": "^7.3.1",
     "@mui/icons-material": "^7.3.4",
+    "@mui/material": "^7.3.1",
     "axios": "^1.11.0",
     "date-fns": "^4.1.0",
     "i18next": "^25.3.2",
@@ -58,7 +58,9 @@
     "react-router-dom": "^7.6.3"
   },
   "peerDependenciesMeta": {
-    "react-google-recaptcha": { "optional": true }
+    "react-google-recaptcha": {
+      "optional": true
+    }
   },
   "dependencies": {
     "@stripe/react-stripe-js": "^3.9.0",
@@ -67,7 +69,7 @@
   },
   "devDependencies": {
     "@churchapps/apphelper": "^0.6.19",
-    "@churchapps/helpers": "^1.2.29",
+    "@churchapps/helpers": "file:../helpers",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@eslint/js": "^9.28.0",

@@ -1,6 +1,6 @@
 {
   "name": "@churchapps/apphelper",
-  "version": "0.6.19",
+  "version": "0.6.20",
   "description": "Library of helper functions for React and NextJS ChurchApps",
   "type": "module",
   "main": "dist/index.js",
@@ -47,11 +47,14 @@
     "react-router-dom": "^7.6.3"
   },
   "peerDependenciesMeta": {
-    "@stripe/react-stripe-js": { "optional": true },
-    "@stripe/stripe-js": { "optional": true }
+    "@stripe/react-stripe-js": {
+      "optional": true
+    },
+    "@stripe/stripe-js": {
+      "optional": true
+    }
   },
   "dependencies": {
-    "@churchapps/helpers": "^1.2.19",
     "@emotion/cache": "^11.14.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
@@ -80,7 +83,7 @@
     "slug": "^11.0.0"
   },
   "devDependencies": {
-    "@churchapps/helpers": "^1.2.19",
+    "@churchapps/helpers": "^1.2.31",
     "@eslint/js": "^9.28.0",
     "@stripe/react-stripe-js": "^3.5.2",
     "@stripe/stripe-js": "^7.4.0",

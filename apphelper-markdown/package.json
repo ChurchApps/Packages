@@ -1,6 +1,6 @@
 {
   "name": "@churchapps/apphelper-markdown",
-  "version": "0.6.17",
+  "version": "0.6.18",
   "description": "ChurchApps markdown/lexical editor components",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -10,7 +10,9 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./dist/*": "./dist/*"
+    "./dist/*": "./dist/*",
+    "./dist/components/markdownEditor/editor.css": "./dist/components/markdownEditor/editor.css",
+    "./dist/components/htmlEditor/editor.css": "./dist/components/htmlEditor/editor.css"
   },
   "files": [
     "dist"

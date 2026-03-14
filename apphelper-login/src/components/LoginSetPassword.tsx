@@ -57,22 +57,7 @@ export const LoginSetPassword: React.FC<Props> = props => {
   };
 
   React.useEffect(() => {
-    //Get the timestamp from the URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const timestampParam = urlParams.get("timestamp");
-    if (timestampParam) {
-      const linkTimestamp = parseInt(timestampParam, 10);
-      const currentTime = Date.now();
-
-      //Check if the link is expired (2 min)
-      if (currentTime - linkTimestamp > 600000) {
-        setLinkExpired(true);
-      } else {
-        loadUser();
-      }
-    } else {
-      setLinkExpired(true); //No timestamp means link is invalid
-    }
+    loadUser();
   }, []);
 
   return (

@@ -29,7 +29,10 @@ export class EmailHelper {
 
   public static readTemplate(templateFile?: string) {
     if (!templateFile) templateFile = "EmailTemplate.html";
-    const filePath = path.join(__dirname, "../../src/tools/templates/" + templateFile);
+    // Try dist/templates first (npm-published package), then fall back to src/tools/templates (local dev)
+    const distPath = path.join(__dirname, "../templates/" + templateFile);
+    const srcPath = path.join(__dirname, "../../src/tools/templates/" + templateFile);
+    const filePath = fs.existsSync(distPath) ? distPath : srcPath;
     const buffer = fs.readFileSync(filePath);
     const contents = buffer.toString();
     return contents;

@@ -23,7 +23,10 @@ export class TokenHelper {
       });
 
       const response = await fetch(`${config.oauthBase}/token`, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: params.toString() });
-      if (!response.ok) return null;
+      if (!response.ok) {
+        console.warn(`[TokenHelper] Token refresh failed: ${response.status} ${response.statusText}`);
+        return null;
+      }
 
       const data = await response.json();
       return { access_token: data.access_token, refresh_token: data.refresh_token || auth.refresh_token, token_type: data.token_type || "Bearer", created_at: Math.floor(Date.now() / 1000), expires_in: data.expires_in, scope: data.scope || auth.scope };

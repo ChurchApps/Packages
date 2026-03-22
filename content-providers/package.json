@@ -1,6 +1,6 @@
 {
   "name": "@churchapps/content-providers",
-  "version": "0.1.8",
+  "version": "0.1.10",
   "type": "module",
   "description": "Helper classes for interacting with third party providers",
   "main": "./dist/index.js",

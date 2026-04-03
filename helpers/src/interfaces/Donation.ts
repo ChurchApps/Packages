@@ -5,7 +5,7 @@ export type DonationStatus = "pending" | "complete" | "failed";
 export interface DonationBatchInterface {
   id?: string;
   name?: string;
-  batchDate?: string;  // YYYY-MM-DD format - date-only field
+  batchDate?: string; // YYYY-MM-DD format - date-only field
   donationCount?: number;
   totalAmount?: number;
 }
@@ -13,8 +13,9 @@ export interface DonationInterface {
   id?: string;
   batchId?: string;
   personId?: string;
-  donationDate?: string;  // YYYY-MM-DD format - date-only field
+  donationDate?: string; // YYYY-MM-DD format - date-only field
   amount?: number;
+  currency?: string;
   method?: string;
   methodDetails?: string;
   notes?: string;
@@ -41,6 +42,7 @@ export interface FundDonationInterface {
   donationId?: string;
   fundId?: string;
   amount?: number;
+  currency?: string;
   donation?: DonationInterface;
 }
 export interface PaymentMethodInterface {
@@ -124,7 +126,12 @@ export interface SubscriptionInterface {
   billing_cycle_anchor: number;
   default_payment_method: string;
   default_source: string;
-  plan: { amount: number; interval: string; interval_count: number };
+  plan: {
+    amount: number;
+    currency?: string;
+    interval: string;
+    interval_count: number;
+  };
   customer: string;
   gatewayId?: string;
 }
@@ -182,7 +189,9 @@ export class StripePaymentMethod {
 
   constructor(obj?: any) {
     this.id = obj?.id || null;
-    this.type = obj?.type || (obj?.object && obj.object === "bank_account" ? "bank" : null);
+    this.type =
+      obj?.type ||
+      (obj?.object && obj.object === "bank_account" ? "bank" : null);
     this.name = obj?.card?.brand || obj?.bank_name || null;
     this.last4 = obj?.last4 || obj?.card?.last4 || null;
     this.exp_month = obj?.exp_month || obj?.card?.exp_month || null;

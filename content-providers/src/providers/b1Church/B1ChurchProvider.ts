@@ -109,6 +109,7 @@ export class B1ChurchProvider implements IProvider {
       const ministryId = segments[1];
       const planTypeId = segments[2];
       const plans = await fetchPlans(planTypeId, authData);
+      plans.sort((a, b) => new Date(a.serviceDate).getTime() - new Date(b.serviceDate).getTime());
       return plans.map(p => {
         const folder = planToFolder(p);
         return {

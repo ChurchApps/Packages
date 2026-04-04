@@ -3,9 +3,9 @@ import { parsePath } from "../../pathUtils";
 import { navigateToPath } from "../../instructionPathUtils";
 import { instructionsToPlaylist } from "../../FormatConverters";
 import { ApiHelper } from "../../helpers";
-import { B1PlanItem } from "./B1ChurchTypes";
+import { B1Plan, B1PlanItem } from "./B1ChurchTypes";
 import * as B1ChurchAuth from "./B1ChurchAuth";
-import { fetchMinistries, fetchPlanTypes, fetchPlans, fetchVenueFeed, fetchVenueActions, fetchFromProviderProxy, API_BASE } from "./B1ChurchApi";
+import { fetchMinistries, fetchPlanTypes, fetchPlans, fetchVenueFeed, fetchVenueActions, fetchVenueImages, fetchFromProviderProxy, API_BASE } from "./B1ChurchApi";
 import { ministryToFolder, planTypeToFolder, planToFolder, planItemToInstruction, getFilesFromVenueFeed, getFileFromProviderFileItem, buildSectionActionsMap } from "./B1ChurchConverters";
 
 function isExternalProviderItem(item: B1PlanItem): boolean {
@@ -110,8 +110,11 @@ export class B1ChurchProvider implements IProvider {
       const planTypeId = segments[2];
       const plans = await fetchPlans(planTypeId, authData);
       plans.sort((a, b) => new Date(a.serviceDate).getTime() - new Date(b.serviceDate).getTime());
+
+      const imageMap = await this.fetchPlanImages(plans, ministryId, authData);
+
       return plans.map(p => {
-        const folder = planToFolder(p);
+        const folder = planToFolder(p, imageMap.get(p.id));
         return {
           ...folder,
           isLeaf: true,
@@ -121,6 +124,51 @@ export class B1ChurchProvider implements IProvider {
     }
 
     return [];
+  }
+
+  private async fetchPlanImages(plans: B1Plan[], ministryId: string, authData?: ContentProviderAuthData | null): Promise<Map<string, string>> {
+    const imageMap = new Map<string, string>();
+    console.log(`[B1Church] fetchPlanImages: ${plans.length} plans, fields:`, plans.map(p => ({ id: p.id, contentId: p.contentId, providerId: p.providerId, providerPlanId: p.providerPlanId })));
+
+    // Lessons.church plans: one batch call for all venue IDs
+    const lessonsChurchPlans = plans.filter(p => p.contentId && (!p.providerId || p.providerId === "lessonschurch"));
+    const venueIds = lessonsChurchPlans.map(p => p.contentId!);
+    console.log(`[B1Church] fetchPlanImages: ${lessonsChurchPlans.length} lessons.church plans, venueIds=${JSON.stringify(venueIds)}`);
+    if (venueIds.length > 0) {
+      const lcImages = await fetchVenueImages(venueIds);
+      console.log(`[B1Church] fetchPlanImages: fetchVenueImages returned ${lcImages.size} images`);
+      lcImages.forEach((img, venueId) => {
+        const plan = lessonsChurchPlans.find(p => p.contentId === venueId);
+        if (plan) imageMap.set(plan.id, img);
+      });
+    }
+
+    // Other providers: browse parent path to get folder thumbnails
+    const externalPlans = plans.filter(p => p.providerId && p.providerId !== "lessonschurch" && p.providerId !== "b1church" && p.providerPlanId);
+    if (externalPlans.length > 0) {
+      // Group by providerId + parent path to minimize proxy calls
+      const groupKey = (p: B1Plan) => `${p.providerId}::${p.providerPlanId!.split("/").slice(0, -1).join("/")}`;
+      const groups = new Map<string, B1Plan[]>();
+      for (const p of externalPlans) {
+        const key = groupKey(p);
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key)!.push(p);
+      }
+
+      await Promise.all(Array.from(groups.entries()).map(async ([key, groupPlans]) => {
+        const [providerId, parentPath] = [key.split("::")[0], key.split("::").slice(1).join("::")];
+        const items = await fetchFromProviderProxy("browse", ministryId, providerId, parentPath, authData);
+        if (Array.isArray(items)) {
+          for (const plan of groupPlans) {
+            const leafId = plan.providerPlanId!.split("/").pop();
+            const match = items.find((item: any) => item.id === leafId || item.id === plan.contentId);
+            if (match?.thumbnail) imageMap.set(plan.id, match.thumbnail);
+          }
+        }
+      }));
+    }
+
+    return imageMap;
   }
 
   // async getPresentations(path: string, authData?: ContentProviderAuthData | null): Promise<Plan | null> {

@@ -11,8 +11,8 @@ export function planTypeToFolder(planType: B1PlanType): ContentItem {
   return { type: "folder" as const, id: planType.id, title: planType.name, path: "" };
 }
 
-export function planToFolder(plan: B1Plan): ContentItem {
-  return { type: "folder" as const, id: plan.id, title: plan.name, path: "", isLeaf: true };
+export function planToFolder(plan: B1Plan, thumbnail?: string): ContentItem {
+  return { type: "folder" as const, id: plan.id, title: plan.name, path: "", isLeaf: true, thumbnail };
 }
 
 export function sectionToFolder(section: B1PlanItem): ContentItem {

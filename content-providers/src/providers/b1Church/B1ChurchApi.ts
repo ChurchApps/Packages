@@ -108,6 +108,21 @@ export async function fetchArrangementKey(churchId: string, arrangementId: strin
   }
 }
 
+export async function fetchVenueImages(venueIds: string[]): Promise<Map<string, string>> {
+  const map = new Map<string, string>();
+  if (venueIds.length === 0) return map;
+  try {
+    const url = `${LESSONS_API_BASE}/venues/public/images?ids=${venueIds.join(",")}`;
+    const response = await fetch(url, { method: "GET", headers: { Accept: "application/json" } });
+    if (!response.ok) return map;
+    const data = await response.json();
+    for (const row of data) {
+      if (row.venueId && row.lessonImage) map.set(row.venueId, row.lessonImage);
+    }
+  } catch { /* ignore */ }
+  return map;
+}
+
 export async function fetchFromProviderProxy<M extends ProxyMethod>(
   method: M,
   ministryId: string,

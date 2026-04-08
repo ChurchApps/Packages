@@ -418,7 +418,7 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
       try {
         const response = await ApiHelper.post(
           "/donate/fee?churchId=" + props.churchId,
-          { amount, provider: gateway?.provider || "stripe", gatewayId: gateway?.id, currency: gateway?.currency || "USD" },
+          { amount, provider: gateway?.provider || "stripe", gatewayId: gateway?.id, currency: gateway?.currency || "USD", ...(props.paymentType === "bank" ? { type: "ach" } : {}) },
           "GivingApi"
         );
         return response.calculatedFee;

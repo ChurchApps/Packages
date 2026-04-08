@@ -269,12 +269,14 @@ export const MultiGatewayDonationForm: React.FC<Props> = (props) => {
     }
   }, [donation, donationType, gateway?.id, paypalClientId, props.church?.name, props.church?.subDomain, props.churchLogo, props.donationSuccess, selectedGateway, selectedGatewayObj?.id, total, stripe]);
 
-  const getTransactionFee = useCallback(async (amount: number, activeGatewayId?: string, provider: "stripe" | "paypal" = "stripe") => {
+  const getTransactionFee = useCallback(async (amount: number, activeGatewayId?: string, provider: "stripe" | "paypal" = "stripe", paymentMethodType?: "card" | "bank" | "paypal") => {
     if (amount > 0) {
       try {
+        const payload: any = { amount, provider, gatewayId: activeGatewayId, currency: gateway?.currency || "USD" };
+        if (paymentMethodType === "bank") payload.type = "ach";
         const response = await ApiHelper.post(
           "/donate/fee?churchId=" + (props?.church?.id || ""),
-          { amount, provider, gatewayId: activeGatewayId, currency: gateway?.currency || "USD" },
+          payload,
           "GivingApi"
         );
         return response.calculatedFee;
@@ -315,7 +317,7 @@ export const MultiGatewayDonationForm: React.FC<Props> = (props) => {
 
     // Debounce fee calculation to prevent excessive API calls
     feeTimeoutRef.current = window.setTimeout(async () => {
-      const fee = await getTransactionFee(totalAmount, d.gatewayId || gateway?.id || selectedGatewayObj?.id, d.provider || (selectedGateway as "stripe" | "paypal"));
+      const fee = await getTransactionFee(totalAmount, d.gatewayId || gateway?.id || selectedGatewayObj?.id, d.provider || (selectedGateway as "stripe" | "paypal"), d.type);
       setTransactionFee(fee);
 
       if (gateway && gateway.payFees === true) {

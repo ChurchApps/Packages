@@ -188,7 +188,7 @@ export const DonationForm: React.FC<Props> = ({ currency = "usd", ...props }) =>
     setFundsTotal(totalAmount);
 
     const selectedPm = props.paymentMethods.find(pm => pm.id === d.id);
-    const fee = await getTransactionFee(totalAmount, (selectedPm?.gatewayId || gateway?.id) as string | undefined, selectedPm?.provider || "stripe");
+    const fee = await getTransactionFee(totalAmount, (selectedPm?.gatewayId || gateway?.id) as string | undefined, selectedPm?.provider || "stripe", selectedPm?.type);
     setTransactionFee(fee);
 
     if (gateway && gateway.payFees === true) {
@@ -199,12 +199,14 @@ export const DonationForm: React.FC<Props> = ({ currency = "usd", ...props }) =>
     setDonation(d);
   }, [donation, funds, gateway]);
 
-  const getTransactionFee = useCallback(async (amount: number, activeGatewayId?: string, provider: "stripe" | "paypal" = "stripe") => {
+  const getTransactionFee = useCallback(async (amount: number, activeGatewayId?: string, provider: "stripe" | "paypal" = "stripe", paymentMethodType?: "card" | "bank" | "paypal") => {
     if (amount > 0) {
       try {
+        const payload: any = { amount, provider, gatewayId: activeGatewayId };
+        if (paymentMethodType === "bank") payload.type = "ach";
         const response = await ApiHelper.post(
           "/donate/fee?churchId=" + (props?.church?.id || ""),
-          { amount, provider, gatewayId: activeGatewayId },
+          payload,
           "GivingApi"
         );
         return response.calculatedFee;

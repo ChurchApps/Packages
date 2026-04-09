@@ -98,9 +98,10 @@ export const NonAuthDonation: React.FC<Props> = ({ mainContainerCssProps, showHe
           onChange={(_, value) => value && setPaymentType(value)}
           fullWidth
           size="small"
+          sx={{ backgroundColor: "#FFFFFF", borderRadius: 1 }}
         >
-          <ToggleButton value="card">Credit/Debit Card</ToggleButton>
-          {currency === "usd" && <ToggleButton value="bank">Bank Account (ACH)</ToggleButton>}
+          <ToggleButton value="card" sx={{ backgroundColor: "#FFFFFF", color: "#333", "&.Mui-selected": { backgroundColor: "#1976d2", color: "#FFFFFF" }, "&:hover": { backgroundColor: "#f5f5f5" }, "&.Mui-selected:hover": { backgroundColor: "#1565c0" } }}>Credit/Debit Card</ToggleButton>
+          {currency === "usd" && <ToggleButton value="bank" sx={{ backgroundColor: "#FFFFFF", color: "#333", "&.Mui-selected": { backgroundColor: "#1976d2", color: "#FFFFFF" }, "&:hover": { backgroundColor: "#f5f5f5" }, "&.Mui-selected:hover": { backgroundColor: "#1565c0" } }}>Bank Account (ACH)</ToggleButton>}
         </ToggleButtonGroup>
       </Box>
     );

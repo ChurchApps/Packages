@@ -136,7 +136,7 @@ export const NonAuthDonation: React.FC<Props> = ({ mainContainerCssProps, showHe
   };
 
   return (
-    <Box>
+    <Box sx={{ backgroundColor: "#ffffff" }}>
       {showHeader && (
         <Box sx={{ mb: 2 }}>
           <Typography variant="h5" component="h2" gutterBottom>

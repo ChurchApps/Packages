@@ -95,18 +95,23 @@ export const SiteHeader = React.memo((props:Props) => {
     let result: any [] = [];
     if (props.appName === "B1Admin") {
       if (props.primaryMenuLabel === "People") {
-        if (props.secondaryMenuLabel === "People") result = ["b1admin/adding-people", "b1admin/advanced-search", "b1admin/assigning-roles"];
-        else if (props.secondaryMenuLabel === "Groups") result = ["b1admin/group-roster", "b1admin/groups", "b1admin/group-calendar"];
-        else if (props.secondaryMenuLabel === "Attendance") result = ["b1admin/attendance", "b1admin/checkin"];
+        if (props.secondaryMenuLabel === "People")
+          result = [
+            "docs/b1-admin/people/adding-people",
+            "docs/b1-admin/people/searching-people",
+            "docs/b1-admin/people/roles-permissions"
+          ];
+        else if (props.secondaryMenuLabel === "Groups") result = ["docs/b1-admin/groups/group-members", "docs/b1-admin/groups", "docs/b1-admin/groups/group-calendar"];
+        else if (props.secondaryMenuLabel === "Attendance") result = ["docs/b1-admin/attendance/", "docs/b1-admin/attendance/check-in"];
       } else if (props.primaryMenuLabel === "Donations") {
-        if (props.secondaryMenuLabel === "Summary") result = ["b1admin/donation-report"];
-        else if (props.secondaryMenuLabel === "Batches" || props.secondaryMenuLabel === "Funds") result = ["b1admin/giving", "b1admin/manual-input"];
+        if (props.secondaryMenuLabel === "Summary") result = ["docs/b1-admin/donations/donation-reports"];
+        else if (props.secondaryMenuLabel === "Batches" || props.secondaryMenuLabel === "Funds") result = ["docs/b1-admin/donations/", "docs/b1-admin/donations/recording-donations"];
       } else if (props.primaryMenuLabel === "Serving") {
-        if (props.secondaryMenuLabel === "Plans") result = ["b1admin/plans"];
-        else if (props.secondaryMenuLabel === "Tasks") result = ["b1admin/tasks", "b1admin/automations"];
+        if (props.secondaryMenuLabel === "Plans") result = ["docs/b1-admin/serving/plans"];
+        else if (props.secondaryMenuLabel === "Tasks") result = ["docs/b1-admin/serving/tasks", "docs/b1-admin/serving/automations"];
       } else if (props.primaryMenuLabel === "Settings") {
-        if (props.secondaryMenuLabel === "Settings") result = ["b1admin/assigning-roles", "b1admin/exporting-data", "b1admin/import-csv", "b1admin/import-from-breeze"];
-        else if (props.secondaryMenuLabel === "Forms") result = ["b1admin/forms"];
+        if (props.secondaryMenuLabel === "Settings") result = ["docs/b1-admin/settings/roles-permissions", "docs/b1-admin/people/exporting-data", "docs/b1-admin/people/importing-data#importing-from-csv", "docs/b1-admin/people/importing-data#importing-from-breeze-chms"];
+        else if (props.secondaryMenuLabel === "Forms") result = ["docs/b1-admin/forms/"];
       }
     } else if (props.appName === "B1") {
       if (props.primaryMenuLabel === "Mobile App") result = ["b1/admin/portal", "b1/mobile/setup"];

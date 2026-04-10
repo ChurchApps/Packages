@@ -24,6 +24,16 @@ export const SupportDrawer = (props: Props) => {
     );
   };
 
+  const getLabelFromPath = (path: string) => {
+    if (!path) return "";
+    const [pathOnly, hash] = path.split("#");
+    if (hash) return hash.replace(/-/g, " ");
+    const cleaned = pathOnly.replace(/\/+$/, "");
+    const parts = cleaned.split("/");
+    const lastPart = parts[parts.length - 1] || parts[parts.length - 2] || "";
+    return lastPart.replace(/-/g, " ");
+  };
+
   const handleChurchSupportClick = () => {
     if (validateEmail(supportContact)) {
       window.location.href = `mailto:${supportContact}`;
@@ -78,9 +88,7 @@ export const SupportDrawer = (props: Props) => {
                 <Typography sx={{ color: "#568bda", textDecoration: "underline", textUnderlineOffset: 10, textDecorationThickness: 2, marginLeft: 2 }}>Features Tour</Typography>
                 <List sx={{ marginTop: 1.5 }}>
                   {props.relatedArticles.map((a) => {
-                    const parts = a.split("/");
-                    const lastPart = parts[parts.length - 1];
-                    const result = lastPart.replace("-", " ");
+                    const result = getLabelFromPath(a);
                     return (
                       <ListItem disablePadding>
                         <ListItemButton href={supportHref + a} target="_blank" rel="noopener noreferrer">

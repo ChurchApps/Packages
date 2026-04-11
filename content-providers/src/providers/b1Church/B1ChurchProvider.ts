@@ -104,11 +104,19 @@ export class B1ChurchProvider implements IProvider {
       });
     }
 
-    // /ministries/{ministryId}/{planTypeId} -> list plans
+    // /ministries/{ministryId}/{planTypeId} -> list plans (today and upcoming)
     if (depth === 3) {
       const ministryId = segments[1];
       const planTypeId = segments[2];
-      const plans = await fetchPlans(planTypeId, authData);
+      const allPlans = await fetchPlans(planTypeId, authData);
+
+      // Filter to plans with serviceDate >= start of yesterday
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      yesterday.setHours(0, 0, 0, 0);
+      const plans = allPlans.filter(p => new Date(p.serviceDate).getTime() >= yesterday.getTime());
+
+      // Sort ascending so the nearest upcoming plan appears first
       plans.sort((a, b) => new Date(a.serviceDate).getTime() - new Date(b.serviceDate).getTime());
 
       const imageMap = await this.fetchPlanImages(plans, ministryId, authData);

@@ -765,13 +765,10 @@ code {
 }
 
 .b1-lightbox img {
-  max-width: 90vw;
-  max-height: 90vh;
-  width: auto;
+  width: 98vw;
+  height: 98vh;
   object-fit: contain;
   cursor: default;
-  border-radius: 4px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
 }
 
 .b1-lightbox__close {

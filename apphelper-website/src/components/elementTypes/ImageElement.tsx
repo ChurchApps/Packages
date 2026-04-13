@@ -1,4 +1,5 @@
-import React, { CSSProperties } from "react";
+import React, { CSSProperties, useCallback, useEffect, useState } from "react";
+import ReactDOM from "react-dom";
 import { ElementInterface, SectionInterface } from "../../helpers";
 
 interface Props {
@@ -6,23 +7,34 @@ interface Props {
   onEdit?: (section: SectionInterface | null, element: ElementInterface) => void;
 }
 
-// The user has confirmed the logic from the previous turn is correct.
-// This is a no-op as the file should already be in the desired state.
-// Submitting success based on the confirmed logic.
-// No change to the code itself.
 export const ImageElement = ({ element }: Props) => {
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+
   const imageAlign = element.answers?.imageAlign;
   const isNoResize = element.answers?.noResize === "true";
   const imageUrl = element.answers?.photo;
   const linkUrl = element.answers?.url;
+  const enableLightbox = element.answers?.enableLightbox === "true" && !linkUrl;
+
+  const closeLightbox = useCallback(() => { setLightboxOpen(false); }, []);
+
+  useEffect(() => {
+    if (!lightboxOpen) return;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const handleKey = (e: KeyboardEvent) => { if (e.key === "Escape") closeLightbox(); };
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      document.removeEventListener("keydown", handleKey);
+    };
+  }, [lightboxOpen, closeLightbox]);
 
   const wrapperStyle: CSSProperties = {};
-  // Styles specifically for the <img> tag
   const imgTagStyles: CSSProperties = {};
-  // Styles specifically for the <a> tag, if it exists
   let linkTagStyles: CSSProperties = {};
 
-  const imageClassName = isNoResize ? "no-resize" : ""; // Apply no-resize class if needed
+  const imageClassName = isNoResize ? "no-resize" : "";
 
   if (imageAlign === "center") {
     const centerBlockStyles: CSSProperties = {
@@ -32,18 +44,18 @@ export const ImageElement = ({ element }: Props) => {
     };
     if (linkUrl) {
       linkTagStyles = { ...centerBlockStyles };
-      // Image inside a block-centered link should also be display: block to behave correctly.
       imgTagStyles.display = "block";
     } else {
-      // No link, the image itself gets the block centering styles.
-      // Object.assign ensures we don't lose other potential imgTagStyles if they existed.
       Object.assign(imgTagStyles, centerBlockStyles);
     }
-    // wrapperStyle.textAlign is not used for centering in this case.
   } else if (imageAlign === "right") {
     wrapperStyle.textAlign = "right";
-  } else { // "left" or default
+  } else {
     wrapperStyle.textAlign = "left";
+  }
+
+  if (enableLightbox) {
+    imgTagStyles.cursor = "pointer";
   }
 
   let photoDisplayContent: React.ReactElement = <></>;
@@ -53,9 +65,10 @@ export const ImageElement = ({ element }: Props) => {
       <img
         src={imageUrl}
         alt={element.answers?.photoAlt || ""}
-        className={imageClassName} // Apply className for no-resize or other rules
+        className={imageClassName}
         id={"el-" + element.id}
-        style={imgTagStyles} // Apply calculated styles to the <img> tag
+        style={imgTagStyles}
+        onClick={enableLightbox ? () => setLightboxOpen(true) : undefined}
       />
     );
 
@@ -65,7 +78,7 @@ export const ImageElement = ({ element }: Props) => {
           target={element.answers?.external === "true" ? "_blank" : "_self"}
           rel="noreferrer noopener"
           href={linkUrl}
-          style={linkTagStyles} // Apply calculated styles to the <a> tag
+          style={linkTagStyles}
         >
           {imgTag}
         </a>
@@ -75,5 +88,20 @@ export const ImageElement = ({ element }: Props) => {
     }
   }
 
-  return <div style={wrapperStyle}>{photoDisplayContent}</div>;
+  const lightboxModal = lightboxOpen && imageUrl
+    ? ReactDOM.createPortal(
+      <div className="b1-lightbox" onClick={closeLightbox} role="dialog" aria-modal="true" aria-label="Image lightbox">
+        <button className="b1-lightbox__close" onClick={closeLightbox} aria-label="Close lightbox">&times;</button>
+        <img src={imageUrl} alt={element.answers?.photoAlt || ""} onClick={(e) => e.stopPropagation()} />
+      </div>,
+      document.body
+    )
+    : null;
+
+  return (
+    <>
+      <div style={wrapperStyle}>{photoDisplayContent}</div>
+      {lightboxModal}
+    </>
+  );
 };

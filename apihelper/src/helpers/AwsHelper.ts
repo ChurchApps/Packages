@@ -1,4 +1,4 @@
-import { S3Client, GetObjectCommand, PutObjectCommand, DeleteObjectCommand, CopyObjectCommand, ListObjectsV2Command, ListObjectsV2Output } from "@aws-sdk/client-s3";
+import { S3Client, S3ClientConfig, GetObjectCommand, PutObjectCommand, DeleteObjectCommand, CopyObjectCommand, ListObjectsV2Command, ListObjectsV2Output } from "@aws-sdk/client-s3";
 import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
 import { EnvironmentBase } from "./EnvironmentBase.js";
 import { SSMClient, GetParameterCommand } from "@aws-sdk/client-ssm";
@@ -9,7 +9,7 @@ export class AwsHelper {
   static async readParameter(parameterName: string): Promise<string> {
     let result = "";
     try {
-      const ssm = new SSMClient({ region: "us-east-2" });
+      const ssm = new SSMClient({ region: process.env.AWS_REGION || "us-east-2" });
       const params = { Name: parameterName, WithDecryption: true };
       const command = new GetParameterCommand(params);
       const response = await ssm.send(command);
@@ -22,9 +22,18 @@ export class AwsHelper {
 
   private static _client: S3Client;
 
+  private static getS3Config(): S3ClientConfig {
+    const config: S3ClientConfig = {};
+    if (process.env.S3_ENDPOINT) {
+      config.endpoint = process.env.S3_ENDPOINT;
+      config.forcePathStyle = true;
+    }
+    return config;
+  }
+
   private static getClient(): S3Client {
     if (!this._client) {
-      this._client = new S3Client({});
+      this._client = new S3Client(this.getS3Config());
     }
     return this._client;
   }

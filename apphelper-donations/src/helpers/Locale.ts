@@ -151,7 +151,8 @@ export class Locale {
         "interval": "Interval",
         "notFound": "Payment method not found.",
         "paymentMethod": "Payment Method",
-        "startDate": "Start Date"
+        "startDate": "Start Date",
+        "noSubscriptions": "No subscription found"
       }
     }
   };

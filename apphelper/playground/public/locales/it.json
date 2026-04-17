@@ -128,6 +128,7 @@
       "amount": "Quantità",
       "every": "Ogni",
       "interval": "Intervallo",
+      "noSubscriptions": "Nessun abbonamento trovato",
       "notFound": "Metodo di pagamento non trovato.",
       "paymentMethod": "Metodo di pagamento",
       "startDate": "Data d'inizio"

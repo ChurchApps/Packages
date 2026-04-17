@@ -128,6 +128,7 @@
       "amount": "数量",
       "every": "每一个",
       "interval": "间隔",
+      "noSubscriptions": "未找到订阅",
       "notFound": "未找到付款方式。",
       "paymentMethod": "付款方式",
       "startDate": "开始日期"

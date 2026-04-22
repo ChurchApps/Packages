@@ -52,6 +52,7 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
     email: string; firstName?: string; lastName?: string;
     churchId?: string; churchName?: string;
   } | null>(null);
+  const [verifiedAuth, setVerifiedAuth] = React.useState<string>("");
 
   const loginFormRef = React.useRef(null);
   const location = typeof window !== "undefined" && window.location;
@@ -311,17 +312,19 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
   };
   const getCheckEmail = () => { if (new URLSearchParams(location?.search).get("checkEmail") === "1") return <Alert severity="info">{Locale.label("login.registerThankYou")}</Alert>; };
   const handleRegisterCallback = () => { setShowForgot(false); setShowRegister(true); };
-  const handleLoginCallback = () => { setShowForgot(false); setShowRegister(false); setRegistrationData(null); };
+  const handleLoginCallback = () => { setShowForgot(false); setShowRegister(false); setRegistrationData(null); setVerifiedAuth(""); };
   const handleChurchRegistered = (church: ChurchInterface) => { registeredChurch = church; setShowRegister(false); };
+  const handleCodeVerified = (authGuid: string) => { setVerifiedAuth(authGuid); setShowForgot(false); setShowRegister(false); };
 
   const getInputBox = () => {
+    if (verifiedAuth) return (<LoginSetPassword setErrors={setErrors} setShowForgot={setShowForgot} isSubmitting={isSubmitting} auth={verifiedAuth} login={login} appName={props.appName} appUrl={cleanAppUrl()} />);
     if (showRegister) {
       return (
 
-			<Register updateErrors={setErrors} appName={props.appName} appUrl={cleanAppUrl()} loginCallback={handleLoginCallback} userRegisteredCallback={props.userRegisteredCallback} defaultEmail={registrationData?.email} defaultFirstName={registrationData?.firstName} defaultLastName={registrationData?.lastName} defaultChurchId={registrationData?.churchId} defaultChurchName={registrationData?.churchName} />
+			<Register updateErrors={setErrors} appName={props.appName} appUrl={cleanAppUrl()} loginCallback={handleLoginCallback} userRegisteredCallback={props.userRegisteredCallback} onVerified={handleCodeVerified} defaultEmail={registrationData?.email} defaultFirstName={registrationData?.firstName} defaultLastName={registrationData?.lastName} defaultChurchId={registrationData?.churchId} defaultChurchName={registrationData?.churchName} />
 
       );
-    } else if (showForgot) return (<Forgot registerCallback={handleRegisterCallback} loginCallback={handleLoginCallback} />);
+    } else if (showForgot) return (<Forgot registerCallback={handleRegisterCallback} loginCallback={handleLoginCallback} onVerified={handleCodeVerified} />);
     else if (props.auth) return (<LoginSetPassword setErrors={setErrors} setShowForgot={setShowForgot} isSubmitting={isSubmitting} auth={props.auth} login={login} appName={props.appName} appUrl={cleanAppUrl()} />);
     else return <Login setShowRegister={setShowRegister} setShowForgot={setShowForgot} setErrors={setErrors} isSubmitting={isSubmitting} login={login} mainContainerCssProps={loginContainerCssProps} defaultEmail={props.defaultEmail} defaultPassword={props.defaultPassword} showFooter={props.showFooter} onRegisterClick={(email) => { setRegistrationData({ email }); }} />;
   };

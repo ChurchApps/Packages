@@ -1,6 +1,6 @@
 {
   "name": "@churchapps/apphelper-login",
-  "version": "0.6.20",
+  "version": "0.6.23",
   "description": "Login components for ChurchApps AppHelper",
   "type": "module",
   "main": "dist/index.js",
@@ -39,7 +39,7 @@
   },
   "homepage": "https://github.com/ChurchApps/Packages#readme",
   "peerDependencies": {
-    "@churchapps/apphelper": "^0.6.0",
+    "@churchapps/apphelper": "^0.6.23",
     "@churchapps/helpers": "^1.2.19",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",

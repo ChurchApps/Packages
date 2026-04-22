@@ -5,6 +5,7 @@ import { LoginResponseInterface, RegisterUserInterface, UserInterface, CheckEmai
 import { ApiHelper } from "@churchapps/helpers";
 import { AnalyticsHelper, Locale } from "../helpers";
 import { TextField, Card, CardContent, Typography, Button, Alert } from "@mui/material";
+import { VerificationCodeInput } from "./VerificationCodeInput";
 
 interface Props {
   appName?: string,
@@ -12,12 +13,15 @@ interface Props {
   updateErrors: (errors: string[]) => void,
   loginCallback?: () => void
   userRegisteredCallback?: (user: UserInterface) => Promise<void>;
+  onVerified?: (authGuid: string, email: string) => void;
   defaultEmail?: string;
   defaultFirstName?: string;
   defaultLastName?: string;
   defaultChurchId?: string;
   defaultChurchName?: string;
 }
+
+const RESEND_COOLDOWN_SECONDS = 30;
 
 export const Register: React.FC<Props> = (props) => {
 
@@ -32,9 +36,17 @@ export const Register: React.FC<Props> = (props) => {
 
   const [registered, setRegistered] = React.useState(false);
   const [user, setUser] = React.useState<RegisterUserInterface>({ firstName: props.defaultFirstName || "", lastName: props.defaultLastName || "", email: props.defaultEmail || "", appName: props.appName, appUrl: cleanAppUrl(), churchId: props.defaultChurchId || undefined });
-  const [errors, setErrors] = React.useState([]);
+  const [errors, setErrors] = React.useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [matchedChurchName, setMatchedChurchName] = React.useState(props.defaultChurchName || "");
+  const [code, setCode] = React.useState("");
+  const [resendCooldown, setResendCooldown] = React.useState(0);
+
+  React.useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const t = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
+    return () => clearTimeout(t);
+  }, [resendCooldown]);
 
   const checkEmailForMatch = async (emailToCheck: string) => {
     if (!emailToCheck || !validateEmail(emailToCheck)) return;
@@ -56,12 +68,13 @@ export const Register: React.FC<Props> = (props) => {
     } catch { /* silently ignore lookup failures */ }
   };
 
-  const handleRegisterErrors = (errors: string[]) => {
-    props.updateErrors(errors);
+  const handleRegisterErrors = (errs: string[]) => {
+    props.updateErrors(errs);
   };
 
   const handleRegisterSuccess = (resp: LoginResponseInterface) => {
     setRegistered(true);
+    setResendCooldown(RESEND_COOLDOWN_SECONDS);
     AnalyticsHelper.logEvent("User", "Register");
     if (props.userRegisteredCallback) props.userRegisteredCallback(resp.user);
   };
@@ -79,13 +92,13 @@ export const Register: React.FC<Props> = (props) => {
   };
 
   const validate = () => {
-    const errors = [];
-    if (!user.email?.trim()) errors.push(Locale.label("login.validate.email"));
-    else if (!validateEmail(user.email)) errors.push(Locale.label("login.validate.email"));
-    if (!user.firstName?.trim()) errors.push(Locale.label("login.validate.firstName"));
-    if (!user.lastName?.trim()) errors.push(Locale.label("login.validate.lastName"));
-    setErrors(errors);
-    return errors.length === 0;
+    const errs: string[] = [];
+    if (!user.email?.trim()) errs.push(Locale.label("login.validate.email"));
+    else if (!validateEmail(user.email)) errs.push(Locale.label("login.validate.email"));
+    if (!user.firstName?.trim()) errs.push(Locale.label("login.validate.firstName"));
+    if (!user.lastName?.trim()) errs.push(Locale.label("login.validate.lastName"));
+    setErrors(errs);
+    return errs.length === 0;
   };
 
   const register: FormEventHandler = (e) => {
@@ -105,6 +118,47 @@ export const Register: React.FC<Props> = (props) => {
     }
   };
 
+  const resend = async () => {
+    if (resendCooldown > 0 || isSubmitting) return;
+    setIsSubmitting(true);
+    setCode("");
+    try {
+      await ApiHelper.postAnonymous("/users/forgot", { userEmail: user.email }, "MembershipApi");
+      setErrors([]);
+      setResendCooldown(RESEND_COOLDOWN_SECONDS);
+    } catch (err: any) {
+      setErrors([err?.toString() || "Failed to resend code"]);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const verify = async (submittedCode: string) => {
+    if (submittedCode.length !== 6) {
+      setErrors([Locale.label("login.validate.code")]);
+      return;
+    }
+    setErrors([]);
+    setIsSubmitting(true);
+    try {
+      const resp: any = await ApiHelper.postAnonymous("/users/verifyCode", { email: user.email, code: submittedCode }, "MembershipApi");
+      if (resp.errors) {
+        setErrors(resp.errors.map((err: any) => typeof err === "string" ? err : err.msg || "Invalid code"));
+      } else if (resp.authGuid && props.onVerified) {
+        props.onVerified(resp.authGuid, user.email);
+      }
+    } catch (err: any) {
+      setErrors([err?.toString() || "Invalid code"]);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const submitCode: FormEventHandler = (e) => {
+    e.preventDefault();
+    verify(code);
+  };
+
   if (registered) {
     return (
         <Card sx={{
@@ -119,46 +173,89 @@ export const Register: React.FC<Props> = (props) => {
               <img
                 src="/images/logo-login.png"
                 alt="Church Logo"
-                style={{
-                  maxWidth: "100%",
-                  width: "auto",
-                  height: "auto",
-                  maxHeight: "80px",
-                  marginBottom: "16px",
-                  objectFit: "contain"
-                }}
+                style={{ maxWidth: "100%", width: "auto", height: "auto", maxHeight: "80px", marginBottom: "16px", objectFit: "contain" }}
               />
             </div>
             <Typography
               component="h1"
-              sx={{
-                fontSize: "24px",
-                fontWeight: "bold",
-                color: "#111827",
-                marginBottom: "32px"
-              }}
+              sx={{ fontSize: "24px", fontWeight: "bold", color: "#111827", marginBottom: "8px" }}
             >
-              Registration Complete
+              {Locale.label("login.enterCode")}
             </Typography>
             <Typography sx={{ color: "#6b7280", marginBottom: "24px" }}>
-              {Locale.label("login.registerThankYou")}
+              We emailed a 6-digit code to <b>{user.email}</b>.
             </Typography>
-            <button
-              type="button"
-              onClick={(e) => { e.preventDefault(); props.loginCallback && props.loginCallback(); }}
-              style={{
-                background: "none",
-                border: "none",
-                color: "#3b82f6",
-                fontSize: "14px",
-                cursor: "pointer",
-                textDecoration: "none"
-              }}
-              onMouseOver={(e) => e.currentTarget.style.textDecoration = "underline"}
-              onMouseOut={(e) => e.currentTarget.style.textDecoration = "none"}
-            >
-              Back to sign in
-            </button>
+
+            {errors.length > 0 && (
+              <div style={{
+                backgroundColor: "#fef2f2",
+                border: "1px solid #fecaca",
+                borderRadius: "6px",
+                padding: "12px",
+                textAlign: "left",
+                marginBottom: "16px"
+              }}>
+                {errors.map((error) => (
+                  <div key={error} style={{ color: "#dc2626", fontSize: "14px" }}>{error}</div>
+                ))}
+              </div>
+            )}
+
+            <form onSubmit={submitCode} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+              <VerificationCodeInput
+                value={code}
+                onChange={setCode}
+                onComplete={verify}
+                disabled={isSubmitting}
+                autoFocus
+              />
+
+              <Button
+                type="submit"
+                variant="contained"
+                fullWidth
+                disabled={isSubmitting || code.length !== 6}
+                sx={{
+                  backgroundColor: "hsl(218, 85%, 55%)",
+                  color: "white",
+                  padding: "12px",
+                  textTransform: "none",
+                  fontSize: "16px",
+                  fontWeight: 500,
+                  borderRadius: "6px",
+                  "&:hover": { backgroundColor: "hsl(218, 85%, 50%)" },
+                  "&:disabled": { backgroundColor: "#9ca3af" }
+                }}
+              >
+                {isSubmitting ? Locale.label("common.pleaseWait") : Locale.label("login.verifyCode")}
+              </Button>
+
+              <div style={{ textAlign: "center", display: "flex", justifyContent: "center", alignItems: "center", gap: "8px" }}>
+                <button
+                  type="button"
+                  disabled={resendCooldown > 0 || isSubmitting}
+                  onClick={resend}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: resendCooldown > 0 ? "#9ca3af" : "#3b82f6",
+                    fontSize: "14px",
+                    cursor: resendCooldown > 0 ? "default" : "pointer",
+                    textDecoration: "none"
+                  }}
+                >
+                  {resendCooldown > 0 ? `Resend code in ${resendCooldown}s` : Locale.label("login.resendCode")}
+                </button>
+                <span style={{ fontSize: "14px", color: "#6b7280" }}>|</span>
+                <button
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); if (props.loginCallback) props.loginCallback(); }}
+                  style={{ background: "none", border: "none", color: "#3b82f6", fontSize: "14px", cursor: "pointer", textDecoration: "none" }}
+                >
+                  Back to sign in
+                </button>
+              </div>
+            </form>
           </CardContent>
         </Card>
     );
@@ -177,33 +274,16 @@ export const Register: React.FC<Props> = (props) => {
             <img
               src="/images/logo-login.png"
               alt="Church Logo"
-              style={{
-                maxWidth: "100%",
-                width: "auto",
-                height: "auto",
-                maxHeight: "80px",
-                marginBottom: "16px",
-                objectFit: "contain"
-              }}
+              style={{ maxWidth: "100%", width: "auto", height: "auto", maxHeight: "80px", marginBottom: "16px", objectFit: "contain" }}
             />
           </div>
           <Typography
             component="h1"
-            sx={{
-              fontSize: "24px",
-              fontWeight: "bold",
-              color: "#111827",
-              marginBottom: "8px"
-            }}
+            sx={{ fontSize: "24px", fontWeight: "bold", color: "#111827", marginBottom: "8px" }}
           >
             Create Account
           </Typography>
-          <Typography
-            sx={{
-              color: "#6b7280",
-              marginBottom: "32px"
-            }}
-          >
+          <Typography sx={{ color: "#6b7280", marginBottom: "32px" }}>
             Create a new account to access your church
           </Typography>
 
@@ -249,10 +329,7 @@ export const Register: React.FC<Props> = (props) => {
                       "& fieldset": { borderColor: "#d1d5db" },
                       "&:hover fieldset": { borderColor: "#d1d5db" },
                       "&.Mui-focused fieldset": { borderColor: "#3b82f6" },
-                      "& input": {
-                        color: "#111827",
-                        fontSize: "16px"
-                      }
+                      "& input": { color: "#111827", fontSize: "16px" }
                     },
                     "& .MuiInputLabel-root": { display: "none" }
                   }}
@@ -280,10 +357,7 @@ export const Register: React.FC<Props> = (props) => {
                       "& fieldset": { borderColor: "#d1d5db" },
                       "&:hover fieldset": { borderColor: "#d1d5db" },
                       "&.Mui-focused fieldset": { borderColor: "#3b82f6" },
-                      "& input": {
-                        color: "#111827",
-                        fontSize: "16px"
-                      }
+                      "& input": { color: "#111827", fontSize: "16px" }
                     },
                     "& .MuiInputLabel-root": { display: "none" }
                   }}
@@ -313,10 +387,7 @@ export const Register: React.FC<Props> = (props) => {
                     "& fieldset": { borderColor: "#d1d5db" },
                     "&:hover fieldset": { borderColor: "#d1d5db" },
                     "&.Mui-focused fieldset": { borderColor: "#3b82f6" },
-                    "& input": {
-                      color: "#111827",
-                      fontSize: "16px"
-                    }
+                    "& input": { color: "#111827", fontSize: "16px" }
                   },
                   "& .MuiInputLabel-root": { display: "none" }
                 }}
@@ -348,17 +419,8 @@ export const Register: React.FC<Props> = (props) => {
                 Already have an account?{" "}
                 <button
                   type="button"
-                  onClick={(e) => { e.preventDefault(); props.loginCallback && props.loginCallback(); }}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    color: "#3b82f6",
-                    fontSize: "14px",
-                    cursor: "pointer",
-                    textDecoration: "none"
-                  }}
-                  onMouseOver={(e) => e.currentTarget.style.textDecoration = "underline"}
-                  onMouseOut={(e) => e.currentTarget.style.textDecoration = "none"}
+                  onClick={(e) => { e.preventDefault(); if (props.loginCallback) props.loginCallback(); }}
+                  style={{ background: "none", border: "none", color: "#3b82f6", fontSize: "14px", cursor: "pointer", textDecoration: "none" }}
                 >
                   Sign in
                 </button>

@@ -206,13 +206,13 @@ const UserMenuContent: React.FC<Props> = React.memo((props) => {
 
     const isB1App = props.appName === "B1.church" || props.appName === "B1App" || props.appName === "B1";
 
-    if (isB1App) return <NavItem url={`/my/community/${personId}`} label={getLabel("wrapper.editChurchProfile", "Edit Church Profile")} icon="church" onNavigate={props.onNavigate} />;
+    if (isB1App) return <NavItem url={`/mobile/community/${personId}`} label={getLabel("wrapper.editChurchProfile", "Edit Church Profile")} icon="church" onNavigate={props.onNavigate} />;
     else {
       const jwt = ApiHelper.getConfig("MembershipApi").jwt;
       const churchId = props.context?.userChurch?.church?.id;
       const subDomain = props.context?.userChurch?.church?.subDomain;
       const b1Url = CommonEnvironmentHelper.B1Root.replace("{key}", subDomain);
-      const returnUrl = encodeURIComponent(`/my/community/${personId}`);
+      const returnUrl = encodeURIComponent(`/mobile/community/${personId}`);
       return <NavItem url={`${b1Url}/login?jwt=${jwt}&churchId=${churchId}&returnUrl=${returnUrl}`} external={true} label={getLabel("wrapper.editChurchProfile", "Edit Church Profile")} icon="church" onNavigate={props.onNavigate} />;
     }
   };

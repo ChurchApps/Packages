@@ -149,7 +149,7 @@ export const NonAuthDonation: React.FC<Props> = ({ mainContainerCssProps, showHe
       {renderPaymentTypeSelector()}
       {renderDonationForm()}
       <Box sx={{ marginTop: "15px", fontSize: "14px" }}>
-        <a href="/my/donate" style={{ color: "#1976d2" }}>
+        <a href="/mobile/donate" style={{ color: "#1976d2" }}>
           Login to manage existing donations
         </a>
       </Box>

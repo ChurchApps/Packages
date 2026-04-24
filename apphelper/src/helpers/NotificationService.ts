@@ -69,18 +69,18 @@ export class NotificationService {
     // Handler for new private messages
     SocketHelper.addHandler("privateMessage", "NotificationService-PM", (data: any) => {
       try {
-        this.debouncedLoadNotificationCounts();
+        if (!this.applyCountsFromPayload(data)) this.loadNotificationCounts();
       } catch (error) {
-        console.error("❌ NotificationService: Error calling debouncedLoadNotificationCounts:", error);
+        console.error("❌ NotificationService: Error handling privateMessage socket event:", error);
       }
     });
 
     // Handler for general notifications
     SocketHelper.addHandler("notification", "NotificationService-Notification", (data: any) => {
       try {
-        this.debouncedLoadNotificationCounts();
+        if (!this.applyCountsFromPayload(data)) this.loadNotificationCounts();
       } catch (error) {
-        console.error("❌ NotificationService: Error calling debouncedLoadNotificationCounts:", error);
+        console.error("❌ NotificationService: Error handling notification socket event:", error);
       }
     });
 
@@ -101,6 +101,20 @@ export class NotificationService {
     SocketHelper.addHandler("reconnect", "NotificationService-Reconnect", (data: any) => {
       this.loadNotificationCounts(); // Don't debounce reconnect - need immediate update
     });
+  }
+
+  /**
+   * If the socket payload carries fresh counts, apply them directly and skip the
+   * extra API round-trip. Returns true when counts were applied.
+   */
+  private applyCountsFromPayload(data: any): boolean {
+    const counts = data?.counts;
+    if (!counts || typeof counts !== "object") return false;
+    const notificationCount = Number(counts.notificationCount);
+    const pmCount = Number(counts.pmCount);
+    if (!Number.isFinite(notificationCount) || !Number.isFinite(pmCount)) return false;
+    this.updateCounts({ notificationCount, pmCount });
+    return true;
   }
 
   /**

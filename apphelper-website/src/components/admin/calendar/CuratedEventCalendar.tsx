@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import moment from "moment";
 import { Calendar, momentLocalizer } from "react-big-calendar";
@@ -25,6 +25,15 @@ export function CuratedEventCalendar(props: Props) {
   const [displayCalendarEvent, setDisplayCalendarEvent] = useState<CuratedEventWithEventInterface | null>(null);
   const [ShowCopy, setShowCopy] = useState<boolean>(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [rruleReady, setRruleReady] = useState<boolean>(false);
+
+  useEffect(() => {
+    // EventHelper.getRange uses rrule which is loaded via dynamic import.
+    // Wait for it before expanding recurring events; otherwise getRange throws
+    // on first render before the dynamic import resolves.
+    const ensure = (EventHelper as any).ensureInitialized || (() => Promise.resolve());
+    Promise.resolve(ensure()).then(() => setRruleReady(true)).catch(() => setRruleReady(true));
+  }, []);
 
   const localizer = momentLocalizer(moment);
 
@@ -82,18 +91,23 @@ export function CuratedEventCalendar(props: Props) {
     const ev = { ...event };
     ev.start = new Date(event.start);
     ev.end = new Date(event.end);
-    if (ev.recurrenceRule) {
-      const dates = EventHelper.getRange(ev, startRange, endRange);
-      dates.forEach((date: Date) => {
-        const evt = { ...event };
-        if (!evt.start || !evt.end) return;
-        const diff
-          = new Date(evt.end).getTime() - new Date(evt.start).getTime();
-        evt.start = date;
-        evt.end = new Date(date.getTime() + diff);
-        expandedEvents.push(evt);
-      });
-      EventHelper.removeExcludeDates(expandedEvents);
+    if (ev.recurrenceRule && rruleReady) {
+      try {
+        const dates = EventHelper.getRange(ev, startRange, endRange);
+        dates.forEach((date: Date) => {
+          const evt = { ...event };
+          if (!evt.start || !evt.end) return;
+          const diff
+            = new Date(evt.end).getTime() - new Date(evt.start).getTime();
+          evt.start = date;
+          evt.end = new Date(date.getTime() + diff);
+          expandedEvents.push(evt);
+        });
+        EventHelper.removeExcludeDates(expandedEvents);
+      } catch {
+        // RRule not yet initialized; render single occurrence and re-render once ready.
+        expandedEvents.push(ev);
+      }
     } else expandedEvents.push(ev);
   });
 

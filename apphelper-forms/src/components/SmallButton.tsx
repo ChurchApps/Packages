@@ -16,7 +16,7 @@ interface Props {
   "data-testid"?: string;
 }
 
-export const SmallButton = React.forwardRef<HTMLDivElement, Props>((props) => {
+export const SmallButton = React.forwardRef<HTMLButtonElement, Props>((props, ref) => {
   const [redirectUrl, setRedirectUrl] = React.useState("");
 
   const handleClick = (e: React.MouseEvent) => {
@@ -33,7 +33,7 @@ export const SmallButton = React.forwardRef<HTMLDivElement, Props>((props) => {
   else {
     return (
     <Tooltip title={props.toolTip || ""} arrow placement="top">
-      <Button sx={style} disabled={props.disabled} variant={props.text ? "outlined" : "text"} color={props.color} aria-label={props.ariaLabel || "editButton"} onClick={handleClick} size="small" data-testid={props["data-testid"] || `small-button-${props.icon}`}>
+      <Button ref={ref} sx={style} disabled={props.disabled} variant={props.text ? "outlined" : "text"} color={props.color} aria-label={props.ariaLabel || "editButton"} onClick={handleClick} size="small" data-testid={props["data-testid"] || `small-button-${props.icon}`}>
         <Icon>{props.icon}</Icon>{(props.text) ? props.text : ""}
       </Button>
     </Tooltip>

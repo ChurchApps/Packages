@@ -15,7 +15,7 @@ interface Props {
   onPaymentRequired?: (question: QuestionInterface) => React.ReactNode
 }
 
-export const QuestionEdit = React.forwardRef<any, Props>(({ noBackground = false, ...props }) => {
+export const QuestionEdit = React.forwardRef<any, Props>(({ noBackground = false, ...props }, _ref) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement> | SelectChangeEvent<string>) => {
     props.changeFunction(props.question.id || "", e.target.value);
   };

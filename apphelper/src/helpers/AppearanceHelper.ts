@@ -1,5 +1,5 @@
 
-export type AppearanceInterface = { wrapperBackground?: string, logoLight?: string, logoDark?: string, favicon_400x400?: string, favicon_16x16?: string, ogImage?: string }
+export type AppearanceInterface = { wrapperBackground?: string, logoLight?: string, logoDark?: string, favicon_400x400?: string, favicon_16x16?: string, ogImage?: string, primaryColor?: string, primaryContrast?: string, secondaryColor?: string, secondaryContrast?: string }
 
 export class AppearanceHelper {
 

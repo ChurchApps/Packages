@@ -25,16 +25,29 @@ export class CommonEnvironmentHelper {
     }
   };
 
+  private static readApiBase = (): string =>
+    process.env.REACT_APP_API_BASE
+    || process.env.NEXT_PUBLIC_API_BASE
+    || process.env.EXPO_PUBLIC_API_BASE
+    || "";
+
+  private static applyApiBase = (base: string) => {
+    const trimmed = base.replace(/\/$/, "");
+    CommonEnvironmentHelper.MembershipApi = trimmed + "/membership";
+    CommonEnvironmentHelper.AttendanceApi = trimmed + "/attendance";
+    CommonEnvironmentHelper.ContentApi    = trimmed + "/content";
+    CommonEnvironmentHelper.GivingApi     = trimmed + "/giving";
+    CommonEnvironmentHelper.MessagingApi  = trimmed + "/messaging";
+    CommonEnvironmentHelper.DoingApi      = trimmed + "/doing";
+    CommonEnvironmentHelper.ReportingApi  = trimmed + "/reporting";
+  };
+
   static initDev = () => {
-    this.initStaging(); //Use staging values for anything not provided
-    CommonEnvironmentHelper.AttendanceApi = process.env.REACT_APP_ATTENDANCE_API || process.env.NEXT_PUBLIC_ATTENDANCE_API || CommonEnvironmentHelper.AttendanceApi;
-    CommonEnvironmentHelper.DoingApi = process.env.REACT_APP_DOING_API || process.env.NEXT_PUBLIC_DOING_API || CommonEnvironmentHelper.DoingApi;
-    CommonEnvironmentHelper.GivingApi = process.env.REACT_APP_GIVING_API || process.env.NEXT_PUBLIC_GIVING_API || CommonEnvironmentHelper.GivingApi;
-    CommonEnvironmentHelper.MembershipApi = process.env.REACT_APP_MEMBERSHIP_API || process.env.NEXT_PUBLIC_MEMBERSHIP_API || CommonEnvironmentHelper.MembershipApi;
-    CommonEnvironmentHelper.ReportingApi = process.env.REACT_APP_REPORTING_API || process.env.NEXT_PUBLIC_REPORTING_API || CommonEnvironmentHelper.ReportingApi;
-    CommonEnvironmentHelper.MessagingApi = process.env.REACT_APP_MESSAGING_API || process.env.NEXT_PUBLIC_MESSAGING_API || CommonEnvironmentHelper.MessagingApi;
+    CommonEnvironmentHelper.initStaging(); //Use staging values for anything not provided
+    const base = CommonEnvironmentHelper.readApiBase();
+    if (base) CommonEnvironmentHelper.applyApiBase(base);
+
     CommonEnvironmentHelper.MessagingApiSocket = process.env.REACT_APP_MESSAGING_API_SOCKET || process.env.NEXT_PUBLIC_MESSAGING_API_SOCKET || CommonEnvironmentHelper.MessagingApiSocket;
-    CommonEnvironmentHelper.ContentApi = process.env.REACT_APP_CONTENT_API || process.env.NEXT_PUBLIC_CONTENT_API || CommonEnvironmentHelper.ContentApi;
     CommonEnvironmentHelper.AskApi = process.env.REACT_APP_ASK_API || process.env.NEXT_PUBLIC_ASK_API || CommonEnvironmentHelper.AskApi;
     CommonEnvironmentHelper.GoogleAnalyticsTag = process.env.REACT_APP_GOOGLE_ANALYTICS || process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS || CommonEnvironmentHelper.GoogleAnalyticsTag;
 
@@ -46,14 +59,8 @@ export class CommonEnvironmentHelper {
 
   //NOTE: None of these values are secret.
   static initDemo = () => {
-    CommonEnvironmentHelper.AttendanceApi = "https://api.demo.churchapps.org/attendance";
-    CommonEnvironmentHelper.DoingApi = "https://api.demo.churchapps.org/doing";
-    CommonEnvironmentHelper.GivingApi = "https://api.demo.churchapps.org/giving";
-    CommonEnvironmentHelper.MembershipApi = "https://api.demo.churchapps.org/membership";
-    CommonEnvironmentHelper.ReportingApi = "https://api.demo.churchapps.org/reporting";
-    CommonEnvironmentHelper.MessagingApi = "https://api.demo.churchapps.org/messaging";
+    CommonEnvironmentHelper.applyApiBase("https://api.demo.churchapps.org");
     CommonEnvironmentHelper.MessagingApiSocket = "wss://socket.demo.churchapps.org";
-    CommonEnvironmentHelper.ContentApi = "https://api.demo.churchapps.org/content";
     CommonEnvironmentHelper.AskApi = "https://askapi.demo.churchapps.org";
     CommonEnvironmentHelper.GoogleAnalyticsTag = "";
 
@@ -65,14 +72,8 @@ export class CommonEnvironmentHelper {
 
   //NOTE: None of these values are secret.
   static initStaging = () => {
-    CommonEnvironmentHelper.AttendanceApi = "https://api.staging.churchapps.org/attendance";
-    CommonEnvironmentHelper.DoingApi = "https://api.staging.churchapps.org/doing";
-    CommonEnvironmentHelper.GivingApi = "https://api.staging.churchapps.org/giving";
-    CommonEnvironmentHelper.MembershipApi = "https://api.staging.churchapps.org/membership";
-    CommonEnvironmentHelper.ReportingApi = "https://api.staging.churchapps.org/reporting";
-    CommonEnvironmentHelper.MessagingApi = "https://api.staging.churchapps.org/messaging";
+    CommonEnvironmentHelper.applyApiBase("https://api.staging.churchapps.org");
     CommonEnvironmentHelper.MessagingApiSocket = "wss://socket.staging.churchapps.org";
-    CommonEnvironmentHelper.ContentApi = "https://api.staging.churchapps.org/content";
     CommonEnvironmentHelper.AskApi = "https://askapi.staging.churchapps.org";
     CommonEnvironmentHelper.GoogleAnalyticsTag = "";
 
@@ -84,14 +85,8 @@ export class CommonEnvironmentHelper {
 
   //NOTE: None of these values are secret.
   static initProd = () => {
-    CommonEnvironmentHelper.AttendanceApi = "https://api.churchapps.org/attendance";
-    CommonEnvironmentHelper.DoingApi = "https://api.churchapps.org/doing";
-    CommonEnvironmentHelper.GivingApi = "https://api.churchapps.org/giving";
-    CommonEnvironmentHelper.MembershipApi = "https://api.churchapps.org/membership";
-    CommonEnvironmentHelper.ReportingApi = "https://api.churchapps.org/reporting";
-    CommonEnvironmentHelper.MessagingApi = "https://api.churchapps.org/messaging";
+    CommonEnvironmentHelper.applyApiBase("https://api.churchapps.org");
     CommonEnvironmentHelper.MessagingApiSocket = "wss://socket.churchapps.org";
-    CommonEnvironmentHelper.ContentApi = "https://api.churchapps.org/content";
     CommonEnvironmentHelper.AskApi = "https://askapi.churchapps.org";
 
     CommonEnvironmentHelper.ContentRoot = "https://content.churchapps.org";
@@ -101,4 +96,3 @@ export class CommonEnvironmentHelper {
   };
 
 }
-

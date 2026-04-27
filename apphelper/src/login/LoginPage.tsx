@@ -53,6 +53,7 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
     churchId?: string; churchName?: string;
   } | null>(null);
   const [verifiedAuth, setVerifiedAuth] = React.useState<string>("");
+  const [verifiedEmail, setVerifiedEmail] = React.useState<string>("");
 
   const loginFormRef = React.useRef(null);
   const location = typeof window !== "undefined" && window.location;
@@ -314,10 +315,10 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
   const handleRegisterCallback = () => { setShowForgot(false); setShowRegister(true); };
   const handleLoginCallback = () => { setShowForgot(false); setShowRegister(false); setRegistrationData(null); setVerifiedAuth(""); };
   const handleChurchRegistered = (church: ChurchInterface) => { registeredChurch = church; setShowRegister(false); };
-  const handleCodeVerified = (authGuid: string) => { setVerifiedAuth(authGuid); setShowForgot(false); setShowRegister(false); };
+  const handleCodeVerified = (authGuid: string, email?: string) => { setVerifiedAuth(authGuid); if (email) setVerifiedEmail(email); setShowForgot(false); setShowRegister(false); };
 
   const getInputBox = () => {
-    if (verifiedAuth) return (<LoginSetPassword setErrors={setErrors} setShowForgot={setShowForgot} isSubmitting={isSubmitting} auth={verifiedAuth} login={login} appName={props.appName} appUrl={cleanAppUrl()} />);
+    if (verifiedAuth) return (<LoginSetPassword setErrors={setErrors} setShowForgot={setShowForgot} isSubmitting={isSubmitting} auth={verifiedAuth} email={verifiedEmail} login={login} appName={props.appName} appUrl={cleanAppUrl()} />);
     if (showRegister) {
       return (
 

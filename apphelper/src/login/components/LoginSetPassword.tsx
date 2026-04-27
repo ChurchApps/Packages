@@ -14,6 +14,7 @@ interface Props {
   setShowForgot: (showForgot: boolean) => void,
   isSubmitting: boolean,
   auth: string,
+  email?: string,
   login: (data: any) => void,
 }
 
@@ -44,21 +45,25 @@ export const LoginSetPassword: React.FC<Props> = props => {
   const loadUser = () => {
     ApiHelper.postAnonymous("/users/login", { authGuid: props.auth }, "MembershipApi").then((resp: LoginResponseInterface) => {
       if (resp.user) setUser(resp.user);
-      else props.setShowForgot(true);
+      // If the user lookup fails (e.g. brand-new account with no church/role yet), we
+      // don't bail out — the email passed in via props is enough to complete the flow.
     }).catch(() => {
-      props.setShowForgot(true);
+      // Same — silent fall-through; submit() will use props.email if user state never loads.
     });
   };
 
   const submit = async () => {
     const resp = await ApiHelper.postAnonymous("/users/setPasswordGuid", { authGuid: props.auth, newPassword: password, appName: props.appName, appUrl: props.appUrl }, "MembershipApi");
-    if (resp.success) props.login({ email: user.email, password });
+    const emailForLogin = user?.email || props.email;
+    if (resp.success && emailForLogin) props.login({ email: emailForLogin, password });
     else props.setShowForgot(true);
   };
 
   React.useEffect(() => {
     loadUser();
   }, []);
+
+  const buttonDisabled = props.isSubmitting || (!user && !props.email);
 
   return (
       <Card sx={{
@@ -232,7 +237,7 @@ export const LoginSetPassword: React.FC<Props> = props => {
                 type="submit"
                 variant="contained"
                 fullWidth
-                disabled={props.isSubmitting || !user}
+                disabled={buttonDisabled}
                 sx={{
                   backgroundColor: "hsl(218, 85%, 55%)",
                   color: "white",
@@ -245,7 +250,7 @@ export const LoginSetPassword: React.FC<Props> = props => {
                   "&:disabled": { backgroundColor: "#9ca3af" }
                 }}
               >
-                {(props.isSubmitting || !user) ? Locale.label("common.pleaseWait") : Locale.label("login.signIn")}
+                {buttonDisabled ? Locale.label("common.pleaseWait") : Locale.label("login.signIn")}
               </Button>
             </form>
           )}

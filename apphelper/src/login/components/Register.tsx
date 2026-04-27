@@ -38,6 +38,7 @@ export const Register: React.FC<Props> = (props) => {
   const [user, setUser] = React.useState<RegisterUserInterface>({ firstName: props.defaultFirstName || "", lastName: props.defaultLastName || "", email: props.defaultEmail || "", appName: props.appName, appUrl: cleanAppUrl(), churchId: props.defaultChurchId || undefined });
   const [errors, setErrors] = React.useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const submissionStartedRef = React.useRef(false);
   const [matchedChurchName, setMatchedChurchName] = React.useState(props.defaultChurchName || "");
   const [code, setCode] = React.useState("");
   const [resendCooldown, setResendCooldown] = React.useState(0);
@@ -50,8 +51,10 @@ export const Register: React.FC<Props> = (props) => {
 
   const checkEmailForMatch = async (emailToCheck: string) => {
     if (!emailToCheck || !validateEmail(emailToCheck)) return;
+    if (submissionStartedRef.current) return;
     try {
       const resp: CheckEmailResponseInterface = await ApiHelper.postAnonymous("/users/checkEmail", { email: emailToCheck }, "MembershipApi");
+      if (submissionStartedRef.current) return;
       if (resp.exists) {
         props.updateErrors(["An account already exists for this email. Please sign in instead."]);
       } else if (resp.peopleMatches.length > 0) {
@@ -105,6 +108,7 @@ export const Register: React.FC<Props> = (props) => {
     e.preventDefault();
     props.updateErrors([]);
     if (validate()) {
+      submissionStartedRef.current = true;
       setIsSubmitting(true);
       ApiHelper.postAnonymous("/users/register", user, "MembershipApi")
         .then((resp: any) => {

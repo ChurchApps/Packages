@@ -81,7 +81,7 @@ export const Forgot: React.FC<Props> = props => {
     setErrors([]);
     setIsSubmitting(true);
     ApiHelper.postAnonymous("/users/verifyCode", { email, code: submittedCode }, "MembershipApi").then((resp: any) => {
-      if (resp.authGuid && props.onVerified) props.onVerified(resp.authGuid);
+      if (resp.authGuid && props.onVerified) (props.onVerified as any)(resp.authGuid, email);
       else setErrors([Locale.label("login.validate.code")]);
     }).catch(() => {
       setErrors([Locale.label("login.validate.code")]);

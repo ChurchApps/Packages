@@ -109,6 +109,12 @@ export const Register: React.FC<Props> = (props) => {
       ApiHelper.postAnonymous("/users/register", user, "MembershipApi")
         .then((resp: any) => {
           if (resp.errors) handleRegisterErrors(resp.errors);
+          else if (resp.mailConfigured === false && resp.authGuid && props.onVerified) {
+            // Email not configured on the server — skip the verification step entirely.
+            AnalyticsHelper.logEvent("User", "Register");
+            if (props.userRegisteredCallback) props.userRegisteredCallback(resp);
+            props.onVerified(resp.authGuid, user.email);
+          }
           else handleRegisterSuccess(resp);
         })
         .catch((e: any) => { props.updateErrors([e.toString()]); throw e; })

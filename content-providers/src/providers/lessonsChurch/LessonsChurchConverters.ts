@@ -117,6 +117,7 @@ export function buildSectionActionsMap(actionsResponse: VenueActionsResponseInte
   const actionThumbnailMap = new Map<string, string>();
   const actionUrlMap = new Map<string, string>();
   const actionContentMap = new Map<string, string>();
+  const actionMediaTypeMap = new Map<string, "video" | "image">();
   if (feedResponse?.sections) {
     for (const section of feedResponse.sections) {
       for (const action of section.actions || []) {
@@ -125,7 +126,10 @@ export function buildSectionActionsMap(actionsResponse: VenueActionsResponseInte
           if (action.files?.length) {
             const firstFile = action.files[0];
             if (firstFile?.thumbnail) actionThumbnailMap.set(action.id, firstFile.thumbnail);
-            if (firstFile?.url) actionUrlMap.set(action.id, firstFile.url);
+            if (firstFile?.url) {
+              actionUrlMap.set(action.id, firstFile.url);
+              actionMediaTypeMap.set(action.id, detectMediaType(firstFile.url, firstFile.fileType));
+            }
           }
         }
       }
@@ -141,11 +145,12 @@ export function buildSectionActionsMap(actionsResponse: VenueActionsResponseInte
           const hasFiles = rawActionType === "play" || rawActionType === "add-on";
           const thumbnail = (action.id && actionThumbnailMap.get(action.id)) || lessonImage;
           const downloadUrl = action.id ? actionUrlMap.get(action.id) : undefined;
+          const mediaType = action.id ? actionMediaTypeMap.get(action.id) : undefined;
           const fullContent = action.id ? actionContentMap.get(action.id) : undefined;
           const label = fullContent ? truncateForLabel(fullContent) : action.name;
           const needsFullContent = fullContent && (fullContent.length > 100 || fullContent.includes("\n"));
           const content = needsFullContent ? fullContent : undefined;
-          return { id: action.id, itemType: "action", relatedId: action.id, label, actionType: rawActionType || undefined, content, seconds, downloadUrl, thumbnail, children: hasFiles ? [{ id: action.id + "-file", itemType: "file", label: action.name, seconds, downloadUrl, thumbnail }] : undefined };
+          return { id: action.id, itemType: "action", relatedId: action.id, label, actionType: rawActionType || undefined, content, seconds, downloadUrl, mediaType, thumbnail, children: hasFiles ? [{ id: action.id + "-file", itemType: "file", label: action.name, seconds, downloadUrl, mediaType, thumbnail }] : undefined };
         }));
       }
     }
@@ -169,8 +174,10 @@ export function processInstructionItem(item: Record<string, unknown>, sectionAct
       if (childRelatedId && sectionActionsMap.has(childRelatedId)) {
         // Section has actions with direct download URLs from sectionActionsMap
         const sectionActions = sectionActionsMap.get(childRelatedId);
-        // Get download URL from first action's child file if available
-        const firstActionUrl = sectionActions?.[0]?.downloadUrl;
+        // Get download URL and media type from first action's child file if available
+        const firstAction = sectionActions?.[0];
+        const firstActionUrl = firstAction?.downloadUrl;
+        const firstActionMediaType = firstAction?.mediaType;
         return {
           id: child.id as string | undefined,
           itemType: childItemType,
@@ -181,6 +188,7 @@ export function processInstructionItem(item: Record<string, unknown>, sectionAct
           seconds: child.seconds as number | undefined,
           children: sectionActions,
           downloadUrl: firstActionUrl,
+          mediaType: firstActionMediaType,
           thumbnail
         };
       }
@@ -248,6 +256,7 @@ export async function convertAddOnCategoryToInstructions(category: string): Prom
     const file = await convertAddOnToFile(addOn);
     const seconds = file?.seconds || (addOn.seconds as number) || 10;
     const downloadUrl = file?.url;
+    const mediaType = file?.mediaType;
 
     children.push({
       id,
@@ -255,7 +264,8 @@ export async function convertAddOnCategoryToInstructions(category: string): Prom
       relatedId: id,
       label,
       seconds,
-      children: [{ id: id + "-file", itemType: "file", label, seconds, downloadUrl, thumbnail: addOnImage }]
+      mediaType,
+      children: [{ id: id + "-file", itemType: "file", label, seconds, downloadUrl, mediaType, thumbnail: addOnImage }]
     });
   }
 

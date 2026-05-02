@@ -169,6 +169,7 @@ export interface InstructionItem {
   children?: InstructionItem[];
   downloadUrl?: string;
   thumbnail?: string;
+  mediaType?: "video" | "image";
 }
 
 export interface Instructions {

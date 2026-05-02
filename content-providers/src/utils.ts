@@ -8,7 +8,8 @@ export function slugify(text: string): string {
 }
 
 export function detectMediaType(url: string, explicitType?: string): "video" | "image" {
-  if (explicitType === "video") return "video";
+  if (explicitType === "video" || explicitType?.startsWith("video/")) return "video";
+  if (explicitType === "image" || explicitType?.startsWith("image/")) return "image";
   const videoPatterns = [".mp4", ".webm", ".m3u8", ".mov", "stream.mux.com"];
   return videoPatterns.some(p => url.includes(p)) ? "video" : "image";
 }

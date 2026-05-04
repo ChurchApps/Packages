@@ -37,7 +37,6 @@ export class SubscriptionManager {
     const key = SubscriptionManager.key(churchId, conversationId);
     const next = (SubscriptionManager.counts.get(key) ?? 0) + 1;
     SubscriptionManager.counts.set(key, next);
-    console.log(`[SubscriptionManager] joinRoom ${conversationId} count=${next} socketId=${SocketHelper.socketId}`);
     if (next > 1) return; // already joined
     SubscriptionManager.setupRejoin();
     await SubscriptionManager.postConnection(conversationId, churchId, personId, displayName);
@@ -97,10 +96,7 @@ export class SubscriptionManager {
   };
 
   private static postConnection = async (conversationId: string, churchId: string, personId?: string, displayName?: string) => {
-    if (!SocketHelper.socketId) {
-      console.log(`[SubscriptionManager] postConnection(${conversationId}) deferred — no socketId yet (will retry on socketIdReady)`);
-      return;
-    }
+    if (!SocketHelper.socketId) return; // will retry on socketIdReady via setupRejoin
     const connection: ConnectionInterface = {
       conversationId,
       churchId,
@@ -110,7 +106,6 @@ export class SubscriptionManager {
     };
     try {
       await ApiHelper.postAnonymous("/connections", [connection], "MessagingApi");
-      console.log(`[SubscriptionManager] postConnection(${conversationId}) saved with socketId=${SocketHelper.socketId}`);
     } catch (err) {
       console.warn(`SubscriptionManager.postConnection(${conversationId}) failed:`, err);
     }

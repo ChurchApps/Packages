@@ -6,6 +6,7 @@ import { Locale } from "../../helpers";
 import { ConversationStore } from "../../helpers/ConversationStore";
 import { SubscriptionManager } from "../../helpers/SubscriptionManager";
 import { ConversationInterface, MessageInterface, UserContextInterface } from "@churchapps/helpers";
+import { SubscriptionToggle, filterVisibleMessages } from "./SubscriptionToggle";
 
 interface Props {
   conversationId: string;
@@ -103,10 +104,16 @@ export function Notes(props: Props) {
     };
   }, [props.conversationId, props.refreshKey, churchId, personId]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const visibleMessages = React.useMemo(() => filterVisibleMessages(messages), [messages]);
+
+  const subscriptionToggle = (
+    <SubscriptionToggle conversationId={props.conversationId} messages={messages} personId={personId} />
+  );
+
   const getNotes = () => {
     if (!messages) return <Loading />;
-    if (messages.length === 0) return <></>;
-    return messages.map(m => (
+    if (visibleMessages.length === 0) return <></>;
+    return visibleMessages.map(m => (
       <Note message={m} key={m.id} showEditNote={setEditMessageId} context={props.context} />
     ));
   };
@@ -143,8 +150,8 @@ export function Notes(props: Props) {
   };
 
   React.useEffect(() => {
-    if (props.maxHeight && messages?.length > 0 && !isInitialLoad) {
-      const currentMessageCount = messages.length;
+    if (props.maxHeight && visibleMessages.length > 0 && !isInitialLoad) {
+      const currentMessageCount = visibleMessages.length;
       if (currentMessageCount > previousMessageCount) {
         requestAnimationFrame(() => {
           const element = window?.document?.getElementById("notesScroll");
@@ -152,10 +159,10 @@ export function Notes(props: Props) {
         });
       }
       setPreviousMessageCount(currentMessageCount);
-    } else if (messages?.length > 0 && isInitialLoad) {
-      setPreviousMessageCount(messages.length);
+    } else if (visibleMessages.length > 0 && isInitialLoad) {
+      setPreviousMessageCount(visibleMessages.length);
     }
-  }, [messages, props.maxHeight, isInitialLoad, previousMessageCount]);
+  }, [visibleMessages, props.maxHeight, isInitialLoad, previousMessageCount]);
 
   const onLocalUpdate = () => {
     // Realtime path is authoritative; this fallback only fires when the socket isn't delivering
@@ -218,5 +225,15 @@ export function Notes(props: Props) {
   );
 
   if (props.noDisplayBox) return result;
-  else return (<DisplayBox id="notesBox" data-testid="notes-box" headerIcon="sticky_note_2" headerText={Locale.label("notes.notes", "Notes")}>{result}</DisplayBox>);
+  else return (
+    <DisplayBox
+      id="notesBox"
+      data-testid="notes-box"
+      headerIcon="sticky_note_2"
+      headerText={Locale.label("notes.notes", "Notes")}
+      editContent={subscriptionToggle}
+    >
+      {result}
+    </DisplayBox>
+  );
 };

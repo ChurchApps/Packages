@@ -147,7 +147,6 @@ export class SocketHelper {
     if (SocketHelper.isCleanedUp) return;
 
     try {
-      console.log(`[SocketHelper] inbound action=${payload.action}`, payload.data);
       if (payload.action === "socketId") {
         const previousId = SocketHelper.socketId;
         SocketHelper.socketId = payload.data;

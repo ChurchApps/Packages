@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Paper } from "@mui/material";
+import { Box, Paper } from "@mui/material";
 import { ConversationInterface, MessageInterface, UserContextInterface } from "@churchapps/helpers";
 import { ApiHelper, Locale } from "../../helpers";
 import { Loading } from "../Loading";
@@ -9,6 +9,7 @@ import { ConversationStore } from "../../helpers/ConversationStore";
 import { SubscriptionManager } from "../../helpers/SubscriptionManager";
 import { Note } from "../notes/Note";
 import { AddNote } from "../notes/AddNote";
+import { SubscriptionToggle, filterVisibleMessages } from "../notes/SubscriptionToggle";
 
 interface Props {
   contentType: string;
@@ -91,7 +92,8 @@ export function Conversations(props: Props) {
 
   if (!hydrated) return <Loading />;
 
-  const messages: MessageInterface[] = conversation?.messages ?? [];
+  const allMessages: MessageInterface[] = conversation?.messages ?? [];
+  const messages = filterVisibleMessages(allMessages);
 
   const getNotes = () => messages.map((m) => (
     <Note key={m.id} message={m} context={props.context} showEditNote={(id: string) => setEditMessageId(id)} />
@@ -99,14 +101,23 @@ export function Conversations(props: Props) {
 
   const result = (
     <>
-      {props.showCommentCount && conversation && (
-        <div className="commentCount">
-          <div>
-            {messages.length === 1
-              ? "1 " + Locale.label("notes.comment", "comment")
-              : messages.length + " " + Locale.label("notes.comments", "comments")}
-          </div>
-        </div>
+      {(props.showCommentCount || conversation?.id) && (
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", minHeight: 32 }}>
+          {props.showCommentCount && conversation ? (
+            <div className="commentCount">
+              <div>
+                {messages.length === 1
+                  ? "1 " + Locale.label("notes.comment", "comment")
+                  : messages.length + " " + Locale.label("notes.comments", "comments")}
+              </div>
+            </div>
+          ) : <span />}
+          <SubscriptionToggle
+            conversationId={conversation?.id}
+            messages={allMessages}
+            personId={personId}
+          />
+        </Box>
       )}
       <div className="messages">
         {canPost && (

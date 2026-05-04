@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { ApiHelper } from "@churchapps/helpers";
+import { SocketHelper } from "../../helpers/SocketHelper";
 import {
   Box,
   Stack,
@@ -176,6 +177,18 @@ export const PrivateMessages: React.FC<Props> = React.memo((props) => {
   useEffect(() => {
     loadData();
   }, [props.refreshKey]);
+
+  // Real-time refresh: when a privateMessage or new private room arrives, reload the list.
+  // (The selected thread, if any, refreshes via its own ConversationStore subscription in Notes.)
+  useEffect(() => {
+    const id = "PrivateMessages-list";
+    SocketHelper.addHandler("privateMessage", id + "-pm", () => { loadData(); });
+    SocketHelper.addHandler("privateRoomAdded", id + "-room", () => { loadData(); });
+    return () => {
+      SocketHelper.removeHandler(id + "-pm");
+      SocketHelper.removeHandler(id + "-room");
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const getMessageList = () => {
     if (privateMessages.length === 0) {

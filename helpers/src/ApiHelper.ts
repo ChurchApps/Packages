@@ -99,6 +99,20 @@ class ApiHelperClass {
     }
   }
 
+  async deleteAnonymous(path: string, apiName: ApiListType) {
+    const config = this.getConfig(apiName);
+    if (!config) throw new Error(`API configuration not found: ${apiName}`);
+    const requestOptions = { method: "DELETE" };
+    if (this.onRequest) this.onRequest(config.url + path, requestOptions);
+    try {
+      const response = await fetch(config.url + path, requestOptions);
+      if (!response.ok) await this.throwApiError(response);
+    } catch (e) {
+      if (this.onError) this.onError(config.url + path, requestOptions, e);
+      throw (e);
+    }
+  }
+
   async postAnonymous(path: string, data: any[] | {}, apiName: ApiListType) {
     const config = this.getConfig(apiName);
     if (!config) throw new Error(`API configuration not found: ${apiName}`);

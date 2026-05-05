@@ -1,6 +1,7 @@
 import { SocketHelper } from "./SocketHelper";
 import { SubscriptionManager } from "./SubscriptionManager";
 import { ConversationStore } from "./ConversationStore";
+import { PresenceStore } from "./PresenceStore";
 import { ApiHelper, UserContextInterface } from "@churchapps/helpers";
 
 export interface NotificationCounts {
@@ -81,6 +82,7 @@ export class NotificationService {
       // Register handlers for notification updates + conversation broadcasts + reconnect rejoin
       this.registerWebSocketHandlers();
       ConversationStore.ensureHandlers();
+      PresenceStore.ensureHandlers();
       SubscriptionManager.setupRejoin();
 
       // Load initial notification counts

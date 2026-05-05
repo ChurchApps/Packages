@@ -46,6 +46,11 @@ export class ConversationStore {
     ConversationStore.peopleCache.clear();
   };
 
+  static forget = (conversationId: string): void => {
+    ConversationStore.conversations.delete(conversationId);
+    ConversationStore.listeners.delete(conversationId);
+  };
+
   static getConversation = (conversationId: string): ConversationInterface | null => {
     return ConversationStore.conversations.get(conversationId) ?? null;
   };
@@ -74,10 +79,14 @@ export class ConversationStore {
     return conv;
   };
 
-  static loadByConversationId = async (conversationId: string): Promise<ConversationInterface | null> => {
+  static loadByConversationId = async (conversationId: string, churchId?: string): Promise<ConversationInterface | null> => {
     if (!conversationId) return null;
     ConversationStore.ensureHandlers();
-    const messages: MessageInterface[] = await ApiHelper.get(`/messages/conversation/${conversationId}`, "MessagingApi");
+    // Anonymous callers (no JWT) hit the unauthenticated /catchup route, which requires
+    // a churchId. Authenticated callers use the JWT-protected /conversation/:id route.
+    const messages: MessageInterface[] = ApiHelper.isAuthenticated
+      ? await ApiHelper.get(`/messages/conversation/${conversationId}`, "MessagingApi")
+      : (churchId ? await ApiHelper.getAnonymous(`/messages/catchup/${churchId}/${conversationId}`, "MessagingApi") : []);
     const existing = ConversationStore.conversations.get(conversationId) || { id: conversationId, messages: [] };
     const conv: ConversationInterface = { ...existing, id: conversationId, messages: messages || [] };
     await ConversationStore.hydratePeople(conv);
@@ -165,6 +174,9 @@ export class ConversationStore {
       if (!missing.includes(m.personId)) missing.push(m.personId);
     });
     if (missing.length === 0) return;
+    // /people/ids requires auth; anonymous live-stream viewers rely on the displayName
+    // already on each message and skip person hydration.
+    if (!ApiHelper.isAuthenticated) return;
     try {
       const people: PersonInterface[] = await ApiHelper.get(`/people/ids?ids=${missing.join(",")}`, "MembershipApi");
       people?.forEach(p => { if (p?.id) ConversationStore.peopleCache.set(p.id, p); });
@@ -178,6 +190,7 @@ export class ConversationStore {
 
   private static fetchPerson = async (personId: string, conversationId: string) => {
     if (ConversationStore.peopleCache.has(personId)) return;
+    if (!ApiHelper.isAuthenticated) return;
     try {
       const people: PersonInterface[] = await ApiHelper.get(`/people/ids?ids=${personId}`, "MembershipApi");
       const person = people?.[0];

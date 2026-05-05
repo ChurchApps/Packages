@@ -56,6 +56,8 @@ export { SlugHelper } from "./SlugHelper";
 export { SocketHelper } from "./SocketHelper";
 export { SubscriptionManager } from "./SubscriptionManager";
 export { ConversationStore } from "./ConversationStore";
+export { PresenceStore } from "./PresenceStore";
+export type { PresenceSnapshot, PresenceViewer } from "./PresenceStore";
 export { NotificationService } from "./NotificationService";
 export type { NotificationCounts } from "./NotificationService";
 export { WebPushHelper } from "./WebPushHelper";

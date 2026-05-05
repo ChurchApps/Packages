@@ -14,9 +14,10 @@ import {
   IconButton,
   Chip,
   Paper,
-  Skeleton
+  Skeleton,
+  Tooltip
 } from "@mui/material";
-import { Add as AddIcon, ChatBubbleOutline as ChatIcon } from "@mui/icons-material";
+import { Add as AddIcon, ChatBubbleOutline as ChatIcon, DeleteOutline as DeleteOutlineIcon } from "@mui/icons-material";
 import { PersonAvatar } from "../PersonAvatar";
 import { PrivateMessageInterface, UserContextInterface } from "@churchapps/helpers";
 import { ArrayHelper, DateHelper } from "../../helpers";
@@ -189,6 +190,19 @@ export const PrivateMessages: React.FC<Props> = React.memo((props) => {
       SocketHelper.removeHandler(id + "-room");
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleDeleteConversation = async (pm: PrivateMessageInterface, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!window.confirm("Delete this conversation?")) return;
+    setPrivateMessages((prev) => prev.filter((p) => p.id !== pm.id));
+    try {
+      await ApiHelper.delete(`/privateMessages/${pm.id}`, "MessagingApi");
+      props.onUpdate();
+    } catch (err) {
+      console.error("Failed to delete conversation", err);
+      loadData();
+    }
+  };
 
   const getMessageList = () => {
     if (privateMessages.length === 0) {
@@ -450,6 +464,19 @@ export const PrivateMessages: React.FC<Props> = React.memo((props) => {
                     />
                   </Box>
                 )}
+                <Box sx={{ ml: 1, display: "flex", alignItems: "flex-start", pt: 0.25 }}>
+                  <Tooltip title="Delete conversation">
+                    <IconButton
+                      size="small"
+                      aria-label="Delete conversation"
+                      data-testid={`conversation-delete-${pm.id}`}
+                      onClick={(e) => handleDeleteConversation(pm, e)}
+                      sx={{ p: 0.5 }}
+                    >
+                      <DeleteOutlineIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
               </ListItem>
             </Box>
           );

@@ -15,13 +15,17 @@ import {
   Chip,
   Divider,
   IconButton,
-  Skeleton
+  Skeleton,
+  Tooltip,
+  Button
 } from "@mui/material";
 import {
   Notifications as NotificationsIcon,
   Task as TaskIcon,
   Assignment as AssignmentIcon,
-  OpenInNew as OpenInNewIcon
+  OpenInNew as OpenInNewIcon,
+  DeleteOutline as DeleteOutlineIcon,
+  ClearAll as ClearAllIcon
 } from "@mui/icons-material";
 import { NotificationInterface, UserContextInterface } from "@churchapps/helpers";
 import { DateHelper } from "../../helpers";
@@ -46,6 +50,32 @@ export const Notifications: React.FC<Props> = (props) => {
   };
 
   React.useEffect(() => { loadData(); }, []);
+
+  const handleDelete = async (notification: NotificationInterface, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const churchId = notification.churchId || props.context?.userChurch?.church?.id;
+    setNotifications((prev) => prev.filter((n) => n.id !== notification.id));
+    try {
+      await ApiHelper.delete(`/notifications/${churchId}/${notification.id}`, "MessagingApi");
+      props.onUpdate();
+    } catch (err) {
+      console.error("Failed to delete notification", err);
+      loadData();
+    }
+  };
+
+  const handleClearAll = async () => {
+    if (notifications.length === 0) return;
+    if (!window.confirm("Clear all notifications?")) return;
+    setNotifications([]);
+    try {
+      await ApiHelper.delete("/notifications/my", "MessagingApi");
+      props.onUpdate();
+    } catch (err) {
+      console.error("Failed to clear notifications", err);
+      loadData();
+    }
+  };
 
   const getAppUrl = (appName:string) => {
     switch (appName) {
@@ -154,6 +184,17 @@ export const Notifications: React.FC<Props> = (props) => {
                         <Typography variant="caption" color="textSecondary">
                           {displayDuration}
                         </Typography>
+                        <Tooltip title="Delete notification">
+                          <IconButton
+                            size="small"
+                            aria-label="Delete notification"
+                            data-testid={`notification-delete-${notification.id}`}
+                            onClick={(e) => handleDelete(notification, e)}
+                            sx={{ p: 0.5 }}
+                          >
+                            <DeleteOutlineIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
                       </Stack>
                     </Stack>
                   }
@@ -190,9 +231,22 @@ export const Notifications: React.FC<Props> = (props) => {
   return (
     <Paper id="notifications-panel" elevation={0} sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
       <Box id="notifications-header" sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
-        <Typography variant="h6" component="h2">
-          Notifications
-        </Typography>
+        <Stack direction="row" justifyContent="space-between" alignItems="center">
+          <Typography variant="h6" component="h2">
+            Notifications
+          </Typography>
+          {notifications.length > 0 && (
+            <Button
+              id="notifications-clear-all"
+              data-testid="notifications-clear-all"
+              size="small"
+              startIcon={<ClearAllIcon />}
+              onClick={handleClearAll}
+            >
+              Clear All
+            </Button>
+          )}
+        </Stack>
       </Box>
 
       <Box id="notifications-content" sx={{ flex: 1, overflow: "auto" }}>

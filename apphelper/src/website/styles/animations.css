@@ -3,6 +3,17 @@
 .animate.normal { animation-duration: 1.5s; }
 .animate.slow { animation-duration: 4.5s; }
 
+.animated.fadeIn,
+.animated.slideRight,
+.animated.slideLeft,
+.animated.slideDown,
+.animated.slideUp { opacity: 0; }
+.animated.slideRight { transform: translateX(-100%); }
+.animated.slideLeft { transform: translateX(100%); }
+.animated.slideDown { transform: translateY(-100%); }
+.animated.slideUp { transform: translateY(-100%); }
+.animated.grow { transform: scale(0); }
+
 @keyframes slideRight {
   from { transform:translateX(-100%); opacity:0;  }
   to { transform:translateX(0); opacity:1; }

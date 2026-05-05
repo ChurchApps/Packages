@@ -28,7 +28,7 @@ export const CarouselElement = ({ element, churchSettings, textColor, onEdit, on
 
   const interval = (parseInt(element.answers.interval) || 4) * 1000;
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const fade = element.answers.animationOptions === "fade";
+  const fade = (element.answers.animationOptions || "fade") === "fade";
   const autoPlay = element.answers.autoplay === "true" && !onEdit;
   const length = element.elements?.length || 0;
 

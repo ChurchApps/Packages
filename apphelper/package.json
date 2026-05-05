@@ -1,6 +1,6 @@
 {
   "name": "@churchapps/apphelper",
-  "version": "0.7.4",
+  "version": "0.7.5",
   "description": "Library of helper functions, components, and feature modules (donations/forms/login/markdown/website) for React and NextJS ChurchApps",
   "type": "module",
   "main": "dist/index.js",
@@ -40,7 +40,7 @@
     "dist"
   ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest run --config vitest.config.ts",
     "clean": "rimraf dist",
     "tsc": "tsc",
     "copy-locales": "copyfiles -a public/** dist",
@@ -69,17 +69,23 @@
   },
   "homepage": "https://github.com/ChurchApps/Packages#readme",
   "peerDependencies": {
-    "react": "^18.0.0 || ^19.0.0",
-    "react-dom": "^18.0.0 || ^19.0.0",
-    "react-router-dom": "^7.6.3",
     "@stripe/react-stripe-js": "^3.5.2",
     "@stripe/stripe-js": "^7.4.0",
-    "react-google-recaptcha": "^3.1.0"
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0",
+    "react-google-recaptcha": "^3.1.0",
+    "react-router-dom": "^7.6.3"
   },
   "peerDependenciesMeta": {
-    "@stripe/react-stripe-js": { "optional": true },
-    "@stripe/stripe-js": { "optional": true },
-    "react-google-recaptcha": { "optional": true }
+    "@stripe/react-stripe-js": {
+      "optional": true
+    },
+    "@stripe/stripe-js": {
+      "optional": true
+    },
+    "react-google-recaptcha": {
+      "optional": true
+    }
   },
   "dependencies": {
     "@churchapps/helpers": "^1.3.0",
@@ -144,6 +150,7 @@
     "eslint": "^9.28.0",
     "eslint-plugin-unused-imports": "^4.4.1",
     "globals": "^16.2.0",
+    "jsdom": "^25.0.1",
     "npm-run-all2": "^8.0.4",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
@@ -152,6 +159,7 @@
     "rimraf": "^6.0.1",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.35.0",
-    "vite": "^7.0.6"
+    "vite": "^7.0.6",
+    "vitest": "^2.1.9"
   }
 }

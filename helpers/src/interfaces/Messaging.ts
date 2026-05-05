@@ -89,7 +89,8 @@ export type SocketPayloadAction =
   | "privateMessage"
   | "privateRoomAdded"
   | "videoChatInvite"
-  | "reconnect";
+  | "reconnect"
+  | "conversationActivity";
 export interface SocketPayloadInterface {
   action: SocketPayloadAction;
   data: any;

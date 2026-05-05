@@ -2,11 +2,13 @@ import React from "react";
 import { Note } from "./Note";
 import { AddNote } from "./AddNote";
 import { DisplayBox, Loading } from "../";
-import { ApiHelper, ArrayHelper, Locale } from "../../helpers";
-import { MessageInterface, UserContextInterface } from "@churchapps/helpers";
+import { Locale } from "../../helpers";
+import { ConversationStore } from "../../helpers/ConversationStore";
+import { SubscriptionManager } from "../../helpers/SubscriptionManager";
+import { ConversationInterface, MessageInterface, UserContextInterface } from "@churchapps/helpers";
+import { SubscriptionToggle, filterVisibleMessages } from "./SubscriptionToggle";
 
 interface Props {
-  //showEditNote: (messageId?: string) => void;
   conversationId: string;
   createConversation?: () => Promise<string>;
   noDisplayBox?: boolean;
@@ -16,11 +18,12 @@ interface Props {
 }
 
 export function Notes(props: Props) {
-
   const [messages, setMessages] = React.useState<MessageInterface[]>(null);
   const [editMessageId, setEditMessageId] = React.useState(null);
   const [isInitialLoad, setIsInitialLoad] = React.useState(true);
   const [previousMessageCount, setPreviousMessageCount] = React.useState(0);
+  const churchId = props.context?.userChurch?.church?.id;
+  const personId = props.context?.person?.id;
 
   // Add CSS for custom scrollbar styling
   React.useEffect(() => {
@@ -60,41 +63,59 @@ export function Notes(props: Props) {
     }
   }, []);
 
-  const loadNotes = async () => {
-    try {
-      const messages: MessageInterface[] = (props.conversationId) ? await ApiHelper.get("/messages/conversation/" + props.conversationId, "MessagingApi") : [];
-      if (messages.length > 0) {
-        const peopleIds = ArrayHelper.getIds(messages, "personId");
-        const people = await ApiHelper.get("/people/basic?ids=" + peopleIds.join(","), "MembershipApi");
-        messages.forEach(n => {
-          n.person = ArrayHelper.getOne(people, "id", n.personId);
-        });
-      }
-      setMessages(messages);
-      setEditMessageId(null);
+  // Hydrate via ConversationStore + subscribe + join the realtime room.
+  React.useEffect(() => {
+    let cancelled = false;
+    let unsubscribe: (() => void) | null = null;
+    let joined = false;
 
-      // Mark as no longer initial load after first load
-      if (isInitialLoad) {
-        setIsInitialLoad(false);
-      }
-    } catch (error) {
-      console.error("❌ Failed to load messages for conversation:", props.conversationId, error);
-      // Don't clear messages on error - keep showing existing messages
-      // Only set isInitialLoad to false if this was the first load attempt
-      if (isInitialLoad) {
-        setIsInitialLoad(false);
-      }
+    const conversationId = props.conversationId;
+    if (!conversationId) {
+      setMessages([]);
+      setIsInitialLoad(false);
+      return;
     }
-  };
+
+    (async () => {
+      try {
+        await ConversationStore.loadByConversationId(conversationId);
+      } catch (err) {
+        console.error("Notes.loadByConversationId failed:", err);
+      }
+      if (cancelled) return;
+
+      unsubscribe = ConversationStore.subscribe(conversationId, (conv: ConversationInterface) => {
+        if (cancelled) return;
+        setMessages(conv?.messages ?? []);
+        setEditMessageId(null);
+        if (isInitialLoad) setIsInitialLoad(false);
+      });
+
+      if (churchId) {
+        joined = true;
+        SubscriptionManager.joinRoom(conversationId, churchId, personId).catch(() => { /* ignore */ });
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      if (unsubscribe) unsubscribe();
+      if (joined && churchId) SubscriptionManager.leaveRoom(conversationId, churchId).catch(() => { /* ignore */ });
+    };
+  }, [props.conversationId, props.refreshKey, churchId, personId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const visibleMessages = React.useMemo(() => filterVisibleMessages(messages), [messages]);
+
+  const subscriptionToggle = (
+    <SubscriptionToggle conversationId={props.conversationId} messages={messages} personId={personId} />
+  );
 
   const getNotes = () => {
     if (!messages) return <Loading />;
-    if (messages.length === 0) return <></>;
-    else {
-      const noteArray: React.ReactNode[] = [];
-      for (let i = 0; i < messages.length; i++) noteArray.push(<Note message={messages[i]} key={messages[i].id} showEditNote={setEditMessageId} context={props.context} />);
-      return noteArray;
-    }
+    if (visibleMessages.length === 0) return <></>;
+    return visibleMessages.map(m => (
+      <Note message={m} key={m.id} showEditNote={setEditMessageId} context={props.context} />
+    ));
   };
 
   const getNotesWrapper = () => {
@@ -128,33 +149,27 @@ export function Notes(props: Props) {
     } else return notes;
   };
 
-  React.useEffect(() => { loadNotes() }, [props.conversationId, props.refreshKey]); //eslint-disable-line
-
-  // Simply reload notes when refreshKey changes
-  // This is triggered by the parent component when WebSocket messages arrive
-
-  // Auto-scroll to bottom only when new messages are added (not on initial load)
   React.useEffect(() => {
-    if (props.maxHeight && messages?.length > 0 && !isInitialLoad) {
-      const currentMessageCount = messages.length;
-
-      // Only auto-scroll if messages were added
+    if (props.maxHeight && visibleMessages.length > 0 && !isInitialLoad) {
+      const currentMessageCount = visibleMessages.length;
       if (currentMessageCount > previousMessageCount) {
-        // Use requestAnimationFrame for smoother scrolling
         requestAnimationFrame(() => {
           const element = window?.document?.getElementById("notesScroll");
-          if (element) {
-            element.scrollTop = element.scrollHeight;
-          }
+          if (element) element.scrollTop = element.scrollHeight;
         });
       }
-
       setPreviousMessageCount(currentMessageCount);
-    } else if (messages?.length > 0 && isInitialLoad) {
-      // On initial load, just set the previous count without scrolling
-      setPreviousMessageCount(messages.length);
+    } else if (visibleMessages.length > 0 && isInitialLoad) {
+      setPreviousMessageCount(visibleMessages.length);
     }
-  }, [messages, props.maxHeight, isInitialLoad, previousMessageCount]);
+  }, [visibleMessages, props.maxHeight, isInitialLoad, previousMessageCount]);
+
+  const onLocalUpdate = () => {
+    // Realtime path is authoritative; this fallback only fires when the socket isn't delivering
+    // (e.g. a self-post that the server still echoed back). The store applies the broadcast
+    // for us, so we just clear edit mode.
+    setEditMessageId(null);
+  };
 
   const result = props.maxHeight ? (
     <div style={{
@@ -164,7 +179,6 @@ export function Notes(props: Props) {
       overflow: "hidden",
       minHeight: 0
     }}>
-      {/* Messages area - scrollable */}
       <div style={{
         flex: 1,
         minHeight: 0,
@@ -174,8 +188,6 @@ export function Notes(props: Props) {
       }}>
         {getNotesWrapper()}
       </div>
-
-      {/* Input area - always visible at bottom */}
       {messages && (
         <div style={{
           flexShrink: 0,
@@ -188,9 +200,10 @@ export function Notes(props: Props) {
           <AddNote
             context={props.context}
             conversationId={props.conversationId}
-            onUpdate={loadNotes}
+            onUpdate={onLocalUpdate}
             createConversation={props.createConversation}
             messageId={editMessageId}
+            onCancel={() => setEditMessageId(null)}
           />
         </div>
       )}
@@ -198,10 +211,29 @@ export function Notes(props: Props) {
   ) : (
     <>
       {getNotesWrapper()}
-      {messages && (<AddNote context={props.context} conversationId={props.conversationId} onUpdate={loadNotes} createConversation={props.createConversation} messageId={editMessageId} />)}
+      {messages && (
+        <AddNote
+          context={props.context}
+          conversationId={props.conversationId}
+          onUpdate={onLocalUpdate}
+          createConversation={props.createConversation}
+          messageId={editMessageId}
+          onCancel={() => setEditMessageId(null)}
+        />
+      )}
     </>
   );
 
   if (props.noDisplayBox) return result;
-  else return (<DisplayBox id="notesBox" data-testid="notes-box" headerIcon="sticky_note_2" headerText={Locale.label("notes.notes", "Notes")}>{result}</DisplayBox>);
+  else return (
+    <DisplayBox
+      id="notesBox"
+      data-testid="notes-box"
+      headerIcon="sticky_note_2"
+      headerText={Locale.label("notes.notes", "Notes")}
+      editContent={subscriptionToggle}
+    >
+      {result}
+    </DisplayBox>
+  );
 };

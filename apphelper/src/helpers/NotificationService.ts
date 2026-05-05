@@ -1,4 +1,7 @@
 import { SocketHelper } from "./SocketHelper";
+import { SubscriptionManager } from "./SubscriptionManager";
+import { ConversationStore } from "./ConversationStore";
+import { PresenceStore } from "./PresenceStore";
 import { ApiHelper, UserContextInterface } from "@churchapps/helpers";
 
 export interface NotificationCounts {
@@ -26,41 +29,73 @@ export class NotificationService {
   /**
    * Initialize the notification service with user context
    */
+  private initInFlight: Promise<void> | null = null;
+
   async initialize(context: UserContextInterface): Promise<void> {
+    const targetPersonId = context?.person?.id || null;
+    const targetChurchId = context?.userChurch?.church?.id || null;
+
+    // Re-init when context changes (church switch / different sign-in)
     if (this.isInitialized) {
-      return;
+      if (targetPersonId === this.currentPersonId && targetChurchId === SocketHelper.getPersonChurch().churchId) {
+        return;
+      }
+      // context changed — tear down room subscriptions and conversation cache so they re-join under the new tenant
+      SubscriptionManager.reset();
+      ConversationStore.reset();
     }
 
+    // Coalesce concurrent initialize() calls so multiple components mounting at once
+    // don't each open their own WebSocket. The first caller drives the init; everyone
+    // else awaits the same promise.
+    if (this.initInFlight) return this.initInFlight;
+    this.initInFlight = this.runInitialize(targetPersonId, targetChurchId, context);
     try {
-      // Store current person ID for conversation counting
-      this.currentPersonId = context?.person?.id || null;
+      await this.initInFlight;
+    } finally {
+      this.initInFlight = null;
+    }
+  }
 
-      // Initialize WebSocket connection
+  private async runInitialize(targetPersonId: string | null, targetChurchId: string | null, context: UserContextInterface): Promise<void> {
+    try {
+      this.currentPersonId = targetPersonId;
+
+      // Initialize WebSocket connection (cleanup is idempotent — re-init reconnects cleanly)
       await SocketHelper.init();
 
-      // Set person/church context for websocket
-      if (context?.person?.id && context?.userChurch?.church?.id) {
-        SocketHelper.setPersonChurch({
-          personId: context.person.id,
-          churchId: context.userChurch.church.id
+      // Bind the singleton change listener once so future church switches reset cleanly
+      if (!this.changeUnsubscribe) {
+        this.changeUnsubscribe = SocketHelper.onPersonChurchChange(() => {
+          SubscriptionManager.reset();
+          ConversationStore.reset();
         });
+      }
+
+      // Set person/church context for websocket — triggers join of "alerts" room
+      if (targetPersonId && targetChurchId) {
+        SocketHelper.setPersonChurch({ personId: targetPersonId, churchId: targetChurchId });
       } else {
         console.warn("⚠️ NotificationService: Missing person/church IDs, cannot set socket context");
       }
 
-      // Register handlers for notification updates
+      // Register handlers for notification updates + conversation broadcasts + reconnect rejoin
       this.registerWebSocketHandlers();
+      ConversationStore.ensureHandlers();
+      PresenceStore.ensureHandlers();
+      SubscriptionManager.setupRejoin();
 
       // Load initial notification counts
       await this.loadNotificationCounts();
 
       this.isInitialized = true;
-
     } catch (error) {
       console.error("❌ Failed to initialize NotificationService:", error);
       throw error;
     }
   }
+
+  private changeUnsubscribe: (() => void) | null = null;
 
   /**
    * Register websocket handlers for real-time notification updates
@@ -231,6 +266,13 @@ export class NotificationService {
 
     // Clear listeners
     this.listeners = [];
+
+    if (this.changeUnsubscribe) {
+      this.changeUnsubscribe();
+      this.changeUnsubscribe = null;
+    }
+    SubscriptionManager.reset();
+    ConversationStore.reset();
 
     // Reset state
     this.counts = { notificationCount: 0, pmCount: 0 };

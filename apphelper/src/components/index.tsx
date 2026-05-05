@@ -16,5 +16,6 @@ export { SupportModal } from "./SupportModal";
 export { TabPanel } from "./TabPanel";
 export * from "./wrapper";
 export * from "./notes";
+export * from "./conversations";
 export * from "./header";
 export * from "./gallery";

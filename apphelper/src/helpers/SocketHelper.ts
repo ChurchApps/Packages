@@ -8,11 +8,44 @@ export class SocketHelper {
   private static isCleanedUp: boolean = false;
 
   static setPersonChurch = (pc: { personId: string, churchId: string }) => {
+    if (!pc?.personId || !pc?.churchId) return;
+    const churchChanged = pc.churchId !== this.personIdChurchId.churchId;
+    const personChanged = pc.personId !== this.personIdChurchId.personId;
+    if (!churchChanged && !personChanged) return;
 
-    if (pc?.personId && pc.personId && pc.churchId !== this.personIdChurchId.churchId && pc.personId !== this.personIdChurchId.personId) {
-      this.personIdChurchId = pc;
-      this.createAlertConnection();
+    // If we're already connected and the church/person changed, fire the changed callbacks
+    // so caches scoped to the previous tenant get cleared. Each subscriber decides whether
+    // it cares about church-only vs person-only changes.
+    if (this.personIdChurchId.churchId || this.personIdChurchId.personId) {
+      this.changeListeners.forEach((cb) => {
+        try { cb({ previous: this.personIdChurchId, next: pc }); } catch (err) { console.error("SocketHelper change listener error:", err); }
+      });
     }
+
+    this.personIdChurchId = pc;
+    this.createAlertConnection();
+  };
+
+  static getPersonChurch = (): { personId: string, churchId: string } => {
+    return { ...this.personIdChurchId };
+  };
+
+  static onPersonChurchChange = (listener: (info: { previous: { personId: string, churchId: string }, next: { personId: string, churchId: string } }) => void) => {
+    this.changeListeners.push(listener);
+    return () => {
+      this.changeListeners = this.changeListeners.filter(l => l !== listener);
+    };
+  };
+
+  private static changeListeners: Array<(info: { previous: { personId: string, churchId: string }, next: { personId: string, churchId: string } }) => void> = [];
+
+  private static socketIdListeners: Array<(socketId: string) => void> = [];
+
+  static onSocketIdReady = (listener: (socketId: string) => void) => {
+    SocketHelper.socketIdListeners.push(listener);
+    return () => {
+      SocketHelper.socketIdListeners = SocketHelper.socketIdListeners.filter(l => l !== listener);
+    };
   };
 
   static createAlertConnection = () => {
@@ -30,6 +63,23 @@ export class SocketHelper {
   };
 
   static init = async () => {
+    // Idempotent: if a socket is already open or connecting, do not tear it down.
+    if (SocketHelper.socket && (SocketHelper.socket.readyState === SocketHelper.socket.OPEN || SocketHelper.socket.readyState === SocketHelper.socket.CONNECTING)) {
+      // If we already have a socketId, the connection is fully usable — return immediately.
+      if (SocketHelper.socketId) return;
+      // Otherwise wait briefly for socketId to arrive instead of tearing down.
+      await new Promise<void>((resolve) => {
+        const start = Date.now();
+        const tick = () => {
+          if (SocketHelper.socketId) return resolve();
+          if (Date.now() - start > 3000) return resolve();
+          setTimeout(tick, 50);
+        };
+        tick();
+      });
+      if (SocketHelper.socketId) return;
+    }
+
     SocketHelper.cleanup();
     SocketHelper.isCleanedUp = false;
 
@@ -98,8 +148,16 @@ export class SocketHelper {
 
     try {
       if (payload.action === "socketId") {
+        const previousId = SocketHelper.socketId;
         SocketHelper.socketId = payload.data;
         SocketHelper.createAlertConnection();
+        // Notify listeners that a socketId is available — used by SubscriptionManager
+        // to flush rooms that called joinRoom before the socket finished connecting.
+        if (!previousId) {
+          SocketHelper.socketIdListeners.forEach((cb) => {
+            try { cb(payload.data); } catch (err) { console.error("SocketHelper socketId listener error:", err); }
+          });
+        }
       } else {
         const matchingHandlers = ArrayHelper.getAll(SocketHelper.actionHandlers, "action", payload.action);
         matchingHandlers.forEach((handler) => {

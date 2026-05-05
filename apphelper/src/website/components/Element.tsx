@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { Box, Typography } from "@mui/material";
 import type { ChurchInterface } from "@churchapps/helpers";
 import { ElementInterface, SectionInterface } from "../helpers";
 import { DroppableArea } from "./admin/DroppableArea";
@@ -127,7 +128,14 @@ export const Element: React.FC<Props> = props => {
     case "stream":
       if (props.church) result = <StreamElement key={props.element.id} element={props.element as ElementInterface} churchSettings={props.churchSettings} church={props.church} editMode={!!props.onEdit} />;
       break;
-    case "donation": result = <NonAuthDonationWrapper key={props.element.id} churchId={props.church?.id ?? props.element.churchId} mainContainerCssProps={{ sx: { boxShadow: "none", padding: 3 } }} showHeader={false} />; break;
+    case "donation":
+      result = props.onEdit
+        ? <Box sx={{ p: 3, border: "1px dashed", borderColor: "grey.400", textAlign: "center", color: "text.secondary" }}>
+          <Typography variant="subtitle1">Donation form</Typography>
+          <Typography variant="caption">Preview available on the published page</Typography>
+        </Box>
+        : <NonAuthDonationWrapper key={props.element.id} churchId={props.church?.id ?? props.element.churchId} mainContainerCssProps={{ sx: { boxShadow: "none", padding: 3 } }} showHeader={false} />;
+      break;
     case "donateLink": result = <DonateLinkElement key={props.element.id} element={props.element as ElementInterface} />; break;
     case "form":
       if (props.church) result = <FormElement key={props.element.id} element={props.element as ElementInterface} church={props.church} />;

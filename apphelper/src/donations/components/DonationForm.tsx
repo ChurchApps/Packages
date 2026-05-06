@@ -280,7 +280,7 @@ export const DonationForm: React.FC<Props> = ({ currency = "usd", ...props }) =>
               {funds && fundDonations && (
                 <>
                   <h4>{Locale.label("donation.donationForm.fund")}</h4>
-                  <FundDonations fundDonations={fundDonations} funds={funds} updatedFunction={handleFundDonationsChange} />
+                  <FundDonations fundDonations={fundDonations} funds={funds} updatedFunction={handleFundDonationsChange} currency={currency} />
                 </>
               )}
               {fundsTotal > 0 && (

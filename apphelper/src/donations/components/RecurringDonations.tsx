@@ -130,7 +130,7 @@ export const RecurringDonations: React.FC<Props> = (props) => {
 
   useEffect(() => {
     CurrencyHelper.loadCurrency().then((result) => {
-      setCurrency(currency);
+      if (result) setCurrency(result);
     })
   }, []);
 

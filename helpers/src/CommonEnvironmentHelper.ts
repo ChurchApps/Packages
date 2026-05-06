@@ -75,7 +75,7 @@ export class CommonEnvironmentHelper {
     CommonEnvironmentHelper.GoogleAnalyticsTag = "";
 
     CommonEnvironmentHelper.ContentRoot = "https://democontent.churchapps.org";
-    CommonEnvironmentHelper.B1Root = "https://{key}.demo.b1.church";
+    CommonEnvironmentHelper.B1Root = "https://{key}.demosite.b1.church";
     CommonEnvironmentHelper.B1AdminRoot = "https://demo.b1.church";
     CommonEnvironmentHelper.LessonsRoot = "https://demo.lessons.church";
   };

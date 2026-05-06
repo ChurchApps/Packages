@@ -92,6 +92,14 @@ export interface TimeInterface {
   endTime?: Date;
   teams?: string;
   teamList?: string[];
+  serviceTimeType?: string;
+}
+export interface PlanItemTimeInterface {
+  id?: string;
+  churchId?: string;
+  planItemId?: string;
+  timeId?: string;
+  excluded?: boolean;
 }
 export interface BlockoutDateInterface {
   id?: string;

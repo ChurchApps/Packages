@@ -11,12 +11,17 @@ import { DonationHelper } from "../helpers";
 import { FormControl, InputLabel, Select, MenuItem, Box, Typography, ToggleButtonGroup, ToggleButton } from "@mui/material";
 import type { PaperProps } from "@mui/material/Paper";
 
-interface Props { 
+interface Props {
   churchId: string;
   mainContainerCssProps?: PaperProps;
   showHeader?: boolean;
   recaptchaSiteKey: string;
   churchLogo?: string;
+  allowSingleGift?: boolean;
+  allowRecurring?: boolean;
+  showFundSelector?: boolean;
+  allowedFundIds?: string[];
+  defaultFundId?: string;
 }
 
 export const NonAuthDonation: React.FC<Props> = ({ mainContainerCssProps, showHeader, ...props }) => {
@@ -111,13 +116,18 @@ export const NonAuthDonation: React.FC<Props> = ({ mainContainerCssProps, showHe
     if (selectedGateway === "paypal") {
       const paypalGateway = DonationHelper.findGatewayByProvider(availableGateways, "paypal");
       return (
-        <PayPalNonAuthDonationInner 
-          churchId={props.churchId} 
-          mainContainerCssProps={mainContainerCssProps} 
+        <PayPalNonAuthDonationInner
+          churchId={props.churchId}
+          mainContainerCssProps={mainContainerCssProps}
           showHeader={false} // We'll show our own header with gateway selector
-          recaptchaSiteKey={props.recaptchaSiteKey} 
+          recaptchaSiteKey={props.recaptchaSiteKey}
           churchLogo={props?.churchLogo}
           paypalClientId={paypalGateway?.publicKey || null}
+          allowSingleGift={props.allowSingleGift}
+          allowRecurring={props.allowRecurring}
+          showFundSelector={props.showFundSelector}
+          allowedFundIds={props.allowedFundIds}
+          defaultFundId={props.defaultFundId}
         />
       );
     } else {
@@ -130,6 +140,11 @@ export const NonAuthDonation: React.FC<Props> = ({ mainContainerCssProps, showHe
             recaptchaSiteKey={props.recaptchaSiteKey}
             churchLogo={props?.churchLogo}
             paymentType={paymentType}
+            allowSingleGift={props.allowSingleGift}
+            allowRecurring={props.allowRecurring}
+            showFundSelector={props.showFundSelector}
+            allowedFundIds={props.allowedFundIds}
+            defaultFundId={props.defaultFundId}
           />
         </Elements>
       );

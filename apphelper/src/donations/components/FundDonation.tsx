@@ -13,6 +13,7 @@ interface Props {
   updatedFunction: (fundDonation: FundDonationInterface, index: number) => void,
   params?: any,
   currency?: string,
+  hideFundSelect?: boolean,
 }
 
 export const FundDonation: React.FC<Props> = (props) => {
@@ -42,17 +43,19 @@ export const FundDonation: React.FC<Props> = (props) => {
   return (
     <>
       <Grid container spacing={3}>
-        <Grid size={{ xs: 12, md: 6 }}>
+        <Grid size={{ xs: 12, md: props.hideFundSelect ? 12 : 6 }}>
           <TextField fullWidth name="amount" label={Locale.label("donation.fundDonations.amount")} type="number" disabled={props.params?.amount && props.params.amount !== ""} aria-label="amount" lang="en-150" value={props.fundDonation.amount || ""} onChange={handleChange} InputProps={{ startAdornment: <Icon><Typography>{props.currency ? CurrencyHelper.getCurrencySymbol(props.currency) : "$"}</Typography></Icon> }} />
         </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <FormControl fullWidth>
-            <InputLabel>{Locale.label("donation.fundDonations.fund")}</InputLabel>
-            <Select fullWidth label={Locale.label("donation.fundDonations.fund")} name="fund" aria-label="fund" value={props.fundDonation.fundId} onChange={handleChange}>
-              {getOptions()}
-            </Select>
-          </FormControl>
-        </Grid>
+        {!props.hideFundSelect && (
+          <Grid size={{ xs: 12, md: 6 }}>
+            <FormControl fullWidth>
+              <InputLabel>{Locale.label("donation.fundDonations.fund")}</InputLabel>
+              <Select fullWidth label={Locale.label("donation.fundDonations.fund")} name="fund" aria-label="fund" value={props.fundDonation.fundId} onChange={handleChange}>
+                {getOptions()}
+              </Select>
+            </FormControl>
+          </Grid>
+        )}
       </Grid>
     </>
   );

@@ -18,9 +18,19 @@ interface Props {
   recaptchaSiteKey: string;
   churchLogo?: string;
   paymentType?: "card" | "bank";
+  allowSingleGift?: boolean;
+  allowRecurring?: boolean;
+  showFundSelector?: boolean;
+  allowedFundIds?: string[];
+  defaultFundId?: string;
 }
 
 export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, showHeader = true, ...props }) => {
+  const allowSingleGift = props.allowSingleGift !== false;
+  const allowRecurring = props.allowRecurring !== false;
+  const showFundSelector = props.showFundSelector !== false;
+  const allowedFundIds = Array.isArray(props.allowedFundIds) ? props.allowedFundIds : [];
+
   const stripe = useStripe();
   const elements = useElements();
   const formStyling = { style: { base: { fontSize: "18px" } } };
@@ -35,7 +45,7 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
   const [funds, setFunds] = useState<FundInterface[]>([]);
   const [donationComplete, setDonationComplete] = useState(false);
   const [processing, setProcessing] = useState(false);
-  const [donationType, setDonationType] = useState<"once" | "recurring">("once");
+  const [donationType, setDonationType] = useState<"once" | "recurring">(allowSingleGift ? "once" : (allowRecurring ? "recurring" : "once"));
   const [interval, setInterval] = useState("one_month");
   const [startDate, setStartDate] = useState(new Date().toDateString());
   const bypassRecaptcha = typeof process !== "undefined" && process.env?.NEXT_PUBLIC_BYPASS_RECAPTCHA === "true";
@@ -63,14 +73,16 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
     setSearchParams({ fundId, amount });
 
     ApiHelper.get("/funds/churchId/" + props.churchId, "GivingApi").then((data: any) => {
-      setFunds(data);
-      if (fundId && fundId !== "") {
-        const selectedFund = data.find((f: FundInterface) => f.id === fundId);
-        if (selectedFund) {
-          setFundDonations([{ fundId: selectedFund.id, amount: (amount && amount !== "") ? parseFloat(amount) : 0 }]);
-        }
-      } else if (data.length) {
-        setFundDonations([{ fundId: data[0].id }]);
+      const filteredFunds: FundInterface[] = allowedFundIds.length > 0
+        ? (data || []).filter((f: FundInterface) => allowedFundIds.includes(f.id))
+        : (data || []);
+      setFunds(filteredFunds);
+      const preferredId = props.defaultFundId
+        || (fundId && fundId !== "" ? fundId : "")
+        || (filteredFunds.length > 0 ? filteredFunds[0].id : "");
+      const initialFund = filteredFunds.find((f: FundInterface) => f.id === preferredId);
+      if (initialFund) {
+        setFundDonations([{ fundId: initialFund.id, amount: (amount && amount !== "") ? parseFloat(amount) : 0 }]);
       }
     });
     ApiHelper.get("/churches/" + props.churchId, "MembershipApi").then((data: any) => {
@@ -431,13 +443,18 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
   };
 
   const getFundList = () => {
-    if (funds) {
+    if (!funds) return null;
+    if (showFundSelector) {
       return (<>
 				<hr />
 				<h4>{Locale.label("donation.donationForm.funds")}</h4>
 				<FundDonations fundDonations={fundDonations} funds={funds} params={searchParams} updatedFunction={handleFundDonationsChange} currency={gateway?.currency} />
 			</>);
     }
+    return (<>
+      <hr />
+      <FundDonations fundDonations={fundDonations} funds={funds} params={searchParams} updatedFunction={handleFundDonationsChange} currency={gateway?.currency} hideFundSelect={true} />
+    </>);
   };
 
 	useEffect(init, []); //eslint-disable-line
@@ -450,7 +467,7 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
         <ErrorMessages errors={errors} />
         <Grid container spacing={3}>
           {/* Only show recurring option for card payments */}
-          {paymentType !== "bank" && (
+          {paymentType !== "bank" && allowSingleGift && allowRecurring && (
             <>
               <Grid size={{ xs: 12, md: 6 }}>
                 <Button aria-label="single-donation" size="small" fullWidth style={{ minHeight: "50px" }} variant={donationType === "once" ? "contained" : "outlined"} onClick={() => setDonationType("once")}>{Locale.label("donation.donationForm.make")}</Button>

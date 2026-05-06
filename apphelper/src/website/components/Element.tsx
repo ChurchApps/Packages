@@ -128,14 +128,19 @@ export const Element: React.FC<Props> = props => {
     case "stream":
       if (props.church) result = <StreamElement key={props.element.id} element={props.element as ElementInterface} churchSettings={props.churchSettings} church={props.church} editMode={!!props.onEdit} />;
       break;
-    case "donation":
+    case "donation": {
+      let donationSettings: any = {};
+      if (props.element.answersJSON) {
+        try { donationSettings = JSON.parse(props.element.answersJSON) || {}; } catch { donationSettings = {}; }
+      }
       result = props.onEdit
         ? <Box sx={{ p: 3, border: "1px dashed", borderColor: "grey.400", textAlign: "center", color: "text.secondary" }}>
           <Typography variant="subtitle1">Donation form</Typography>
           <Typography variant="caption">Preview available on the published page</Typography>
         </Box>
-        : <NonAuthDonationWrapper key={props.element.id} churchId={props.church?.id ?? props.element.churchId} mainContainerCssProps={{ sx: { boxShadow: "none", padding: 3 } }} showHeader={false} />;
+        : <NonAuthDonationWrapper key={props.element.id} churchId={props.church?.id ?? props.element.churchId} mainContainerCssProps={{ sx: { boxShadow: "none", padding: 3 } }} showHeader={false} allowSingleGift={donationSettings.allowSingleGift} allowRecurring={donationSettings.allowRecurring} showFundSelector={donationSettings.showFundSelector} allowedFundIds={donationSettings.allowedFundIds} defaultFundId={donationSettings.defaultFundId} />;
       break;
+    }
     case "donateLink": result = <DonateLinkElement key={props.element.id} element={props.element as ElementInterface} />; break;
     case "form":
       if (props.church) result = <FormElement key={props.element.id} element={props.element as ElementInterface} church={props.church} />;

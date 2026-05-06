@@ -19,9 +19,19 @@ interface Props {
   recaptchaSiteKey: string;
   churchLogo?: string;
   paypalClientId: string | null;
+  allowSingleGift?: boolean;
+  allowRecurring?: boolean;
+  showFundSelector?: boolean;
+  allowedFundIds?: string[];
+  defaultFundId?: string;
 }
 
 export const PayPalNonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, showHeader = true, ...props }) => {
+  const allowSingleGift = props.allowSingleGift !== false;
+  const allowRecurring = props.allowRecurring !== false;
+  const showFundSelector = props.showFundSelector !== false;
+  const allowedFundIds = Array.isArray(props.allowedFundIds) ? props.allowedFundIds : [];
+
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -33,7 +43,7 @@ export const PayPalNonAuthDonationInner: React.FC<Props> = ({ mainContainerCssPr
   const [funds, setFunds] = useState<FundInterface[]>([]);
   const [donationComplete, setDonationComplete] = useState(false);
   const [processing, setProcessing] = useState(false);
-  const [donationType, setDonationType] = useState<"once" | "recurring">("once");
+  const [donationType, setDonationType] = useState<"once" | "recurring">(allowSingleGift ? "once" : (allowRecurring ? "recurring" : "once"));
   const [interval, setInterval] = useState("one_month");
   const [startDate, setStartDate] = useState(new Date().toDateString());
   const [_captchaResponse, setCaptchaResponse] = useState("");
@@ -60,14 +70,16 @@ export const PayPalNonAuthDonationInner: React.FC<Props> = ({ mainContainerCssPr
     setSearchParams({ fundId, amount });
 
     ApiHelper.get("/funds/churchId/" + props.churchId, "GivingApi").then((data: any) => {
-      setFunds(data);
-      if (fundId && fundId !== "") {
-        const selectedFund = data.find((f: FundInterface) => f.id === fundId);
-        if (selectedFund) {
-          setFundDonations([{ fundId: selectedFund.id, amount: (amount && amount !== "") ? parseFloat(amount) : 0 }]);
-        }
-      } else if (data.length) {
-        setFundDonations([{ fundId: data[0].id }]);
+      const filteredFunds: FundInterface[] = allowedFundIds.length > 0
+        ? (data || []).filter((f: FundInterface) => allowedFundIds.includes(f.id))
+        : (data || []);
+      setFunds(filteredFunds);
+      const preferredId = props.defaultFundId
+        || (fundId && fundId !== "" ? fundId : "")
+        || (filteredFunds.length > 0 ? filteredFunds[0].id : "");
+      const initialFund = filteredFunds.find((f: FundInterface) => f.id === preferredId);
+      if (initialFund) {
+        setFundDonations([{ fundId: initialFund.id, amount: (amount && amount !== "") ? parseFloat(amount) : 0 }]);
       }
     });
     ApiHelper.get("/churches/" + props.churchId, "MembershipApi").then((_data: any) => {
@@ -268,13 +280,18 @@ export const PayPalNonAuthDonationInner: React.FC<Props> = ({ mainContainerCssPr
   };
 
   const getFundList = () => {
-    if (funds) {
+    if (!funds) return null;
+    if (showFundSelector) {
       return (<>
         <hr />
         <h4>{Locale.label("donation.donationForm.funds")}</h4>
         <FundDonations fundDonations={fundDonations} funds={funds} params={searchParams} updatedFunction={handleFundDonationsChange} />
       </>);
     }
+    return (<>
+      <hr />
+      <FundDonations fundDonations={fundDonations} funds={funds} params={searchParams} updatedFunction={handleFundDonationsChange} hideFundSelect={true} />
+    </>);
   };
 
   useEffect(init, []);
@@ -285,12 +302,16 @@ export const PayPalNonAuthDonationInner: React.FC<Props> = ({ mainContainerCssPr
       <InputBox headerIcon={showHeader ? "volunteer_activism" : ""} headerText={showHeader ? "Donate with PayPal" : ""} saveFunction={handleSave} saveText="Donate" isSubmitting={processing} mainContainerCssProps={mainContainerCssProps}>
         <ErrorMessages errors={errors} />
         <Grid container spacing={3}>
-          <Grid size={{ xs: 12, md: 6 }}>
-            <Button aria-label="single-donation" size="small" fullWidth style={{ minHeight: "50px" }} variant={donationType === "once" ? "contained" : "outlined"} onClick={() => setDonationType("once")}>{Locale.label("donation.donationForm.make")}</Button>
-          </Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
-            <Button aria-label="recurring-donation" size="small" fullWidth style={{ minHeight: "50px" }} variant={donationType === "recurring" ? "contained" : "outlined"} onClick={() => setDonationType("recurring")}>{Locale.label("donation.donationForm.makeRecurring")}</Button>
-          </Grid>
+          {allowSingleGift && allowRecurring && (
+            <>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <Button aria-label="single-donation" size="small" fullWidth style={{ minHeight: "50px" }} variant={donationType === "once" ? "contained" : "outlined"} onClick={() => setDonationType("once")}>{Locale.label("donation.donationForm.make")}</Button>
+              </Grid>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <Button aria-label="recurring-donation" size="small" fullWidth style={{ minHeight: "50px" }} variant={donationType === "recurring" ? "contained" : "outlined"} onClick={() => setDonationType("recurring")}>{Locale.label("donation.donationForm.makeRecurring")}</Button>
+              </Grid>
+            </>
+          )}
           <Grid size={{ xs: 12, md: 6 }}>
             <TextField fullWidth label={Locale.label("person.firstName")} name="firstName" value={firstName} onChange={handleChange} />
           </Grid>

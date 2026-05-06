@@ -12,6 +12,11 @@ interface Props {
   showHeader?: boolean;
   recaptchaSiteKey?: string;
   churchLogo?: string;
+  allowSingleGift?: boolean;
+  allowRecurring?: boolean;
+  showFundSelector?: boolean;
+  allowedFundIds?: string[];
+  defaultFundId?: string;
 }
 
 export const NonAuthDonationWrapper: React.FC<Props> = (props) => {

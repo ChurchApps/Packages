@@ -129,10 +129,7 @@ export const Element: React.FC<Props> = props => {
       if (props.church) result = <StreamElement key={props.element.id} element={props.element as ElementInterface} churchSettings={props.churchSettings} church={props.church} editMode={!!props.onEdit} />;
       break;
     case "donation": {
-      let donationSettings: any = {};
-      if (props.element.answersJSON) {
-        try { donationSettings = JSON.parse(props.element.answersJSON) || {}; } catch { donationSettings = {}; }
-      }
+      const donationSettings: any = props.element.answers || (props.element.answersJSON ? (() => { try { return JSON.parse(props.element.answersJSON) || {}; } catch { return {}; } })() : {});
       result = props.onEdit
         ? <Box sx={{ p: 3, border: "1px dashed", borderColor: "grey.400", textAlign: "center", color: "text.secondary" }}>
           <Typography variant="subtitle1">Donation form</Typography>

@@ -24,7 +24,7 @@ interface Props {
 
 export const BankForm: React.FC<Props> = (props) => {
   const stripe = useStripe();
-  const [bankAccount, setBankAccount] = useState<StripeBankAccountInterface>({ account_holder_name: props.bank.account_holder_name, account_holder_type: props.bank.account_holder_type, country: "US", currency: "usd" } as StripeBankAccountInterface);
+  const [bankAccount, setBankAccount] = useState<StripeBankAccountInterface>({ account_holder_name: props.bank.account_holder_name, account_holder_type: props.bank.account_holder_type, country: "US", currency: (props.gateway?.currency || "usd").toLowerCase() } as StripeBankAccountInterface);
   const [paymentMethod] = useState<PaymentMethodInterface>({
     customerId: props.customerId,
     personId: props.person.id,

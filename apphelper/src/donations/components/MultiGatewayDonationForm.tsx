@@ -515,7 +515,7 @@ export const MultiGatewayDonationForm: React.FC<Props> = (props) => {
                               provider: "paypal",
                               gatewayId: selectedGatewayObj?.id || gateway?.id,
                               amount: total,
-                              currency: "USD",
+                              currency: (selectedGatewayObj?.currency || gateway?.currency || "USD").toUpperCase(),
                               funds: fundsPayload,
                               notes: donation?.notes || ""
                             },

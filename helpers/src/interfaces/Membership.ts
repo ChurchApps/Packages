@@ -58,6 +58,7 @@ export interface GroupInterface {
   meetingLocation?: string;
   labelArray?: string[];
   slug?: string;
+  joinPolicy?: "open" | "request" | "closed";
 }
 export interface GroupMemberInterface {
   id?: string;
@@ -66,6 +67,20 @@ export interface GroupMemberInterface {
   groupId: string;
   group?: GroupInterface;
   leader?: boolean;
+}
+export interface GroupJoinRequestInterface {
+  id?: string;
+  churchId?: string;
+  groupId?: string;
+  personId?: string;
+  message?: string;
+  requestDate?: Date;
+  status?: "pending" | "approved" | "declined" | "cancelled";
+  decidedBy?: string;
+  decidedDate?: Date;
+  declineReason?: string;
+  person?: PersonInterface;
+  group?: GroupInterface;
 }
 export interface GroupServiceTimeInterface {
   id?: string;

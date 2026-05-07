@@ -28,6 +28,7 @@ import { StreamElement } from "./elementTypes/StreamElement";
 import { DonateLinkElement } from "./elementTypes/DonateLinkElement";
 import { FormElement } from "./elementTypes/FormElement";
 import { GroupListElement } from "./elementTypes/GroupListElement";
+import { GroupsElement } from "./elementTypes/GroupsElement";
 import { TableElement } from "./elementTypes/TableElement";
 import { CalendarElement } from "./elementTypes/CalendarElement";
 import { NonAuthDonationWrapper } from "./donate/NonAuthDonationWrapper";
@@ -143,6 +144,7 @@ export const Element: React.FC<Props> = props => {
       if (props.church) result = <FormElement key={props.element.id} element={props.element as ElementInterface} church={props.church} />;
       break;
     case "groupList": result = <GroupListElement key={props.element.id} churchId={props.church?.id || ""} element={props.element as ElementInterface} />; break;
+    case "groups": result = <GroupsElement key={props.element.id} churchId={props.church?.id || props.element.churchId || ""} element={props.element as ElementInterface} />; break;
     case "table": result = <TableElement key={props.element.id} element={props.element as ElementInterface} />; break;
     case "calendar": result = <CalendarElement key={props.element.id} element={props.element as ElementInterface} churchId={props.church?.id || props.element.churchId || ""} />; break;
     default: break;

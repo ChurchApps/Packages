@@ -202,6 +202,7 @@ export interface CurrentPlan {
   id: string;
   title: string;
   serviceDate?: string;
+  thumbnail?: string;
   files: MessageFileInterface[];
   timeline?: PlanTimelineItem[];
 }
@@ -274,6 +275,8 @@ export interface IProvider {
   // Optional methods - providers can implement these if they have custom logic
   getPlaylist?(path: string, auth?: ContentProviderAuthData | null, resolution?: number): Promise<ContentFile[] | null>;
   getInstructions?(path: string, auth?: ContentProviderAuthData | null): Promise<Instructions | null>;
-  getCurrentPlan?(scheduleId: string, auth?: ContentProviderAuthData | null): Promise<CurrentPlan | null>;
+  getCurrentPlan?(auth?: ContentProviderAuthData | null): Promise<CurrentPlan | null>;
+  /** Hand opaque pairing data (provider-specific shape) to the provider so it can resolve its current plan. */
+  setPairingData?(data: unknown): void;
   checkMediaLicense?(mediaId: string, auth?: ContentProviderAuthData | null): Promise<MediaLicenseResult | null>;
 }

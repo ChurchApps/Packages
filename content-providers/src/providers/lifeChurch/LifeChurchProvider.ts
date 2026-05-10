@@ -247,15 +247,13 @@ export class LifeChurchProvider implements IProvider {
   }
 
   /**
-   * Pick the scheduled lesson for the paired age group. `scheduleId` is the
-   * `ageGroup` string ("4-6th Grade", "Elementary", "Early Childhood"). Returns
-   * the most recent entry for that age group from data.scheduledLessons.
+   * Returns the most recent scheduled lesson from data.scheduledLessons.
    */
-  async getCurrentPlan(scheduleId: string, _auth?: ContentProviderAuthData | null): Promise<CurrentPlan | null> {
-    const matches = (this.data.scheduledLessons ?? []).filter(s => s.ageGroup === scheduleId);
-    if (matches.length === 0) return null;
+  async getCurrentPlan(_auth?: ContentProviderAuthData | null): Promise<CurrentPlan | null> {
+    const all = this.data.scheduledLessons ?? [];
+    if (all.length === 0) return null;
 
-    const sched = [...matches].sort((a, b) => b.weekOf.localeCompare(a.weekOf))[0];
+    const sched = [...all].sort((a, b) => b.weekOf.localeCompare(a.weekOf))[0];
     const resolved = this.resolveScheduled(sched);
     if (!resolved) return null;
 
@@ -264,6 +262,7 @@ export class LifeChurchProvider implements IProvider {
       id: sched.id,
       title: `${sched.ageGroup} — ${lesson.title}`,
       serviceDate: sched.weekOf,
+      thumbnail: lesson.thumbnail ?? resolved.unit.thumbnail ?? resolved.series.thumbnail,
       files: [
         {
           id: lesson.id,

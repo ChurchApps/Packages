@@ -10,6 +10,16 @@ import { fetchMinistries, fetchPlanTypes, fetchPlans, fetchVenueFeed, fetchVenue
 import { ministryToFolder, planTypeToFolder, planToFolder, planItemToInstruction, getFilesFromVenueFeed, getFileFromProviderFileItem, buildSectionActionsMap } from "./B1ChurchConverters";
 import { getOrderedFiles } from "./planCustomization";
 
+function findFirstThumbnail(items: InstructionItem[] | undefined): string | undefined {
+  if (!items) return undefined;
+  for (const item of items) {
+    if (item.thumbnail) return item.thumbnail;
+    const child = findFirstThumbnail(item.children);
+    if (child) return child;
+  }
+  return undefined;
+}
+
 function isExternalProviderItem(item: B1PlanItem): boolean {
   // An item is external if it has a non-b1church providerId and a providerPath
   if (!item.providerId || item.providerId === "b1church") return false;
@@ -297,8 +307,20 @@ export class B1ChurchProvider implements IProvider {
   //   return { id: planId, name: planTitle, sections, allFiles };
   // }
 
-  async getCurrentPlan(scheduleId: string, _authData?: ContentProviderAuthData | null): Promise<CurrentPlan | null> {
-    const plan = await fetchCurrentPlanByType(scheduleId);
+  private planTypeId: string | null = null;
+
+  setPairingData(data: unknown) {
+    if (data && typeof data === "object" && "planTypeId" in data) {
+      const planTypeId = (data as { planTypeId: unknown }).planTypeId;
+      this.planTypeId = typeof planTypeId === "string" ? planTypeId : null;
+    } else {
+      this.planTypeId = null;
+    }
+  }
+
+  async getCurrentPlan(_authData?: ContentProviderAuthData | null): Promise<CurrentPlan | null> {
+    if (!this.planTypeId) return null;
+    const plan = await fetchCurrentPlanByType(this.planTypeId);
     if (!plan?.providerId || !plan.providerPlanId) return null;
 
     const items = plan.churchId && plan.id ? await fetchPlanItems(plan.churchId, plan.id) : [];
@@ -310,11 +332,13 @@ export class B1ChurchProvider implements IProvider {
     if (!instructions) return null;
 
     const files = getOrderedFiles(instructions, items);
+    const thumbnail = findFirstThumbnail(instructions.items);
 
     return {
       id: plan.id,
       title: plan.name || "",
       serviceDate: plan.serviceDate,
+      thumbnail,
       files
     };
   }

@@ -1,5 +1,5 @@
 import { ContentProviderConfig, ContentProviderAuthData, ContentItem, ContentFile, ProviderLogos, FeedVenueInterface, Instructions, VenueActionsResponseInterface, ProviderCapabilities, IProvider, AuthType } from "../../interfaces";
-import { detectMediaType } from "../../utils";
+import { detectMediaType, createFolder } from "../../utils";
 import { parsePath, getSegment } from "../../pathUtils";
 import { apiRequest, API_BASE } from "./LessonsChurchApi";
 import { convertAddOnToFile, convertAddOnCategoryToInstructions, buildSectionActionsMap, processInstructionItem } from "./LessonsChurchConverters";
@@ -100,13 +100,7 @@ export class LessonsChurchProvider implements IProvider {
     if (!response) return [];
 
     const programs = Array.isArray(response) ? response : [];
-    return programs.map((p) => ({
-      type: "folder" as const,
-      id: p.id as string,
-      title: p.name as string,
-      thumbnail: p.image as string | undefined,
-      path: `/lessons/${p.id}`
-    }));
+    return programs.map(p => createFolder(p.id as string, p.name as string, `/lessons/${p.id}`, p.image as string | undefined));
   }
 
   private async getStudies(programId: string, currentPath: string): Promise<ContentItem[]> {
@@ -115,13 +109,9 @@ export class LessonsChurchProvider implements IProvider {
     if (!response) return [];
 
     const studies = Array.isArray(response) ? response : [];
-    return studies.map((s) => ({
-      type: "folder" as const,
-      id: s.id as string,
-      title: s.name as string,
-      thumbnail: s.image as string | undefined,
-      path: `${currentPath}/${s.id}`
-    })).sort((a, b) => a.title.localeCompare(b.title));
+    return studies
+      .map(s => createFolder(s.id as string, s.name as string, `${currentPath}/${s.id}`, s.image as string | undefined))
+      .sort((a, b) => a.title.localeCompare(b.title));
   }
 
   private async getLessons(studyId: string, currentPath: string): Promise<ContentItem[]> {
@@ -130,13 +120,7 @@ export class LessonsChurchProvider implements IProvider {
     if (!response) return [];
 
     const lessons = Array.isArray(response) ? response : [];
-    return lessons.map((l) => ({
-      type: "folder" as const,
-      id: l.id as string,
-      title: (l.name || l.title) as string,
-      thumbnail: l.image as string | undefined,
-      path: `${currentPath}/${l.id}`
-    }));
+    return lessons.map(l => createFolder(l.id as string, (l.name || l.title) as string, `${currentPath}/${l.id}`, l.image as string | undefined));
   }
 
   private async getVenues(lessonId: string, currentPath: string): Promise<ContentItem[]> {
@@ -148,14 +132,7 @@ export class LessonsChurchProvider implements IProvider {
     const lessonImage = lessonResponse?.image as string | undefined;
 
     const venues = Array.isArray(response) ? response : [];
-    return venues.map((v) => ({
-      type: "folder" as const,
-      id: v.id as string,
-      title: v.name as string,
-      thumbnail: lessonImage,
-      isLeaf: true,
-      path: `${currentPath}/${v.id}`
-    }));
+    return venues.map(v => createFolder(v.id as string, v.name as string, `${currentPath}/${v.id}`, lessonImage, true));
   }
 
   private async getPlaylistFiles(venueId: string): Promise<ContentItem[]> {
@@ -185,12 +162,7 @@ export class LessonsChurchProvider implements IProvider {
     const addOns = Array.isArray(response) ? response : [];
     const categories = Array.from(new Set(addOns.map((a) => a.category as string).filter(Boolean)));
 
-    return categories.sort().map((category) => ({
-      type: "folder" as const,
-      id: `category-${category}`,
-      title: category,
-      path: `/addons/${encodeURIComponent(category)}`
-    }));
+    return categories.sort().map(category => createFolder(`category-${category}`, category, `/addons/${encodeURIComponent(category)}`));
   }
 
   private async getAddOnsByCategory(category: string, currentPath: string): Promise<ContentItem[]> {
@@ -202,14 +174,7 @@ export class LessonsChurchProvider implements IProvider {
     const allAddOns = Array.isArray(response) ? response : [];
     const filtered = allAddOns.filter((a) => a.category === decodedCategory);
 
-    return filtered.map((addOn) => ({
-      type: "folder" as const,
-      id: addOn.id as string,
-      title: addOn.name as string,
-      thumbnail: addOn.image as string | undefined,
-      isLeaf: true,
-      path: `${currentPath}/${addOn.id}`
-    }));
+    return filtered.map(addOn => createFolder(addOn.id as string, addOn.name as string, `${currentPath}/${addOn.id}`, addOn.image as string | undefined, true));
   }
 
   // async getPresentations(path: string, _auth?: ContentProviderAuthData | null): Promise<Plan | null> {

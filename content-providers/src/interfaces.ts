@@ -240,6 +240,7 @@ export interface IProvider {
   exchangeCodeForTokens?(code: string, codeVerifier: string, redirectUri: string): Promise<ContentProviderAuthData | null>;
   initiateDeviceFlow?(): Promise<DeviceAuthorizationResponse | null>;
   pollDeviceFlowToken?(deviceCode: string): Promise<DeviceFlowPollResult>;
+  performLogin?(email: string, password: string): Promise<ContentProviderAuthData | null>;
 
   // Optional methods - providers can implement these if they have custom logic
   getPlaylist?(path: string, auth?: ContentProviderAuthData | null, resolution?: number): Promise<ContentFile[] | null>;

@@ -1,25 +1,6 @@
 import { ContentFile, ContentFolder, Instructions, InstructionItem } from "../../interfaces";
+import { detectMediaType, isMediaFile } from "../../utils";
 import { DropboxEntry, DropboxFileEntry, DropboxFolderEntry } from "./DropboxInterfaces";
-
-const VIDEO_EXTENSIONS = new Set([".mp4", ".mov", ".avi", ".mkv", ".webm", ".m4v"]);
-const IMAGE_EXTENSIONS = new Set([
-  ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg", ".webp", ".tiff", ".tif"
-]);
-const MEDIA_EXTENSIONS = new Set([...VIDEO_EXTENSIONS, ...IMAGE_EXTENSIONS]);
-
-export function getFileExtension(filename: string): string {
-  const lastDot = filename.lastIndexOf(".");
-  if (lastDot === -1) return "";
-  return filename.substring(lastDot).toLowerCase();
-}
-
-export function isMediaFile(filename: string): boolean {
-  return MEDIA_EXTENSIONS.has(getFileExtension(filename));
-}
-
-export function getMediaType(filename: string): "video" | "image" {
-  return VIDEO_EXTENSIONS.has(getFileExtension(filename)) ? "video" : "image";
-}
 
 export function folderEntryToContentFolder(entry: DropboxFolderEntry, isLeaf?: boolean): ContentFolder {
   return { type: "folder", id: entry.id, title: entry.name, path: entry.path_lower, isLeaf };
@@ -30,7 +11,7 @@ export function fileEntryToContentFile(entry: DropboxFileEntry, url: string, dow
     type: "file",
     id: entry.id,
     title: entry.name,
-    mediaType: getMediaType(entry.name),
+    mediaType: detectMediaType(entry.name),
     url,
     downloadUrl: downloadUrl || url
   };

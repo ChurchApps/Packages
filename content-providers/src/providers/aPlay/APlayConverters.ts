@@ -1,5 +1,5 @@
 import { ContentFile, ContentItem, PlanPresentation, InstructionItem } from "../../interfaces";
-import { detectMediaType } from "../../utils";
+import { detectMediaType, createFolder, createFile } from "../../utils";
 import { parsePath } from "../../pathUtils";
 
 /**
@@ -55,65 +55,38 @@ export function convertMediaToFiles(mediaItems: Record<string, unknown>[]): Cont
 
     if (!url) continue;
 
-    const detectedMediaType = detectMediaType(url, mediaType);
     const fileId = (item.mediaId || item.id) as string;
-
-    files.push({ type: "file", id: fileId, title: (item.title || item.name || item.fileName || "") as string, mediaType: detectedMediaType, thumbnail: thumbnail, url, muxPlaybackId, mediaId: fileId });
+    const file = createFile(fileId, (item.title || item.name || item.fileName || "") as string, url, {
+      mediaType: detectMediaType(url, mediaType),
+      thumbnail,
+      muxPlaybackId
+    });
+    file.mediaId = fileId;
+    files.push(file);
   }
 
   return files;
 }
 
-/**
- * Convert modules response to ContentItem folders
- */
 export function convertModulesToFolders(modules: Record<string, unknown>[]): ContentItem[] {
-  const items: ContentItem[] = [];
-
-  for (const m of modules) {
-    if (m.isLocked) continue;
-
-    const moduleId = (m.id || m.moduleId) as string;
-    const moduleTitle = (m.title || m.name) as string;
-    const moduleImage = m.image as string | undefined;
-
-    items.push({
-      type: "folder" as const,
-      id: moduleId,
-      title: moduleTitle,
-      thumbnail: moduleImage,
-      path: `/modules/${moduleId}`
-    });
-  }
-
-  return items;
+  return modules.filter(m => !m.isLocked).map(m => {
+    const id = (m.id || m.moduleId) as string;
+    return createFolder(id, (m.title || m.name) as string, `/modules/${id}`, m.image as string | undefined);
+  });
 }
 
-/**
- * Convert libraries response to ContentItem folders
- */
 export function convertLibrariesToFolders(libraries: Record<string, unknown>[], currentPath: string): ContentItem[] {
-  return libraries.map((l) => ({
-    type: "folder" as const,
-    id: (l.libraryId || l.id) as string,
-    title: (l.title || l.name) as string,
-    thumbnail: l.image as string | undefined,
-    isLeaf: true,
-    path: `${currentPath}/${l.libraryId || l.id}`
-  }));
+  return libraries.map(l => {
+    const id = (l.libraryId || l.id) as string;
+    return createFolder(id, (l.title || l.name) as string, `${currentPath}/${id}`, l.image as string | undefined, true);
+  });
 }
 
-/**
- * Convert products response to ContentItem folders
- */
 export function convertProductsToFolders(products: Record<string, unknown>[], currentPath: string): ContentItem[] {
-  return products.map((p) => ({
-    type: "folder" as const,
-    id: (p.productId || p.id) as string,
-    title: (p.title || p.name) as string,
-    thumbnail: p.image as string | undefined,
-    path: `${currentPath}/products/${p.productId || p.id}`
-  }));
+  return products.map(p => {
+    const id = (p.productId || p.id) as string;
+    return createFolder(id, (p.title || p.name) as string, `${currentPath}/products/${id}`, p.image as string | undefined);
+  });
 }
 
 /**

@@ -1,29 +1,20 @@
 import { ContentItem, ContentFile, Plan, PlanSection, PlanPresentation } from "../../interfaces";
-import { createFile, slugify } from "../../utils";
+import { createFile, createFolder, slugify } from "../../utils";
 import { HighVoltageData, LessonFolder, StudyFolder } from "./HighVoltageKidsInterfaces";
 
 export function getCollections(data: HighVoltageData): ContentItem[] {
   return data.collections
     .filter(collection => collection.folders.length > 0)
-    .map(collection => ({
-      type: "folder" as const,
-      id: slugify(collection.name),
-      title: collection.name,
-      path: `/${slugify(collection.name)}`
-    }));
+    .map(collection => {
+      const slug = slugify(collection.name);
+      return createFolder(slug, collection.name, `/${slug}`);
+    });
 }
 
 export function getStudyFolders(data: HighVoltageData, collectionSlug: string, currentPath: string): ContentItem[] {
   const collection = data.collections.find(c => slugify(c.name) === collectionSlug);
   if (!collection) return [];
-
-  return collection.folders.map(study => ({
-    type: "folder" as const,
-    id: study.id,
-    title: study.name,
-    thumbnail: study.image || undefined,
-    path: `${currentPath}/${study.id}`
-  }));
+  return collection.folders.map(study => createFolder(study.id, study.name, `${currentPath}/${study.id}`, study.image || undefined));
 }
 
 export function getLessonFolders(data: HighVoltageData, collectionSlug: string, studyId: string, currentPath: string): ContentItem[] {
@@ -33,14 +24,7 @@ export function getLessonFolders(data: HighVoltageData, collectionSlug: string, 
   const study = collection.folders.find(s => s.id === studyId);
   if (!study) return [];
 
-  return study.lessons.map(lesson => ({
-    type: "folder" as const,
-    id: lesson.id,
-    title: lesson.name,
-    thumbnail: lesson.image || undefined,
-    isLeaf: true,
-    path: `${currentPath}/${lesson.id}`
-  }));
+  return study.lessons.map(lesson => createFolder(lesson.id, lesson.name, `${currentPath}/${lesson.id}`, lesson.image || undefined, true));
 }
 
 export function getLessonFiles(data: HighVoltageData, collectionSlug: string, studyId: string, lessonId: string): ContentItem[] {

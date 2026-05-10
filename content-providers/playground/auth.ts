@@ -97,14 +97,13 @@ export async function handleFormLoginSubmit(): Promise<void> {
   showModal('processing');
 
   try {
-    const providerAny = state.currentProvider as any;
-    if (typeof providerAny.performLogin !== 'function') {
+    if (!state.currentProvider.performLogin) {
       showModal('error');
       elements.errorMessage.textContent = 'This provider does not support form login';
       return;
     }
 
-    const auth = await providerAny.performLogin(email, pwd);
+    const auth = await state.currentProvider.performLogin(email, pwd);
 
     if (auth) {
       state.currentAuth = auth;

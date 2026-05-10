@@ -270,14 +270,12 @@ async function handleFormLogin(provider: IProvider): Promise<ContentProviderAuth
   const spinner = ora('Logging in...').start();
 
   try {
-    // Call provider's performLogin method
-    const providerAny = provider as any;
-    if (typeof providerAny.performLogin !== 'function') {
+    if (!provider.performLogin) {
       spinner.fail('This provider does not support form login');
       return null;
     }
 
-    const auth = await providerAny.performLogin(username, pwd);
+    const auth = await provider.performLogin(username, pwd);
 
     if (auth) {
       spinner.succeed('Login successful!');

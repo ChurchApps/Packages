@@ -3,7 +3,7 @@ import {
   ContentFile, ProviderLogos, ProviderCapabilities, IProvider,
   AuthType, Instructions
 } from "../../interfaces";
-import { OAuthHelper } from "../../helpers";
+import { OAuthHelper, ApiHelper } from "../../helpers";
 import {
   DropboxListFolderResponse, DropboxEntry,
   DropboxFileEntry, DropboxTemporaryLinkResponse, DropboxSharedLinkResponse
@@ -17,6 +17,7 @@ const MAX_PAGINATION_CALLS = 50;
 
 export class DropboxProvider implements IProvider {
   private readonly oauthHelper = new OAuthHelper();
+  private readonly apiHelper = new ApiHelper();
 
   readonly id = "dropbox";
   readonly name = "Dropbox";
@@ -52,28 +53,9 @@ export class DropboxProvider implements IProvider {
 
   // -- Pagination helper --
 
-  private async dropboxPost<T>(endpoint: string, body: Record<string, unknown>, auth?: ContentProviderAuthData | null): Promise<T | null> {
-    if (!auth) { console.error("[Dropbox] No auth token provided"); return null; }
-    try {
-      const url = `${this.config.apiBase}${endpoint}`;
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${auth.access_token}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(body)
-      });
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`[Dropbox] API error ${response.status}: ${errorText}`);
-        return null;
-      }
-      return await response.json();
-    } catch (err) {
-      console.error("[Dropbox] Fetch error:", err);
-      return null;
-    }
+  private dropboxPost<T>(endpoint: string, body: Record<string, unknown>, auth?: ContentProviderAuthData | null): Promise<T | null> {
+    if (!auth) { console.error("[Dropbox] No auth token provided"); return Promise.resolve(null); }
+    return this.apiHelper.apiRequest<T>(this.config, this.id, endpoint, auth, "POST", body);
   }
 
   private async listAllEntries(dropboxPath: string, auth?: ContentProviderAuthData | null): Promise<DropboxEntry[]> {
@@ -244,13 +226,23 @@ export class DropboxProvider implements IProvider {
   }
 
   async buildAuthUrl(codeVerifier: string, redirectUri: string, state?: string): Promise<{ url: string; challengeMethod: string }> {
-    const result = await this.oauthHelper.buildAuthUrl(this.config, codeVerifier, redirectUri, state || this.id);
-    const url = new URL(result.url);
-    // Dropbox uses app-level permissions configured in the App Console, not URL scopes
-    url.searchParams.delete("scope");
-    // Dropbox requires token_access_type=offline to return a refresh_token
-    url.searchParams.set("token_access_type", "offline");
-    return { url: url.toString(), challengeMethod: result.challengeMethod };
+    const codeChallenge = await this.oauthHelper.generateCodeChallenge(codeVerifier);
+    return { url: this.buildAuthUrlFromChallenge(codeChallenge, redirectUri, state || this.id), challengeMethod: "S256" };
+  }
+
+  /** For environments without Web Crypto (e.g. React Native): caller computes the challenge. */
+  buildAuthUrlFromChallenge(codeChallenge: string, redirectUri: string, state: string): string {
+    const params = new URLSearchParams({
+      response_type: "code",
+      client_id: this.config.clientId,
+      redirect_uri: redirectUri,
+      code_challenge: codeChallenge,
+      code_challenge_method: "S256",
+      // Dropbox requires token_access_type=offline to return a refresh_token
+      token_access_type: "offline",
+      state
+    });
+    return `${this.config.oauthBase}/authorize?${params.toString()}`;
   }
 
   async exchangeCodeForTokens(code: string, codeVerifier: string, redirectUri: string): Promise<ContentProviderAuthData | null> {

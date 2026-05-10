@@ -9,7 +9,7 @@ export const VERSION = "0.0.5";
 export * from "./interfaces";
 
 // Utilities
-export { detectMediaType, createFolder, createFile } from "./utils";
+export { detectMediaType, isMediaFile, createFolder, createFile } from "./utils";
 export { parsePath, getSegment, buildPath, appendToPath } from "./pathUtils";
 export { navigateToPath, generatePath } from "./instructionPathUtils";
 export {

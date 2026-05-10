@@ -136,15 +136,12 @@ export class B1ChurchProvider implements IProvider {
 
   private async fetchPlanImages(plans: B1Plan[], ministryId: string, authData?: ContentProviderAuthData | null): Promise<Map<string, string>> {
     const imageMap = new Map<string, string>();
-    console.log(`[B1Church] fetchPlanImages: ${plans.length} plans, fields:`, plans.map(p => ({ id: p.id, contentId: p.contentId, providerId: p.providerId, providerPlanId: p.providerPlanId })));
 
     // Lessons.church plans: one batch call for all venue IDs
     const lessonsChurchPlans = plans.filter(p => p.contentId && (!p.providerId || p.providerId === "lessonschurch"));
     const venueIds = lessonsChurchPlans.map(p => p.contentId!);
-    console.log(`[B1Church] fetchPlanImages: ${lessonsChurchPlans.length} lessons.church plans, venueIds=${JSON.stringify(venueIds)}`);
     if (venueIds.length > 0) {
       const lcImages = await fetchVenueImages(venueIds);
-      console.log(`[B1Church] fetchPlanImages: fetchVenueImages returned ${lcImages.size} images`);
       lcImages.forEach((img, venueId) => {
         const plan = lessonsChurchPlans.find(p => p.contentId === venueId);
         if (plan) imageMap.set(plan.id, img);
@@ -446,7 +443,6 @@ export class B1ChurchProvider implements IProvider {
   }
 
   async getPlaylist(path: string, authData?: ContentProviderAuthData | null, resolution?: number): Promise<ContentFile[] | null> {
-    console.log(`[B1Church] getPlaylist called with path=${path}`);
     const { segments, depth } = parsePath(path);
 
     if (depth < 4 || segments[0] !== "ministries") {
@@ -457,33 +453,28 @@ export class B1ChurchProvider implements IProvider {
     const ministryId = segments[1];
     const planId = segments[3];
     const planTypeId = segments[2];
-    console.log(`[B1Church] getPlaylist: ministryId=${ministryId}, planTypeId=${planTypeId}, planId=${planId}`);
 
     // Need to fetch plan details to get churchId and contentId
     const plans = await fetchPlans(planTypeId, authData);
-    console.log(`[B1Church] getPlaylist: fetchPlans returned ${plans.length} plans`);
     const planFolder = plans.find(p => p.id === planId);
     if (!planFolder) {
-      console.warn(`[B1Church] getPlaylist: plan ${planId} not found in ${plans.length} plans (ids: ${plans.map(p => p.id).join(", ")})`);
+      console.warn(`[B1Church] getPlaylist: plan ${planId} not found in ${plans.length} plans`);
       return null;
     }
 
     const churchId = planFolder.churchId;
     const venueId = planFolder.contentId;
-    console.log(`[B1Church] getPlaylist: planFolder found — churchId=${churchId}, venueId=${venueId}, providerId=${planFolder.providerId}, providerPlanId=${planFolder.providerPlanId}`);
 
     if (!churchId) {
-      console.warn("[B1Church getPlaylist] planFolder missing churchId:", planFolder.id);
+      console.warn("[B1Church] getPlaylist: planFolder missing churchId:", planFolder.id);
       return null;
     }
 
     const pathFn = this.config.endpoints.planItems as (churchId: string, planId: string) => string;
     const planItems = await this.apiRequest<B1PlanItem[]>(pathFn(churchId, planId), authData);
-    console.log(`[B1Church] getPlaylist: planItems=${planItems ? (Array.isArray(planItems) ? planItems.length + " sections" : typeof planItems) : "null"}`);
 
     // If no planItems but plan has associated provider content, fetch from that provider
     if ((!planItems || planItems.length === 0) && planFolder.providerId && planFolder.providerPlanId) {
-      console.log(`[B1Church] getPlaylist: no planItems, trying external provider ${planFolder.providerId} with path ${planFolder.providerPlanId}`);
       const externalFiles = await fetchFromProviderProxy(
         "getPlaylist",
         ministryId,
@@ -492,27 +483,20 @@ export class B1ChurchProvider implements IProvider {
         authData,
         resolution
       );
-      console.log(`[B1Church] getPlaylist: external provider returned ${externalFiles ? (Array.isArray(externalFiles) ? externalFiles.length + " files" : typeof externalFiles) : "null"}`);
       return externalFiles || null;
     }
 
     if (!planItems || !Array.isArray(planItems)) {
-      console.warn(`[B1Church] getPlaylist: planItems is null/not-array and no external provider fallback. providerId=${planFolder.providerId}, providerPlanId=${planFolder.providerPlanId}`);
+      console.warn(`[B1Church] getPlaylist: no planItems and no external provider fallback for plan ${planId}`);
       return null;
     }
 
-    console.log(`[B1Church] getPlaylist: processing ${planItems.length} sections, venueId=${venueId || "none"}`);
     const venueFeed = venueId ? await fetchVenueFeed(venueId) : null;
-    if (venueId && !venueFeed) {
-      console.warn(`[B1Church] getPlaylist: venueFeed is null for venueId=${venueId}`);
-    }
     const files: ContentFile[] = [];
 
     for (const sectionItem of planItems) {
-      console.log(`[B1Church] getPlaylist: section "${sectionItem.label || sectionItem.id}" has ${sectionItem.children?.length || 0} children`);
       for (const child of sectionItem.children || []) {
         const childItemType = child.itemType;
-        console.log(`[B1Church] getPlaylist:   child itemType=${childItemType}, relatedId=${child.relatedId}, providerId=${child.providerId}, providerPath=${child.providerPath}, link=${child.link ? "yes" : "no"}`);
 
         // Check if this is a section that can be expanded from the local venue feed
         const isSectionType = childItemType === "section" || childItemType === "lessonSection" || childItemType === "providerSection";
@@ -596,11 +580,11 @@ export class B1ChurchProvider implements IProvider {
       }
     }
 
-    console.log(`[B1Church] getPlaylist: total files collected = ${files.length}`);
     if (files.length === 0) {
-      console.warn(`[B1Church] getPlaylist: returning null — no files found for path=${path}`);
+      console.warn(`[B1Church] getPlaylist: no files found for path=${path}`);
+      return null;
     }
-    return files.length > 0 ? files : null;
+    return files;
   }
 
   supportsDeviceFlow(): boolean {

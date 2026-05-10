@@ -177,6 +177,35 @@ export interface Instructions {
   items: InstructionItem[];
 }
 
+export interface MessageFileInterface {
+  id?: string;
+  name?: string;
+  url?: string;
+  seconds?: number;
+  fileType?: string;
+  sort?: number;
+  loop?: boolean;
+  loopVideo?: boolean;
+  image?: string;
+}
+
+export interface PlanTimelineItem {
+  id: string;
+  label?: string;
+  itemType?: string;
+  seconds?: number;
+  fileIds?: string[];
+  children?: PlanTimelineItem[];
+}
+
+export interface CurrentPlan {
+  id: string;
+  title: string;
+  serviceDate?: string;
+  files: MessageFileInterface[];
+  timeline?: PlanTimelineItem[];
+}
+
 export interface VenueActionInterface {
   id?: string;
   name?: string;
@@ -245,5 +274,6 @@ export interface IProvider {
   // Optional methods - providers can implement these if they have custom logic
   getPlaylist?(path: string, auth?: ContentProviderAuthData | null, resolution?: number): Promise<ContentFile[] | null>;
   getInstructions?(path: string, auth?: ContentProviderAuthData | null): Promise<Instructions | null>;
+  getCurrentPlan?(scheduleId: string, auth?: ContentProviderAuthData | null): Promise<CurrentPlan | null>;
   checkMediaLicense?(mediaId: string, auth?: ContentProviderAuthData | null): Promise<MediaLicenseResult | null>;
 }

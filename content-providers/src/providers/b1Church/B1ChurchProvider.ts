@@ -1,12 +1,14 @@
-import { ContentProviderConfig, ContentProviderAuthData, ContentItem, ContentFile, ProviderLogos, Plan, PlanPresentation, Instructions, ProviderCapabilities, DeviceAuthorizationResponse, DeviceFlowPollResult, IProvider, AuthType, InstructionItem } from "../../interfaces";
+import { ContentProviderConfig, ContentProviderAuthData, ContentItem, ContentFile, ProviderLogos, Plan, PlanPresentation, Instructions, ProviderCapabilities, DeviceAuthorizationResponse, DeviceFlowPollResult, IProvider, AuthType, InstructionItem, CurrentPlan } from "../../interfaces";
 import { parsePath } from "../../pathUtils";
 import { navigateToPath } from "../../instructionPathUtils";
 import { instructionsToPlaylist } from "../../FormatConverters";
 import { ApiHelper } from "../../helpers";
+import { getProvider } from "../registry";
 import { B1Plan, B1PlanItem } from "./B1ChurchTypes";
 import * as B1ChurchAuth from "./B1ChurchAuth";
-import { fetchMinistries, fetchPlanTypes, fetchPlans, fetchVenueFeed, fetchVenueActions, fetchVenueImages, fetchFromProviderProxy, API_BASE } from "./B1ChurchApi";
+import { fetchMinistries, fetchPlanTypes, fetchPlans, fetchVenueFeed, fetchVenueActions, fetchVenueImages, fetchFromProviderProxy, fetchCurrentPlanByType, fetchPlanItems, API_BASE } from "./B1ChurchApi";
 import { ministryToFolder, planTypeToFolder, planToFolder, planItemToInstruction, getFilesFromVenueFeed, getFileFromProviderFileItem, buildSectionActionsMap } from "./B1ChurchConverters";
+import { getOrderedFiles } from "./planCustomization";
 
 function isExternalProviderItem(item: B1PlanItem): boolean {
   // An item is external if it has a non-b1church providerId and a providerPath
@@ -294,6 +296,28 @@ export class B1ChurchProvider implements IProvider {
 
   //   return { id: planId, name: planTitle, sections, allFiles };
   // }
+
+  async getCurrentPlan(scheduleId: string, _authData?: ContentProviderAuthData | null): Promise<CurrentPlan | null> {
+    const plan = await fetchCurrentPlanByType(scheduleId);
+    if (!plan?.providerId || !plan.providerPlanId) return null;
+
+    const items = plan.churchId && plan.id ? await fetchPlanItems(plan.churchId, plan.id) : [];
+
+    const innerProvider = getProvider(plan.providerId);
+    if (!innerProvider?.getInstructions) return null;
+
+    const instructions = await innerProvider.getInstructions(plan.providerPlanId, null);
+    if (!instructions) return null;
+
+    const files = getOrderedFiles(instructions, items);
+
+    return {
+      id: plan.id,
+      title: plan.name || "",
+      serviceDate: plan.serviceDate,
+      files
+    };
+  }
 
   async getInstructions(path: string, authData?: ContentProviderAuthData | null): Promise<Instructions | null> {
     const { segments, depth } = parsePath(path);

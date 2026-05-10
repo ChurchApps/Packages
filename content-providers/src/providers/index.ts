@@ -1,4 +1,5 @@
-import { ProviderInfo, ProviderLogos, IProvider } from "../interfaces";
+import { ProviderInfo, ProviderLogos } from "../interfaces";
+import { providerRegistry, getProvider, getAllProviders } from "./registry";
 import { APlayProvider } from "./aPlay";
 import { B1ChurchProvider } from "./b1Church";
 import { DropboxProvider } from "./dropbox";
@@ -10,6 +11,8 @@ import { PlanningCenterProvider } from "./planningCenter";
 import { SignPresenterProvider } from "./signPresenter";
 import { JesusFilmProvider } from "./jesusFilm";
 
+export { getProvider, getAllProviders, registerProvider } from "./registry";
+
 export { APlayProvider } from "./aPlay";
 export { B1ChurchProvider } from "./b1Church";
 export { DropboxProvider } from "./dropbox";
@@ -20,9 +23,6 @@ export { LessonsChurchProvider } from "./lessonsChurch";
 export { LifeChurchProvider } from "./lifeChurch";
 export { PlanningCenterProvider } from "./planningCenter";
 export { SignPresenterProvider } from "./signPresenter";
-
-// Provider registry - singleton instances
-const providerRegistry: Map<string, IProvider> = new Map();
 
 // Unimplemented providers (coming soon)
 interface UnimplementedProvider {
@@ -101,27 +101,6 @@ function initializeProviders() {
 
 // Initialize on module load
 initializeProviders();
-
-/**
- * Get a provider by ID.
- */
-export function getProvider(providerId: string): IProvider | null {
-  return providerRegistry.get(providerId) || null;
-}
-
-/**
- * Get all registered providers.
- */
-export function getAllProviders(): IProvider[] {
-  return Array.from(providerRegistry.values());
-}
-
-/**
- * Register a custom provider.
- */
-export function registerProvider(provider: IProvider): void {
-  providerRegistry.set(provider.id, provider);
-}
 
 /**
  * Get provider configuration by ID (for backward compatibility).

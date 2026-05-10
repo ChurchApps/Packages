@@ -1,5 +1,5 @@
 import { ContentProviderAuthData, FeedVenueInterface, ContentItem, Plan, ContentFile, Instructions, VenueActionsResponseInterface } from "../../interfaces";
-import { ArrangementKeyResponse, B1Ministry, B1PlanType, B1Plan } from "./B1ChurchTypes";
+import { ArrangementKeyResponse, B1Ministry, B1PlanType, B1Plan, B1PlanItem } from "./B1ChurchTypes";
 
 export const API_BASE = "https://api.churchapps.org";
 
@@ -43,6 +43,32 @@ export async function fetchPlanTypes(ministryId: string, auth: ContentProviderAu
 export async function fetchPlans(planTypeId: string, auth: ContentProviderAuthData | null | undefined): Promise<B1Plan[]> {
   const result = await authFetch<B1Plan[]>(`${API_BASE}/doing/plans/types/${planTypeId}`, auth);
   return result || [];
+}
+
+const DOING_API_BASE = "https://api.churchapps.org/doing";
+
+export async function fetchCurrentPlanByType(planTypeId: string): Promise<B1Plan | null> {
+  try {
+    const response = await fetch(`${DOING_API_BASE}/plans/public/current/${planTypeId}`, { method: "GET", headers: { Accept: "application/json" } });
+    if (!response.ok) {
+      console.warn(`[B1Church] fetchCurrentPlanByType failed: HTTP ${response.status} for planTypeId=${planTypeId}`);
+      return null;
+    }
+    return await response.json();
+  } catch (err) {
+    console.error(`[B1Church] fetchCurrentPlanByType error: planTypeId=${planTypeId}`, err);
+    return null;
+  }
+}
+
+export async function fetchPlanItems(churchId: string, planId: string): Promise<B1PlanItem[]> {
+  try {
+    const response = await fetch(`${DOING_API_BASE}/planItems/presenter/${churchId}/${planId}`, { method: "GET", headers: { Accept: "application/json" } });
+    if (!response.ok) return [];
+    return (await response.json()) || [];
+  } catch {
+    return [];
+  }
 }
 
 export async function fetchVenueFeed(venueId: string): Promise<FeedVenueInterface | null> {

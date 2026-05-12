@@ -12,6 +12,7 @@ import AppHelperHelpersPage from "./pages/AppHelperHelpersPage";
 import AppHelperComponentsPage from "./pages/AppHelperComponentsPage";
 import AppHelperWrappersPage from "./pages/AppHelperWrappersPage";
 import AppHelperNotesPage from "./pages/AppHelperNotesPage";
+import AppHelperDonationsPage from "./pages/AppHelperDonationsPage";
 import AppHelperReportingPage from "./pages/AppHelperReportingPage";
 import AppHelperHeadersPage from "./pages/AppHelperHeadersPage";
 import AppHelperHooksPage from "./pages/AppHelperHooksPage";
@@ -86,6 +87,7 @@ function HomePage() {
                 <Stack spacing={1}>
                   <Link to="/apphelper-wrappers">Wrapper Components {"\uD83D\uDD12"}</Link>
                   <Link to="/apphelper-notes">Notes Components {"\uD83D\uDD12"}</Link>
+                  <Link to="/apphelper-donations">Donation Components {"\uD83D\uDD12"}</Link>
                 </Stack>
               </CardContent>
             </Card>
@@ -184,38 +186,38 @@ function AppContent() {
     }
 
     return context || {
-      user: {
-        id: "",
-        email: "",
-        firstName: "",
-        lastName: ""
-      },
-      person: {
-        id: "",
-        name: { display: "" },
-        contactInfo: { email: "" }
-      },
-      userChurch: {
+        user: {
+          id: "",
+          email: "",
+          firstName: "",
+          lastName: ""
+        },
         person: {
           id: "",
           name: { display: "" },
           contactInfo: { email: "" }
         },
-        church: {
-          id: "",
-          name: "",
-          address: { city: "", state: "" }
+        userChurch: {
+          person: {
+            id: "",
+            name: { display: "" },
+            contactInfo: { email: "" }
+          },
+          church: {
+            id: "",
+            name: "",
+            address: { city: "", state: "" }
+          },
+          apis: [],
+          jwt: "",
+          groups: []
         },
-        apis: [],
-        jwt: "",
-        groups: []
-      },
-      userChurches: [],
-      setUser: () => {},
-      setPerson: () => {},
-      setUserChurch: () => {},
-      setUserChurches: () => {}
-    };
+        userChurches: [],
+        setUser: () => {},
+        setPerson: () => {},
+        setUserChurch: () => {},
+        setUserChurches: () => {}
+      };
   }, [context]);
 
   const handleNavigate = (url: string) => {
@@ -269,6 +271,7 @@ function AppContent() {
         <Route path="/apphelper-components" element={<AppHelperComponentsPage />} />
         <Route path="/apphelper-wrappers" element={<RequireAuth><AppHelperWrappersPage /></RequireAuth>} />
         <Route path="/apphelper-notes" element={<RequireAuth><AppHelperNotesPage /></RequireAuth>} />
+        <Route path="/apphelper-donations" element={<AppHelperDonationsPage />} />
         <Route path="/apphelper-reporting" element={<AppHelperReportingPage />} />
         <Route path="/apphelper-headers" element={<AppHelperHeadersPage />} />
         <Route path="/apphelper-hooks" element={<AppHelperHooksPage />} />

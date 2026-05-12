@@ -1,0 +1,20 @@
+# AppHelper Playground Environment Variables Example
+# Copy this file to .env and fill in your values
+
+# Stripe Configuration (for testing donation components)
+# Get your publishable key from https://dashboard.stripe.com/apikeys
+VITE_STRIPE_PUBLISHABLE_KEY=
+
+# Church ID for testing (used to fetch donation configuration)
+VITE_CHURCH_ID=
+
+# reCAPTCHA Site Key (for non-authenticated donations)
+# Get your site key from https://www.google.com/recaptcha/admin
+VITE_RECAPTCHA_SITE_KEY=
+
+# API Configuration (override default endpoints if needed)
+VITE_GIVING_API_URL=https://api.churchapps.org/giving
+
+VITE_MEMBERSHIP_API_URL=https://api.churchapps.org/membership
+
+VITE_ACCESS_API_URL=https://api.churchapps.org/access

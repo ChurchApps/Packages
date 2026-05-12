@@ -177,6 +177,36 @@ export interface Instructions {
   items: InstructionItem[];
 }
 
+export interface MessageFileInterface {
+  id?: string;
+  name?: string;
+  url?: string;
+  seconds?: number;
+  fileType?: string;
+  sort?: number;
+  loop?: boolean;
+  loopVideo?: boolean;
+  image?: string;
+}
+
+export interface PlanTimelineItem {
+  id: string;
+  label?: string;
+  itemType?: string;
+  seconds?: number;
+  fileIds?: string[];
+  children?: PlanTimelineItem[];
+}
+
+export interface CurrentPlan {
+  id: string;
+  title: string;
+  serviceDate?: string;
+  thumbnail?: string;
+  files: MessageFileInterface[];
+  timeline?: PlanTimelineItem[];
+}
+
 export interface VenueActionInterface {
   id?: string;
   name?: string;
@@ -240,9 +270,13 @@ export interface IProvider {
   exchangeCodeForTokens?(code: string, codeVerifier: string, redirectUri: string): Promise<ContentProviderAuthData | null>;
   initiateDeviceFlow?(): Promise<DeviceAuthorizationResponse | null>;
   pollDeviceFlowToken?(deviceCode: string): Promise<DeviceFlowPollResult>;
+  performLogin?(email: string, password: string): Promise<ContentProviderAuthData | null>;
 
   // Optional methods - providers can implement these if they have custom logic
   getPlaylist?(path: string, auth?: ContentProviderAuthData | null, resolution?: number): Promise<ContentFile[] | null>;
   getInstructions?(path: string, auth?: ContentProviderAuthData | null): Promise<Instructions | null>;
+  getCurrentPlan?(auth?: ContentProviderAuthData | null): Promise<CurrentPlan | null>;
+  /** Hand opaque pairing data (provider-specific shape) to the provider so it can resolve its current plan. */
+  setPairingData?(data: unknown): void;
   checkMediaLicense?(mediaId: string, auth?: ContentProviderAuthData | null): Promise<MediaLicenseResult | null>;
 }

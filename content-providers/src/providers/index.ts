@@ -1,13 +1,17 @@
-import { ProviderInfo, ProviderLogos, IProvider } from "../interfaces";
+import { ProviderInfo, ProviderLogos } from "../interfaces";
+import { providerRegistry, getProvider, getAllProviders } from "./registry";
 import { APlayProvider } from "./aPlay";
 import { B1ChurchProvider } from "./b1Church";
 import { DropboxProvider } from "./dropbox";
 import { BibleProjectProvider } from "./bibleProject";
 import { HighVoltageKidsProvider } from "./highVoltage";
 import { LessonsChurchProvider } from "./lessonsChurch";
+import { LifeChurchProvider } from "./lifeChurch";
 import { PlanningCenterProvider } from "./planningCenter";
 import { SignPresenterProvider } from "./signPresenter";
 import { JesusFilmProvider } from "./jesusFilm";
+
+export { getProvider, getAllProviders, registerProvider } from "./registry";
 
 export { APlayProvider } from "./aPlay";
 export { B1ChurchProvider } from "./b1Church";
@@ -16,11 +20,9 @@ export { BibleProjectProvider } from "./bibleProject";
 export { HighVoltageKidsProvider } from "./highVoltage";
 export { JesusFilmProvider } from "./jesusFilm";
 export { LessonsChurchProvider } from "./lessonsChurch";
+export { LifeChurchProvider } from "./lifeChurch";
 export { PlanningCenterProvider } from "./planningCenter";
 export { SignPresenterProvider } from "./signPresenter";
-
-// Provider registry - singleton instances
-const providerRegistry: Map<string, IProvider> = new Map();
 
 // Unimplemented providers (coming soon)
 interface UnimplementedProvider {
@@ -63,14 +65,6 @@ const unimplementedProviders: UnimplementedProvider[] = [
     }
   },
   {
-    id: "lifechurch",
-    name: "LifeChurch",
-    logos: {
-      light: "https://cdn.brandfetch.io/idRrA6pM45/w/400/h/400/theme/dark/icon.jpeg?c=1bxid64Mup7aczewSAYMX&t=1668042253613",
-      dark: "https://cdn.brandfetch.io/idRrA6pM45/w/400/h/400/theme/dark/icon.jpeg?c=1bxid64Mup7aczewSAYMX&t=1668042253613"
-    }
-  },
-  {
     id: "ministrystuff",
     name: "MinistryStuff",
     logos: {
@@ -88,6 +82,7 @@ function initializeProviders() {
   const bibleProject = new BibleProjectProvider();
   const highVoltageKids = new HighVoltageKidsProvider();
   const lessonsChurch = new LessonsChurchProvider();
+  const lifeChurch = new LifeChurchProvider();
   const planningCenter = new PlanningCenterProvider();
   const signPresenter = new SignPresenterProvider();
   const jesusFilm = new JesusFilmProvider();
@@ -99,33 +94,13 @@ function initializeProviders() {
   providerRegistry.set(highVoltageKids.id, highVoltageKids);
   providerRegistry.set(jesusFilm.id, jesusFilm);
   providerRegistry.set(lessonsChurch.id, lessonsChurch);
+  providerRegistry.set(lifeChurch.id, lifeChurch);
   providerRegistry.set(planningCenter.id, planningCenter);
   providerRegistry.set(signPresenter.id, signPresenter);
 }
 
 // Initialize on module load
 initializeProviders();
-
-/**
- * Get a provider by ID.
- */
-export function getProvider(providerId: string): IProvider | null {
-  return providerRegistry.get(providerId) || null;
-}
-
-/**
- * Get all registered providers.
- */
-export function getAllProviders(): IProvider[] {
-  return Array.from(providerRegistry.values());
-}
-
-/**
- * Register a custom provider.
- */
-export function registerProvider(provider: IProvider): void {
-  providerRegistry.set(provider.id, provider);
-}
 
 /**
  * Get provider configuration by ID (for backward compatibility).

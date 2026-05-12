@@ -29,9 +29,14 @@ export async function planItemToPresentation(item: B1PlanItem, venueFeed: FeedVe
 
   // Handle providerFile/providerPresentation items with a direct link
   if ((itemType === "providerFile" || itemType === "providerPresentation") && item.link) {
+    const fileId = item.relatedId ?? item.id;
+    if (!fileId) {
+      console.warn(`[B1Church] planItemToPresentation: ${itemType} has no relatedId or id, link=${item.link}`);
+      return null;
+    }
     const file: ContentFile = {
       type: "file",
-      id: item.relatedId ?? item.id ?? "unknown",
+      id: fileId,
       title: item.label || "File",
       mediaType: detectMediaType(item.link),
       url: item.link,
@@ -95,9 +100,14 @@ export function convertFeedFiles(feedFiles: Array<{ id?: string; name?: string; 
 export function getFileFromProviderFileItem(item: B1PlanItem): ContentFile | null {
   // Handle both providerFile and providerPresentation items with direct links
   if ((item.itemType !== "providerFile" && item.itemType !== "providerPresentation") || !item.link) return null;
+  const fileId = item.relatedId ?? item.id;
+  if (!fileId) {
+    console.warn(`[B1Church] getFileFromProviderFileItem: ${item.itemType} has no relatedId or id, link=${item.link}`);
+    return null;
+  }
   return {
     type: "file",
-    id: item.relatedId ?? item.id ?? "unknown",
+    id: fileId,
     title: item.label || "File",
     mediaType: detectMediaType(item.link),
     url: item.link,

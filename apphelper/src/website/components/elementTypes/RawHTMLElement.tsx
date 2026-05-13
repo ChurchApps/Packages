@@ -13,13 +13,20 @@ export const RawHTMLElement = ({ element, onEdit }: Props) => {
 
   const insertJavascript = () => {
     if (window && element.answers.javascript) {
-      const script = document.createElement("script");
-      script.id = "script-" + element.id;
-      script.innerHTML = element.answers.javascript;
-      const existing = document.getElementById(script.id);
-      if (existing) existing.innerHTML = script.innerHTML;
-      //existing.parentNode.removeChild(existing);
-      else document.body.appendChild(script);
+      // Skip church-pasted HTML markup (`<script src=...>` etc) — the browser would
+      // parse it as JS body and throw `SyntaxError: Unexpected token '<'`, which surfaces
+      // in Sentry as an appendChild error.
+      if (element.answers.javascript.trim().startsWith("<")) return;
+      try {
+        const script = document.createElement("script");
+        script.id = "script-" + element.id;
+        script.innerHTML = element.answers.javascript;
+        const existing = document.getElementById(script.id);
+        if (existing) existing.innerHTML = script.innerHTML;
+        else document.body.appendChild(script);
+      } catch {
+        /* swallow inline-script parse/insert failures from user-pasted content */
+      }
     }
   };
 

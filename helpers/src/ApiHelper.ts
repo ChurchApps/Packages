@@ -141,13 +141,19 @@ class ApiHelperClass {
 
   private async throwApiError(response: Response) {
     let msg = response.statusText;
-    try {
-      msg = await response.text();
-    } catch {}
-    try {
-      const json = await response.json();
-      msg = json.errors[0];
-    } catch { }
+    let body = "";
+    try { body = await response.text(); } catch {}
+    if (body) {
+      try {
+        const json = JSON.parse(body);
+        if (json && Array.isArray(json.errors) && json.errors.length > 0) msg = json.errors[0];
+        // Empty `{}` / `[]` bodies are just noise — keep the statusText instead so
+        // Sentry doesn't fill up with "Error: {}" / "Error: []" entries.
+        else if (body !== "{}" && body !== "[]") msg = body;
+      } catch {
+        msg = body;
+      }
+    }
     ErrorHelper.logError(response.status.toString(), response.url, msg);
     throw new Error(msg || "Error");
   }

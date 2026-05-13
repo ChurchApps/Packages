@@ -96,14 +96,14 @@ export class ArrayHelper {
     for (const item of array) {
 
 
-      let propVal = item[propertyName] || "";
-      let compVal = value || "";
+      let propVal = item[propertyName] ?? "";
+      let compVal = value ?? "";
       if (dataType === "number") {
         propVal = parseFloat(propVal);
         compVal = parseFloat(compVal);
       } else if (dataType === "string") {
-        propVal = propVal.toLowerCase();
-        compVal = compVal.toLowerCase();
+        propVal = String(propVal).toLowerCase();
+        compVal = String(compVal).toLowerCase();
       }
 
       switch (operator) {

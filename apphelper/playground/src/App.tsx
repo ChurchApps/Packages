@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from "react-router-dom";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { CssBaseline, Container, Typography, Box, Card, CardContent, Grid, Alert, Stack } from "@mui/material";
 import { CookiesProvider } from "react-cookie";
@@ -21,6 +21,7 @@ import { ComponentsTestPage } from "./pages/ComponentsPage";
 import { ReportingTestPage } from "./pages/ReportingPage";
 import PrivateMessageTestPage from "./pages/PrivateMessageTestPage";
 import WebSocketTestPage from "./pages/WebSocketTestPage";
+import PlaygroundLoginPage from "./login";
 
 const theme = createTheme({
   palette: {
@@ -118,6 +119,7 @@ function HomePage() {
 
 function AppContent() {
   const context = React.useContext(UserContext);
+  const navigate = useNavigate();
 
   const effectiveContext = React.useMemo(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -223,7 +225,7 @@ function AppContent() {
   const handleNavigate = (url: string) => {
     console.log("Navigation:", url);
     if (url.startsWith("/")) {
-      window.location.href = url;
+      navigate(url);
     } else {
       window.open(url, "_blank");
     }
@@ -265,6 +267,8 @@ function AppContent() {
 
       <Routes>
         <Route path="/" element={<HomePage />} />
+        {/* <Route path="/auth" element={<PlaygroundLoginPage />} /> */}
+        <Route path="/login" element={<PlaygroundLoginPage />} />
 
         {/* Core apphelper pages */}
         <Route path="/apphelper-helpers" element={<AppHelperHelpersPage />} />

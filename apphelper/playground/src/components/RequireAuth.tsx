@@ -31,7 +31,7 @@ export const RequireAuth: React.FC<RequireAuthProps> = ({ children }) => {
           <Box sx={{ width: "100%", textAlign: "center" }}>
             <Button
               component={Link}
-              to="/auth"
+              to={`/login?returnUrl=${encodeURIComponent(location.pathname + location.search)}`}
               variant="contained"
               color="primary"
               size="large"

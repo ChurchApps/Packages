@@ -82,7 +82,7 @@ export const Register: React.FC<Props> = (props) => {
     if (props.userRegisteredCallback) props.userRegisteredCallback(resp.user);
   };
 
-  const validateEmail = (email: string) => (/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(.\w{2,3})+$/.test(email));
+  const validateEmail = (email: string) => (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const u = { ...user };

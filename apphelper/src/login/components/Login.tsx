@@ -23,7 +23,7 @@ export const Login: React.FC<Props> = ({ mainContainerCssProps = {}, ...props })
   const [password, setPassword] = React.useState(props.defaultPassword || "");
   const [showPassword, setShowPassword] = React.useState(false);
 
-  const validateEmail = (email: string) => (/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(.\w{2,3})+$/.test(email));
+  const validateEmail = (email: string) => (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
 
   const validate = () => {
     const result = [];

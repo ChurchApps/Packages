@@ -33,7 +33,7 @@ export const Forgot: React.FC<Props> = props => {
     setEmail(e.target.value);
   };
 
-  const validateEmail = (email: string) => (/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/.test(email));
+  const validateEmail = (email: string) => (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
 
   const validate = () => {
     const result = [];

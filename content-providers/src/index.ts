@@ -40,6 +40,7 @@ export { PlanningCenterProvider } from "./providers/planningCenter";
 export { BibleProjectProvider } from "./providers/bibleProject";
 export { HighVoltageKidsProvider } from "./providers/highVoltage";
 export { JesusFilmProvider } from "./providers/jesusFilm";
+export { CbnProvider } from "./providers/cbn";
 
 // Registry functions
 export {

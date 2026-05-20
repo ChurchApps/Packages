@@ -1,0 +1,65 @@
+{
+  "name": "@churchapps/integration-sdk",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "SDK for building B1.church integrations — webhook verification, typed REST client, OAuth helpers",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run build",
+    "lint": "eslint --fix src/",
+    "lint:check": "eslint src/"
+  },
+  "keywords": [
+    "churchapps",
+    "b1",
+    "integration",
+    "webhook",
+    "oauth",
+    "sdk"
+  ],
+  "author": "ChurchApps",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ChurchApps/Packages.git",
+    "directory": "integration-sdk"
+  },
+  "peerDependencies": {
+    "express": ">=4"
+  },
+  "peerDependenciesMeta": {
+    "express": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.28.0",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.0.0",
+    "eslint": "^9.28.0",
+    "eslint-plugin-unused-imports": "^4.4.1",
+    "express": "^4.21.0",
+    "globals": "^16.2.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.35.0",
+    "vitest": "^2.1.0"
+  }
+}

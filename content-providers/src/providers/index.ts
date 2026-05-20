@@ -10,6 +10,7 @@ import { LifeChurchProvider } from "./lifeChurch";
 import { PlanningCenterProvider } from "./planningCenter";
 import { SignPresenterProvider } from "./signPresenter";
 import { JesusFilmProvider } from "./jesusFilm";
+import { CbnProvider } from "./cbn";
 
 export { getProvider, getAllProviders, registerProvider } from "./registry";
 
@@ -23,6 +24,7 @@ export { LessonsChurchProvider } from "./lessonsChurch";
 export { LifeChurchProvider } from "./lifeChurch";
 export { PlanningCenterProvider } from "./planningCenter";
 export { SignPresenterProvider } from "./signPresenter";
+export { CbnProvider } from "./cbn";
 
 // Unimplemented providers (coming soon)
 interface UnimplementedProvider {
@@ -86,6 +88,7 @@ function initializeProviders() {
   const planningCenter = new PlanningCenterProvider();
   const signPresenter = new SignPresenterProvider();
   const jesusFilm = new JesusFilmProvider();
+  const cbn = new CbnProvider();
 
   providerRegistry.set(aplay.id, aplay);
   providerRegistry.set(b1Church.id, b1Church);
@@ -97,6 +100,7 @@ function initializeProviders() {
   providerRegistry.set(lifeChurch.id, lifeChurch);
   providerRegistry.set(planningCenter.id, planningCenter);
   providerRegistry.set(signPresenter.id, signPresenter);
+  providerRegistry.set(cbn.id, cbn);
 }
 
 // Initialize on module load

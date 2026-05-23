@@ -126,8 +126,8 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
     setUserJwt(userJwtBackup);
     ApiHelper.setDefaultPermissions(resp.user.jwt);
     setLoginResponse(resp);
-    resp.userChurches.forEach(uc => { if (!uc.apis) uc.apis = []; });
-    UserHelper.userChurches = resp.userChurches;
+    (resp.userChurches || []).forEach(uc => { if (!uc.apis) uc.apis = []; });
+    UserHelper.userChurches = resp.userChurches || [];
 
     setCookie("name", `${resp.user.firstName} ${resp.user.lastName}`, { path: "/", maxAge: COOKIE_MAX_AGE });
     setCookie("email", resp.user.email, { path: "/", maxAge: COOKIE_MAX_AGE });

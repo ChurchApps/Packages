@@ -61,12 +61,16 @@ export class DonationHelper {
     return provider?.toLowerCase() || "";
   }
 
-  static isProvider(provider: string, expectedProvider: "stripe" | "paypal"): boolean {
+  static isProvider(provider: string, expectedProvider: "stripe" | "paypal" | "kingdomfunding"): boolean {
     return this.normalizeProvider(provider) === expectedProvider;
   }
 
-  static findGatewayByProvider(gateways: any[], provider: "stripe" | "paypal"): any {
+  static findGatewayByProvider(gateways: any[], provider: "stripe" | "paypal" | "kingdomfunding"): any {
     return gateways.find(g => this.isProvider(g.provider, provider));
+  }
+
+  static isKingdomFunding(provider: string): boolean {
+    return this.normalizeProvider(provider) === "kingdomfunding";
   }
 
 }

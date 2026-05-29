@@ -29,7 +29,7 @@ export const CardForm: React.FC<Props> = (props) => {
     personId: props.person.id,
     email: props.person.contactInfo.email,
     name: props.person.name.display,
-    provider: props.card.provider || "stripe",
+    provider: (props.card.provider as "stripe" | "paypal") || "stripe",
     gatewayId: props.card.gatewayId || props.gateway?.id
   });
   const [cardUpdate, setCardUpdate] = useState<StripeCardUpdateInterface>({

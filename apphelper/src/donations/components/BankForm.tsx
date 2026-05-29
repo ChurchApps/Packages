@@ -30,7 +30,7 @@ export const BankForm: React.FC<Props> = (props) => {
     personId: props.person.id,
     email: props.person.contactInfo.email,
     name: props.person.name.display,
-    provider: props.bank.provider || "stripe",
+    provider: (props.bank.provider as "stripe" | "paypal") || "stripe",
     gatewayId: props.bank.gatewayId || props.gateway?.id
   });
   const [updateBankData] = useState<StripeBankAccountUpdateInterface>({

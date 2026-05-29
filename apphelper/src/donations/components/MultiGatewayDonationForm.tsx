@@ -317,7 +317,7 @@ export const MultiGatewayDonationForm: React.FC<Props> = (props) => {
 
     // Debounce fee calculation to prevent excessive API calls
     feeTimeoutRef.current = window.setTimeout(async () => {
-      const fee = await getTransactionFee(totalAmount, d.gatewayId || gateway?.id || selectedGatewayObj?.id, d.provider || (selectedGateway as "stripe" | "paypal"), d.type);
+      const fee = await getTransactionFee(totalAmount, d.gatewayId || gateway?.id || selectedGatewayObj?.id, (d.provider as "stripe" | "paypal") || (selectedGateway as "stripe" | "paypal"), d.type);
       setTransactionFee(fee);
 
       if (gateway && gateway.payFees === true) {

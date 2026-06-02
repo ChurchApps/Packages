@@ -14,6 +14,7 @@
     "dist"
   ],
   "scripts": {
+    "preinstall": "node -e \"if(!(process.env.npm_config_user_agent||'').startsWith('yarn')){console.error('\\n[apihelper] This project uses Yarn (Berry). Run \\'yarn install\\' instead of npm/pnpm.\\n');process.exit(1)}\"",
     "test": "echo \"Error: no test specified\" && exit 1",
     "clean": "rimraf dist",
     "copy-assets": "node scripts/copy-assets.js",
@@ -21,7 +22,7 @@
     "tsc": "tsc",
     "build": "npm-run-all clean tsc copy-assets",
     "lint": "eslint --fix src/",
-    "publish:all": "npm run build && npm publish --access=public"
+    "publish:all": "yarn build && npm publish --access=public"
   },
   "repository": {
     "type": "git",
@@ -32,6 +33,7 @@
   ],
   "author": "ChurchApps.org",
   "license": "MIT",
+  "packageManager": "yarn@4.15.0",
   "dependencies": {
     "@aws-sdk/client-s3": "^3.862.0",
     "@aws-sdk/client-ses": "^3.862.0",

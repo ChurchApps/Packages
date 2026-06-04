@@ -54,6 +54,7 @@ export interface PlanInterface {
   churchId?: string;
   name?: string;
   ministryId?: string;
+  campusId?: string;
   serviceDate?: Date;
   notes?: string;
   contentType?: string;

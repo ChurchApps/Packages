@@ -7,7 +7,16 @@ export interface AnswerInterface {
 }
 export interface CampusInterface {
   id?: string;
+  churchId?: string;
   name?: string;
+  address1?: string;
+  address2?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
+  timezone?: string;
+  website?: string;
+  importKey?: string;
 }
 export interface ContactInfoInterface {
   address1?: string;
@@ -58,6 +67,7 @@ export interface GroupInterface {
   meetingLocation?: string;
   labelArray?: string[];
   slug?: string;
+  campusId?: string;
   joinPolicy?: "open" | "request" | "closed";
 }
 export interface GroupMemberInterface {
@@ -136,6 +146,7 @@ export interface PersonInterface {
   photoUpdated?: Date;
   householdId?: string;
   householdRole?: string;
+  campusId?: string;
   userId?: string;
   school?: string;
   grade?: string;

@@ -1,6 +1,6 @@
 {
   "name": "@churchapps/apphelper",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "packageManager": "yarn@4.15.0",
   "description": "Library of helper functions, components, and feature modules (donations/forms/login/markdown/website) for React and NextJS ChurchApps",
   "type": "module",

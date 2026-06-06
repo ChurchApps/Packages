@@ -66,6 +66,14 @@ export class Permissions {
 
   static messagingApi = { texting: { send: { api: "MessagingApi", contentType: "Texting", action: "Send" } } };
 
+  static doingApi = {
+    tasks: {
+      view: { api: "DoingApi", contentType: "Tasks", action: "View" },
+      edit: { api: "DoingApi", contentType: "Tasks", action: "Edit" },
+      admin: { api: "DoingApi", contentType: "Tasks", action: "Admin" }
+    }
+  };
+
   static contentApi = {
     chat: { host: { api: "ContentApi", contentType: "Chat", action: "Host" } },
     content: { edit: { api: "ContentApi", contentType: "Content", action: "Edit" } },

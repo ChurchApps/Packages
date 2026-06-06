@@ -22,6 +22,7 @@ export interface ConditionInterface {
 export interface ConjunctionInterface {
   id?: string;
   automationId?: string;
+  stepRouteId?: string;
   parentId?: string;
   groupType?: string;
   conjunctions?: ConjunctionInterface[];
@@ -47,6 +48,65 @@ export interface TaskInterface {
   automationId?: string;
   conversationId?: string;
   data?: string;
+  workflowId?: string;
+  stepId?: string;
+  dueDate?: Date;
+  snoozedUntil?: Date;
+  sort?: number;
+  pinnedAssignment?: boolean;
+}
+
+export interface WorkflowInterface {
+  id?: string;
+  churchId?: string;
+  name?: string;
+  categoryId?: string;
+  active?: boolean;
+  sort?: number;
+}
+export interface WorkflowStepInterface {
+  id?: string;
+  churchId?: string;
+  workflowId?: string;
+  name?: string;
+  sort?: number;
+  defaultAssignToType?: string;
+  defaultAssignToId?: string;
+  defaultAssignToLabel?: string;
+  expectedResponseDays?: number;
+}
+export interface WorkflowCategoryInterface {
+  id?: string;
+  churchId?: string;
+  name?: string;
+  sort?: number;
+}
+export interface FormWorkflowTriggerInterface {
+  id?: string;
+  churchId?: string;
+  formId?: string;
+  workflowId?: string;
+  active?: boolean;
+}
+
+export interface WorkflowStepRouteInterface {
+  id?: string;
+  churchId?: string;
+  workflowId?: string;
+  stepId?: string;
+  sort?: number;
+  trigger?: string;
+  kind?: string;
+  label?: string;
+  targetStepId?: string;
+  targetWorkflowId?: string;
+}
+
+export interface WorkflowBoardInterface {
+  workflow: WorkflowInterface;
+  steps: WorkflowStepInterface[];
+  cards: TaskInterface[];
+  routes: WorkflowStepRouteInterface[];
 }
 
 export interface PlanInterface {

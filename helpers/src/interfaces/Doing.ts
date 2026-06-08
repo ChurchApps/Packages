@@ -1,15 +1,3 @@
-export interface ActionInterface {
-  id?: string;
-  automationId?: string;
-  actionType?: string;
-  actionData?: string;
-}
-export interface AutomationInterface {
-  id?: string;
-  title: string;
-  recurs: string;
-  active: boolean;
-}
 export interface ConditionInterface {
   id?: string;
   conjunctionId?: string;
@@ -21,7 +9,7 @@ export interface ConditionInterface {
 }
 export interface ConjunctionInterface {
   id?: string;
-  automationId?: string;
+  triggerId?: string;
   stepRouteId?: string;
   parentId?: string;
   groupType?: string;
@@ -86,6 +74,20 @@ export interface FormWorkflowTriggerInterface {
   churchId?: string;
   formId?: string;
   workflowId?: string;
+  active?: boolean;
+}
+
+export interface WorkflowTriggerInterface {
+  id?: string;
+  churchId?: string;
+  name?: string;
+  triggerKind?: string; 
+  eventType?: string; 
+  recurs?: string; 
+  workflowId?: string;
+  stepId?: string;
+  conditions?: string; 
+  oncePerSubject?: boolean;
   active?: boolean;
 }
 

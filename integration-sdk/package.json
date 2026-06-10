@@ -1,6 +1,6 @@
 {
   "name": "@churchapps/integration-sdk",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "type": "module",
   "description": "SDK for building B1.church integrations — webhook verification, typed REST client, OAuth helpers",
   "main": "./dist/index.js",

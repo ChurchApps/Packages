@@ -1,5 +1,11 @@
 # @churchapps/helpers
 
+## 1.6.1
+
+### Patch Changes
+
+- 50cd16c: ApiHelper is properly typed as ApiHelperClass again — the singleton accessor's missing return annotation made the published declaration `ApiHelper: any`, which broke contextual typing of response callbacks in consumers.
+
 ## 1.6.0
 
 ### Minor Changes

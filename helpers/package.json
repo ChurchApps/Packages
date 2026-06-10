@@ -2,7 +2,6 @@
   "name": "@churchapps/helpers",
   "version": "1.5.5",
   "type": "module",
-  "packageManager": "yarn@4.15.0",
   "description": "Library of helper functions not specific to any one ChurchApps project or framework.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -16,13 +15,13 @@
     "dist"
   ],
   "scripts": {
-    "preinstall": "node -e \"if(!(process.env.npm_config_user_agent||'').startsWith('yarn')){console.error('\\n[helpers] This project uses Yarn (Berry). Run \\'yarn install\\' instead of npm/pnpm.\\n');process.exit(1)}\"",
-    "test": "echo \"Error: no test specified\" && exit 1",
     "clean": "rimraf dist",
     "tsc": "tsc",
     "build": "npm-run-all clean tsc",
-    "lint": "eslint --fix src/",
-    "release": "yarn build && npm publish --access=public"
+    "lint": "eslint --fix src/"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "repository": {
     "type": "git",

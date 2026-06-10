@@ -43,7 +43,8 @@ export type {
   ConversationInterface,
   PrivateMessageInterface,
   IApiPermission,
-  NotificationInterface
+  NotificationInterface,
+  FileInterface
 } from "@churchapps/helpers";
 
 // Export local helpers

@@ -1,4 +1,21 @@
+import fs from "fs";
+import path from "path";
 import { AwsHelper } from "./AwsHelper.js";
+
+export interface EnvironmentInitOptions {
+  appName: string;
+  /** Directory containing dev.json/staging.json/prod.json. Defaults to <cwd>/config, which is correct both locally and in Lambda (/var/task/config). */
+  configDir?: string;
+  /** Extra environment-name → file mappings beyond dev/demo/staging/prod (e.g. { selfhost: "selfhost.json" }). */
+  fileMap?: Record<string, string>;
+}
+
+const ENV_FILES: Record<string, string> = {
+  dev: "dev.json",
+  demo: "demo.json",
+  staging: "staging.json",
+  prod: "prod.json"
+};
 
 export class EnvironmentBase {
   static appEnv: string;
@@ -15,6 +32,21 @@ export class EnvironmentBase {
   static smtpPass: string;
   static smtpSecure: boolean;
   static smtpUser: string;
+
+  /**
+   * Resolves config/<env>.json, parses it, runs populateBase, and returns the parsed
+   * data so subclasses can layer their app-specific fields on top.
+   */
+  static async initBase(environment: string, options: EnvironmentInitOptions): Promise<Record<string, any>> {
+    const env = environment.toLowerCase();
+    const files = { ...ENV_FILES, ...options.fileMap };
+    const file = files[env] || "dev.json";
+    const configDir = options.configDir || path.resolve(process.cwd(), "config");
+    const json = fs.readFileSync(path.resolve(configDir, file), "utf8");
+    const data = JSON.parse(json);
+    await this.populateBase(data, options.appName, env);
+    return data;
+  }
 
   static async populateBase(jsonData: Record<string, unknown>, appName: string, appEnv: string) {
     EnvironmentBase.appName = jsonData.appName as string;

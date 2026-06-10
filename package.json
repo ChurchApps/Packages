@@ -1,0 +1,42 @@
+{
+  "name": "@churchapps/packages",
+  "private": true,
+  "packageManager": "yarn@4.15.0",
+  "description": "Workspace root for the @churchapps shared packages. See README.md for what belongs here and how releases work.",
+  "workspaces": [
+    "helpers",
+    "apihelper",
+    "apphelper",
+    "content-providers",
+    "integration-sdk",
+    "texting"
+  ],
+  "scripts": {
+    "preinstall": "node -e \"if(!(process.env.npm_config_user_agent||'').startsWith('yarn')){console.error('\\n[Packages] This repo uses Yarn (Berry). Run \\'yarn install\\' instead of npm/pnpm.\\n');process.exit(1)}\"",
+    "build": "yarn workspaces foreach --all --topological run build",
+    "test": "yarn workspaces foreach --all run test",
+    "lint": "yarn workspaces foreach --all run lint:check",
+    "changeset": "changeset",
+    "version-packages": "changeset version && yarn install --mode=update-lockfile",
+    "release": "yarn build && changeset publish --no-git-tag",
+    "publish-all": "yarn version-packages && yarn release",
+    "postinstall": "git config core.hooksPath .githooks || exit 0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ChurchApps/Packages.git"
+  },
+  "author": "ChurchApps.org",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependenciesMeta": {
+    "esbuild": {
+      "built": true
+    }
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.31.0"
+  }
+}

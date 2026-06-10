@@ -1,5 +1,8 @@
 import { defineConfig, loadEnv } from "vite";
 import { resolve } from "path";
+import { readFileSync } from "fs";
+
+const pkg = JSON.parse(readFileSync(resolve(__dirname, "package.json"), "utf8"));
 
 export default defineConfig(({ mode }) => {
   // Load env from playground dir so .env.local is picked up
@@ -26,7 +29,8 @@ export default defineConfig(({ mode }) => {
     },
     define: {
       // MutualMinistry provider reads process.env.STORE_API_URL at runtime
-      "process.env.STORE_API_URL": JSON.stringify(env.VITE_API_BASE_URL || "http://localhost:8096")
+      "process.env.STORE_API_URL": JSON.stringify(env.VITE_API_BASE_URL || "http://localhost:8096"),
+      __PACKAGE_VERSION__: JSON.stringify(pkg.version)
     }
   };
 });

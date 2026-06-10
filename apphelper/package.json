@@ -1,7 +1,6 @@
 {
   "name": "@churchapps/apphelper",
   "version": "0.8.2",
-  "packageManager": "yarn@4.15.0",
   "description": "Library of helper functions, components, and feature modules (donations/forms/login/markdown/website) for React and NextJS ChurchApps",
   "type": "module",
   "main": "dist/index.js",
@@ -41,7 +40,6 @@
     "dist"
   ],
   "scripts": {
-    "preinstall": "node -e \"if(!(process.env.npm_config_user_agent||'').startsWith('yarn')){console.error('\\n[apphelper] This project uses Yarn (Berry). Run \\'yarn install\\' instead of npm/pnpm.\\n');process.exit(1)}\"",
     "test": "vitest run --config vitest.config.ts",
     "clean": "rimraf dist",
     "tsc": "tsc",
@@ -70,7 +68,11 @@
     "url": "https://github.com/ChurchApps/Packages/issues"
   },
   "homepage": "https://github.com/ChurchApps/Packages#readme",
+  "publishConfig": {
+    "access": "public"
+  },
   "peerDependencies": {
+    "@churchapps/helpers": "^1.5.5",
     "@stripe/react-stripe-js": "^3.10.0",
     "@stripe/stripe-js": "^7.9.0",
     "react": "^18.0.0 || ^19.0.0",
@@ -90,7 +92,6 @@
     }
   },
   "dependencies": {
-    "@churchapps/helpers": "1.5.5",
     "@emotion/cache": "^11.14.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
@@ -137,6 +138,7 @@
     "slug": "^11.0.0"
   },
   "devDependencies": {
+    "@churchapps/helpers": "^1.5.5",
     "@eslint/js": "^10.0.1",
     "@stripe/react-stripe-js": "^3.10.0",
     "@stripe/stripe-js": "^7.9.0",

@@ -16,7 +16,6 @@
     "dist"
   ],
   "scripts": {
-    "preinstall": "node -e \"if(!(process.env.npm_config_user_agent||'').startsWith('yarn')){console.error('\\n[integration-sdk] This project uses Yarn (Berry). Run \\'yarn install\\' instead of npm/pnpm.\\n');process.exit(1)}\"",
     "build": "tsup",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -34,12 +33,6 @@
   ],
   "author": "ChurchApps",
   "license": "MIT",
-  "packageManager": "yarn@4.15.0",
-  "dependenciesMeta": {
-    "esbuild": {
-      "built": true
-    }
-  },
   "publishConfig": {
     "access": "public"
   },

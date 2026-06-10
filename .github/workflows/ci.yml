@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - run: corepack enable
+
+      - run: yarn install --immutable
+
+      - name: Build all packages (topological)
+        run: yarn build
+
+      - name: Test apphelper
+        run: yarn workspace @churchapps/apphelper test
+
+      - name: Test integration-sdk
+        run: yarn workspace @churchapps/integration-sdk test

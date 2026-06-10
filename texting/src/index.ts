@@ -3,7 +3,9 @@
  * SMS texting provider abstraction for ChurchApps
  */
 
-export const VERSION = "0.1.0";
+// Injected from package.json by tsup at build time so it can't drift
+declare const __PACKAGE_VERSION__: string;
+export const VERSION = __PACKAGE_VERSION__;
 
 // Interfaces
 export * from "./interfaces.js";

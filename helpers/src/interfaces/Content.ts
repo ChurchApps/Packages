@@ -11,6 +11,17 @@ export interface LinkInterface {
   parentId?: string;
   children?: any;
 }
+export interface FileInterface {
+  id?: string;
+  contentType?: string;
+  contentId?: string;
+  fileName?: string;
+  contentPath?: string;
+  fileType?: string;
+  size?: number;
+  dateModified?: Date;
+  fileContents?: string;
+}
 export interface SermonInterface {
   id?: string;
   churchId?: string;

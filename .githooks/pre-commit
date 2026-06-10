@@ -1,0 +1,25 @@
+#!/bin/sh
+# Require a changeset when publishable package code is staged.
+# Bypass: git commit --no-verify  (or set SKIP_CHANGESET_CHECK=1)
+
+[ -n "$SKIP_CHANGESET_CHECK" ] && exit 0
+
+staged=$(git diff --cached --name-only)
+
+# Publishable surface: package source/assets or a package manifest
+pkg_changes=$(printf '%s\n' "$staged" | grep -E '^(helpers|apihelper|apphelper|content-providers|integration-sdk|texting)/(src/|public/|package\.json)' || true)
+[ -z "$pkg_changes" ] && exit 0
+
+# A staged .changeset/*.md (added with the change, or consumed by version-packages) satisfies the check
+changesets=$(printf '%s\n' "$staged" | grep -E '^\.changeset/.*\.md$' | grep -v 'README\.md' || true)
+[ -n "$changesets" ] && exit 0
+
+echo ""
+echo "  Package code is staged but no changeset is included:"
+printf '%s\n' "$pkg_changes" | sed 's/^/    /'
+echo ""
+echo "  Run 'yarn changeset' and stage the generated .changeset/*.md file."
+echo "  If this change truly doesn't affect published behavior, bypass with:"
+echo "    git commit --no-verify"
+echo ""
+exit 1

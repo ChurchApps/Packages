@@ -1,5 +1,7 @@
 /** `@churchapps/integration-sdk` — toolkit for building B1.church integrations. */
-export const VERSION = "0.1.0";
+// Injected from package.json by tsup at build time so it can't drift
+declare const __PACKAGE_VERSION__: string;
+export const VERSION = __PACKAGE_VERSION__;
 
 export * from "./types";
 export * from "./webhooks";

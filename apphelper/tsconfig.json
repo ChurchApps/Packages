@@ -3,7 +3,6 @@
     "module": "ESNext",
     "esModuleInterop": true,
     "lib": ["ES2021", "DOM"],
-    "typeRoots": ["node_modules/@types"],
     "types": ["node"],
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,

@@ -1,5 +1,6 @@
 export { ErrorMessages } from "./ErrorMessages";
 export { ExportLink } from "./ExportLink";
+export { FileUpload } from "./FileUpload";
 export { DisplayBox } from "./DisplayBox";
 export { FloatingSupport } from "./FloatingSupport";
 export { FormSubmissionEdit } from "./FormSubmissionEdit";

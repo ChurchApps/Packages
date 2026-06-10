@@ -2,7 +2,6 @@
   "name": "@churchapps/content-providers",
   "version": "0.3.0",
   "type": "module",
-  "packageManager": "yarn@4.15.0",
   "description": "Helper classes for interacting with third party providers",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -17,7 +16,6 @@
     "dist"
   ],
   "scripts": {
-    "preinstall": "node -e \"if(!(process.env.npm_config_user_agent||'').startsWith('yarn')){console.error('\\n[content-providers] This project uses Yarn (Berry). Run \\'yarn install\\' instead of npm/pnpm.\\n');process.exit(1)}\"",
     "build": "tsup",
     "dev": "vite",
     "cli": "yarn exec tsx cli/playground.ts",
@@ -54,10 +52,5 @@
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.35.0",
     "vite": "^7.0.6"
-  },
-  "dependenciesMeta": {
-    "esbuild": {
-      "built": true
-    }
   }
 }

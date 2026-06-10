@@ -32,6 +32,42 @@ import { GroupsElement } from "./elementTypes/GroupsElement";
 import { TableElement } from "./elementTypes/TableElement";
 import { CalendarElement } from "./elementTypes/CalendarElement";
 import { NonAuthDonationWrapper } from "./donate/NonAuthDonationWrapper";
+import { ElementRenderProps, getElementRenderer, registerDefaultElementRenderer } from "./ElementRegistry";
+
+registerDefaultElementRenderer("text", (p) => <TextOnly key={p.element.id} element={p.element} onEdit={p.onEdit} />);
+registerDefaultElementRenderer("textWithPhoto", (p) => <TextWithPhoto key={p.element.id} element={p.element} onEdit={p.onEdit} />);
+registerDefaultElementRenderer("box", (p) => <BoxElement key={p.element.id} element={p.element} onEdit={p.onEdit} churchSettings={p.churchSettings} textColor={p.textColor} onMove={p.onMove} />);
+registerDefaultElementRenderer("iframe", (p) => <IframeElement key={p.element.id} element={p.element} />);
+registerDefaultElementRenderer("buttonLink", (p) => <ButtonLink key={p.element.id} element={p.element} />);
+registerDefaultElementRenderer("video", (p) => <VideoElement key={p.element.id} element={p.element} />);
+registerDefaultElementRenderer("image", (p) => <ImageElement key={p.element.id} element={p.element} onEdit={p.onEdit} />);
+registerDefaultElementRenderer("whiteSpace", (p) => <WhiteSpaceElement key={p.element.id} element={p.element} onEdit={p.onEdit} />);
+registerDefaultElementRenderer("faq", (p) => <FaqElement key={p.element.id} element={p.element} textColor={p.textColor} />);
+registerDefaultElementRenderer("card", (p) => <CardElement key={p.element.id} element={p.element} onEdit={p.onEdit} />);
+registerDefaultElementRenderer("carousel", (p) => <CarouselElement key={p.element.id} element={p.element} churchSettings={p.churchSettings} textColor={p.textColor} onEdit={p.onEdit} onMove={p.onMove} />);
+registerDefaultElementRenderer("block", (p) => <ElementBlock key={p.element.id} element={p.element} churchSettings={p.churchSettings} textColor={p.textColor} />);
+registerDefaultElementRenderer("row", (p) => <RowElement key={p.element.id} element={p.element} churchSettings={p.churchSettings} textColor={p.textColor} onEdit={p.onEdit} onMove={p.onMove} church={p.church} />);
+registerDefaultElementRenderer("logo", (p) => <LogoElement key={p.element.id} element={p.element} churchSettings={p.churchSettings} textColor={p.textColor} />);
+registerDefaultElementRenderer("map", (p) => <MapElement key={p.element.id} element={p.element} />);
+registerDefaultElementRenderer("rawHTML", (p) => <RawHTMLElement key={p.element.id} element={p.element} onEdit={p.onEdit} />);
+registerDefaultElementRenderer("sermons", (p) => <SermonElement key={p.element.id} churchId={p.church?.id || ""} appearance={p.churchSettings} />);
+registerDefaultElementRenderer("stream", (p) => p.church ? <StreamElement key={p.element.id} element={p.element} churchSettings={p.churchSettings} church={p.church} editMode={!!p.onEdit} /> : null);
+registerDefaultElementRenderer("donation", (p) => {
+  const donationSettings: any = p.element.answers || (p.element.answersJSON ? (() => { try { return JSON.parse(p.element.answersJSON) || {}; } catch { return {}; } })() : {});
+  if (p.onEdit) {
+    return (<Box sx={{ p: 3, border: "1px dashed", borderColor: "grey.400", textAlign: "center", color: "text.secondary" }}>
+      <Typography variant="subtitle1">Donation form</Typography>
+      <Typography variant="caption">Preview available on the published page</Typography>
+    </Box>);
+  }
+  return <NonAuthDonationWrapper key={p.element.id} churchId={p.church?.id ?? p.element.churchId} mainContainerCssProps={{ sx: { boxShadow: "none", padding: 3 } }} showHeader={false} allowSingleGift={donationSettings.allowSingleGift} allowRecurring={donationSettings.allowRecurring} showFundSelector={donationSettings.showFundSelector} allowedFundIds={donationSettings.allowedFundIds} defaultFundId={donationSettings.defaultFundId} />;
+});
+registerDefaultElementRenderer("donateLink", (p) => <DonateLinkElement key={p.element.id} element={p.element} />);
+registerDefaultElementRenderer("form", (p) => p.church ? <FormElement key={p.element.id} element={p.element} church={p.church} /> : null);
+registerDefaultElementRenderer("groupList", (p) => <GroupListElement key={p.element.id} churchId={p.church?.id || ""} element={p.element} />);
+registerDefaultElementRenderer("groups", (p) => <GroupsElement key={p.element.id} churchId={p.church?.id || p.element.churchId || ""} element={p.element} />);
+registerDefaultElementRenderer("table", (p) => <TableElement key={p.element.id} element={p.element} />);
+registerDefaultElementRenderer("calendar", (p) => <CalendarElement key={p.element.id} element={p.element} churchId={p.church?.id || p.element.churchId || ""} />);
 
 interface Props {
   element: ElementInterface;
@@ -108,46 +144,14 @@ export const Element: React.FC<Props> = props => {
 
   let result = <></>;
 
-  switch (props.element.elementType) {
-    case "text": result = <TextOnly key={props.element.id} element={props.element as ElementInterface} onEdit={props.onEdit} />; break;
-    case "textWithPhoto": result = <TextWithPhoto key={props.element.id} element={props.element as ElementInterface} onEdit={props.onEdit} />; break;
-    case "box": result = <BoxElement key={props.element.id} element={props.element as ElementInterface} onEdit={props.onEdit} churchSettings={props.churchSettings} textColor={props.textColor} onMove={props.onMove} />; break;
-    case "iframe": result = <IframeElement key={props.element.id} element={props.element as ElementInterface} />; break;
-    case "buttonLink": result = <ButtonLink key={props.element.id} element={props.element as ElementInterface}></ButtonLink>; break;
-    case "video": result = <VideoElement key={props.element.id} element={props.element as ElementInterface} />; break;
-    case "image": result = <ImageElement key={props.element.id} element={props.element as ElementInterface} onEdit={props.onEdit} />; break;
-    case "whiteSpace": result = <WhiteSpaceElement key={props.element.id} element={props.element as ElementInterface} onEdit={props.onEdit} />; break;
-    case "faq": result = <FaqElement key={props.element.id} element={props.element as ElementInterface} textColor={props.textColor} />; break;
-    case "card": result = <CardElement key={props.element.id} element={props.element as ElementInterface} onEdit={props.onEdit} />; break;
-    case "carousel": result = <CarouselElement key={props.element.id} element={props.element as ElementInterface} churchSettings={props.churchSettings} textColor={props.textColor} onEdit={props.onEdit} onMove={props.onMove} />; break;
-    case "block": result = <ElementBlock key={props.element.id} element={props.element as ElementInterface} churchSettings={props.churchSettings} textColor={props.textColor} />; break;
-    case "row": result = <RowElement key={props.element.id} element={props.element as ElementInterface} churchSettings={props.churchSettings} textColor={props.textColor} onEdit={props.onEdit} onMove={props.onMove} church={props.church} />; break;
-    case "logo": result = <LogoElement key={props.element.id} element={props.element as ElementInterface} churchSettings={props.churchSettings} textColor={props.textColor} />; break;
-    case "map": result = <MapElement key={props.element.id} element={props.element as ElementInterface} />; break;
-    case "rawHTML": result = <RawHTMLElement key={props.element.id} element={props.element as ElementInterface} onEdit={props.onEdit} />; break;
-    case "sermons": result = <SermonElement key={props.element.id} churchId={props.church?.id || ""} appearance={props.churchSettings} />; break;
-    case "stream":
-      if (props.church) result = <StreamElement key={props.element.id} element={props.element as ElementInterface} churchSettings={props.churchSettings} church={props.church} editMode={!!props.onEdit} />;
-      break;
-    case "donation": {
-      const donationSettings: any = props.element.answers || (props.element.answersJSON ? (() => { try { return JSON.parse(props.element.answersJSON) || {}; } catch { return {}; } })() : {});
-      result = props.onEdit
-        ? <Box sx={{ p: 3, border: "1px dashed", borderColor: "grey.400", textAlign: "center", color: "text.secondary" }}>
-          <Typography variant="subtitle1">Donation form</Typography>
-          <Typography variant="caption">Preview available on the published page</Typography>
-        </Box>
-        : <NonAuthDonationWrapper key={props.element.id} churchId={props.church?.id ?? props.element.churchId} mainContainerCssProps={{ sx: { boxShadow: "none", padding: 3 } }} showHeader={false} allowSingleGift={donationSettings.allowSingleGift} allowRecurring={donationSettings.allowRecurring} showFundSelector={donationSettings.showFundSelector} allowedFundIds={donationSettings.allowedFundIds} defaultFundId={donationSettings.defaultFundId} />;
-      break;
-    }
-    case "donateLink": result = <DonateLinkElement key={props.element.id} element={props.element as ElementInterface} />; break;
-    case "form":
-      if (props.church) result = <FormElement key={props.element.id} element={props.element as ElementInterface} church={props.church} />;
-      break;
-    case "groupList": result = <GroupListElement key={props.element.id} churchId={props.church?.id || ""} element={props.element as ElementInterface} />; break;
-    case "groups": result = <GroupsElement key={props.element.id} churchId={props.church?.id || props.element.churchId || ""} element={props.element as ElementInterface} />; break;
-    case "table": result = <TableElement key={props.element.id} element={props.element as ElementInterface} />; break;
-    case "calendar": result = <CalendarElement key={props.element.id} element={props.element as ElementInterface} churchId={props.church?.id || props.element.churchId || ""} />; break;
-    default: break;
+  const renderProps: ElementRenderProps = { element: props.element, church: props.church, churchSettings: props.churchSettings, textColor: props.textColor, onEdit: props.onEdit, onMove: props.onMove };
+  const renderer = getElementRenderer(props.element.elementType || "");
+  if (renderer) result = renderer(renderProps) ?? <></>;
+  else if (props.onEdit) {
+    // Visible only in the editor; live pages render nothing for unknown types.
+    result = (<Box sx={{ p: 2, border: "1px dashed", borderColor: "warning.main", color: "text.secondary", textAlign: "center" }}>
+      <Typography variant="caption">Unknown element type: {props.element.elementType}</Typography>
+    </Box>);
   }
 
   /*<DraggableIcon dndType="element" elementType={props.element.elementType} data={props.element} />*/

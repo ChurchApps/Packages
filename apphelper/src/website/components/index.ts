@@ -1,4 +1,5 @@
 export * from "./Element";
+export * from "./ElementRegistry";
 export * from "./elementTypes";
 export * from "./eventCalendar";
 export * from "./admin";

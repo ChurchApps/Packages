@@ -21,7 +21,7 @@ export const TextWithPhoto: React.FC<Props> = props => {
       result = (
         <Grid container columnSpacing={3}>
           <Grid size={{ md: 4, xs: 12 }}>
-            <img src={props.element.answers?.photo || "about:blank"} alt={props.element.answers?.photoAlt || ""} style={{ borderRadius: 10, marginTop: 40 }} />
+            <img src={props.element.answers?.photo || "about:blank"} alt={props.element.answers?.photoAlt || ""} style={{ borderRadius: 10, marginTop: 40 }} loading="lazy" decoding="async" />
           </Grid>
           <Grid size={{ md: 8, xs: 12 }}>
             {textComponent}
@@ -36,7 +36,7 @@ export const TextWithPhoto: React.FC<Props> = props => {
             {textComponent}
           </Grid>
           <Grid size={{ md: 4, xs: 12 }}>
-            <img src={props.element.answers?.photo || "about:blank"} alt={props.element.answers?.photoAlt || ""} style={{ borderRadius: 10, marginTop: 40 }} />
+            <img src={props.element.answers?.photo || "about:blank"} alt={props.element.answers?.photoAlt || ""} style={{ borderRadius: 10, marginTop: 40 }} loading="lazy" decoding="async" />
           </Grid>
         </Grid>
       );
@@ -45,14 +45,14 @@ export const TextWithPhoto: React.FC<Props> = props => {
       result = (
         <>
           {textComponent}
-          <img src={props.element.answers?.photo || "about:blank"} alt={props.element.answers?.photoAlt || ""} style={{ borderRadius: 10, marginTop: 40 }} />
+          <img src={props.element.answers?.photo || "about:blank"} alt={props.element.answers?.photoAlt || ""} style={{ borderRadius: 10, marginTop: 40 }} loading="lazy" decoding="async" />
         </>
       );
       break;
     case "top":
       result = (
         <>
-          <img src={props.element.answers?.photo || "about:blank"} alt={props.element.answers?.photoAlt || ""} style={{ borderRadius: 10, marginTop: 40 }} />
+          <img src={props.element.answers?.photo || "about:blank"} alt={props.element.answers?.photoAlt || ""} style={{ borderRadius: 10, marginTop: 40 }} loading="lazy" decoding="async" />
           {textComponent}
         </>
       );

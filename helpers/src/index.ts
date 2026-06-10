@@ -14,3 +14,4 @@ export { UserHelper } from "./UserHelper.js";
 export { UniqueIdHelper } from "./UniqueIdHelper.js";
 export { PlanHelper } from "./PlanHelper.js";
 export * from "./contentProviders/index.js";
+export * from "./ElementTypes.js";

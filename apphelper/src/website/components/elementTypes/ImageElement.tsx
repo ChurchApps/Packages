@@ -68,6 +68,8 @@ export const ImageElement = ({ element }: Props) => {
         className={imageClassName}
         id={"el-" + element.id}
         style={imgTagStyles}
+        loading="lazy"
+        decoding="async"
         onClick={enableLightbox ? () => setLightboxOpen(true) : undefined}
       />
     );

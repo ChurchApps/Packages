@@ -20,7 +20,7 @@ export const CardElement: React.FC<Props> = (props) => {
 
   let photoContent = <></>;
   if (props.element.answers?.photo) {
-    const photo = <img src={props.element.answers?.photo || "about:blank"} alt={props.element.answers?.photoAlt || ""} style={{ borderRadius: 3 }} />;
+    const photo = <img src={props.element.answers?.photo || "about:blank"} alt={props.element.answers?.photoAlt || ""} style={{ borderRadius: 3 }} loading="lazy" decoding="async" />;
     if (props.element.answers?.url) photoContent = (<a href={props.element.answers?.url}>{photo}</a>);
     else photoContent = (photo);
   }

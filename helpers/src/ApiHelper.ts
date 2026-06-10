@@ -169,7 +169,7 @@ const getGlobalObject = () => {
 };
 
 // Get or create singleton immediately - FORCE SINGLE INSTANCE
-const ensureSingleton = () => {
+const ensureSingleton = (): ApiHelperClass => {
   const globalObj = getGlobalObject() as any;
 
   // Use a more unique key to avoid conflicts

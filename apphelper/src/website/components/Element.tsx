@@ -104,6 +104,13 @@ export const Element: React.FC<Props> = props => {
     if (props.element.animations?.onShow) return "animated " + props.element.animations.onShow + " " + props.element.animations.onShowSpeed;
   };
 
+  const getVisibilityClasses = () => {
+    let result = "";
+    if (props.element.styles?.desktop?.display === "none") result += " hiddenOnDesktop";
+    if (props.element.styles?.mobile?.display === "none") result += " hiddenOnMobile";
+    return result;
+  };
+
   const getElementStyles = (): React.CSSProperties => {
     const styles: React.CSSProperties = { position: "relative" };
     const SPACING_VALUES: Record<string, number> = { "xs": 4, "sm": 8, "md": 16, "lg": 24, "xl": 32, "xxl": 48 };
@@ -165,7 +172,7 @@ export const Element: React.FC<Props> = props => {
         onDoubleClick={handleDoubleClick}
       >
         <div
-          className={"elementWrapper " + props.element.elementType}
+          className={"elementWrapper " + props.element.elementType + getVisibilityClasses()}
           style={{
             transition: "box-shadow 0.2s ease",
             borderRadius: "4px"
@@ -199,5 +206,7 @@ export const Element: React.FC<Props> = props => {
     </>
     */
   }
-  return <div style={getElementStyles()} className={getAnimationClasses()}>{result}</div>;
+  // Editor mode keeps hide classes on the inner elementWrapper only, so the editor can dim instead of hide.
+  const outerClasses = ((getAnimationClasses() || "") + (props.onEdit ? "" : getVisibilityClasses())).trim();
+  return <div style={getElementStyles()} className={outerClasses || undefined}>{result}</div>;
 };

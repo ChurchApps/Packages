@@ -795,3 +795,11 @@ code {
   opacity: 1 !important;
 }
 
+
+/* Per-device visibility (hide flags stored in stylesJSON desktop/mobile display:none) */
+@media (min-width: 768px) {
+  .hiddenOnDesktop { display: none !important; }
+}
+@media (max-width: 767px) {
+  .hiddenOnMobile { display: none !important; }
+}

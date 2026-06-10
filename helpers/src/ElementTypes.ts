@@ -157,7 +157,7 @@ export const ElementTypes: Record<string, ElementTypeDefinition> = {
     label: "Card",
     category: "content",
     schemaVersion: 1,
-    defaults: { text: "", textAlignment: "left", titleAlignment: "left" },
+    defaults: { text: "", textAlignment: "left", titleAlignment: "center" },
     answersSchema: {
       type: "object",
       properties: {
@@ -165,7 +165,7 @@ export const ElementTypes: Record<string, ElementTypeDefinition> = {
         photoAlt: { type: "string" },
         url: { type: "string", description: "Optional link applied to both the photo and the title." },
         title: { type: "string" },
-        titleAlignment: { type: "string", enum: ["left", "center", "right"], description: "Editor default shows \"left\"; renderer falls back to \"center\" when unset (known mismatch)." },
+        titleAlignment: { type: "string", enum: ["left", "center", "right"], description: "Renderer falls back to \"center\" when unset; defaults match that for consistency with legacy cards." },
         text: { type: "string", description: "HTML markup from the rich-text editor." },
         textAlignment: { type: "string", enum: ["left", "center", "right"] }
       },

@@ -125,10 +125,21 @@ export class StyleHelper {
     return { all, desktop, mobile };
   };
 
+  // Hide classes set by Element/Section wrappers from styles.desktop/mobile display:none;
+  // class-based because several element types render no el-{id} and public sections lose ids.
+  private static getVisibilityCss = (forceDevice?:string) => {
+    const desktopRule = ".hiddenOnDesktop { display: none !important; }";
+    const mobileRule = ".hiddenOnMobile { display: none !important; }";
+    if (forceDevice === "desktop") return desktopRule;
+    if (forceDevice === "mobile") return mobileRule;
+    return `@media (min-width: 768px) { ${desktopRule} }
+      @media (max-width: 767px) { ${mobileRule} }`;
+  };
+
   static getCss = (sections: SectionInterface[], forceDevice?:string) => {
     const { all, desktop, mobile } = this.getAllStyles(sections);
-    if (forceDevice === "desktop") return all.join("\n") + "\n" + desktop.join("\n");
-    else if (forceDevice === "mobile") return all.join("\n") + "\n" + mobile.join("\n");
+    if (forceDevice === "desktop") return all.join("\n") + "\n" + desktop.join("\n") + "\n" + this.getVisibilityCss(forceDevice);
+    else if (forceDevice === "mobile") return all.join("\n") + "\n" + mobile.join("\n") + "\n" + this.getVisibilityCss(forceDevice);
     else {
       return `
       ${all.join("\n")}
@@ -137,7 +148,8 @@ export class StyleHelper {
       }
       @media (max-width: 767px) {
         ${mobile.join("\n")}
-      }`;
+      }
+      ${this.getVisibilityCss()}`;
     }
   };
 

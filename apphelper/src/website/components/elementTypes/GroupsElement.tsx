@@ -14,8 +14,8 @@ export const GroupsElement = (props: Props) => {
       category={a.category || undefined}
       label={a.label || undefined}
       title={a.title || undefined}
-      showSearch={a.showSearch !== false}
-      showCategory={a.showCategory !== false}
+      showSearch={a.showSearch !== false && a.showSearch !== "false"}
+      showCategory={a.showCategory !== false && a.showCategory !== "false"}
     />
   );
 };

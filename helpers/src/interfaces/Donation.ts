@@ -45,6 +45,49 @@ export interface FundDonationInterface {
   currency?: string;
   donation?: DonationInterface;
 }
+export interface CampaignInterface {
+  id?: string;
+  churchId?: string;
+  fundId?: string;
+  name?: string;
+  description?: string;
+  goalAmount?: number;
+  startDate?: string; // YYYY-MM-DD format - date-only field
+  endDate?: string; // YYYY-MM-DD format - date-only field
+  showPublic?: boolean;
+  allowSelfPledge?: boolean;
+}
+export interface PledgeInterface {
+  id?: string;
+  churchId?: string;
+  campaignId?: string;
+  personId?: string;
+  amount?: number;
+}
+export type PledgeStatus = "notStarted" | "inProgress" | "fulfilled" | "beyondPledged" | "nonPledged";
+export interface PledgeProgressRowInterface {
+  campaignId?: string;
+  campaignName?: string;
+  personId?: string;
+  pledgeId?: string;
+  pledgedAmount?: number;
+  givenAmount?: number;
+  status?: PledgeStatus;
+}
+export interface CampaignProgressInterface {
+  campaign?: CampaignInterface;
+  totalPledged?: number;
+  totalGiven?: number;
+  pledgeCount?: number;
+  donorCount?: number;
+  rows?: PledgeProgressRowInterface[];
+}
+export interface MyPledgeInterface {
+  pledge?: PledgeInterface;
+  campaign?: CampaignInterface;
+  givenAmount?: number;
+  status?: PledgeStatus;
+}
 export interface PaymentMethodInterface {
   id?: string;
   churchId?: string;

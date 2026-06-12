@@ -58,6 +58,7 @@ export interface GroupInterface {
   categoryName?: string;
   memberCount?: number;
   trackAttendance?: boolean;
+  attendanceReminders?: boolean;
   parentPickup?: boolean;
   printNametag?: boolean;
   about?: string;

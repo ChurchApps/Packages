@@ -1,5 +1,12 @@
 # @churchapps/helpers
 
+## 1.8.0
+
+### Minor Changes
+
+- e24f75b: Add pledge campaign interfaces (CampaignInterface, PledgeInterface, PledgeStatus, PledgeProgressRowInterface, CampaignProgressInterface, MyPledgeInterface) for the GivingApi pledge campaigns feature.
+- e24f75b: Add attendanceReminders flag to GroupInterface (per-group leader attendance-reminder emails, roadmap 3.6).
+
 ## 1.7.1
 
 ### Patch Changes

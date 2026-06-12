@@ -82,7 +82,8 @@ export default function AppHelperDonationsPage() {
 
           if (Array.isArray(pms)) {
             for (const pm of pms) {
-              if (pm.provider === "stripe") {
+              // StripePaymentMethod is a generic wrapper — include KF saved cards too.
+              if (pm.provider === "stripe" || pm.provider === "kingdomfunding") {
                 stripePMs.push(new StripePaymentMethod(pm));
               }
               allPMs.push(pm);
@@ -143,6 +144,13 @@ export default function AppHelperDonationsPage() {
               <code>4111 1111 1111 1111</code> or Mastercard{" "}
               <code>5555 5555 5555 4444</code> or Amex{" "}
               <code>3782 822463 10005</code>, any future expiry, any valid CVV.
+            </li>
+            <li>
+              <strong>Kingdom Funding</strong>: Visa{" "}
+              <code>4111 1111 1111 1111</code> or Mastercard{" "}
+              <code>5555 5555 5555 4444</code>, any future expiry, any valid CVV.
+              ACH is hidden behind the <code>KF_ACH_ENABLED</code> flag pending
+              gateway tokenization support.
             </li>
           </ul>
         </Alert>
@@ -239,7 +247,7 @@ export default function AppHelperDonationsPage() {
                               const allPMs: PaymentMethod[] = [];
 
                               for (const pm of pms || []) {
-                                if (pm.provider === "stripe") {
+                                if (pm.provider === "stripe" || pm.provider === "kingdomfunding") {
                                   stripePMs.push(new StripePaymentMethod(pm));
                                 }
                                 allPMs.push(pm);
@@ -310,7 +318,7 @@ export default function AppHelperDonationsPage() {
                     {history.slice(0, 10).map((d: any) => (
                       <li key={d.id || d.donationId || `${d.date}-${d.amount}`}>
                         {new Date(
-                          d.date || d.created || d.timestamp || Date.now(),
+                          d.donationDate || d.date || d.created || d.timestamp || Date.now(),
                         ).toLocaleDateString()}{" "}
                         —
                         {` ${CurrencyHelper.getCurrencySymbol(d.currency || "usd")} ${(d.amount || d.total || 0) / (d.amount && d.amount > 1000 ? 100 : 1)}`}

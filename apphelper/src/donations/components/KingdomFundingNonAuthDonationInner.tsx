@@ -14,6 +14,11 @@ import {
 import type { PaperProps } from "@mui/material/Paper";
 import { KingdomFundingTokenForm, KingdomFundingTokenFormHandle } from "./KingdomFundingTokenForm";
 
+// Kingdom Funding ACH is hidden in the UI pending hosted ACH tokenization support
+// from the gateway. Flip to true once tokenization no longer requires raw routing/
+// account numbers to flow through our backend.
+const KF_ACH_ENABLED = false;
+
 interface Props {
   churchId: string;
   mainContainerCssProps?: PaperProps;
@@ -52,7 +57,7 @@ export const KingdomFundingNonAuthDonationInner: React.FC<Props> = ({ mainContai
   const [accountNumber, setAccountNumber] = useState("");
   const [accountType, setAccountType] = useState<"checking" | "savings">("checking");
 
-  const paymentType = props.paymentType || "card";
+  const paymentType = KF_ACH_ENABLED ? (props.paymentType || "card") : "card";
 
   const getUrlParam = (param: string) => {
     if (typeof window === "undefined") return null;
@@ -340,7 +345,7 @@ export const KingdomFundingNonAuthDonationInner: React.FC<Props> = ({ mainContai
       </Grid>
 
       {/* Payment input */}
-      {paymentType === "bank" ? (
+      {KF_ACH_ENABLED && paymentType === "bank" ? (
         <Grid container spacing={3} style={{ marginTop: 10 }}>
           <Grid size={{ xs: 12 }}>
             <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>

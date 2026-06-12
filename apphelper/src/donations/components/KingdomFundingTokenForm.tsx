@@ -47,7 +47,16 @@ export const KingdomFundingTokenForm = forwardRef<KingdomFundingTokenFormHandle,
 
     const destroyTokenization = useCallback(() => {
       if (hostedTokenizationRef.current) {
-        try { hostedTokenizationRef.current.destroy(); } catch (_e) { /* ignore */ }
+        try {
+          // destroy() returns a Promise that often rejects with undefined when the
+          // iframe was never fully initialized (e.g. unmount during loading).
+          // Swallow both sync throws and the async rejection so it doesn't surface
+          // as an Unhandled Promise Rejection in the console.
+          const result = hostedTokenizationRef.current.destroy();
+          if (result && typeof result.catch === "function") {
+            result.catch(() => { /* ignore */ });
+          }
+        } catch (_e) { /* ignore */ }
         hostedTokenizationRef.current = null;
       }
       // Clear any leftover iframes in the container

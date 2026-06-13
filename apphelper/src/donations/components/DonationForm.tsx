@@ -188,7 +188,7 @@ export const DonationForm: React.FC<Props> = ({ currency = "usd", ...props }) =>
     setFundsTotal(totalAmount);
 
     const selectedPm = props.paymentMethods.find(pm => pm.id === d.id);
-    const fee = await getTransactionFee(totalAmount, (selectedPm?.gatewayId || gateway?.id) as string | undefined, selectedPm?.provider || "stripe", selectedPm?.type);
+    const fee = await getTransactionFee(totalAmount, (selectedPm?.gatewayId || gateway?.id) as string | undefined, (selectedPm?.provider as "stripe" | "paypal") || "stripe", selectedPm?.type);
     setTransactionFee(fee);
 
     if (gateway && gateway.payFees === true) {

@@ -7,9 +7,15 @@ import type { Stripe } from "@stripe/stripe-js";
 import { ApiHelper } from "@churchapps/helpers";
 import { NonAuthDonationInner } from "./NonAuthDonationInner";
 import { PayPalNonAuthDonationInner } from "./PayPalNonAuthDonationInner";
-import { DonationHelper } from "../helpers";
+import { KingdomFundingNonAuthDonationInner } from "./KingdomFundingNonAuthDonationInner";
+import { DonationHelper, Locale } from "../helpers";
 import { FormControl, InputLabel, Select, MenuItem, Box, Typography, ToggleButtonGroup, ToggleButton } from "@mui/material";
 import type { PaperProps } from "@mui/material/Paper";
+
+// Kingdom Funding ACH is hidden in the UI pending hosted ACH tokenization support
+// from the gateway. Flip to true once tokenization no longer requires raw routing/
+// account numbers to flow through our backend.
+const KF_ACH_ENABLED = false;
 
 interface Props {
   churchId: string;
@@ -38,10 +44,11 @@ export const NonAuthDonation: React.FC<Props> = ({ mainContainerCssProps, showHe
       setAvailableGateways(enabledGateways);
 
       if (enabledGateways.length > 0) {
-        const defaultGateway = DonationHelper.findGatewayByProvider(enabledGateways, "stripe") || enabledGateways[0];
+        const stripeGateway = DonationHelper.findGatewayByProvider(enabledGateways, "stripe");
+        const kfGateway = DonationHelper.findGatewayByProvider(enabledGateways, "kingdomfunding");
+        const defaultGateway = stripeGateway || kfGateway || enabledGateways[0];
         setSelectedGateway(DonationHelper.normalizeProvider(defaultGateway?.provider));
 
-        const stripeGateway = DonationHelper.findGatewayByProvider(enabledGateways, "stripe");
         if (stripeGateway?.publicKey) {
           setStripe(loadStripe(stripeGateway.publicKey));
         }
@@ -53,9 +60,10 @@ export const NonAuthDonation: React.FC<Props> = ({ mainContainerCssProps, showHe
 
   const handleGatewayChange = (event: any) => {
     setSelectedGateway(event.target.value);
+    setPaymentType("card"); // Reset to card when switching gateways
   };
 
-  useEffect(init, []); //eslint-disable-line
+  useEffect(init, []);
 
   if (loading) {
     return <Box sx={{ p: 3 }}><Typography>Loading payment options...</Typography></Box>;
@@ -64,6 +72,13 @@ export const NonAuthDonation: React.FC<Props> = ({ mainContainerCssProps, showHe
   if (availableGateways.length === 0) {
     return <Box sx={{ p: 3 }}><Typography>No payment gateways available for this church.</Typography></Box>;
   }
+
+  const getGatewayLabel = (provider: string) => {
+    const normalized = DonationHelper.normalizeProvider(provider);
+    if (normalized === "kingdomfunding") return Locale.label("donation.kingdomFunding.providerName");
+    if (normalized === "paypal") return "Credit Card (PayPal)";
+    return "Credit Card (Stripe)";
+  };
 
   const renderGatewaySelector = () => {
     if (availableGateways.length <= 1) return null;
@@ -79,7 +94,7 @@ export const NonAuthDonation: React.FC<Props> = ({ mainContainerCssProps, showHe
           >
             {availableGateways.map((gateway: any) => (
               <MenuItem key={gateway.id} value={DonationHelper.normalizeProvider(gateway.provider)}>
-                {DonationHelper.isProvider(gateway.provider, "stripe") ? "Credit Card (Stripe)" : "Credit Card (PayPal)"}
+                {getGatewayLabel(gateway.provider)}
               </MenuItem>
             ))}
           </Select>
@@ -89,30 +104,52 @@ export const NonAuthDonation: React.FC<Props> = ({ mainContainerCssProps, showHe
   };
 
   const renderPaymentTypeSelector = () => {
-    // Only show if Stripe is available (ACH requires Stripe)
-    // Only show ACH if the currency is USD
-    const stripeGateway = DonationHelper.findGatewayByProvider(availableGateways, "stripe");
-    const currency = stripeGateway?.currency || "usd";
-    if (!stripeGateway || selectedGateway !== "stripe") return null;
+    // PayPal: no card/bank toggle
+    if (selectedGateway === "paypal") return null;
 
-    return (
-      <Box sx={{ mb: 3 }}>
-        <ToggleButtonGroup
-          value={paymentType}
-          exclusive
-          onChange={(_, value) => value && setPaymentType(value)}
-          fullWidth
-          size="small"
-          sx={{ backgroundColor: "#FFFFFF", borderRadius: 1 }}
-        >
-          <ToggleButton value="card" sx={{ backgroundColor: "#FFFFFF", color: "#333", "&.Mui-selected": { backgroundColor: "#1976d2", color: "#FFFFFF" }, "&:hover": { backgroundColor: "#f5f5f5" }, "&.Mui-selected:hover": { backgroundColor: "#1565c0" } }}>Credit/Debit Card</ToggleButton>
-          {currency === "usd" && <ToggleButton value="bank" sx={{ backgroundColor: "#FFFFFF", color: "#333", "&.Mui-selected": { backgroundColor: "#1976d2", color: "#FFFFFF" }, "&:hover": { backgroundColor: "#f5f5f5" }, "&.Mui-selected:hover": { backgroundColor: "#1565c0" } }}>Bank Account (ACH)</ToggleButton>}
-        </ToggleButtonGroup>
-      </Box>
-    );
+    // Kingdom Funding: card/bank toggle is hidden while KF_ACH_ENABLED is false
+    if (selectedGateway === "kingdomfunding" && !KF_ACH_ENABLED) return null;
+
+    // Stripe: show card/bank toggle only if Stripe gateway present and currency USD
+    if (selectedGateway === "stripe") {
+      const stripeGateway = DonationHelper.findGatewayByProvider(availableGateways, "stripe");
+      const currency = stripeGateway?.currency || "usd";
+      if (!stripeGateway) return null;
+      return (
+        <Box sx={{ mb: 3 }}>
+          <ToggleButtonGroup
+            value={paymentType}
+            exclusive
+            onChange={(_, value) => value && setPaymentType(value)}
+            fullWidth
+            size="small"
+            sx={{ backgroundColor: "#FFFFFF", borderRadius: 1 }}
+          >
+            <ToggleButton value="card" sx={{ backgroundColor: "#FFFFFF", color: "#333", "&.Mui-selected": { backgroundColor: "#1976d2", color: "#FFFFFF" }, "&:hover": { backgroundColor: "#f5f5f5" }, "&.Mui-selected:hover": { backgroundColor: "#1565c0" } }}>Credit/Debit Card</ToggleButton>
+            {currency === "usd" && <ToggleButton value="bank" sx={{ backgroundColor: "#FFFFFF", color: "#333", "&.Mui-selected": { backgroundColor: "#1976d2", color: "#FFFFFF" }, "&:hover": { backgroundColor: "#f5f5f5" }, "&.Mui-selected:hover": { backgroundColor: "#1565c0" } }}>Bank Account (ACH)</ToggleButton>}
+          </ToggleButtonGroup>
+        </Box>
+      );
+    }
+
+    return null;
   };
 
   const renderDonationForm = () => {
+    if (selectedGateway === "kingdomfunding") {
+      return (
+        <KingdomFundingNonAuthDonationInner
+          churchId={props.churchId}
+          mainContainerCssProps={mainContainerCssProps}
+          showHeader={false}
+          recaptchaSiteKey={props.recaptchaSiteKey}
+          churchLogo={props?.churchLogo}
+          // ACH disabled — always pass "card". KF inner also enforces this via its own KF_ACH_ENABLED gate.
+          paymentType="card"
+        />
+      );
+    }
+
     if (selectedGateway === "paypal") {
       const paypalGateway = DonationHelper.findGatewayByProvider(availableGateways, "paypal");
       return (
@@ -130,25 +167,25 @@ export const NonAuthDonation: React.FC<Props> = ({ mainContainerCssProps, showHe
           defaultFundId={props.defaultFundId}
         />
       );
-    } else {
-      return (
-        <Elements stripe={stripePromise}>
-          <NonAuthDonationInner
-            churchId={props.churchId}
-            mainContainerCssProps={mainContainerCssProps}
-            showHeader={false} // We'll show our own header with gateway selector
-            recaptchaSiteKey={props.recaptchaSiteKey}
-            churchLogo={props?.churchLogo}
-            paymentType={paymentType}
-            allowSingleGift={props.allowSingleGift}
-            allowRecurring={props.allowRecurring}
-            showFundSelector={props.showFundSelector}
-            allowedFundIds={props.allowedFundIds}
-            defaultFundId={props.defaultFundId}
-          />
-        </Elements>
-      );
     }
+
+    return (
+      <Elements stripe={stripePromise}>
+        <NonAuthDonationInner
+          churchId={props.churchId}
+          mainContainerCssProps={mainContainerCssProps}
+          showHeader={false} // We'll show our own header with gateway selector
+          recaptchaSiteKey={props.recaptchaSiteKey}
+          churchLogo={props?.churchLogo}
+          paymentType={paymentType}
+          allowSingleGift={props.allowSingleGift}
+          allowRecurring={props.allowRecurring}
+          showFundSelector={props.showFundSelector}
+          allowedFundIds={props.allowedFundIds}
+          defaultFundId={props.defaultFundId}
+        />
+      </Elements>
+    );
   };
 
   return (

@@ -6,7 +6,8 @@ import { ApiHelper, CurrencyHelper, DateHelper } from "@churchapps/helpers";
 import { Locale } from "../helpers";
 import { SubscriptionInterface } from "@churchapps/helpers";
 import { RecurringDonationsEdit } from ".";
-import { Icon, Table, TableBody, TableCell, TableRow, TableHead } from "@mui/material";
+import { Icon, IconButton, Table, TableBody, TableCell, TableRow, TableHead, Tooltip } from "@mui/material";
+import { DonationHelper } from "../helpers";
 
 interface Props { customerId: string, paymentMethods: any[], appName: string, dataUpdate: (message?: string) => void, };
 
@@ -60,6 +61,24 @@ export const RecurringDonations: React.FC<Props> = (props) => {
     setMode("edit");
   };
 
+  const handleCancelSubscription = (sub: any) => async () => {
+    const confirmed = window.confirm("Are you sure you want to cancel this recurring donation?");
+    if (!confirmed) return;
+    try {
+      // Pass provider so the API can resolve the right gateway (Stripe vs Kingdom Funding).
+      const providerParam = sub.provider ? `?provider=${encodeURIComponent(sub.provider)}` : "";
+      await ApiHelper.delete(`/subscriptions/${sub.id}${providerParam}`, "GivingApi");
+      await ApiHelper.delete(`/subscriptionfunds/subscription/${sub.id}`, "GivingApi").catch((err: any) => {
+        console.error("Failed to delete subscription funds for cancelled subscription:", sub.id, err);
+      });
+      props.dataUpdate("Recurring donation cancelled.");
+      loadData();
+    } catch (e: any) {
+      console.error("Failed to cancel subscription:", e);
+      alert("Failed to cancel recurring donation. Please try again.");
+    }
+  };
+
   const getPaymentMethod = (sub: SubscriptionInterface) => {
     const pm = props.paymentMethods.find((pm: any) => pm.id === (sub.default_payment_method || sub.default_source));
     if (!pm) return <span style={{ color: "red" }}>{Locale.label("donation.recurring.notFound")}</span>;
@@ -75,32 +94,52 @@ export const RecurringDonations: React.FC<Props> = (props) => {
     const result: React.ReactElement[] = [];
     subscription.funds?.forEach((fund: any) => {
       result.push(<div key={subscription.id + fund.id}>
-          {fund.name} <span style={{ float: "right" }}>{CurrencyHelper.formatCurrencyWithLocale(fund.amount, currency)}</span>
-        </div>);
+        {fund.name} <span style={{ float: "right" }}>{CurrencyHelper.formatCurrencyWithLocale(fund.amount, currency)}</span>
+      </div>);
     });
     const total = ((subscription.plan?.amount || 0) / 100);
     result.push(<div key={subscription.id + "-total"} style={{ borderTop: "solid #dee2e6 1px" }}>
         Total <span style={{ float: "right" }}>{CurrencyHelper.formatCurrencyWithLocale(total, currency)}</span>
-      </div>);
+    </div>);
     return result;
   };
 
   const getEditOptions = (sub: SubscriptionInterface) => {
-    // Users should be able to edit their own recurring donations if they have payment methods available
-    if (props?.paymentMethods?.length === 0) return null;
-    return <button
-      type="button"
-      aria-label="edit-button"
-      onClick={handleEdit(sub)}
-      style={{ background: "none", border: "none", cursor: "pointer", color: "#3b82f6" }}
-    >
-      <Icon>edit</Icon>
-    </button>;
+    // Cancel is ALWAYS available — even when the saved payment method is missing
+    // or the user has no other methods on file. Edit requires payment methods AND
+    // a non-KF subscription (Kingdom Funding subscriptions are read-only at the
+    // gateway level — cancel only).
+    const isKF = DonationHelper.isKingdomFunding((sub as any).provider || "");
+    const canEdit = !isKF && (props?.paymentMethods?.length || 0) > 0;
+    return (
+      <div style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+        {canEdit && (
+          <button
+            type="button"
+            aria-label="edit-button"
+            onClick={handleEdit(sub)}
+            style={{ background: "none", border: "none", cursor: "pointer", color: "#3b82f6" }}
+          >
+            <Icon>edit</Icon>
+          </button>
+        )}
+        <Tooltip title="Cancel recurring donation">
+          <IconButton
+            aria-label="cancel-subscription"
+            size="small"
+            onClick={handleCancelSubscription(sub)}
+            sx={{ color: "#dc3545" }}
+          >
+            <Icon fontSize="small">delete</Icon>
+          </IconButton>
+        </Tooltip>
+      </div>
+    );
   };
 
   const getTableHeader = () => {
     const result: React.ReactElement[] = [];
-    result.push(<TableRow key="header" sx={{ textAlign: "left" }}><TableCell><b>{Locale.label("donation.recurring.startDate")}</b></TableCell><TableCell><b>{Locale.label("donation.recurring.amount")}</b></TableCell><TableCell><b>{Locale.label("donation.recurring.interval")}</b></TableCell><TableCell><b>{Locale.label("donation.recurring.paymentMethod")}</b></TableCell>{props?.paymentMethods?.length > 0 && <TableCell></TableCell>}</TableRow>);
+    result.push(<TableRow key="header" sx={{ textAlign: "left" }}><TableCell><b>{Locale.label("donation.recurring.startDate")}</b></TableCell><TableCell><b>{Locale.label("donation.recurring.amount")}</b></TableCell><TableCell><b>{Locale.label("donation.recurring.interval")}</b></TableCell><TableCell><b>{Locale.label("donation.recurring.paymentMethod")}</b></TableCell><TableCell></TableCell></TableRow>);
     return result;
   };
 
@@ -109,12 +148,12 @@ export const RecurringDonations: React.FC<Props> = (props) => {
 
     subscriptions.forEach((sub: any) => {
       rows.push(<TableRow key={sub.id}>
-          <TableCell>{DateHelper.prettyDate(new Date((sub.billing_cycle_anchor || 0) * 1000))}</TableCell>
-          <TableCell>{getFunds(sub)}</TableCell>
-          <TableCell>{Locale.label("donation.recurring.every")} {getInterval(sub)}</TableCell>
-          <TableCell className="capitalize">{getPaymentMethod(sub)}</TableCell>
-          <TableCell align="right">{getEditOptions(sub)}</TableCell>
-        </TableRow>);
+        <TableCell>{DateHelper.prettyDate(new Date((sub.billing_cycle_anchor || 0) * 1000))}</TableCell>
+        <TableCell>{getFunds(sub)}</TableCell>
+        <TableCell>{Locale.label("donation.recurring.every")} {getInterval(sub)}</TableCell>
+        <TableCell className="capitalize">{getPaymentMethod(sub)}</TableCell>
+        <TableCell align="right">{getEditOptions(sub)}</TableCell>
+      </TableRow>);
     });
     return rows;
   };
@@ -131,7 +170,7 @@ export const RecurringDonations: React.FC<Props> = (props) => {
   useEffect(() => {
     CurrencyHelper.loadCurrency().then((result) => {
       if (result) setCurrency(result);
-    })
+    });
   }, []);
 
   if (mode === "display") {

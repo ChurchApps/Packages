@@ -14,3 +14,6 @@ export { PayPalCardForm } from "./PayPalCardForm";
 export type { PayPalCardData } from "./PayPalCardForm";
 export { PayPalNonAuthDonation } from "./PayPalNonAuthDonation";
 export { PayPalNonAuthDonationInner } from "./PayPalNonAuthDonationInner";
+export { KingdomFundingTokenForm } from "./KingdomFundingTokenForm";
+export type { KingdomFundingTokenResult, KingdomFundingTokenFormHandle } from "./KingdomFundingTokenForm";
+export { KingdomFundingNonAuthDonationInner } from "./KingdomFundingNonAuthDonationInner";

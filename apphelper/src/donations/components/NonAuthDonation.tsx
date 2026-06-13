@@ -8,8 +8,8 @@ import { ApiHelper } from "@churchapps/helpers";
 import { NonAuthDonationInner } from "./NonAuthDonationInner";
 import { PayPalNonAuthDonationInner } from "./PayPalNonAuthDonationInner";
 import { KingdomFundingNonAuthDonationInner } from "./KingdomFundingNonAuthDonationInner";
-import { DonationHelper, Locale } from "../helpers";
-import { FormControl, InputLabel, Select, MenuItem, Box, Typography, ToggleButtonGroup, ToggleButton } from "@mui/material";
+import { DonationHelper } from "../helpers";
+import { Box, Typography, ToggleButtonGroup, ToggleButton } from "@mui/material";
 import type { PaperProps } from "@mui/material/Paper";
 
 // Kingdom Funding ACH is hidden in the UI pending hosted ACH tokenization support
@@ -58,11 +58,6 @@ export const NonAuthDonation: React.FC<Props> = ({ mainContainerCssProps, showHe
     });
   };
 
-  const handleGatewayChange = (event: any) => {
-    setSelectedGateway(event.target.value);
-    setPaymentType("card"); // Reset to card when switching gateways
-  };
-
   useEffect(init, []);
 
   if (loading) {
@@ -73,36 +68,9 @@ export const NonAuthDonation: React.FC<Props> = ({ mainContainerCssProps, showHe
     return <Box sx={{ p: 3 }}><Typography>No payment gateways available for this church.</Typography></Box>;
   }
 
-  const getGatewayLabel = (provider: string) => {
-    const normalized = DonationHelper.normalizeProvider(provider);
-    if (normalized === "kingdomfunding") return Locale.label("donation.kingdomFunding.providerName");
-    if (normalized === "paypal") return "Credit Card (PayPal)";
-    return "Credit Card (Stripe)";
-  };
-
-  const renderGatewaySelector = () => {
-    if (availableGateways.length <= 1) return null;
-
-    return (
-      <Box sx={{ mb: 3 }}>
-        <FormControl fullWidth>
-          <InputLabel>Payment Method</InputLabel>
-          <Select
-            value={selectedGateway}
-            label="Payment Method"
-            onChange={handleGatewayChange}
-          >
-            {availableGateways.map((gateway: any) => (
-              <MenuItem key={gateway.id} value={DonationHelper.normalizeProvider(gateway.provider)}>
-                {getGatewayLabel(gateway.provider)}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      </Box>
-    );
-  };
-
+  // ponytail: the payment processor is a church setting, never a donor choice —
+  // we always use the church's configured gateway (`selectedGateway`) and never
+  // surface a processor picker. Stripe and Kingdom Funding look identical here.
   const renderPaymentTypeSelector = () => {
     // PayPal: no card/bank toggle
     if (selectedGateway === "paypal") return null;
@@ -156,7 +124,7 @@ export const NonAuthDonation: React.FC<Props> = ({ mainContainerCssProps, showHe
         <PayPalNonAuthDonationInner
           churchId={props.churchId}
           mainContainerCssProps={mainContainerCssProps}
-          showHeader={false} // We'll show our own header with gateway selector
+          showHeader={false}
           recaptchaSiteKey={props.recaptchaSiteKey}
           churchLogo={props?.churchLogo}
           paypalClientId={paypalGateway?.publicKey || null}
@@ -174,7 +142,7 @@ export const NonAuthDonation: React.FC<Props> = ({ mainContainerCssProps, showHe
         <NonAuthDonationInner
           churchId={props.churchId}
           mainContainerCssProps={mainContainerCssProps}
-          showHeader={false} // We'll show our own header with gateway selector
+          showHeader={false}
           recaptchaSiteKey={props.recaptchaSiteKey}
           churchLogo={props?.churchLogo}
           paymentType={paymentType}
@@ -197,7 +165,6 @@ export const NonAuthDonation: React.FC<Props> = ({ mainContainerCssProps, showHe
           </Typography>
         </Box>
       )}
-      {renderGatewaySelector()}
       {renderPaymentTypeSelector()}
       {renderDonationForm()}
       <Box sx={{ marginTop: "15px", fontSize: "14px" }}>

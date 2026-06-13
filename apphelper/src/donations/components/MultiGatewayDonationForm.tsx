@@ -59,7 +59,8 @@ export const MultiGatewayDonationForm: React.FC<Props> = (props) => {
   const [paymentMethodName, setPaymentMethodName] = useState<string>(
     props?.paymentMethods?.length > 0 ? `${props.paymentMethods[0].name} ${props.paymentMethods[0].last4 ? `****${props.paymentMethods[0].last4}` : props.paymentMethods[0].email || ""}` : ""
   );
-  const [selectedGateway, setSelectedGateway] = useState<string>(
+  
+  const [selectedGateway] = useState<string>(
     DonationHelper.normalizeProvider(props?.paymentGateways?.find(g => g.enabled !== false)?.provider || "stripe")
   );
   const selectedGatewayObj = useMemo(() => {
@@ -149,26 +150,6 @@ export const MultiGatewayDonationForm: React.FC<Props> = (props) => {
     const d = { ...donation } as MultiGatewayDonationInterface;
     const value = e.target.value;
     switch (e.target.name) {
-      case "gateway": {
-        setSelectedGateway(value);
-        setUseNewCard(false);
-        d.provider = value as "stripe" | "paypal" | "kingdomfunding";
-        const matchedGateway = props.paymentGateways.find(g => DonationHelper.normalizeProvider(g.provider) === value);
-        d.gatewayId = matchedGateway?.id;
-        d.currency = matchedGateway?.currency || "usd";
-        // Reset payment method when changing gateways
-        const availableMethods = props.paymentMethods.filter(pm => DonationHelper.normalizeProvider(pm.provider) === value);
-        if (availableMethods.length > 0) {
-          d.id = availableMethods[0].id;
-          d.type = availableMethods[0].type as "card" | "bank" | "paypal";
-          setPaymentMethodName(`${availableMethods[0].name} ${availableMethods[0].last4 ? `****${availableMethods[0].last4}` : availableMethods[0].email || ""}`);
-        } else {
-          d.id = "";
-          if (value === "paypal") d.type = "paypal";
-          else d.type = "card";
-        }
-        break;
-      }
       case "method": {
         d.id = value;
         const pm = props.paymentMethods.find(pm => pm.id === value);
@@ -196,7 +177,7 @@ export const MultiGatewayDonationForm: React.FC<Props> = (props) => {
       }
     }
     setDonation(d);
-  }, [donation, props.paymentMethods, fundsTotal, transactionFee, gateway?.id, props.paymentGateways, selectedGatewayObj?.id]);
+  }, [donation, props.paymentMethods, fundsTotal, transactionFee, gateway?.id, selectedGatewayObj?.id]);
 
   const handleCancel = useCallback(() => { setDonationType(undefined); }, []);
   const handleDonationSelect = useCallback((type: string) => {
@@ -429,14 +410,6 @@ export const MultiGatewayDonationForm: React.FC<Props> = (props) => {
   }, []);
 
   const availablePaymentMethods = props.paymentMethods.filter(pm => DonationHelper.normalizeProvider(pm.provider) === selectedGateway);
-  const availableGateways = props.paymentGateways.filter(g => g.enabled !== false);
-
-  const getGatewayLabel = (provider: string) => {
-    const normalized = DonationHelper.normalizeProvider(provider);
-    if (normalized === "kingdomfunding") return Locale.label("donation.kingdomFunding.providerName");
-    if (normalized === "paypal") return "PayPal";
-    return "Stripe";
-  };
 
   // Determine if we need to show a hosted payment form (no saved methods or user chose "new card")
   const needsHostedForm = (selectedGateway === "paypal" || selectedGateway === "kingdomfunding") && (availablePaymentMethods.length === 0 || useNewCard);
@@ -512,27 +485,6 @@ export const MultiGatewayDonationForm: React.FC<Props> = (props) => {
           {donationType && (
             <div id="donation-details" style={{ marginTop: "20px" }}>
               <Grid container spacing={3}>
-                {availableGateways.length > 1 && (
-                  <Grid size={{ xs: 12 }}>
-                    <FormControl fullWidth>
-                      <InputLabel>{Locale.label("donation.kingdomFunding.paymentProvider")}</InputLabel>
-                      <Select
-                        id="gateway-select"
-                        label={Locale.label("donation.kingdomFunding.paymentProvider")}
-                        name="gateway"
-                        aria-label="gateway"
-                        value={selectedGateway}
-                        onChange={handleChange}
-                      >
-                        {availableGateways.map((gw) => (
-                          <MenuItem key={gw.provider} value={DonationHelper.normalizeProvider(gw.provider)}>
-                            {getGatewayLabel(gw.provider)}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                )}
                 {!needsHostedForm ? (
                   <Grid size={{ xs: 12 }}>
                     <FormControl fullWidth>

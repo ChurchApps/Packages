@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 0.12.0
+
+### Minor Changes
+
+- e733fd2: Add Kingdom Funding payment gateway support to the donations module (card flows; ACH scaffolded but disabled).
+
 ## 0.11.0
 
 ### Minor Changes

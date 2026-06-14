@@ -74,7 +74,9 @@ const PayPalGuestForm: React.FC<GuestFormProps> = (props) => (
     churchLogo={props?.churchLogo}
     paypalClientId={props.gateway?.publicKey || null}
     allowSingleGift={props.allowSingleGift}
-    allowRecurring={props.allowRecurring}
+    // PayPal has no subscribe path (capabilities.recurring=false); never offer
+    // a recurring toggle that would silently downgrade to a one-time charge.
+    allowRecurring={false}
     showFundSelector={props.showFundSelector}
     allowedFundIds={props.allowedFundIds}
     defaultFundId={props.defaultFundId}

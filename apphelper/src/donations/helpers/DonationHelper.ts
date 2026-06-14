@@ -69,4 +69,11 @@ export class DonationHelper {
     return gateways.find(g => this.isProvider(g.provider, provider));
   }
 
+  // A PayPal capture is money-in-hand only at COMPLETED/APPROVED. "CREATED"
+  // means an order was created but not yet captured — treating it as success
+  // shows the donor a thank-you screen for a payment that never collected.
+  static isPayPalCaptureComplete(status?: string): boolean {
+    return status === "COMPLETED" || status === "APPROVED";
+  }
+
 }

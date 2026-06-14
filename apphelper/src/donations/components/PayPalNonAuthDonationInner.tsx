@@ -46,7 +46,8 @@ export const PayPalNonAuthDonationInner: React.FC<Props> = ({ mainContainerCssPr
   const [donationType, setDonationType] = useState<"once" | "recurring">(allowSingleGift ? "once" : (allowRecurring ? "recurring" : "once"));
   const [interval, setInterval] = useState("one_month");
   const [startDate, setStartDate] = useState(new Date().toDateString());
-  const [_captchaResponse, setCaptchaResponse] = useState("");
+  const bypassRecaptcha = typeof process !== "undefined" && process.env?.NEXT_PUBLIC_BYPASS_RECAPTCHA === "true";
+  const [_captchaResponse, setCaptchaResponse] = useState(bypassRecaptcha ? "success" : "");
   // Keep church for potential future metadata usage
   const [_church, _setChurch] = useState<ChurchInterface>();
   const [gateway, setGateway] = useState<any>(null);
@@ -120,7 +121,10 @@ export const PayPalNonAuthDonationInner: React.FC<Props> = ({ mainContainerCssPr
 
   const handleSave = async () => {
     if (validate()) {
-      // CAPTCHA TEMPORARILY DISABLED - Remove this bypass in production
+      if (_captchaResponse !== "success") {
+        setErrors(["Please complete the reCAPTCHA verification"]);
+        return;
+      }
       setProcessing(true);
       ApiHelper.post("/users/loadOrCreate", { userEmail: email, firstName, lastName }, "MembershipApi")
         .catch((ex: any) => { setErrors([ex.toString()]); setProcessing(false); })
@@ -199,12 +203,11 @@ export const PayPalNonAuthDonationInner: React.FC<Props> = ({ mainContainerCssPr
       "GivingApi"
     );
 
-    if (results?.status === "COMPLETED" || results?.status === "APPROVED" || results?.status === "CREATED") {
+    if (DonationHelper.isPayPalCaptureComplete(results?.status)) {
       setDonationComplete(true);
-    }
-    if (results?.message || results?.error) {
+    } else {
+      // Any non-captured status (including "CREATED") is a failure, not success.
       setErrors([results?.message || results?.error || "Payment processing failed"]);
-      setProcessing(false);
     }
     setProcessing(false);
   };

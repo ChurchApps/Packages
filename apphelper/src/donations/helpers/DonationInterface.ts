@@ -3,7 +3,7 @@ import { FundDonationInterface } from "@churchapps/helpers";
 export interface MultiGatewayDonationInterface {
   id: string;
   type: "card" | "bank" | "paypal";
-  provider: "stripe" | "paypal" | "kingdomfunding";
+  provider: string;
   customerId?: string;
   gatewayId?: string;
   person?: {

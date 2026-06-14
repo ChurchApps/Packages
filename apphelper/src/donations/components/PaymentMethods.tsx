@@ -4,20 +4,16 @@ import React, { useEffect, useState, useRef } from "react";
 import type { Stripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
 import { CardForm, BankForm } from ".";
-import { KingdomFundingTokenForm, KingdomFundingTokenFormHandle } from "./KingdomFundingTokenForm";
 import { DisplayBox, Loading } from "../..";
 import { ApiHelper, UserHelper } from "@churchapps/helpers";
 import { Locale, StripePaymentMethod, PaymentGateway, DonationHelper } from "../helpers";
+import { getPaymentProvider } from "../providers";
+import type { MemberEntryHandle } from "../providers";
 import { PersonInterface, Permissions } from "@churchapps/helpers";
 import {
   Icon, Table, TableBody, TableCell, TableRow, IconButton, Menu, MenuItem, Button, Alert, CircularProgress,
   Dialog, DialogTitle, DialogContent, DialogActions
 } from "@mui/material";
-
-// Kingdom Funding ACH is hidden in the UI pending hosted ACH tokenization support
-// from the gateway. Flip to true once tokenization no longer requires raw routing/
-// account numbers to flow through our backend.
-const KF_ACH_ENABLED = false;
 
 interface Props { person: PersonInterface, customerId: string, paymentMethods: StripePaymentMethod[], stripePromise: Promise<Stripe | null> | null, appName: string, dataUpdate: (message?: string) => void }
 
@@ -90,8 +86,8 @@ export const PaymentMethods: React.FC<Props> = (props) => {
           <MenuItem aria-label="add-card" onClick={(e: React.MouseEvent) => {
             e.preventDefault();
             setAnchorEl(null);
-            if (isKF) {
-              // Open the KF dialog directly — avoids setState during render in EditForm
+            if (usesTokenEntry) {
+              // Open the token dialog directly — avoids setState during render in EditForm
               setShowAddCardDialog(true);
             } else {
               handleEdit(new StripePaymentMethod({ type: "card" }))(e);
@@ -99,7 +95,7 @@ export const PaymentMethods: React.FC<Props> = (props) => {
           }}>
             <Icon sx={{ mr: "3px" }}>credit_card</Icon> {Locale.label("donation.paymentMethods.addCard")}
           </MenuItem>
-          {(!isKF || KF_ACH_ENABLED) && (
+          {canSaveBank && (
             <MenuItem aria-label="add-bank" onClick={handleEdit(new StripePaymentMethod({ type: "bank" }))}>
               <Icon sx={{ mr: "3px" }}>account_balance</Icon> {Locale.label("donation.paymentMethods.addBank")}
             </MenuItem>
@@ -165,8 +161,14 @@ export const PaymentMethods: React.FC<Props> = (props) => {
     } else return <div>{Locale.label("donation.paymentMethods.noMethod")}</div>;
   };
 
-  const isKF = !!gateway && DonationHelper.isKingdomFunding(gateway.provider);
-  const kfTokenRef = useRef<KingdomFundingTokenFormHandle>(null);
+  const provider = gateway ? getPaymentProvider(gateway.provider) : undefined;
+  const canSaveCard = !!provider?.capabilities.savedCard;
+  const canSaveBank = !!provider?.capabilities.savedBank;
+  // Providers that capture a saved card through their own token widget (e.g.
+  // Kingdom Funding) instead of Stripe Elements — these use the add-card dialog.
+  const usesTokenEntry = canSaveCard && !!provider?.MemberEntry;
+  const TokenEntry = provider?.MemberEntry;
+  const entryRef = useRef<MemberEntryHandle>(null);
   const [saving, setSaving] = useState(false);
   const [addError, setAddError] = useState<string | undefined>();
   const [showAddCardDialog, setShowAddCardDialog] = useState(false);
@@ -176,32 +178,29 @@ export const PaymentMethods: React.FC<Props> = (props) => {
     setAddError(undefined);
   };
 
-  const handleKFAddCard = async () => {
+  const handleTokenAddCard = async () => {
     if (!gateway) return;
     setSaving(true);
     setAddError(undefined);
     try {
-      const basePayload: any = {
-        personId: props.person?.id,
-        customerId: props.customerId || undefined,
-        email: props.person?.contactInfo?.email || "",
-        name: props.person?.name?.display || "",
-        provider: "kingdomfunding"
-      };
-
-      if (!kfTokenRef.current) {
+      if (!entryRef.current) {
         setAddError("Card form not ready.");
         setSaving(false);
         return;
       }
-      const tokenResult = await kfTokenRef.current.getNonce();
-      basePayload.id = tokenResult.nonce;
-      basePayload.cardBrand = tokenResult.cardType;
-      basePayload.cardLast4 = tokenResult.last4;
-      basePayload.expiry_month = tokenResult.expiryMonth;
-      basePayload.expiry_year = tokenResult.expiryYear;
-
-      await ApiHelper.post("/paymentmethods/addcard", basePayload, "GivingApi");
+      const token = await entryRef.current.tokenize();
+      await ApiHelper.post("/paymentmethods/addcard", {
+        personId: props.person?.id,
+        customerId: props.customerId || undefined,
+        email: props.person?.contactInfo?.email || "",
+        name: props.person?.name?.display || "",
+        provider: provider?.key,
+        id: token.id,
+        cardBrand: token.brand,
+        cardLast4: token.last4,
+        expiry_month: token.expMonth,
+        expiry_year: token.expYear
+      }, "GivingApi");
       resetKFDialog();
       setMode("display");
       props.dataUpdate("Card saved successfully.");
@@ -212,17 +211,13 @@ export const PaymentMethods: React.FC<Props> = (props) => {
     }
   };
 
-  const kfAddCardDialog = (
+  const tokenAddCardDialog = (
     <Dialog open={showAddCardDialog} onClose={resetKFDialog} maxWidth="sm" fullWidth>
       <DialogTitle>Add Payment Method</DialogTitle>
       <DialogContent>
-        {gateway?.publicKey && showAddCardDialog ? (
+        {gateway?.publicKey && showAddCardDialog && TokenEntry ? (
           <>
-            <KingdomFundingTokenForm
-              ref={kfTokenRef}
-              tokenizationKey={gateway.publicKey}
-              sandbox={gateway?.settings?.sandbox === true || gateway?.environment === "sandbox"}
-            />
+            <TokenEntry ref={entryRef} gateway={gateway} />
             {addError && <Alert severity="error" sx={{ mt: 1 }}>{addError}</Alert>}
           </>
         ) : !showAddCardDialog ? null : (
@@ -231,8 +226,8 @@ export const PaymentMethods: React.FC<Props> = (props) => {
       </DialogContent>
       <DialogActions>
         <Button onClick={resetKFDialog}>Cancel</Button>
-        {gateway?.publicKey && (
-          <Button variant="contained" onClick={handleKFAddCard} disabled={saving}>
+        {gateway?.publicKey && TokenEntry && (
+          <Button variant="contained" onClick={handleTokenAddCard} disabled={saving}>
             {saving ? <CircularProgress size={20} /> : "Save Card"}
           </Button>
         )}
@@ -241,8 +236,9 @@ export const PaymentMethods: React.FC<Props> = (props) => {
   );
 
   const EditForm = () => {
-    // KF gateway — edit/delete existing only (add new is handled by dialog)
-    if (isKF) {
+    // Token-entry providers (e.g. Kingdom Funding) — edit/delete existing only;
+    // adding a new card is handled by the dialog, and cards can't be updated in place.
+    if (usesTokenEntry) {
       if (editPaymentMethod.id) {
         // Editing existing payment method (delete only — KF cards cannot be updated in place)
         return (
@@ -316,6 +312,6 @@ export const PaymentMethods: React.FC<Props> = (props) => {
     } else return <EditForm></EditForm>;
   };
 
-  // Allow rendering for KF even without stripePromise
-  return (props.stripePromise || isKF) ? <><PaymentMethodsComponent />{isKF && kfAddCardDialog}</> : null;
+  // Token-entry providers (e.g. KF) render even without a Stripe promise.
+  return (props.stripePromise || usesTokenEntry) ? <><PaymentMethodsComponent />{usesTokenEntry && tokenAddCardDialog}</> : null;
 };

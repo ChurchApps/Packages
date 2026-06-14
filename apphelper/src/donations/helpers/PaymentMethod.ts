@@ -1,7 +1,7 @@
 export interface PaymentMethod {
   id: string;
   type: "card" | "bank" | "paypal";
-  provider: "stripe" | "paypal" | "kingdomfunding";
+  provider: string;
   name: string;
   last4?: string;
   email?: string;
@@ -10,7 +10,9 @@ export interface PaymentMethod {
 
 export interface PaymentGateway {
   id: string;
-  provider: "stripe" | "paypal" | "kingdomfunding" | "Stripe" | "Paypal" | "PayPal" | "KingdomFunding";
+  // Free-form: the payment-provider registry is the source of truth, keyed by
+  // the normalized provider name. New providers need no change here.
+  provider: string;
   publicKey?: string;
   productId?: string;
   payFees?: boolean;

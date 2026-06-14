@@ -7,7 +7,7 @@ import { Locale } from "../helpers";
 import { SubscriptionInterface } from "@churchapps/helpers";
 import { RecurringDonationsEdit } from ".";
 import { Icon, IconButton, Table, TableBody, TableCell, TableRow, TableHead, Tooltip } from "@mui/material";
-import { DonationHelper } from "../helpers";
+import { getPaymentProvider } from "../providers";
 
 interface Props { customerId: string, paymentMethods: any[], appName: string, dataUpdate: (message?: string) => void, };
 
@@ -106,11 +106,11 @@ export const RecurringDonations: React.FC<Props> = (props) => {
 
   const getEditOptions = (sub: SubscriptionInterface) => {
     // Cancel is ALWAYS available — even when the saved payment method is missing
-    // or the user has no other methods on file. Edit requires payment methods AND
-    // a non-KF subscription (Kingdom Funding subscriptions are read-only at the
-    // gateway level — cancel only).
-    const isKF = DonationHelper.isKingdomFunding((sub as any).provider || "");
-    const canEdit = !isKF && (props?.paymentMethods?.length || 0) > 0;
+    // or the user has no other methods on file. Edit additionally requires the
+    // provider to support editing a subscription's payment method (e.g. Kingdom
+    // Funding subscriptions are read-only at the gateway — cancel only).
+    const canEdit = getPaymentProvider((sub as any).provider).capabilities.editRecurring
+      && (props?.paymentMethods?.length || 0) > 0;
     return (
       <div style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
         {canEdit && (

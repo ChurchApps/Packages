@@ -1,7 +1,7 @@
 export class StripePaymentMethod {
   id: string;
   type: "card" | "bank" | "paypal";
-  provider: "stripe" | "paypal" | "kingdomfunding";
+  provider: string;
   name: string;
   last4?: string;
   email?: string;

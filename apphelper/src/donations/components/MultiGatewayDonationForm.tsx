@@ -5,12 +5,12 @@ import type { Stripe } from "@stripe/stripe-js";
 import { useStripe } from "@stripe/react-stripe-js";
 import { InputBox, ErrorMessages } from "../..";
 import { FundDonations } from ".";
-import { PayPalHostedFields, PayPalHostedFieldsHandle } from "./PayPalHostedFields";
-import { KingdomFundingTokenForm, KingdomFundingTokenFormHandle } from "./KingdomFundingTokenForm";
 import { DonationPreviewModal } from "../modals/DonationPreviewModal";
 import { ApiHelper, CurrencyHelper, DateHelper } from "@churchapps/helpers";
 import { Locale, DonationHelper } from "../helpers";
 import type { PaymentMethod, PaymentGateway, MultiGatewayDonationInterface } from "../helpers";
+import { getPaymentProvider } from "../providers";
+import type { ChargeContext, MemberEntryHandle, PaymentToken } from "../providers";
 import { PersonInterface, FundDonationInterface, FundInterface, ChurchInterface } from "@churchapps/helpers";
 import {
   Grid,
@@ -29,10 +29,6 @@ import {
 } from "@mui/material";
 import type { SelectChangeEvent } from "@mui/material";
 
-// Note: Kingdom Funding ACH support is intentionally omitted from this form
-// pending hosted ACH tokenization support from the gateway. KF flows here are
-// card-only (matches the `KF_ACH_ENABLED = false` gate in sibling components).
-
 interface Props {
   person: PersonInterface;
   customerId: string;
@@ -44,7 +40,7 @@ interface Props {
   churchLogo?: string;
 }
 
-export const MultiGatewayDonationForm: React.FC<Props> = (props) => {
+const MultiGatewayDonationInner: React.FC<Props> = (props) => {
   const stripe = useStripe();
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
   const [saveCard, setSaveCard] = useState<boolean>(false);
@@ -59,10 +55,11 @@ export const MultiGatewayDonationForm: React.FC<Props> = (props) => {
   const [paymentMethodName, setPaymentMethodName] = useState<string>(
     props?.paymentMethods?.length > 0 ? `${props.paymentMethods[0].name} ${props.paymentMethods[0].last4 ? `****${props.paymentMethods[0].last4}` : props.paymentMethods[0].email || ""}` : ""
   );
-  
+
   const [selectedGateway] = useState<string>(
     DonationHelper.normalizeProvider(props?.paymentGateways?.find(g => g.enabled !== false)?.provider || "stripe")
   );
+  const paymentProvider = useMemo(() => getPaymentProvider(selectedGateway), [selectedGateway]);
   const selectedGatewayObj = useMemo(() => {
     return (
       props.paymentGateways.find((g) => DonationHelper.normalizeProvider(g.provider) === selectedGateway) || null
@@ -72,12 +69,7 @@ export const MultiGatewayDonationForm: React.FC<Props> = (props) => {
   const [showDonationPreviewModal, setShowDonationPreviewModal] = useState<boolean>(false);
   const [interval, setInterval] = useState("one_month");
   const [gateway, setGateway] = useState<PaymentGateway | null>(selectedGatewayObj);
-  const paypalClientId = useMemo(() => {
-    const gw = props.paymentGateways.find(g => DonationHelper.isProvider(g.provider, "paypal"));
-    return gw?.publicKey || "";
-  }, [props.paymentGateways]);
-  const hostedRef = useRef<PayPalHostedFieldsHandle>(null);
-  const kfTokenRef = useRef<KingdomFundingTokenFormHandle>(null);
+  const entryRef = useRef<MemberEntryHandle>(null);
   const feeTimeoutRef = useRef<number | null>(null);
   const [donation, setDonation] = useState<MultiGatewayDonationInterface>({
     id: props?.paymentMethods?.length > 0 ? props.paymentMethods[0].id : "",
@@ -188,118 +180,80 @@ export const MultiGatewayDonationForm: React.FC<Props> = (props) => {
   const handleSingleDonationClick = useCallback(() => handleDonationSelect("once"), [handleDonationSelect]);
   const handleRecurringDonationClick = useCallback(() => handleDonationSelect("recurring"), [handleDonationSelect]);
 
-  const makeDonation = useCallback(async (message: string) => {
-    let results;
-
-    const churchObj = {
+  // Snapshot of the gift in flight, in the shape every provider adapter expects.
+  const buildContext = useCallback((): ChargeContext => ({
+    provider: selectedGateway,
+    gatewayId: donation.gatewayId || gateway?.id || selectedGatewayObj?.id,
+    churchId: props?.church?.id || "",
+    amount: total,
+    funds: (donation.funds || []).map((f: any) => ({ id: f.id, amount: f.amount })),
+    person: {
+      id: donation.person?.id || "",
+      email: donation.person?.email || "",
+      name: donation.person?.name || ""
+    },
+    notes: donation?.notes || "",
+    church: {
       name: props?.church?.name || "",
       subDomain: props?.church?.subDomain || "",
       churchURL: typeof window !== "undefined" ? window.location.origin : "",
       logo: props?.churchLogo || ""
-    };
+    },
+    recurring: donationType === "recurring",
+    interval: donation.interval,
+    billingCycleAnchor: donation.billing_cycle_anchor,
+    saveCard,
+    customerId: props.customerId,
+    currency: donation.currency
+  }), [
+    donation, total, donationType, saveCard, selectedGateway, gateway?.id, selectedGatewayObj?.id, props.church?.id, props.church?.name, props.church?.subDomain, props.churchLogo, props.customerId
+  ]);
 
-    const compactFunds = (donation.funds || []).map((f: any) => ({ id: f.id, amount: f.amount }));
+  const makeDonation = useCallback(async (message: string) => {
+    const ctx = buildContext();
 
-    // KingdomFunding without saved method (or user chose "new card") — tokenize card via iframe
-    if (selectedGateway === "kingdomfunding" && (useNewCard || !donation.id || donation.id === "")) {
+    // Capture a new payment if the provider needs one (no saved-card support, or
+    // the user is entering a fresh card); otherwise charge the chosen saved method.
+    const needsToken = !!paymentProvider.MemberEntry
+      && (!paymentProvider.capabilities.savedCard || useNewCard || !donation.id || donation.id === "");
+
+    let token: PaymentToken;
+    if (needsToken) {
       try {
-        if (!kfTokenRef.current) {
-          setShowDonationPreviewModal(false);
-          setErrorMessage("Card form not ready. Please wait and try again.");
-          return;
-        }
-        const tokenResult = await kfTokenRef.current.getNonce();
-        const payload: any = {
-          provider: "kingdomfunding",
-          gatewayId: selectedGatewayObj?.id || gateway?.id,
-          churchId: props?.church?.id || "",
-          amount: total,
-          funds: compactFunds,
-          person: donation.person,
-          notes: donation?.notes || "",
-          church: churchObj,
-          saveCard,
-          type: "card",
-          id: tokenResult.nonce,
-          cardBrand: tokenResult.cardType,
-          cardLast4: tokenResult.last4,
-          expiry_month: tokenResult.expiryMonth,
-          expiry_year: tokenResult.expiryYear
-        };
-
-        if (donationType === "recurring") {
-          payload.billing_cycle_anchor = donation.billing_cycle_anchor;
-          payload.interval = donation.interval;
-        }
-
-        if (donationType === "once") results = await ApiHelper.post("/donate/charge", payload, "GivingApi");
-        if (donationType === "recurring") results = await ApiHelper.post("/donate/subscribe", payload, "GivingApi");
-        // Terminal: never fall through to the generic POST below, or a falsy
-        // response body would trigger a second charge.
-        if (!results) {
-          setShowDonationPreviewModal(false);
-          setErrorMessage(Locale.label("donation.kingdomFunding.unexpectedError"));
-          return;
-        }
+        token = await entryRef.current!.tokenize();
       } catch (e: any) {
         setShowDonationPreviewModal(false);
         setErrorMessage("Failed to process payment: " + (e.message || "Unknown error"));
         return;
       }
+    } else {
+      token = { id: donation.id, type: donation.type, saved: true };
     }
 
-    // If using PayPal without a saved method, try Hosted Fields
-    if (!results && selectedGateway === "paypal" && (!donation.id || donation.id === "") && paypalClientId) {
-      try {
-        const payload = await hostedRef.current?.submit();
-        const orderId = (payload as any)?.orderId || (payload as any)?.id || "";
-        if (orderId) {
-          // Capture and persist via unified /donate/charge endpoint for PayPal
-          results = await ApiHelper.post(
-            "/donate/charge",
-            {
-              provider: "paypal",
-              gatewayId: selectedGatewayObj?.id,
-              id: orderId,
-              churchId: props?.church?.id || "",
-              amount: total,
-              funds: compactFunds,
-              person: donation.person,
-              notes: donation?.notes || ""
-            },
-            "GivingApi"
-          );
-        }
-      } catch (e) {
-        console.warn("Hosted Fields submit failed, falling back to standard flow.", e);
-      }
+    const { endpoint, body } = paymentProvider.buildChargeRequest(ctx, token);
+    let results = await ApiHelper.post(endpoint, body, "GivingApi");
+
+    // Terminal: a freshly-tokenized payment must never silently retry on a falsy
+    // response, or we'd double-charge.
+    if (needsToken && !results) {
+      setShowDonationPreviewModal(false);
+      setErrorMessage(Locale.label("donation.kingdomFunding.unexpectedError"));
+      return;
     }
 
-    // Standard flow (Stripe or saved payment method)
-    if (!results) {
-      const payload = {
-        ...donation,
-        provider: donation.provider || (selectedGateway as "stripe" | "paypal" | "kingdomfunding"),
-        gatewayId: donation.gatewayId || gateway?.id || selectedGatewayObj?.id,
-        church: churchObj
-      };
-      if (donationType === "once") results = await ApiHelper.post("/donate/charge", payload, "GivingApi");
-      if (donationType === "recurring") results = await ApiHelper.post("/donate/subscribe", payload, "GivingApi");
-    }
-
-    // Handle 3D Secure authentication if required (Stripe only)
-    if (selectedGateway === "stripe") {
-      const threeDSResult = await DonationHelper.handle3DSIfRequired(results, stripe);
-      if (threeDSResult.requiresAction) {
+    if (paymentProvider.finalizeResult) {
+      const fin = await paymentProvider.finalizeResult(results, { stripe });
+      if (fin.requiresAction) {
         setShowDonationPreviewModal(false);
-        if (threeDSResult.success) {
+        if (fin.success) {
           setDonationType(undefined);
           props.donationSuccess(message);
         } else {
-          setErrorMessage(Locale.label("donation.common.error") + ": " + threeDSResult.error);
+          setErrorMessage(Locale.label("donation.common.error") + ": " + fin.error);
         }
         return;
       }
+      results = fin.result;
     }
 
     if (results?.status === "succeeded" || results?.status === "pending" || results?.status === "active" || results?.status === "processing" || results?.status === "CREATED" || results?.status === "Approved") {
@@ -311,11 +265,9 @@ export const MultiGatewayDonationForm: React.FC<Props> = (props) => {
       setShowDonationPreviewModal(false);
       setErrorMessage(Locale.label("donation.common.error") + ": " + (results?.raw?.message || results?.message));
     }
-  }, [
-    donation, donationType, gateway?.id, paypalClientId, props.church?.name, props.church?.subDomain, props.church?.id, props.churchLogo, props.donationSuccess, selectedGateway, selectedGatewayObj?.id, total, stripe, useNewCard, saveCard
-  ]);
+  }, [buildContext, paymentProvider, donation.id, donation.type, useNewCard, stripe, props.donationSuccess]);
 
-  const getTransactionFee = useCallback(async (amount: number, activeGatewayId?: string, provider: "stripe" | "paypal" = "stripe", paymentMethodType?: "card" | "bank" | "paypal") => {
+  const getTransactionFee = useCallback(async (amount: number, activeGatewayId?: string, provider: string = "stripe", paymentMethodType?: "card" | "bank" | "paypal") => {
     if (amount > 0) {
       try {
         const payload: any = { amount, provider, gatewayId: activeGatewayId, currency: gateway?.currency || "USD" };
@@ -363,7 +315,7 @@ export const MultiGatewayDonationForm: React.FC<Props> = (props) => {
 
     // Debounce fee calculation to prevent excessive API calls
     feeTimeoutRef.current = window.setTimeout(async () => {
-      const fee = await getTransactionFee(totalAmount, d.gatewayId || gateway?.id || selectedGatewayObj?.id, (d.provider as "stripe" | "paypal") || (selectedGateway as "stripe" | "paypal"), d.type);
+      const fee = await getTransactionFee(totalAmount, d.gatewayId || gateway?.id || selectedGatewayObj?.id, d.provider || selectedGateway, d.type);
       setTransactionFee(fee);
 
       if (gateway && gateway.payFees === true) {
@@ -411,8 +363,10 @@ export const MultiGatewayDonationForm: React.FC<Props> = (props) => {
 
   const availablePaymentMethods = props.paymentMethods.filter(pm => DonationHelper.normalizeProvider(pm.provider) === selectedGateway);
 
-  // Determine if we need to show a hosted payment form (no saved methods or user chose "new card")
-  const needsHostedForm = (selectedGateway === "paypal" || selectedGateway === "kingdomfunding") && (availablePaymentMethods.length === 0 || useNewCard);
+  // Show the provider's inline entry widget when there's no saved method to use:
+  // PayPal (no vault) always; Kingdom Funding when adding a new card or none saved.
+  const showInlineEntry = !!paymentProvider.MemberEntry
+    && (!paymentProvider.capabilities.savedCard || useNewCard || availablePaymentMethods.length === 0);
 
   if (!fundsLoaded) {
     return <Alert severity="info">Loading donation settings…</Alert>;
@@ -425,6 +379,7 @@ export const MultiGatewayDonationForm: React.FC<Props> = (props) => {
       </Alert>
     );
   } else {
+    const MemberEntry = paymentProvider.MemberEntry;
     return (
       <>
         <DonationPreviewModal
@@ -485,7 +440,7 @@ export const MultiGatewayDonationForm: React.FC<Props> = (props) => {
           {donationType && (
             <div id="donation-details" style={{ marginTop: "20px" }}>
               <Grid container spacing={3}>
-                {!needsHostedForm ? (
+                {!showInlineEntry ? (
                   <Grid size={{ xs: 12 }}>
                     <FormControl fullWidth>
                       <InputLabel>{Locale.label("donation.donationForm.method")}</InputLabel>
@@ -517,7 +472,7 @@ export const MultiGatewayDonationForm: React.FC<Props> = (props) => {
                             {paymentMethod.name} {paymentMethod.last4 ? `****${paymentMethod.last4}` : paymentMethod.email || ""}
                           </MenuItem>
                         ))}
-                        {selectedGateway === "kingdomfunding" && (
+                        {paymentProvider.capabilities.memberNewCard && (
                           <MenuItem value="__new__">
                             <Icon sx={{ mr: 1, fontSize: 18 }}>add_circle</Icon> Enter new card
                           </MenuItem>
@@ -525,17 +480,13 @@ export const MultiGatewayDonationForm: React.FC<Props> = (props) => {
                       </Select>
                     </FormControl>
                   </Grid>
-                ) : selectedGateway === "kingdomfunding" ? (
+                ) : (
                   <Grid size={{ xs: 12 }}>
-                    {selectedGatewayObj?.publicKey ? (
+                    {selectedGatewayObj?.publicKey && MemberEntry ? (
                       <>
                         <Typography variant="subtitle1" sx={{ mb: 1 }}>{Locale.label("donation.kingdomFunding.enterCardDetails")}</Typography>
-                        <KingdomFundingTokenForm
-                          ref={kfTokenRef}
-                          tokenizationKey={selectedGatewayObj.publicKey}
-                          sandbox={selectedGatewayObj?.settings?.sandbox === true || selectedGatewayObj?.environment === "sandbox"}
-                        />
-                        {props.person?.id && (
+                        <MemberEntry ref={entryRef} gateway={selectedGatewayObj} getContext={buildContext} />
+                        {paymentProvider.capabilities.savedCard && props.person?.id && (
                           <FormGroup sx={{ mt: 1 }}>
                             <FormControlLabel
                               control={<Checkbox checked={saveCard} onChange={(e) => setSaveCard(e.target.checked)} />}
@@ -544,7 +495,7 @@ export const MultiGatewayDonationForm: React.FC<Props> = (props) => {
                           </FormGroup>
                         )}
 
-                        {availablePaymentMethods.length > 0 && (
+                        {paymentProvider.capabilities.savedCard && availablePaymentMethods.length > 0 && (
                           <Button size="small" sx={{ mt: 1 }} onClick={() => {
                             setUseNewCard(false);
                             const d = { ...donation };
@@ -560,54 +511,6 @@ export const MultiGatewayDonationForm: React.FC<Props> = (props) => {
                     ) : (
                       <Alert severity="warning">{Locale.label("donation.kingdomFunding.gatewayConfigMissing")}</Alert>
                     )}
-                  </Grid>
-                ) : (
-                  <Grid size={{ xs: 12 }}>
-                    <Typography variant="subtitle1" sx={{ mb: 1 }}>Enter card details (PayPal Hosted Fields)</Typography>
-                    <PayPalHostedFields
-                      ref={hostedRef}
-                      clientId={paypalClientId}
-                      getClientToken={async () => {
-                        try {
-                          const resp = await ApiHelper.post(
-                            "/donate/client-token",
-                            {
-                              churchId: props?.church?.id || "",
-                              provider: "paypal",
-                              gatewayId: selectedGatewayObj?.id || gateway?.id
-                            },
-                            "GivingApi"
-                          );
-                          const token = resp?.clientToken || resp?.token || resp?.result || resp;
-                          return typeof token === "string" && token.length > 0 ? token : "";
-                        } catch {
-                          return "";
-                        }
-                      }}
-                      createOrder={async () => {
-                        try {
-                          const fundsPayload = (donation?.funds || [])
-                            .filter((f: any) => (f.amount || 0) > 0 && f.id)
-                            .map((f: any) => ({ id: f.id, amount: f.amount || 0 }));
-                          const response = await ApiHelper.post(
-                            "/donate/create-order",
-                            {
-                              churchId: props?.church?.id || "",
-                              provider: "paypal",
-                              gatewayId: selectedGatewayObj?.id || gateway?.id,
-                              amount: total,
-                              currency: (selectedGatewayObj?.currency || gateway?.currency || "USD").toUpperCase(),
-                              funds: fundsPayload,
-                              notes: donation?.notes || ""
-                            },
-                            "GivingApi"
-                          );
-                          return response?.id || response?.orderId || "";
-                        } catch (_e) {
-                          return "";
-                        }
-                      }}
-                    />
                   </Grid>
                 )}
               </Grid>
@@ -692,4 +595,13 @@ export const MultiGatewayDonationForm: React.FC<Props> = (props) => {
       </>
     );
   }
+};
+
+// Public member donation form. Applies the resolved provider's SDK wrapper
+// (Stripe -> <Elements>, so 3DS works) around the provider-agnostic inner form.
+export const MultiGatewayDonationForm: React.FC<Props> = (props) => {
+  const provider = getPaymentProvider(props?.paymentGateways?.find(g => g.enabled !== false)?.provider || "stripe");
+  const Wrapper = provider.MemberWrapper;
+  const inner = <MultiGatewayDonationInner {...props} />;
+  return Wrapper ? <Wrapper stripePromise={props.stripePromise}>{inner}</Wrapper> : inner;
 };

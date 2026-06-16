@@ -27,7 +27,7 @@ export class SignPresenterProvider implements IProvider {
 
   readonly requiresAuth = true;
   readonly authTypes: AuthType[] = ["oauth_pkce", "device_flow"];
-  readonly capabilities: ProviderCapabilities = { browse: true, presentations: true, playlist: true, instructions: true, mediaLicensing: false };
+  readonly capabilities: ProviderCapabilities = { browse: true, playlist: true, instructions: true, mediaLicensing: false };
 
   async browse(path?: string | null, auth?: ContentProviderAuthData | null): Promise<ContentItem[]> {
     const { segments, depth } = parsePath(path);
@@ -115,25 +115,6 @@ export class SignPresenterProvider implements IProvider {
 
     return files;
   }
-
-  // async getPresentations(path: string, auth?: ContentProviderAuthData | null): Promise<Plan | null> {
-  //   const { segments, depth } = parsePath(path);
-
-  //   if (depth < 2 || segments[0] !== "playlists") return null;
-
-  //   const playlistId = segments[1];
-  //   const files = await this.getMessages(playlistId, auth) as ContentFile[];
-  //   if (files.length === 0) return null;
-
-  //   // Get playlist info for title
-  //   const playlists = await this.getPlaylists(auth);
-  //   const playlist = playlists.find(p => p.id === playlistId);
-  //   const title = playlist?.title || "Playlist";
-  //   const thumbnail = (playlist as Record<string, unknown> | undefined)?.image as string | undefined;
-
-  //   const presentations: PlanPresentation[] = files.map(f => ({ id: f.id, name: f.title, actionType: "play" as const, files: [f] }));
-  //   return { id: playlistId, name: title as string, thumbnail, sections: [{ id: `section-${playlistId}`, name: title as string, presentations }], allFiles: files };
-  // }
 
   async getPlaylist(path: string, auth?: ContentProviderAuthData | null, _resolution?: number): Promise<ContentFile[] | null> {
     const { segments, depth } = parsePath(path);

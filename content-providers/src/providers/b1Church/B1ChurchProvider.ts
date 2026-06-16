@@ -1,8 +1,8 @@
 import { ContentProviderConfig, ContentProviderAuthData, ContentItem, ContentFile, ProviderLogos, Plan, PlanPresentation, Instructions, ProviderCapabilities, DeviceAuthorizationResponse, DeviceFlowPollResult, IProvider, AuthType, InstructionItem, CurrentPlan } from "../../interfaces";
 import { parsePath } from "../../pathUtils";
 import { navigateToPath } from "../../instructionPathUtils";
-import { instructionsToPlaylist } from "../../FormatConverters";
-import { ApiHelper } from "../../helpers";
+import { ApiHelper, DeviceFlowHelper } from "../../helpers";
+import { instructionsToPlaylist } from "../../utils";
 import { getProvider } from "../registry";
 import { B1Plan, B1PlanItem } from "./B1ChurchTypes";
 import * as B1ChurchAuth from "./B1ChurchAuth";
@@ -32,6 +32,7 @@ function isExternalProviderItem(item: B1PlanItem): boolean {
 
 export class B1ChurchProvider implements IProvider {
   private readonly apiHelper = new ApiHelper();
+  private readonly deviceFlowHelper = new DeviceFlowHelper();
 
   // Unified cache for external provider data to avoid duplicate calls across methods
   private readonly externalContentCache = {
@@ -54,7 +55,7 @@ export class B1ChurchProvider implements IProvider {
 
   readonly requiresAuth = true;
   readonly authTypes: AuthType[] = ["oauth_pkce", "device_flow"];
-  readonly capabilities: ProviderCapabilities = { browse: true, presentations: true, playlist: true, instructions: true, mediaLicensing: false };
+  readonly capabilities: ProviderCapabilities = { browse: true, playlist: true, instructions: true, mediaLicensing: false };
 
   async buildAuthUrl(codeVerifier: string, redirectUri: string, state?: string): Promise<{ url: string; challengeMethod: string }> {
     return B1ChurchAuth.buildB1AuthUrl(this.config, this.appBase, redirectUri, codeVerifier, state);
@@ -73,11 +74,11 @@ export class B1ChurchProvider implements IProvider {
   }
 
   async initiateDeviceFlow(): Promise<DeviceAuthorizationResponse | null> {
-    return B1ChurchAuth.initiateDeviceFlow(this.config);
+    return this.deviceFlowHelper.initiateDeviceFlow(this.config);
   }
 
   async pollDeviceFlowToken(deviceCode: string): Promise<DeviceFlowPollResult> {
-    return B1ChurchAuth.pollDeviceFlowToken(this.config, deviceCode);
+    return this.deviceFlowHelper.pollDeviceFlowToken(this.config, deviceCode);
   }
 
   async browse(path?: string | null, authData?: ContentProviderAuthData | null): Promise<ContentItem[]> {
@@ -187,125 +188,6 @@ export class B1ChurchProvider implements IProvider {
 
     return imageMap;
   }
-
-  // async getPresentations(path: string, authData?: ContentProviderAuthData | null): Promise<Plan | null> {
-  //   const { segments, depth } = parsePath(path);
-
-  //   if (depth < 4 || segments[0] !== "ministries") return null;
-
-  //   const ministryId = segments[1];
-  //   const planId = segments[3];
-  //   const planTypeId = segments[2];
-
-  //   // Need to fetch plan details to get churchId and contentId
-  //   const plans = await fetchPlans(planTypeId, authData);
-  //   const planFolder = plans.find(p => p.id === planId);
-  //   if (!planFolder) return null;
-
-  //   const churchId = planFolder.churchId;
-  //   const venueId = planFolder.contentId;
-  //   const planTitle = planFolder.name || "Plan";
-
-  //   if (!churchId) {
-  //     console.warn("[B1Church getPresentations] planFolder missing churchId:", planFolder.id);
-  //     return null;
-  //   }
-
-  //   const pathFn = this.config.endpoints.planItems as (churchId: string, planId: string) => string;
-  //   const planItems = await this.apiRequest<B1PlanItem[]>(pathFn(churchId, planId), authData);
-
-  //   // If no planItems but plan has associated provider content, fetch from that provider
-  //   if ((!planItems || planItems.length === 0) && planFolder.providerId && planFolder.providerPlanId) {
-  //     const externalPlan = await fetchFromProviderProxy(
-  //       "getPresentations",
-  //       ministryId,
-  //       planFolder.providerId,
-  //       planFolder.providerPlanId,
-  //       authData
-  //     );
-  //     if (externalPlan) {
-  //       return { id: planId, name: planTitle, sections: externalPlan.sections, allFiles: externalPlan.allFiles };
-  //     }
-  //   }
-
-  //   if (!planItems || !Array.isArray(planItems)) return null;
-
-  //   const venueFeed = venueId ? await fetchVenueFeed(venueId) : null;
-
-  //   const sections: PlanSection[] = [];
-  //   const allFiles: ContentFile[] = [];
-
-  //   for (const sectionItem of planItems) {
-  //     const presentations: PlanPresentation[] = [];
-
-  //     for (const child of sectionItem.children || []) {
-  //       // Try external provider resolution first (cached, uses providerContentPath)
-  //       if (isExternalProviderItem(child) && child.providerId && child.providerPath) {
-  //         const cacheKey = `${child.providerId}:${child.providerPath}`;
-
-  //         let externalPlan = this.externalContentCache.plans.get(cacheKey);
-  //         if (externalPlan === undefined) {
-  //           externalPlan = await fetchFromProviderProxy(
-  //             "getPresentations",
-  //             ministryId,
-  //             child.providerId,
-  //             child.providerPath,
-  //             authData
-  //           );
-  //           this.externalContentCache.plans.set(cacheKey, externalPlan);
-  //         }
-
-  //         if (externalPlan) {
-  //           if (child.providerContentPath) {
-  //             // Fetch instructions to enable path-based lookup (with caching)
-  //             let externalInstructions = this.externalContentCache.instructions.get(cacheKey);
-  //             if (externalInstructions === undefined) {
-  //               externalInstructions = await fetchFromProviderProxy(
-  //                 "getInstructions",
-  //                 ministryId,
-  //                 child.providerId,
-  //                 child.providerPath,
-  //                 authData
-  //               );
-  //               this.externalContentCache.instructions.set(cacheKey, externalInstructions);
-  //             }
-  //             // Find and use only the specific presentation
-  //             const matchingPresentation = this.findPresentationByPath(externalPlan, externalInstructions, child.providerContentPath);
-  //             if (matchingPresentation) {
-  //               presentations.push(matchingPresentation);
-  //               if (Array.isArray(matchingPresentation.files)) {
-  //                 allFiles.push(...matchingPresentation.files);
-  //               }
-  //             }
-  //           } else {
-  //             // Add all presentations from the external plan
-  //             for (const section of externalPlan.sections || []) {
-  //               if (Array.isArray(section.presentations)) {
-  //                 presentations.push(...section.presentations);
-  //               }
-  //             }
-  //             if (Array.isArray(externalPlan.allFiles)) {
-  //               allFiles.push(...externalPlan.allFiles);
-  //             }
-  //           }
-  //         }
-  //       } else {
-  //         // Handle internal items (venue feed sections, link-based files, etc.)
-  //         const presentation = await planItemToPresentation(child, venueFeed);
-  //         if (presentation) {
-  //           presentations.push(presentation);
-  //           allFiles.push(...presentation.files);
-  //         }
-  //       }
-  //     }
-
-  //     if (presentations.length > 0 || sectionItem.label) {
-  //       sections.push({ id: sectionItem.id, name: sectionItem.label || "Section", presentations });
-  //     }
-  //   }
-
-  //   return { id: planId, name: planTitle, sections, allFiles };
-  // }
 
   private planTypeId: string | null = null;
 

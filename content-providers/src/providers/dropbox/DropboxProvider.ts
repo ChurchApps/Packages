@@ -45,7 +45,6 @@ export class DropboxProvider implements IProvider {
   readonly authTypes: AuthType[] = ["oauth_pkce"];
   readonly capabilities: ProviderCapabilities = {
     browse: true,
-    presentations: false,
     playlist: true,
     instructions: true,
     mediaLicensing: false

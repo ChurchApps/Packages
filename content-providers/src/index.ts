@@ -23,12 +23,6 @@ export {
   type DurationEstimationConfig
 } from "./durationUtils";
 
-// Format conversion utilities (access via FormatConverters namespace)
-export * as FormatConverters from "./FormatConverters";
-
-// Format resolver
-export { FormatResolver, type FormatResolverOptions, type ResolvedFormatMeta } from "./FormatResolver";
-
 // Helper classes (for standalone use or custom providers)
 export { OAuthHelper, TokenHelper, DeviceFlowHelper, ApiHelper } from "./helpers";
 
@@ -43,6 +37,7 @@ export { BibleProjectProvider } from "./providers/bibleProject";
 export { HighVoltageKidsProvider } from "./providers/highVoltage";
 export { JesusFilmProvider } from "./providers/jesusFilm";
 export { CbnProvider } from "./providers/cbn";
+export { LifeChurchProvider } from "./providers/lifeChurch";
 
 // Registry functions
 export {

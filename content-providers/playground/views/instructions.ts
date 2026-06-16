@@ -2,7 +2,7 @@ import { state, elements } from '../state';
 import { escapeHtml, renderJsonViewer } from '../utils';
 import { showStatus } from '../ui';
 import { Instructions, InstructionItem } from '../../src';
-import type { ResolvedFormatMeta } from '../../src';
+import type { ResolvedFormatMeta } from '../formats';
 import { renderFormatSourceBadge } from './common';
 
 /**

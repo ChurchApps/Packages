@@ -50,7 +50,7 @@ export class APlayProvider implements IProvider {
 
   readonly requiresAuth = true;
   readonly authTypes: AuthType[] = ["oauth_pkce"];
-  readonly capabilities: ProviderCapabilities = { browse: true, presentations: true, playlist: true, instructions: true, mediaLicensing: true };
+  readonly capabilities: ProviderCapabilities = { browse: true, playlist: true, instructions: true, mediaLicensing: true };
 
   async browse(path?: string | null, auth?: ContentProviderAuthData | null): Promise<ContentItem[]> {
     const { segments, depth } = parsePath(path);
@@ -109,16 +109,6 @@ export class APlayProvider implements IProvider {
     const mediaItems = extractArray(response, "data", "media");
     return convertMediaToFiles(mediaItems);
   }
-
-  // async getPresentations(path: string, auth?: ContentProviderAuthData | null): Promise<Plan | null> {
-  //   const libraryId = extractLibraryId(path);
-  //   if (!libraryId) return null;
-
-  //   const files = await this.getMediaFiles(libraryId, auth) as ContentFile[];
-  //   if (files.length === 0) return null;
-
-  //   return convertFilesToPresentations(files, libraryId).plan;
-  // }
 
   async getPlaylist(path: string, auth?: ContentProviderAuthData | null, _resolution?: number): Promise<ContentFile[] | null> {
     const libraryId = extractLibraryId(path);

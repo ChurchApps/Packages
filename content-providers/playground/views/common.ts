@@ -2,7 +2,7 @@ import { state, elements } from '../state';
 import { escapeHtml, renderJsonViewer } from '../utils';
 import { showStatus, showModal } from '../ui';
 import { getAvailableProviders, ContentItem, ContentFolder, ContentFile, isContentFolder, isContentFile } from '../../src';
-import type { ResolvedFormatMeta } from '../../src';
+import type { ResolvedFormatMeta } from '../formats';
 
 /**
  * Render provider cards in the providers grid
@@ -41,22 +41,14 @@ export function renderProviders(onProviderClick: (providerId: string) => void): 
       const caps = provider.capabilities;
 
       // Determine what formats can be derived
-      const canDerivePlaylist = caps.presentations || caps.instructions;
-      const canDerivePresentations = caps.instructions || caps.playlist;
-      const canDeriveExpanded = caps.presentations || caps.playlist;
+      const canDerivePlaylist = caps.instructions;
+      const canDeriveExpanded = caps.playlist;
 
       // Playlist badge
       if (caps.playlist) {
         capBadges += '<span class="provider-badge badge-cap-playlist badge-native" title="Native support">Playlist</span>';
       } else if (canDerivePlaylist) {
         capBadges += '<span class="provider-badge badge-cap-playlist badge-derived" title="Derived from other formats">Playlist*</span>';
-      }
-
-      // Presentations badge
-      if (caps.presentations) {
-        capBadges += '<span class="provider-badge badge-cap-presentations badge-native" title="Native support">Presentations</span>';
-      } else if (canDerivePresentations) {
-        capBadges += '<span class="provider-badge badge-cap-presentations badge-derived" title="Derived from other formats">Presentations*</span>';
       }
 
       // Instructions badge

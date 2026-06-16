@@ -1,4 +1,4 @@
-import { ContentFile, ContentItem, PlanPresentation, InstructionItem } from "../../interfaces";
+import { ContentFile, ContentItem, InstructionItem } from "../../interfaces";
 import { detectMediaType, createFolder, createFile } from "../../utils";
 import { parsePath } from "../../pathUtils";
 
@@ -87,28 +87,6 @@ export function convertProductsToFolders(products: Record<string, unknown>[], cu
     const id = (p.productId || p.id) as string;
     return createFolder(id, (p.title || p.name) as string, `${currentPath}/products/${id}`, p.image as string | undefined);
   });
-}
-
-/**
- * Convert files to presentations
- */
-interface ConvertFilesResult {
-  presentations: PlanPresentation[];
-  plan: {
-    id: string;
-    name: string;
-    sections: { id: string; name: string; presentations: PlanPresentation[] }[];
-    allFiles: ContentFile[];
-  };
-}
-
-export function convertFilesToPresentations(files: ContentFile[], libraryId: string): ConvertFilesResult {
-  const title = "Library";
-  const presentations: PlanPresentation[] = files.map(f => ({ id: f.id, name: f.title, actionType: "play" as const, files: [f] }));
-  return {
-    presentations,
-    plan: { id: libraryId, name: title, sections: [{ id: `section-${libraryId}`, name: title, presentations }], allFiles: files }
-  };
 }
 
 /**

@@ -7,7 +7,7 @@ import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 
 export default tseslint.config([
-  { ignores: ["node_modules/", "dist/", "build/", ".next/", "coverage/", "*.config.js"] },
+  { ignores: ["node_modules/", "dist/", "build/", ".next/", "coverage/", "*.config.js", "playground/", "cli/"] },
   {
     files: ["**/*.{ts,tsx,js,jsx}"],
     extends: [js.configs.recommended, tseslint.configs.recommended],

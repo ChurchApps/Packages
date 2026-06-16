@@ -1,5 +1,5 @@
-import { ProviderInfo, ProviderLogos } from "../interfaces";
-import { providerRegistry, getProvider, getAllProviders } from "./registry";
+import { IProvider, ProviderInfo, ProviderLogos } from "../interfaces";
+import { registerProvider, getProvider, getAllProviders } from "./registry";
 import { APlayProvider } from "./aPlay";
 import { B1ChurchProvider } from "./b1Church";
 import { DropboxProvider } from "./dropbox";
@@ -78,29 +78,20 @@ const unimplementedProviders: UnimplementedProvider[] = [
 
 // Register built-in providers
 function initializeProviders() {
-  const aplay = new APlayProvider();
-  const b1Church = new B1ChurchProvider();
-  const dropbox = new DropboxProvider();
-  const bibleProject = new BibleProjectProvider();
-  const highVoltageKids = new HighVoltageKidsProvider();
-  const lessonsChurch = new LessonsChurchProvider();
-  const lifeChurch = new LifeChurchProvider();
-  const planningCenter = new PlanningCenterProvider();
-  const signPresenter = new SignPresenterProvider();
-  const jesusFilm = new JesusFilmProvider();
-  const cbn = new CbnProvider();
-
-  providerRegistry.set(aplay.id, aplay);
-  providerRegistry.set(b1Church.id, b1Church);
-  providerRegistry.set(dropbox.id, dropbox);
-  providerRegistry.set(bibleProject.id, bibleProject);
-  providerRegistry.set(highVoltageKids.id, highVoltageKids);
-  providerRegistry.set(jesusFilm.id, jesusFilm);
-  providerRegistry.set(lessonsChurch.id, lessonsChurch);
-  providerRegistry.set(lifeChurch.id, lifeChurch);
-  providerRegistry.set(planningCenter.id, planningCenter);
-  providerRegistry.set(signPresenter.id, signPresenter);
-  providerRegistry.set(cbn.id, cbn);
+  const providers: IProvider[] = [
+    new APlayProvider(),
+    new B1ChurchProvider(),
+    new DropboxProvider(),
+    new BibleProjectProvider(),
+    new HighVoltageKidsProvider(),
+    new JesusFilmProvider(),
+    new LessonsChurchProvider(),
+    new LifeChurchProvider(),
+    new PlanningCenterProvider(),
+    new SignPresenterProvider(),
+    new CbnProvider()
+  ];
+  for (const provider of providers) registerProvider(provider);
 }
 
 // Initialize on module load
@@ -139,7 +130,7 @@ export function getAvailableProviders(ids?: string[]): ProviderInfo[] {
     implemented: false,
     requiresAuth: false,
     authTypes: [],
-    capabilities: { browse: false, presentations: false, playlist: false, instructions: false, mediaLicensing: false }
+    capabilities: { browse: false, playlist: false, instructions: false, mediaLicensing: false }
   }));
 
   const all = [...implemented, ...comingSoon];

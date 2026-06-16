@@ -30,7 +30,7 @@ export class PlanningCenterProvider implements IProvider {
 
   readonly requiresAuth = true;
   readonly authTypes: AuthType[] = ["oauth_pkce"];
-  readonly capabilities: ProviderCapabilities = { browse: true, presentations: true, playlist: true, instructions: true, mediaLicensing: false };
+  readonly capabilities: ProviderCapabilities = { browse: true, playlist: true, instructions: true, mediaLicensing: false };
 
   async browse(path?: string | null, auth?: ContentProviderAuthData | null): Promise<ContentItem[]> {
     const { segments, depth } = parsePath(path);
@@ -101,70 +101,6 @@ export class PlanningCenterProvider implements IProvider {
 
     return response.data.map((item) => ({ type: "file" as const, id: item.id, title: item.attributes.title || "", mediaType: "image" as const, url: "" }));
   }
-
-  // async getPresentations(path: string, auth?: ContentProviderAuthData | null): Promise<Plan | null> {
-  //   const { segments, depth } = parsePath(path);
-
-  //   if (depth < 3 || segments[0] !== "serviceTypes") return null;
-
-  //   const serviceTypeId = segments[1];
-  //   const planId = segments[2];
-
-  //   const pathFn = this.config.endpoints.planItems as (stId: string, pId: string) => string;
-  //   const response = await this.apiRequest<{ data: PCOPlanItem[] }>(
-  //     `${pathFn(serviceTypeId, planId)}?per_page=100`,
-  //     auth
-  //   );
-
-  //   if (!response?.data) return null;
-
-  //   const plans = await this.getPlans(serviceTypeId, `/serviceTypes/${serviceTypeId}`, auth);
-  //   const plan = plans.find(p => p.id === planId);
-  //   const planTitle = plan?.title || "Plan";
-
-  //   const sections: PlanSection[] = [];
-  //   const allFiles: ContentFile[] = [];
-  //   let currentSection: PlanSection | null = null;
-
-  //   for (const item of response.data) {
-  //     const itemType = item.attributes.item_type;
-
-  //     if (itemType === "header") {
-  //       if (currentSection && currentSection.presentations.length > 0) sections.push(currentSection);
-  //       currentSection = { id: item.id, name: item.attributes.title || "Section", presentations: [] };
-  //       continue;
-  //     }
-
-  //     if (!currentSection) {
-  //       currentSection = { id: `default-${planId}`, name: "Service", presentations: [] };
-  //     }
-
-  //     const presentation = await convertToPresentation(this.config, item, auth);
-  //     if (presentation) {
-  //       currentSection.presentations.push(presentation);
-  //       allFiles.push(...presentation.files);
-  //     }
-  //   }
-
-  //   if (currentSection && currentSection.presentations.length > 0) {
-  //     sections.push(currentSection);
-  //   }
-
-  //   return { id: planId, name: planTitle as string, sections, allFiles };
-  // }
-
-  // async getPlaylist(path: string, auth?: ContentProviderAuthData | null, _resolution?: number): Promise<ContentFile[] | null> {
-  //   const plan = await this.getPresentations(path, auth);
-  //   if (!plan) return null;
-  //   return plan.allFiles.length > 0 ? plan.allFiles : null;
-  // }
-
-  // async getInstructions(path: string, auth?: ContentProviderAuthData | null): Promise<Instructions | null> {
-  //   const plan = await this.getPresentations(path, auth);
-  //   if (!plan) return null;
-
-  //   return buildInstructionsFromPlan(plan);
-  // }
 
   supportsDeviceFlow(): boolean {
     return false;

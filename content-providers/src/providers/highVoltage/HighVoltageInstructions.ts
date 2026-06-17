@@ -1,5 +1,5 @@
 import { Instructions, InstructionItem } from "../../interfaces";
-import { estimateDuration } from "../../durationUtils";
+import { IMAGE_DURATION_SECONDS } from "../../utils";
 import { LessonFileJson, LessonFolder, StudyFolder } from "./HighVoltageKidsInterfaces";
 
 /**
@@ -22,7 +22,7 @@ export function groupFilesIntoActions(files: LessonFileJson[], thumbnail?: strin
   const flushGroup = () => {
     if (currentGroup.length === 0) return;
     const children: InstructionItem[] = currentGroup.map(file => {
-      const seconds = estimateDuration(file.mediaType as "video" | "image");
+      const seconds = file.mediaType === "image" ? IMAGE_DURATION_SECONDS : 0;
       return {
         id: file.id,
         itemType: "file" as const,
@@ -67,7 +67,7 @@ export function groupFilesIntoActions(files: LessonFileJson[], thumbnail?: strin
 export function buildStudyInstructions(study: StudyFolder): Instructions {
   const lessonItems: InstructionItem[] = study.lessons.map(lesson => {
     const fileItems: InstructionItem[] = lesson.files.map(file => {
-      const seconds = estimateDuration(file.mediaType as "video" | "image");
+      const seconds = file.mediaType === "image" ? IMAGE_DURATION_SECONDS : 0;
       return { id: file.id, itemType: "file", label: file.title, seconds, downloadUrl: file.url, thumbnail: lesson.image };
     });
     return { id: lesson.id, itemType: "action", label: lesson.name, actionType: "play", children: fileItems };

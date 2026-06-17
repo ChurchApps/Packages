@@ -1,5 +1,7 @@
 import { ContentFolder, ContentFile, Instructions, InstructionItem } from "./interfaces";
 
+export const IMAGE_DURATION_SECONDS = 15;
+
 export function slugify(text: string): string {
   return text
     .toLowerCase()

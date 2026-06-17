@@ -1,6 +1,5 @@
 import { ContentFile, FeedVenueInterface, Plan, PlanSection, PlanPresentation, InstructionItem, Instructions, VenueActionsResponseInterface } from "../../interfaces";
-import { detectMediaType } from "../../utils";
-import { estimateImageDuration } from "../../durationUtils";
+import { detectMediaType, IMAGE_DURATION_SECONDS } from "../../utils";
 import { apiRequest, API_BASE } from "./LessonsChurchApi";
 
 export function normalizeItemType(type?: string): string | undefined {
@@ -140,7 +139,7 @@ export function buildSectionActionsMap(actionsResponse: VenueActionsResponseInte
     for (const section of actionsResponse.sections) {
       if (section.id && section.actions) {
         sectionActionsMap.set(section.id, section.actions.map(action => {
-          const seconds = action.seconds ?? estimateImageDuration();
+          const seconds = action.seconds ?? IMAGE_DURATION_SECONDS;
           const rawActionType = action.actionType?.toLowerCase() || "";
           const hasFiles = rawActionType === "play" || rawActionType === "add-on";
           const thumbnail = (action.id && actionThumbnailMap.get(action.id)) || lessonImage;

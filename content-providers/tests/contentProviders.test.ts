@@ -5,10 +5,9 @@ import assert from "node:assert/strict";
 // (__PACKAGE_VERSION__) that is absent under tsx. Importing providers/index still runs
 // initializeProviders(), so the registry is populated. The build/tsc step verifies the index barrel.
 import { getProvider, getAllProviders, getProviderConfig, getAvailableProviders } from "../src/providers/index";
-import { parsePath, getSegment, buildPath, appendToPath } from "../src/pathUtils";
-import { navigateToPath, generatePath } from "../src/instructionPathUtils";
+import { parsePath, getSegment } from "../src/pathUtils";
+import { navigateToPath } from "../src/instructionPathUtils";
 import { detectMediaType, isMediaFile, createFolder, createFile } from "../src/utils";
-import { countWords, estimateImageDuration, estimateDuration } from "../src/durationUtils";
 // instructionsToPlaylist was relocated from FormatConverters into utils (a general content
 // converter used by B1Church and the playground). Behavior must hold across the move.
 import { instructionsToPlaylist } from "../src/utils";
@@ -138,14 +137,9 @@ test("parsePath splits segments and computes depth", () => {
   }
 });
 
-test("getSegment / buildPath / appendToPath round-trip", () => {
+test("getSegment returns the indexed segment or null", () => {
   assert.equal(getSegment("/a/b/c", 1), "b");
   assert.equal(getSegment("/a", 5), null);
-  assert.equal(buildPath(["a", "b"]), "/a/b");
-  assert.equal(buildPath([]), "/");
-  assert.equal(appendToPath("/a", "b"), "/a/b");
-  assert.equal(appendToPath(null, "b"), "/b");
-  assert.equal(appendToPath("/a/", "b"), "/a/b");
 });
 
 // --- instructionPathUtils (used by B1Admin + B1App) ---
@@ -165,11 +159,6 @@ test("navigateToPath walks the dot-notation tree", () => {
   assert.equal(navigateToPath(tree, "9"), null);
   assert.equal(navigateToPath(tree, ""), null);
   assert.equal(navigateToPath(tree, "x"), null);
-});
-
-test("generatePath joins indices with dots", () => {
-  assert.equal(generatePath([0, 1, 2]), "0.1.2");
-  assert.equal(generatePath([3]), "3");
 });
 
 // --- utils ---
@@ -197,17 +186,6 @@ test("isMediaFile / createFolder / createFile build the expected shapes", () => 
   assert.equal(file.type, "file");
   assert.equal(file.mediaType, "video");
   assert.equal(file.url, "https://x/clip.mp4");
-});
-
-// --- durationUtils ---
-
-test("duration estimates follow the configured defaults", () => {
-  assert.equal(countWords("one two three"), 3);
-  assert.equal(countWords("   "), 0);
-  assert.equal(estimateImageDuration(), 15);
-  assert.equal(estimateDuration("image"), 15);
-  assert.equal(estimateDuration("video"), 0);
-  assert.equal(estimateDuration("text", { wordCount: 150 }), 60);
 });
 
 // --- instructionsToPlaylist (relocated function: behavior must be preserved) ---

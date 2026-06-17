@@ -32,27 +32,3 @@ export function getSegment(path: string | null | undefined, index: number): stri
   const { segments } = parsePath(path);
   return segments[index] ?? null;
 }
-
-/**
- * Build a path string from segments.
- * @param segments - Array of path segments
- * @returns Path string with leading slash
- */
-export function buildPath(segments: string[]): string {
-  if (segments.length === 0) return "/";
-  return "/" + segments.join("/");
-}
-
-/**
- * Append a segment to an existing path.
- * @param basePath - The base path
- * @param segment - The segment to append
- * @returns New path with segment appended
- */
-export function appendToPath(basePath: string | null | undefined, segment: string): string {
-  if (!basePath || basePath === "/" || basePath === "") {
-    return "/" + segment;
-  }
-  const cleanBase = basePath.endsWith("/") ? basePath.slice(0, -1) : basePath;
-  return cleanBase + "/" + segment;
-}

@@ -1,6 +1,8 @@
-import { ElementInterface, SectionInterface } from "../../helpers";
+import { ElementInterface, SectionInterface, responsiveImgProps } from "../../helpers";
 import { Grid } from "@mui/material";
 import { HtmlPreview } from "./HtmlPreview";
+
+const IMG_SIZES = "(max-width:768px) 100vw, 33vw";
 
 interface Props { element: ElementInterface; onEdit?: (section: SectionInterface | null, element: ElementInterface) => void; }
 
@@ -21,7 +23,7 @@ export const TextWithPhoto: React.FC<Props> = props => {
       result = (
         <Grid container columnSpacing={3}>
           <Grid size={{ md: 4, xs: 12 }}>
-            <img src={props.element.answers?.photo || "about:blank"} alt={props.element.answers?.photoAlt || ""} style={{ borderRadius: 10, marginTop: 40 }} loading="lazy" decoding="async" />
+            <img {...responsiveImgProps(props.element.answers?.photo, IMG_SIZES)} alt={props.element.answers?.photoAlt || ""} style={{ borderRadius: 10, marginTop: 40 }} loading="lazy" decoding="async" />
           </Grid>
           <Grid size={{ md: 8, xs: 12 }}>
             {textComponent}
@@ -36,7 +38,7 @@ export const TextWithPhoto: React.FC<Props> = props => {
             {textComponent}
           </Grid>
           <Grid size={{ md: 4, xs: 12 }}>
-            <img src={props.element.answers?.photo || "about:blank"} alt={props.element.answers?.photoAlt || ""} style={{ borderRadius: 10, marginTop: 40 }} loading="lazy" decoding="async" />
+            <img {...responsiveImgProps(props.element.answers?.photo, IMG_SIZES)} alt={props.element.answers?.photoAlt || ""} style={{ borderRadius: 10, marginTop: 40 }} loading="lazy" decoding="async" />
           </Grid>
         </Grid>
       );
@@ -45,14 +47,14 @@ export const TextWithPhoto: React.FC<Props> = props => {
       result = (
         <>
           {textComponent}
-          <img src={props.element.answers?.photo || "about:blank"} alt={props.element.answers?.photoAlt || ""} style={{ borderRadius: 10, marginTop: 40 }} loading="lazy" decoding="async" />
+          <img {...responsiveImgProps(props.element.answers?.photo, IMG_SIZES)} alt={props.element.answers?.photoAlt || ""} style={{ borderRadius: 10, marginTop: 40 }} loading="lazy" decoding="async" />
         </>
       );
       break;
     case "top":
       result = (
         <>
-          <img src={props.element.answers?.photo || "about:blank"} alt={props.element.answers?.photoAlt || ""} style={{ borderRadius: 10, marginTop: 40 }} loading="lazy" decoding="async" />
+          <img {...responsiveImgProps(props.element.answers?.photo, IMG_SIZES)} alt={props.element.answers?.photoAlt || ""} style={{ borderRadius: 10, marginTop: 40 }} loading="lazy" decoding="async" />
           {textComponent}
         </>
       );

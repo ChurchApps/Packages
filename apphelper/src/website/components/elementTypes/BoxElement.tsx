@@ -1,5 +1,5 @@
 import React, { CSSProperties } from "react";
-import { ElementInterface, SectionInterface } from "../../helpers";
+import { ElementInterface, SectionInterface, optimizedBackgroundImage } from "../../helpers";
 import { DroppableArea } from "../admin/DroppableArea";
 import { Element } from "../Element";
 import { ApiHelper } from "../../..";
@@ -37,12 +37,17 @@ export function BoxElement(props: Props) {
   };
 
 
+  const isImageBg = props.element.answers?.background?.indexOf("/") > -1;
+
   const getStyle = () => {
-    let result: CSSProperties = { };
-    if (props.element.answers?.background?.indexOf("/") > -1) {
-      result = { backgroundImage: "url('" + props.element.answers?.background + "')" };
-    } else {
-      result = { background: props.element.answers?.background };
+    const result: CSSProperties = isImageBg
+      ? { backgroundImage: optimizedBackgroundImage(props.element.answers?.background) }
+      : { background: props.element.answers?.background };
+    if (isImageBg) {
+      if (props.element.answers?.focalPoint) result.backgroundPosition = props.element.answers.focalPoint;
+      // overlay defaults off (opacity 0) so existing image boxes don't darken
+      (result as any)["--overlay-color"] = props.element.answers?.overlayColor || "#000";
+      (result as any)["--overlay-opacity"] = props.element.answers?.backgroundOpacity || "0";
     }
     if (props.element.answers?.textColor?.startsWith("var(")) result.color = props.element.answers?.textColor;
     result.padding = 15;
@@ -54,6 +59,7 @@ export function BoxElement(props: Props) {
 
   const getClass = () => {
     let result = "elBox";
+    if (isImageBg) result += " boxBG";
     let hc = props.element.answers?.headingColor;
     if (hc) {
       hc = hc.replace("var(--", "").replace(")", "");

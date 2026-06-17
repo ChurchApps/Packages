@@ -11,20 +11,10 @@ export const VERSION = __PACKAGE_VERSION__;
 export * from "./interfaces";
 
 // Utilities
-export { detectMediaType, isMediaFile, createFolder, createFile } from "./utils";
-export { parsePath, getSegment, buildPath, appendToPath } from "./pathUtils";
-export { navigateToPath, generatePath } from "./instructionPathUtils";
-export {
-  estimateDuration,
-  estimateImageDuration,
-  estimateTextDuration,
-  countWords,
-  DEFAULT_DURATION_CONFIG,
-  type DurationEstimationConfig
-} from "./durationUtils";
+export { navigateToPath } from "./instructionPathUtils";
 
 // Helper classes (for standalone use or custom providers)
-export { OAuthHelper, TokenHelper, DeviceFlowHelper, ApiHelper } from "./helpers";
+export { TokenHelper } from "./helpers";
 
 // Built-in providers
 export { APlayProvider } from "./providers/aPlay";

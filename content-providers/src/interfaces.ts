@@ -227,7 +227,6 @@ export interface VenueActionsResponseInterface {
 
 export interface ProviderCapabilities {
   browse: boolean;
-  presentations: boolean;
   playlist: boolean;
   instructions: boolean;
   mediaLicensing: boolean;
@@ -259,7 +258,6 @@ export interface IProvider {
 
   // Core methods (required)
   browse(path?: string | null, auth?: ContentProviderAuthData | null): Promise<ContentItem[]>;
-  // getPresentations(path: string, auth?: ContentProviderAuthData | null): Promise<Plan | null>;
 
   // Auth methods (required)
   supportsDeviceFlow(): boolean;

@@ -28,7 +28,7 @@ export class LessonsChurchProvider implements IProvider {
 
   readonly requiresAuth = false;
   readonly authTypes: AuthType[] = ["none"];
-  readonly capabilities: ProviderCapabilities = { browse: true, presentations: true, playlist: true, instructions: true, mediaLicensing: false };
+  readonly capabilities: ProviderCapabilities = { browse: true, playlist: true, instructions: true, mediaLicensing: false };
 
   async getPlaylist(path: string, _auth?: ContentProviderAuthData | null, resolution?: number): Promise<ContentFile[] | null> {
     const { segments } = parsePath(path);
@@ -176,22 +176,6 @@ export class LessonsChurchProvider implements IProvider {
 
     return filtered.map(addOn => createFolder(addOn.id as string, addOn.name as string, `${currentPath}/${addOn.id}`, addOn.image as string | undefined, true));
   }
-
-  // async getPresentations(path: string, _auth?: ContentProviderAuthData | null): Promise<Plan | null> {
-  //   const venueId = getSegment(path, 4);
-  //   if (venueId) {
-  //     const venueData = await apiRequest<FeedVenueInterface>(`/venues/public/feed/${venueId}`);
-  //     if (!venueData) return null;
-  //     return convertVenueToPlan(venueData);
-  //   }
-
-  //   const { segments } = parsePath(path);
-  //   if (segments[0] === "addons" && segments.length === 2) {
-  //     return convertAddOnCategoryToPlan(segments[1]);
-  //   }
-
-  //   return null;
-  // }
 
   async getInstructions(path: string, _auth?: ContentProviderAuthData | null): Promise<Instructions | null> {
     const venueId = getSegment(path, 4);

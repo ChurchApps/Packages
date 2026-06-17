@@ -1,6 +1,8 @@
 import React, { CSSProperties, useCallback, useEffect, useState } from "react";
 import ReactDOM from "react-dom";
-import { ElementInterface, SectionInterface } from "../../helpers";
+import { ElementInterface, SectionInterface, responsiveImgProps } from "../../helpers";
+
+const IMG_SIZES = "(max-width:768px) 100vw, 66vw";
 
 interface Props {
   element: ElementInterface;
@@ -63,7 +65,7 @@ export const ImageElement = ({ element }: Props) => {
   if (imageUrl) {
     const imgTag = (
       <img
-        src={imageUrl}
+        {...responsiveImgProps(imageUrl, IMG_SIZES)}
         alt={element.answers?.photoAlt || ""}
         className={imageClassName}
         id={"el-" + element.id}

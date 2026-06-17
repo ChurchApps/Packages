@@ -11,26 +11,10 @@ export const VERSION = __PACKAGE_VERSION__;
 export * from "./interfaces";
 
 // Utilities
-export { detectMediaType, isMediaFile, createFolder, createFile } from "./utils";
-export { parsePath, getSegment, buildPath, appendToPath } from "./pathUtils";
-export { navigateToPath, generatePath } from "./instructionPathUtils";
-export {
-  estimateDuration,
-  estimateImageDuration,
-  estimateTextDuration,
-  countWords,
-  DEFAULT_DURATION_CONFIG,
-  type DurationEstimationConfig
-} from "./durationUtils";
-
-// Format conversion utilities (access via FormatConverters namespace)
-export * as FormatConverters from "./FormatConverters";
-
-// Format resolver
-export { FormatResolver, type FormatResolverOptions, type ResolvedFormatMeta } from "./FormatResolver";
+export { navigateToPath } from "./instructionPathUtils";
 
 // Helper classes (for standalone use or custom providers)
-export { OAuthHelper, TokenHelper, DeviceFlowHelper, ApiHelper } from "./helpers";
+export { TokenHelper } from "./helpers";
 
 // Built-in providers
 export { APlayProvider } from "./providers/aPlay";
@@ -43,6 +27,7 @@ export { BibleProjectProvider } from "./providers/bibleProject";
 export { HighVoltageKidsProvider } from "./providers/highVoltage";
 export { JesusFilmProvider } from "./providers/jesusFilm";
 export { CbnProvider } from "./providers/cbn";
+export { LifeChurchProvider } from "./providers/lifeChurch";
 
 // Registry functions
 export {

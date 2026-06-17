@@ -39,7 +39,6 @@ export class HighVoltageKidsProvider implements IProvider {
   readonly authTypes: AuthType[] = ["none"];
   readonly capabilities: ProviderCapabilities = {
     browse: true,
-    presentations: true,
     playlist: true,
     instructions: true,
     mediaLicensing: false
@@ -55,25 +54,6 @@ export class HighVoltageKidsProvider implements IProvider {
 
     return [];
   }
-
-  // async getPresentations(path: string, _auth?: ContentProviderAuthData | null): Promise<Plan | null> {
-  //   const { segments, depth } = parsePath(path);
-
-  //   if (depth < 2) return null;
-
-  //   const study = findStudy(this.data, segments[0], segments[1]);
-  //   if (!study) return null;
-
-  //   if (depth === 2) return buildStudyPlan(study);
-
-  //   if (depth === 3) {
-  //     const lesson = findLesson(this.data, segments[0], segments[1], segments[2]);
-  //     if (!lesson) return null;
-  //     return buildLessonPlan(lesson);
-  //   }
-
-  //   return null;
-  // }
 
   async getPlaylist(path: string, _auth?: ContentProviderAuthData | null, _resolution?: number): Promise<ContentFile[] | null> {
     const { segments, depth } = parsePath(path);

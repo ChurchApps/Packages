@@ -1,7 +1,9 @@
 import React from "react";
-import { ElementInterface, SectionInterface } from "../../helpers";
+import { ElementInterface, SectionInterface, responsiveImgProps } from "../../helpers";
 import { HtmlPreview } from "./HtmlPreview";
 import { Card, CardContent } from "@mui/material";
+
+const IMG_SIZES = "(max-width:768px) 100vw, 33vw";
 
 
 interface Props { element: ElementInterface; onEdit?: (section: SectionInterface | null, element: ElementInterface) => void; }
@@ -20,7 +22,7 @@ export const CardElement: React.FC<Props> = (props) => {
 
   let photoContent = <></>;
   if (props.element.answers?.photo) {
-    const photo = <img src={props.element.answers?.photo || "about:blank"} alt={props.element.answers?.photoAlt || ""} style={{ borderRadius: 3 }} loading="lazy" decoding="async" />;
+    const photo = <img {...responsiveImgProps(props.element.answers?.photo, IMG_SIZES)} alt={props.element.answers?.photoAlt || ""} style={{ borderRadius: 3 }} loading="lazy" decoding="async" />;
     if (props.element.answers?.url) photoContent = (<a href={props.element.answers?.url}>{photo}</a>);
     else photoContent = (photo);
   }

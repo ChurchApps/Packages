@@ -1,7 +1,7 @@
 import { state } from './state';
 import { showLoading, showStatus } from './ui';
-import { FormatResolver, ContentItem, ContentFile, Plan, Instructions, ContentFolder } from '../src';
-import type { ResolvedFormatMeta } from '../src';
+import { ContentItem, ContentFile, Instructions, ContentFolder } from '../src';
+import { getPlaylistWithMeta, getInstructionsWithMeta, type ResolvedFormatMeta } from './formats';
 
 /**
  * Result type for viewAsPlaylist function
@@ -59,8 +59,7 @@ export async function viewAsPlaylist(folder: ContentFolder): Promise<PlaylistRes
   showLoading(true);
 
   try {
-    const resolver = new FormatResolver(state.currentProvider);
-    const { data: playlist, meta } = await resolver.getPlaylistWithMeta(folder.path, state.currentAuth);
+    const { data: playlist, meta } = await getPlaylistWithMeta(state.currentProvider, folder.path, state.currentAuth);
 
     if (!playlist || playlist.length === 0) {
       // Update state even for empty playlist (caller may want to fallback to browse)
@@ -136,8 +135,7 @@ export async function viewAsInstructions(folder: ContentFolder): Promise<Instruc
   showLoading(true);
 
   try {
-    const resolver = new FormatResolver(state.currentProvider);
-    const { data: instructions, meta } = await resolver.getInstructionsWithMeta(folder.path, state.currentAuth);
+    const { data: instructions, meta } = await getInstructionsWithMeta(state.currentProvider, folder.path, state.currentAuth);
 
     if (!instructions) {
       showStatus('This provider does not support expanded instructions view', 'error');

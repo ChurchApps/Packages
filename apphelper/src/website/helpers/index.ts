@@ -32,6 +32,7 @@ export interface SectionInterface {
 }
 
 export * from "./StyleHelper";
+export * from "./imageOptimizer";
 export * from "./EnvironmentHelper";
 export * from "./interfaces";
 export * from "./StreamingServiceHelper";

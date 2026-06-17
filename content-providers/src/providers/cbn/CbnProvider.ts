@@ -49,7 +49,7 @@ export class CbnProvider implements IProvider {
 
   readonly requiresAuth = true;
   readonly authTypes: AuthType[] = ["device_flow"];
-  readonly capabilities: ProviderCapabilities = { browse: true, presentations: false, playlist: true, instructions: true, mediaLicensing: false };
+  readonly capabilities: ProviderCapabilities = { browse: true, playlist: true, instructions: true, mediaLicensing: false };
 
   async browse(path?: string | null, auth?: ContentProviderAuthData | null): Promise<ContentItem[]> {
     const { segments, depth } = parsePath(path);

@@ -18,11 +18,3 @@ export function navigateToPath(instructions: Instructions, path: string): Instru
 
   return current;
 }
-
-/**
- * Generate a path string for an item given its position in the tree.
- * Used when selecting an item to store its path.
- */
-export function generatePath(indices: number[]): string {
-  return indices.join(".");
-}

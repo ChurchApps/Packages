@@ -156,6 +156,28 @@ body {
   box-sizing: inherit;
 }
 
+/* Box background overlay/tint — opt-in via inline --overlay-opacity (defaults off) */
+.page .boxBG {
+  background-size: cover;
+  background-position: 50% 50%;
+  position: relative;
+}
+
+.page .boxBG:before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--overlay-color, #000);
+  opacity: var(--overlay-opacity, 0);
+  pointer-events: none;
+  box-sizing: inherit;
+}
+
+.page .boxBG > * {
+  position: relative;
+  z-index: 1;
+}
+
 /*
 .section {
   color: #333;

@@ -46,7 +46,6 @@ export class LifeChurchProvider implements IProvider {
   readonly authTypes: AuthType[] = ["none"];
   readonly capabilities: ProviderCapabilities = {
     browse: true,
-    presentations: true,
     playlist: true,
     instructions: true,
     mediaLicensing: false

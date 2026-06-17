@@ -1,5 +1,5 @@
 import React from "react";
-import { ElementInterface } from "../../helpers";
+import { ElementInterface, responsiveImgProps } from "../../helpers";
 import { AppearanceHelper } from "../../..";
 
 interface Props { element: ElementInterface; churchSettings: any; textColor: string; }
@@ -14,11 +14,13 @@ export const LogoElement: React.FC<Props> = (props) => {
 
   const photo = (
     <img
-      src={logoUrl}
+      {...responsiveImgProps(logoUrl)}
       alt={props.element.answers?.photoAlt || ""}
       className="img-fluid"
       id={"el-" + props.element.id}
       style={{ maxWidth: "100%", height: "auto", display: "block" }}
+      loading="lazy"
+      decoding="async"
     />
   );
   const photoContent = (props.element.answers?.url) ? <a href={props.element.answers?.url}>{photo}</a> : photo;

@@ -1,6 +1,6 @@
 {
   "name": "@churchapps/helpers",
-  "version": "1.8.0",
+  "version": "1.8.1",
   "type": "module",
   "description": "Library of helper functions not specific to any one ChurchApps project or framework.",
   "main": "dist/index.js",

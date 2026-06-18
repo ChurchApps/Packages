@@ -486,7 +486,9 @@ const MultiGatewayDonationInner: React.FC<Props> = (props) => {
                       <>
                         <Typography variant="subtitle1" sx={{ mb: 1 }}>{Locale.label("donation.kingdomFunding.enterCardDetails")}</Typography>
                         <MemberEntry ref={entryRef} gateway={selectedGatewayObj} getContext={buildContext} />
-                        {paymentProvider.capabilities.savedCard && props.person?.id && (
+                        {/* Stripe saves the card implicitly (via /paymentmethods/addcard at
+                            tokenize time), so a "save this card" toggle would be misleading. */}
+                        {paymentProvider.capabilities.savedCard && props.person?.id && paymentProvider.key !== "stripe" && (
                           <FormGroup sx={{ mt: 1 }}>
                             <FormControlLabel
                               control={<Checkbox checked={saveCard} onChange={(e) => setSaveCard(e.target.checked)} />}

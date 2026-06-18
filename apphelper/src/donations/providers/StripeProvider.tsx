@@ -1,12 +1,16 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { forwardRef, useImperativeHandle, useMemo, useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
-import { Elements } from "@stripe/react-stripe-js";
+import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { Box, ToggleButtonGroup, ToggleButton } from "@mui/material";
+import { ApiHelper } from "@churchapps/helpers";
 import { NonAuthDonationInner } from "../components/NonAuthDonationInner";
 import { DonationHelper } from "../helpers";
-import type { PaymentProvider, GuestFormProps, ChargeContext, PaymentToken, ChargeRequest } from "./types";
+import type {
+  PaymentProvider, GuestFormProps, ChargeContext, PaymentToken, ChargeRequest,
+  MemberEntryHandle, MemberEntryProps
+} from "./types";
 
 const stripeSupportedCurrencies = [
   "usd", "eur", "gbp", "cad", "aud", "inr", "jpy", "sgd", "hkd", "sek", "nok", "dkk", "chf", "mxn", "brl"
@@ -65,14 +69,49 @@ const StripeGuestForm: React.FC<GuestFormProps> = (props) => {
   );
 };
 
-// Member Stripe donations charge a saved payment method (cards are added in
-// PaymentMethods, not inline) — so the body is the saved-method shape.
+// Inline card entry for a member with no saved card. Mirrors the proven guest
+// path: tokenize the card, then save it via /paymentmethods/addcard (which creates
+// the Stripe customer + attaches the card) so the charge runs through the normal
+// saved-method flow. The card is therefore always saved on submit.
+const StripeMemberEntry = forwardRef<MemberEntryHandle, MemberEntryProps>(({ gateway, getContext }, ref) => {
+  const stripe = useStripe();
+  const elements = useElements();
+  useImperativeHandle(ref, () => ({
+    tokenize: async (): Promise<PaymentToken> => {
+      const cardData = elements?.getElement(CardElement);
+      if (!stripe || !cardData) throw new Error("Card form not ready. Please wait and try again.");
+      const stripePM = await stripe.createPaymentMethod({ type: "card", card: cardData });
+      if (stripePM.error) throw new Error(stripePM.error.message || "Card creation failed");
+
+      const ctx = getContext?.();
+      const result = await ApiHelper.post("/paymentmethods/addcard", {
+        id: stripePM.paymentMethod!.id,
+        personId: ctx?.person?.id,
+        email: ctx?.person?.email,
+        name: ctx?.person?.name,
+        churchId: ctx?.churchId,
+        provider: "stripe",
+        gatewayId: gateway?.id
+      }, "GivingApi");
+      if (result?.raw?.message) throw new Error(result.raw.message);
+
+      const pm = result?.paymentMethod;
+      return { id: pm?.id, type: "card", saved: true, customerId: result?.customerId, last4: pm?.last4, brand: pm?.name };
+    }
+  }));
+  return <CardElement options={{ style: { base: { fontSize: "18px" } } }} />;
+});
+StripeMemberEntry.displayName = "StripeMemberEntry";
+
+// Member Stripe donations charge a saved payment method — either one the member
+// already had, or the card StripeMemberEntry just saved (token carries the new
+// customerId, since a first-time donor's ctx.customerId is still empty).
 function buildSavedMethodBody(ctx: ChargeContext, token: PaymentToken, providerKey: string) {
   return {
     id: token.id,
     type: token.type,
     provider: providerKey,
-    customerId: ctx.customerId,
+    customerId: token.customerId || ctx.customerId,
     gatewayId: ctx.gatewayId,
     person: ctx.person,
     amount: ctx.amount,
@@ -100,6 +139,8 @@ export const StripeProvider: PaymentProvider = {
   capabilities: { savedCard: true, savedBank: true, guestAch: true, memberNewCard: false, recurring: true, editRecurring: true },
 
   MemberWrapper: ({ stripePromise, children }) => <Elements stripe={stripePromise ?? null}>{children}</Elements>,
+
+  MemberEntry: StripeMemberEntry,
 
   buildChargeRequest: (ctx, token): ChargeRequest => ({
     endpoint: ctx.recurring ? "/donate/subscribe" : "/donate/charge",

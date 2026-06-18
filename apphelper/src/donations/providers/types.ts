@@ -14,6 +14,9 @@ export interface PaymentToken {
   last4?: string;
   expMonth?: string;
   expYear?: string;
+  // Set when the entry widget saved the method and created/looked-up a customer
+  // (first-time Stripe donor has no customer until the card is saved).
+  customerId?: string;
 }
 
 // Everything the payload builder needs about the gift in flight. Funds are

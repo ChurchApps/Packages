@@ -14,10 +14,9 @@ import {
   Dialog, DialogTitle, DialogContent, DialogActions
 } from "@mui/material";
 
-// Kingdom Funding ACH is hidden in the UI pending hosted ACH tokenization support
-// from the gateway. Flip to true once tokenization no longer requires raw routing/
-// account numbers to flow through our backend.
-const KF_ACH_ENABLED = false;
+// Kingdom Funding ACH is now tokenized via NMI Collect.js (bank routing/account are
+// entered in Collect.js hosted fields, never touching our backend), so it's enabled.
+const KF_ACH_ENABLED = true;
 
 interface Props { person: PersonInterface, customerId: string, paymentMethods: StripePaymentMethod[], stripePromise: Promise<Stripe | null> | null, appName: string, dataUpdate: (message?: string) => void }
 
@@ -93,6 +92,7 @@ export const PaymentMethods: React.FC<Props> = (props) => {
             setAnchorEl(null);
             if (isKF) {
               // Open the KF dialog directly — avoids setState during render in EditForm
+              setKfDialogMethod("card");
               setShowAddCardDialog(true);
             } else {
               handleEdit(new StripePaymentMethod({ type: "card" }))(e);
@@ -101,7 +101,17 @@ export const PaymentMethods: React.FC<Props> = (props) => {
             <Icon sx={{ mr: "3px" }}>credit_card</Icon> {Locale.label("donation.paymentMethods.addCard")}
           </MenuItem>
           {(!isKF || KF_ACH_ENABLED) && (
-            <MenuItem aria-label="add-bank" onClick={handleEdit(new StripePaymentMethod({ type: "bank" }))}>
+            <MenuItem aria-label="add-bank" onClick={(e: React.MouseEvent) => {
+              e.preventDefault();
+              setAnchorEl(null);
+              if (isKF) {
+                // KF banks are tokenized in the same dialog, ACH mode.
+                setKfDialogMethod("ach");
+                setShowAddCardDialog(true);
+              } else {
+                handleEdit(new StripePaymentMethod({ type: "bank" }))(e);
+              }
+            }}>
               <Icon sx={{ mr: "3px" }}>account_balance</Icon> {Locale.label("donation.paymentMethods.addBank")}
             </MenuItem>
           )}
@@ -171,6 +181,7 @@ export const PaymentMethods: React.FC<Props> = (props) => {
   const [saving, setSaving] = useState(false);
   const [addError, setAddError] = useState<string | undefined>();
   const [showAddCardDialog, setShowAddCardDialog] = useState(false);
+  const [kfDialogMethod, setKfDialogMethod] = useState<"card" | "ach">("card");
 
   const resetKFDialog = () => {
     setShowAddCardDialog(false);
@@ -197,15 +208,22 @@ export const PaymentMethods: React.FC<Props> = (props) => {
       }
       const tokenResult = await kfTokenRef.current.getNonce();
       basePayload.id = tokenResult.nonce;
-      basePayload.cardBrand = tokenResult.cardType;
-      basePayload.cardLast4 = tokenResult.last4;
-      basePayload.expiry_month = tokenResult.expiryMonth;
-      basePayload.expiry_year = tokenResult.expiryYear;
+      if (kfDialogMethod === "ach") {
+        basePayload.type = "bank";
+        basePayload.bankLast4 = tokenResult.accountLast4;
+        basePayload.name = props.person?.name?.display || ("Bank account ****" + (tokenResult.accountLast4 || ""));
+      } else {
+        basePayload.type = "card";
+        basePayload.cardBrand = tokenResult.cardType;
+        basePayload.cardLast4 = tokenResult.last4;
+        basePayload.expiry_month = tokenResult.expiryMonth;
+        basePayload.expiry_year = tokenResult.expiryYear;
+      }
 
       await ApiHelper.post("/paymentmethods/addcard", basePayload, "GivingApi");
       resetKFDialog();
       setMode("display");
-      props.dataUpdate("Card saved successfully.");
+      props.dataUpdate(kfDialogMethod === "ach" ? "Bank account saved successfully." : "Card saved successfully.");
     } catch (e: any) {
       setAddError(e.message || "Failed to save payment method");
     } finally {
@@ -215,13 +233,24 @@ export const PaymentMethods: React.FC<Props> = (props) => {
 
   const kfAddCardDialog = (
     <Dialog open={showAddCardDialog} onClose={resetKFDialog} maxWidth="sm" fullWidth>
-      <DialogTitle>Add Payment Method</DialogTitle>
+      <DialogTitle>{kfDialogMethod === "ach" ? "Add Bank Account" : "Add Card"}</DialogTitle>
       <DialogContent>
         {gateway?.publicKey && showAddCardDialog ? (
           <>
+            {KF_ACH_ENABLED && (
+              <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+                <Button fullWidth variant={kfDialogMethod === "card" ? "contained" : "outlined"} onClick={() => setKfDialogMethod("card")}>
+                  {Locale.label("donation.kingdomFunding.payWithCard")}
+                </Button>
+                <Button fullWidth variant={kfDialogMethod === "ach" ? "contained" : "outlined"} onClick={() => setKfDialogMethod("ach")}>
+                  {Locale.label("donation.kingdomFunding.payWithBank")}
+                </Button>
+              </div>
+            )}
             <KingdomFundingTokenForm
               ref={kfTokenRef}
               tokenizationKey={gateway.publicKey}
+              paymentMethod={kfDialogMethod}
               sandbox={gateway?.settings?.sandbox === true || gateway?.environment === "sandbox"}
             />
             {addError && <Alert severity="error" sx={{ mt: 1 }}>{addError}</Alert>}
@@ -234,7 +263,7 @@ export const PaymentMethods: React.FC<Props> = (props) => {
         <Button onClick={resetKFDialog}>Cancel</Button>
         {gateway?.publicKey && (
           <Button variant="contained" onClick={handleKFAddCard} disabled={saving}>
-            {saving ? <CircularProgress size={20} /> : "Save Card"}
+            {saving ? <CircularProgress size={20} /> : (kfDialogMethod === "ach" ? "Save Bank Account" : "Save Card")}
           </Button>
         )}
       </DialogActions>

@@ -29,9 +29,7 @@ import {
 } from "@mui/material";
 import type { SelectChangeEvent } from "@mui/material";
 
-// Note: Kingdom Funding ACH support is intentionally omitted from this form
-// pending hosted ACH tokenization support from the gateway. KF flows here are
-// card-only (matches the `KF_ACH_ENABLED = false` gate in sibling components).
+// Kingdom Funding supports card and bank (ACH) here — both tokenized via NMI Collect.js.
 
 interface Props { 
   person: PersonInterface;
@@ -77,6 +75,7 @@ export const MultiGatewayDonationForm: React.FC<Props> = (props) => {
   }, [props.paymentGateways]);
   const hostedRef = useRef<PayPalHostedFieldsHandle>(null);
   const kfTokenRef = useRef<KingdomFundingTokenFormHandle>(null);
+  const [kfPayMethod, setKfPayMethod] = useState<"card" | "ach">("card");
   const feeTimeoutRef = useRef<number | null>(null);
   const [donation, setDonation] = useState<MultiGatewayDonationInterface>({
     id: props?.paymentMethods?.length > 0 ? props.paymentMethods[0].id : "",
@@ -235,13 +234,18 @@ export const MultiGatewayDonationForm: React.FC<Props> = (props) => {
           notes: donation?.notes || "",
           church: churchObj,
           saveCard,
-          type: "card",
-          id: tokenResult.nonce,
-          cardBrand: tokenResult.cardType,
-          cardLast4: tokenResult.last4,
-          expiry_month: tokenResult.expiryMonth,
-          expiry_year: tokenResult.expiryYear
+          type: kfPayMethod === "ach" ? "bank" : "card",
+          id: tokenResult.nonce
         };
+        if (kfPayMethod === "ach") {
+          payload.name = "Bank account ****" + (tokenResult.accountLast4 || "");
+          payload.accountLast4 = tokenResult.accountLast4;
+        } else {
+          payload.cardBrand = tokenResult.cardType;
+          payload.cardLast4 = tokenResult.last4;
+          payload.expiry_month = tokenResult.expiryMonth;
+          payload.expiry_year = tokenResult.expiryYear;
+        }
 
         if (donationType === "recurring") {
           payload.billing_cycle_anchor = donation.billing_cycle_anchor;
@@ -566,10 +570,23 @@ export const MultiGatewayDonationForm: React.FC<Props> = (props) => {
                   <Grid size={{ xs: 12 }}>
                     {selectedGatewayObj?.publicKey ? (
                       <>
-                        <Typography variant="subtitle1" sx={{ mb: 1 }}>{Locale.label("donation.kingdomFunding.enterCardDetails")}</Typography>
+                        <Grid container spacing={2} sx={{ mb: 1 }}>
+                          <Grid size={{ xs: 6 }}>
+                            <Button aria-label="kf-pay-card" fullWidth variant={kfPayMethod === "card" ? "contained" : "outlined"} onClick={() => setKfPayMethod("card")}>
+                              {Locale.label("donation.kingdomFunding.payWithCard")}
+                            </Button>
+                          </Grid>
+                          <Grid size={{ xs: 6 }}>
+                            <Button aria-label="kf-pay-bank" fullWidth variant={kfPayMethod === "ach" ? "contained" : "outlined"} onClick={() => setKfPayMethod("ach")}>
+                              {Locale.label("donation.kingdomFunding.payWithBank")}
+                            </Button>
+                          </Grid>
+                        </Grid>
+                        <Typography variant="subtitle1" sx={{ mb: 1 }}>{Locale.label(kfPayMethod === "ach" ? "donation.kingdomFunding.enterBankDetails" : "donation.kingdomFunding.enterCardDetails")}</Typography>
                         <KingdomFundingTokenForm
                           ref={kfTokenRef}
                           tokenizationKey={selectedGatewayObj.publicKey}
+                          paymentMethod={kfPayMethod}
                           sandbox={selectedGatewayObj?.settings?.sandbox === true || selectedGatewayObj?.environment === "sandbox"}
                         />
                         {props.person?.id && (

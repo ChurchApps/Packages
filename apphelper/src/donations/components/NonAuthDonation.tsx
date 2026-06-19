@@ -12,11 +12,6 @@ import { DonationHelper, Locale } from "../helpers";
 import { FormControl, InputLabel, Select, MenuItem, Box, Typography, ToggleButtonGroup, ToggleButton } from "@mui/material";
 import type { PaperProps } from "@mui/material/Paper";
 
-// Kingdom Funding ACH is hidden in the UI pending hosted ACH tokenization support
-// from the gateway. Flip to true once tokenization no longer requires raw routing/
-// account numbers to flow through our backend.
-const KF_ACH_ENABLED = false;
-
 interface Props {
   churchId: string;
   mainContainerCssProps?: PaperProps;
@@ -108,8 +103,9 @@ export const NonAuthDonation: React.FC<Props> = ({ mainContainerCssProps, showHe
     // PayPal: no card/bank toggle
     if (selectedGateway === "paypal") return null;
 
-    // Kingdom Funding: card/bank toggle is hidden while KF_ACH_ENABLED is false
-    if (selectedGateway === "kingdomfunding" && !KF_ACH_ENABLED) return null;
+    // Kingdom Funding renders its own card/bank (ACH) toggle inside
+    // KingdomFundingNonAuthDonationInner, so the wrapper doesn't show one here.
+    if (selectedGateway === "kingdomfunding") return null;
 
     // Stripe: show card/bank toggle only if Stripe gateway present and currency USD
     if (selectedGateway === "stripe") {
@@ -145,7 +141,7 @@ export const NonAuthDonation: React.FC<Props> = ({ mainContainerCssProps, showHe
           showHeader={false}
           recaptchaSiteKey={props.recaptchaSiteKey}
           churchLogo={props?.churchLogo}
-          // ACH disabled — always pass "card". KF inner also enforces this via its own KF_ACH_ENABLED gate.
+          // Initial method only; the inner component has its own card/bank (ACH) toggle.
           paymentType="card"
         />
       );

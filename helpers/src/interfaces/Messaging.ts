@@ -84,7 +84,6 @@ export type SocketPayloadAction =
   | "deleteMessage"
   | "callout"
   | "attendance"
-  | "prayerRequest"
   | "socketId"
   | "privateMessage"
   | "privateRoomAdded"

@@ -168,6 +168,8 @@ export class Locale {
         "errorProcessingDonation": "Error processing donation",
         "enterBankDetails": "Enter your bank account details",
         "enterCardDetails": "Enter card details",
+        "payWithCard": "Card",
+        "payWithBank": "Bank (ACH)",
         "gatewayConfigMissing": "Payment form not available. Gateway configuration missing.",
         "paymentProvider": "Payment Provider",
         "memo": "Memo (optional)",

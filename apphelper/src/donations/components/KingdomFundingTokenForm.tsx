@@ -141,30 +141,36 @@ export const KingdomFundingTokenForm = forwardRef<KingdomFundingTokenFormHandle,
       setLoading(true);
       configuredRef.current = false;
 
-      const onScriptReady = () => configureCollectJs();
+      // NMI Collect.js only honors one configure() per script load, so switching the field
+      // set (card <-> ACH) needs a FULL reload — a second configure() is silently ignored and
+      // the form hangs on the spinner. Remove any existing instance, clear the field
+      // containers, then load a fresh script and configure the currently-selected set.
+      const existing = document.querySelector<HTMLScriptElement>(`script[src="${COLLECT_JS_URL}"]`);
+      if (existing) existing.remove();
+      try { delete (window as any).CollectJS; } catch { (window as any).CollectJS = undefined; }
+      ["#kf-ccnumber", "#kf-ccexp", "#kf-cvv", "#kf-checkname", "#kf-checkaba", "#kf-checkaccount"].forEach((sel) => {
+        const el = document.querySelector(sel);
+        if (el) el.innerHTML = "";
+      });
 
-      if ((window as any).CollectJS) {
-        onScriptReady();
-      } else {
-        let script = document.querySelector<HTMLScriptElement>(`script[src="${COLLECT_JS_URL}"]`);
-        if (!script) {
-          script = document.createElement("script");
-          script.src = COLLECT_JS_URL;
-          script.async = true;
-          script.setAttribute("data-tokenization-key", tokenizationKey);
-          script.setAttribute("data-variant", "inline");
-          script.onload = onScriptReady;
-          script.onerror = () => {
-            setError(Locale.label("donation.kingdomFunding.failedToLoadPaymentForm"));
-            setLoading(false);
-          };
-          document.head.appendChild(script);
-        } else {
-          script.addEventListener("load", onScriptReady);
-        }
-      }
+      const script = document.createElement("script");
+      script.src = COLLECT_JS_URL;
+      script.async = true;
+      script.setAttribute("data-tokenization-key", tokenizationKey);
+      script.setAttribute("data-variant", "inline");
+      script.onload = () => configureCollectJs();
+      script.onerror = () => {
+        setError(Locale.label("donation.kingdomFunding.failedToLoadPaymentForm"));
+        setLoading(false);
+      };
+      document.head.appendChild(script);
+
+      // Fail-safe: never hang on the spinner if the fields never report ready (e.g. the
+      // domain isn't whitelisted for this Collect.js key).
+      const failSafe = setTimeout(() => setLoading(false), 12000);
 
       return () => {
+        clearTimeout(failSafe);
         if (pendingRef.current) {
           settlePending("reject", new Error(Locale.label("donation.kingdomFunding.paymentFormNotInitialized")));
         }

@@ -2,14 +2,13 @@
 
 import React, { useCallback, useState, useEffect, useMemo, useRef } from "react";
 import type { Stripe } from "@stripe/stripe-js";
-import { useStripe } from "@stripe/react-stripe-js";
 import { InputBox, ErrorMessages } from "../..";
 import { FundDonations } from ".";
 import { DonationPreviewModal } from "../modals/DonationPreviewModal";
 import { ApiHelper, CurrencyHelper, DateHelper } from "@churchapps/helpers";
 import { Locale, DonationHelper } from "../helpers";
 import type { PaymentMethod, PaymentGateway, MultiGatewayDonationInterface } from "../helpers";
-import { getPaymentProvider } from "../providers";
+import { getPaymentProvider, useStripeInstance } from "../providers";
 import type { ChargeContext, MemberEntryHandle, PaymentToken } from "../providers";
 import { PersonInterface, FundDonationInterface, FundInterface, ChurchInterface } from "@churchapps/helpers";
 import {
@@ -41,7 +40,7 @@ interface Props {
 }
 
 const MultiGatewayDonationInner: React.FC<Props> = (props) => {
-  const stripe = useStripe();
+  const stripe = useStripeInstance();
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
   const [saveCard, setSaveCard] = useState<boolean>(false);
   const [useNewCard, setUseNewCard] = useState<boolean>(false);

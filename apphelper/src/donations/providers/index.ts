@@ -3,3 +3,4 @@
 // at runtime for a host-app gateway.
 export * from "./types";
 export * from "./registry";
+export * from "./StripeInstanceContext";

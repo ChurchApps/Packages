@@ -7,6 +7,7 @@ import { Box, ToggleButtonGroup, ToggleButton } from "@mui/material";
 import { ApiHelper } from "@churchapps/helpers";
 import { NonAuthDonationInner } from "../components/NonAuthDonationInner";
 import { DonationHelper } from "../helpers";
+import { StripeInstanceContext } from "./StripeInstanceContext";
 import type {
   PaymentProvider, GuestFormProps, ChargeContext, PaymentToken, ChargeRequest,
   MemberEntryHandle, MemberEntryProps
@@ -103,6 +104,13 @@ const StripeMemberEntry = forwardRef<MemberEntryHandle, MemberEntryProps>(({ gat
 });
 StripeMemberEntry.displayName = "StripeMemberEntry";
 
+// Publishes the resolved Stripe instance (read inside <Elements>) so the shared
+// member form gets it via context instead of calling useStripe() itself.
+const StripeInstancePublisher: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const stripe = useStripe();
+  return <StripeInstanceContext.Provider value={stripe}>{children}</StripeInstanceContext.Provider>;
+};
+
 // Member Stripe donations charge a saved payment method — either one the member
 // already had, or the card StripeMemberEntry just saved (token carries the new
 // customerId, since a first-time donor's ctx.customerId is still empty).
@@ -138,7 +146,11 @@ export const StripeProvider: PaymentProvider = {
   },
   capabilities: { savedCard: true, savedBank: true, guestAch: true, memberNewCard: false, recurring: true, editRecurring: true },
 
-  MemberWrapper: ({ stripePromise, children }) => <Elements stripe={stripePromise ?? null}>{children}</Elements>,
+  MemberWrapper: ({ stripePromise, children }) => (
+    <Elements stripe={stripePromise ?? null}>
+      <StripeInstancePublisher>{children}</StripeInstancePublisher>
+    </Elements>
+  ),
 
   MemberEntry: StripeMemberEntry,
 

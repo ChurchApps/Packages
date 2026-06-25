@@ -1,6 +1,7 @@
 import { state, elements } from './state';
 import { showModal, closeModal, showStatus } from './ui';
-import { getProvider, OAuthHelper, DeviceFlowHelper, B1ChurchProvider, DropboxProvider, ContentProviderAuthData, DeviceAuthorizationResponse } from '../src';
+import { getProvider, B1ChurchProvider, DropboxProvider, ContentProviderAuthData, DeviceAuthorizationResponse } from '../src';
+import { OAuthHelper, DeviceFlowHelper } from '../src/helpers';
 import type { PlanningCenterProvider } from '../src';
 
 // OAuth configuration constants

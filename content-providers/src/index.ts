@@ -3,9 +3,9 @@
  * Helper classes for interacting with third party content providers
  */
 
-// Injected from package.json by tsup at build time so it can't drift
-declare const __PACKAGE_VERSION__: string;
-export const VERSION = __PACKAGE_VERSION__;
+// Injected from package.json by tsup at build time so it can't drift.
+declare const __PACKAGE_VERSION__: string | undefined;
+export const VERSION = typeof __PACKAGE_VERSION__ !== "undefined" ? __PACKAGE_VERSION__ : "dev";
 
 // Interfaces
 export * from "./interfaces";

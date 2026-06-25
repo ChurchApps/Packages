@@ -14,11 +14,6 @@ import {
 import type { PaperProps } from "@mui/material/Paper";
 import { KingdomFundingTokenForm, KingdomFundingTokenFormHandle } from "./KingdomFundingTokenForm";
 
-// Kingdom Funding ACH is hidden in the UI pending hosted ACH tokenization support
-// from the gateway. Flip to true once tokenization no longer requires raw routing/
-// account numbers to flow through our backend.
-const KF_ACH_ENABLED = false;
-
 interface Props {
   churchId: string;
   mainContainerCssProps?: PaperProps;
@@ -52,12 +47,10 @@ export const KingdomFundingNonAuthDonationInner: React.FC<Props> = ({ mainContai
   const captchaRef = useRef<ReCAPTCHA>(null);
   const kfTokenRef = useRef<KingdomFundingTokenFormHandle>(null);
 
-  // Bank-specific fields
-  const [routingNumber, setRoutingNumber] = useState("");
-  const [accountNumber, setAccountNumber] = useState("");
-  const [accountType, setAccountType] = useState<"checking" | "savings">("checking");
-
-  const paymentType = KF_ACH_ENABLED ? (props.paymentType || "card") : "card";
+  const [payMethod, setPayMethod] = useState<"card" | "ach">(
+    props.paymentType === "bank" ? "ach" : "card"
+  );
+  const paymentType: "card" | "bank" = payMethod === "ach" ? "bank" : "card";
 
   const getUrlParam = (param: string) => {
     if (typeof window === "undefined") return null;
@@ -124,10 +117,6 @@ export const KingdomFundingNonAuthDonationInner: React.FC<Props> = ({ mainContai
     if (result.length === 0) {
       if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) result.push(Locale.label("donation.donationForm.validate.validEmail"));
     }
-    if (paymentType === "bank") {
-      if (!routingNumber || routingNumber.length < 9) result.push(Locale.label("donation.kingdomFunding.validate.routingNumber"));
-      if (!accountNumber || accountNumber.length < 4) result.push(Locale.label("donation.kingdomFunding.validate.accountNumber"));
-    }
     setErrors(result);
     return result.length === 0;
   };
@@ -184,24 +173,18 @@ export const KingdomFundingNonAuthDonationInner: React.FC<Props> = ({ mainContai
     };
 
     try {
+      const tokenResult = await kfTokenRef.current?.getNonce();
+      if (!tokenResult?.nonce) {
+        setErrors([Locale.label("donation.kingdomFunding.failedToProcessCard")]);
+        setProcessing(false);
+        return;
+      }
+      basePayload.type = paymentType;
+      basePayload.id = tokenResult.nonce;
       if (paymentType === "bank") {
-        // Bank/ACH charge - send routing/account details to backend
-        basePayload.type = "bank";
-        basePayload.name = "bank account xxxxx" + accountNumber.toString().substring(accountNumber.length - 3);
-        basePayload.routing_number = routingNumber;
-        basePayload.account_number = accountNumber;
-        basePayload.account_type = accountType;
-        basePayload.sec_code = "WEB";
+        basePayload.name = "Bank account ****" + (tokenResult.accountLast4 || "");
+        basePayload.accountLast4 = tokenResult.accountLast4;
       } else {
-        // Card charge - get nonce from tokenization form
-        const tokenResult = await kfTokenRef.current?.getNonce();
-        if (!tokenResult?.nonce) {
-          setErrors([Locale.label("donation.kingdomFunding.failedToProcessCard")]);
-          setProcessing(false);
-          return;
-        }
-        basePayload.type = "card";
-        basePayload.id = tokenResult.nonce;
         basePayload.cardBrand = tokenResult.cardType;
         basePayload.cardLast4 = tokenResult.last4;
         basePayload.expiry_month = tokenResult.expiryMonth;
@@ -243,8 +226,6 @@ export const KingdomFundingNonAuthDonationInner: React.FC<Props> = ({ mainContai
       case "startDate": setStartDate(val); break;
       case "interval": setInterval(val); break;
       case "notes": setNotes(val); break;
-      case "routingNumber": setRoutingNumber(val.replace(/\D/g, "")); break;
-      case "accountNumber": setAccountNumber(val.replace(/\D/g, "")); break;
     }
   };
 
@@ -341,53 +322,39 @@ export const KingdomFundingNonAuthDonationInner: React.FC<Props> = ({ mainContai
         </Grid>
       </Grid>
 
-      {/* Payment input */}
-      {KF_ACH_ENABLED && paymentType === "bank" ? (
-        <Grid container spacing={3} style={{ marginTop: 10 }}>
-          <Grid size={{ xs: 12 }}>
-            <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
-              {Locale.label("donation.kingdomFunding.enterBankDetails")}
-            </Typography>
-          </Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
-            <TextField
-              fullWidth
-              label={Locale.label("donation.bankForm.routingNumber")}
-              name="routingNumber"
-              value={routingNumber}
-              onChange={handleChange}
-              inputProps={{ maxLength: 9 }}
-            />
-          </Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
-            <TextField
-              fullWidth
-              label={Locale.label("donation.bankForm.accountNumber")}
-              name="accountNumber"
-              value={accountNumber}
-              onChange={handleChange}
-              inputProps={{ maxLength: 17 }}
-            />
-          </Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
-            <FormControl fullWidth>
-              <InputLabel>{Locale.label("donation.bankForm.accountType")}</InputLabel>
-              <Select
-                label={Locale.label("donation.bankForm.accountType")}
-                value={accountType}
-                onChange={(e) => setAccountType(e.target.value as "checking" | "savings")}
-              >
-                <MenuItem value="checking">{Locale.label("donation.bankForm.checking")}</MenuItem>
-                <MenuItem value="savings">{Locale.label("donation.bankForm.savings")}</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-        </Grid>
-      ) : gateway?.publicKey ? (
+      {gateway?.publicKey ? (
         <div style={{ marginTop: 16 }}>
+          <Grid container spacing={2} sx={{ mb: 1 }}>
+            <Grid size={{ xs: 6 }}>
+              <Button
+                aria-label="pay-card"
+                fullWidth
+                variant={payMethod === "card" ? "contained" : "outlined"}
+                onClick={() => setPayMethod("card")}
+              >
+                {Locale.label("donation.kingdomFunding.payWithCard")}
+              </Button>
+            </Grid>
+            <Grid size={{ xs: 6 }}>
+              <Button
+                aria-label="pay-bank"
+                fullWidth
+                variant={payMethod === "ach" ? "contained" : "outlined"}
+                onClick={() => setPayMethod("ach")}
+              >
+                {Locale.label("donation.kingdomFunding.payWithBank")}
+              </Button>
+            </Grid>
+          </Grid>
+          <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+            {paymentType === "bank"
+              ? Locale.label("donation.kingdomFunding.enterBankDetails")
+              : Locale.label("donation.kingdomFunding.enterCardDetails")}
+          </Typography>
           <KingdomFundingTokenForm
             ref={kfTokenRef}
             tokenizationKey={gateway.publicKey}
+            paymentMethod={payMethod}
             sandbox={gateway?.settings?.sandbox === true || gateway?.environment === "sandbox"}
           />
         </div>

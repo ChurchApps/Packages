@@ -1,31 +1,66 @@
 "use client";
 
-import React, { forwardRef, useImperativeHandle, useRef } from "react";
+import React, { forwardRef, useImperativeHandle, useRef, useState } from "react";
+import { Button, Grid } from "@mui/material";
 import { KingdomFundingTokenForm, KingdomFundingTokenFormHandle } from "../components/KingdomFundingTokenForm";
 import { KingdomFundingNonAuthDonationInner } from "../components/KingdomFundingNonAuthDonationInner";
-import { buildSavedMethodBody } from "./StripeProvider";
+import { Locale } from "../helpers";
 import type {
   PaymentProvider, GuestFormProps, PaymentToken, ChargeRequest,
-  MemberEntryHandle, MemberEntryProps
+  ChargeContext, MemberEntryHandle, MemberEntryProps
 } from "./types";
 
-// Inline card entry for member donations — wraps the accept.blue hosted iframe
-// and normalizes its nonce into the uniform PaymentToken.
 const KingdomFundingMemberEntry = forwardRef<MemberEntryHandle, MemberEntryProps>(({ gateway }, ref) => {
   const kfRef = useRef<KingdomFundingTokenFormHandle>(null);
+  const [payMethod, setPayMethod] = useState<"card" | "ach">("card");
+
   useImperativeHandle(ref, () => ({
     tokenize: async (): Promise<PaymentToken> => {
       if (!kfRef.current) throw new Error("Card form not ready. Please wait and try again.");
       const r = await kfRef.current.getNonce();
-      return { id: r.nonce, type: "card", brand: r.cardType, last4: r.last4, expMonth: r.expiryMonth, expYear: r.expiryYear };
+      const type: "card" | "bank" = r.paymentType === "ach" ? "bank" : "card";
+      return {
+        id: r.nonce,
+        type,
+        brand: r.cardType || undefined,
+        last4: r.last4 || r.accountLast4 || undefined,
+        expMonth: r.expiryMonth || undefined,
+        expYear: r.expiryYear || undefined
+      };
     }
   }));
+
   return (
-    <KingdomFundingTokenForm
-      ref={kfRef}
-      tokenizationKey={gateway.publicKey || ""}
-      sandbox={gateway?.settings?.sandbox === true || gateway?.environment === "sandbox"}
-    />
+    <>
+      <Grid container spacing={2} sx={{ mb: 1 }}>
+        <Grid size={{ xs: 6 }}>
+          <Button
+            aria-label="kf-pay-card"
+            fullWidth
+            variant={payMethod === "card" ? "contained" : "outlined"}
+            onClick={() => setPayMethod("card")}
+          >
+            {Locale.label("donation.kingdomFunding.payWithCard")}
+          </Button>
+        </Grid>
+        <Grid size={{ xs: 6 }}>
+          <Button
+            aria-label="kf-pay-bank"
+            fullWidth
+            variant={payMethod === "ach" ? "contained" : "outlined"}
+            onClick={() => setPayMethod("ach")}
+          >
+            {Locale.label("donation.kingdomFunding.payWithBank")}
+          </Button>
+        </Grid>
+      </Grid>
+      <KingdomFundingTokenForm
+        ref={kfRef}
+        tokenizationKey={gateway.publicKey || ""}
+        paymentMethod={payMethod}
+        sandbox={gateway?.settings?.sandbox === true || gateway?.environment === "sandbox"}
+      />
+    </>
   );
 });
 KingdomFundingMemberEntry.displayName = "KingdomFundingMemberEntry";
@@ -37,9 +72,25 @@ const KingdomFundingGuestForm: React.FC<GuestFormProps> = (props) => (
     showHeader={false}
     recaptchaSiteKey={props.recaptchaSiteKey}
     churchLogo={props?.churchLogo}
-    paymentType="card"
   />
 );
+
+function buildKfSavedBody(ctx: ChargeContext, token: PaymentToken, providerKey: string) {
+  return {
+    paymentMethodId: token.id,
+    customerId: token.customerId || ctx.customerId,
+    type: token.type,
+    provider: providerKey,
+    gatewayId: ctx.gatewayId,
+    person: ctx.person,
+    amount: ctx.amount,
+    funds: ctx.funds,
+    billing_cycle_anchor: ctx.billingCycleAnchor,
+    interval: ctx.interval,
+    notes: ctx.notes,
+    church: ctx.church
+  };
+}
 
 export const KingdomFundingProvider: PaymentProvider = {
   key: "kingdomfunding",
@@ -73,13 +124,13 @@ export const KingdomFundingProvider: PaymentProvider = {
       return "https://kingdomfunding.org/begin-registration/?" + params.map(([k, v]) => k + "=" + encodeURIComponent(v || "")).join("&");
     }
   },
-  capabilities: { savedCard: true, savedBank: false, guestAch: false, memberNewCard: true, recurring: true, editRecurring: false },
+  capabilities: { savedCard: true, savedBank: true, guestAch: true, memberNewCard: true, recurring: true, editRecurring: false },
 
   MemberEntry: KingdomFundingMemberEntry,
 
   buildChargeRequest: (ctx, token): ChargeRequest => {
     const endpoint = ctx.recurring ? "/donate/subscribe" : "/donate/charge";
-    if (token.saved) return { endpoint, body: buildSavedMethodBody(ctx, token, "kingdomfunding") };
+    if (token.saved) return { endpoint, body: buildKfSavedBody(ctx, token, "kingdomfunding") };
     const body: any = {
       provider: "kingdomfunding",
       gatewayId: ctx.gatewayId,
@@ -90,7 +141,7 @@ export const KingdomFundingProvider: PaymentProvider = {
       notes: ctx.notes || "",
       church: ctx.church,
       saveCard: ctx.saveCard,
-      type: "card",
+      type: token.type,
       id: token.id,
       cardBrand: token.brand,
       cardLast4: token.last4,

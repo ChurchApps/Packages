@@ -196,6 +196,7 @@ export const PaymentMethods: React.FC<Props> = (props) => {
         name: props.person?.name?.display || "",
         provider: provider?.key,
         id: token.id,
+        type: token.type,
         cardBrand: token.brand,
         cardLast4: token.last4,
         expiry_month: token.expMonth,

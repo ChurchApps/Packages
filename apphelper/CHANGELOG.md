@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 0.17.3
+
+### Patch Changes
+
+- 1510e11: Fix donation portal freezing on charge errors. `MultiGatewayDonationForm` now catches API failures (4xx/5xx) and surfaces `results.error` bodies instead of leaving the preview modal stuck with no message (issue #928).
+
 ## 0.17.2
 
 ### Patch Changes

@@ -39,6 +39,23 @@ interface Props {
   churchLogo?: string;
 }
 
+// ApiHelper rejects with the JSON response body as the Error message, so a bare
+// e.message can surface as `{"error":"Your card was declined."}`. Pull out the
+// human-readable reason for donors instead of dumping raw JSON.
+const cleanErrorMessage = (raw: any): string => {
+  if (raw == null) return "Unknown error";
+  const text = typeof raw === "string" ? raw : (raw.message || raw.error || "");
+  const match = typeof text === "string" ? text.match(/\{[\s\S]*\}/) : null;
+  if (match) {
+    try {
+      const parsed = JSON.parse(match[0]);
+      const err = parsed?.error ?? parsed?.message;
+      if (err) return typeof err === "string" ? err : (err.message || JSON.stringify(err));
+    } catch { /* not JSON — fall through */ }
+  }
+  return (typeof text === "string" && text) ? text : "Unknown error";
+};
+
 const MultiGatewayDonationInner: React.FC<Props> = (props) => {
   const stripe = useStripeInstance();
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
@@ -216,13 +233,17 @@ const MultiGatewayDonationInner: React.FC<Props> = (props) => {
     const needsToken = !!paymentProvider.MemberEntry
       && (!paymentProvider.capabilities.savedCard || useNewCard || !donation.id || donation.id === "");
 
+    const showError = (raw: any) => {
+      setShowDonationPreviewModal(false);
+      setErrorMessage(Locale.label("donation.common.error") + ": " + cleanErrorMessage(raw));
+    };
+
     let token: PaymentToken;
     if (needsToken) {
       try {
         token = await entryRef.current!.tokenize();
       } catch (e: any) {
-        setShowDonationPreviewModal(false);
-        setErrorMessage("Failed to process payment: " + (e.message || "Unknown error"));
+        showError(e);
         return;
       }
     } else {
@@ -234,8 +255,7 @@ const MultiGatewayDonationInner: React.FC<Props> = (props) => {
     try {
       results = await ApiHelper.post(endpoint, body, "GivingApi");
     } catch (e: any) {
-      setShowDonationPreviewModal(false);
-      setErrorMessage(Locale.label("donation.common.error") + ": " + (e.message || "Unknown error"));
+      showError(e);
       return;
     }
 
@@ -248,33 +268,37 @@ const MultiGatewayDonationInner: React.FC<Props> = (props) => {
     }
 
     if (paymentProvider.finalizeResult) {
-      const fin = await paymentProvider.finalizeResult(results, { stripe });
-      if (fin.requiresAction) {
-        setShowDonationPreviewModal(false);
-        if (fin.success) {
-          setDonationType(undefined);
-          props.donationSuccess(message);
-        } else {
-          setErrorMessage(Locale.label("donation.common.error") + ": " + fin.error);
+      try {
+        const fin = await paymentProvider.finalizeResult(results, { stripe });
+        if (fin.requiresAction) {
+          if (fin.success) {
+            setShowDonationPreviewModal(false);
+            setDonationType(undefined);
+            props.donationSuccess(message);
+          } else {
+            showError(fin.error);
+          }
+          return;
         }
+        results = fin.result;
+      } catch (e: any) {
+        // e.g. a 3DS confirmation that throws — must not leave the modal spinning.
+        showError(e);
         return;
       }
-      results = fin.result;
     }
 
-    if (results?.status === "succeeded" || results?.status === "pending" || results?.status === "active" || results?.status === "processing" || results?.status === "CREATED" || results?.status === "Approved") {
-      setShowDonationPreviewModal(false);
+    // Exhaustive terminal: always close the modal so the Donate button can never
+    // hang with no feedback on an unrecognized response shape.
+    setShowDonationPreviewModal(false);
+    const okStatuses = ["succeeded", "pending", "active", "processing", "CREATED", "Approved"];
+    if (results?.status && okStatuses.includes(results.status)) {
       setDonationType(undefined);
       props.donationSuccess(message);
-    }
-    if (results?.error) {
-      setShowDonationPreviewModal(false);
-      setErrorMessage(Locale.label("donation.common.error") + ": " + results.error);
-      return;
-    }
-    if (results?.raw?.message || results?.message) {
-      setShowDonationPreviewModal(false);
-      setErrorMessage(Locale.label("donation.common.error") + ": " + (results?.raw?.message || results?.message));
+    } else if (results?.error || results?.raw?.message || results?.message) {
+      setErrorMessage(Locale.label("donation.common.error") + ": " + cleanErrorMessage(results?.error || results?.raw?.message || results?.message));
+    } else {
+      setErrorMessage(Locale.label("donation.common.error") + ": " + cleanErrorMessage(results));
     }
   }, [buildContext, paymentProvider, donation.id, donation.type, useNewCard, stripe, props.donationSuccess]);
 

@@ -166,7 +166,10 @@ export const PaymentMethods: React.FC<Props> = (props) => {
   const canSaveBank = !!provider?.capabilities.savedBank;
   // Providers that capture a saved card through their own token widget (e.g.
   // Kingdom Funding) instead of Stripe Elements — these use the add-card dialog.
-  const usesTokenEntry = canSaveCard && !!provider?.MemberEntry;
+  // Stripe also exposes a MemberEntry (for inline donate), but it needs an
+  // <Elements> context (MemberWrapper) and its tokenize() already saves the card,
+  // so Stripe must go through the CardForm path, not the bare token dialog.
+  const usesTokenEntry = canSaveCard && !!provider?.MemberEntry && !provider?.MemberWrapper;
   const TokenEntry = provider?.MemberEntry;
   const entryRef = useRef<MemberEntryHandle>(null);
   const [saving, setSaving] = useState(false);

@@ -26,9 +26,9 @@ export const CardForm: React.FC<Props> = (props) => {
   const [paymentMethod] = useState<PaymentMethodInterface>({
     id: props.card.id,
     customerId: props.customerId,
-    personId: props.person.id,
-    email: props.person.contactInfo.email,
-    name: props.person.name.display,
+    personId: props.person?.id,
+    email: props.person?.contactInfo?.email,
+    name: props.person?.name?.display,
     provider: (props.card.provider as "stripe" | "paypal") || "stripe",
     gatewayId: props.card.gatewayId || props.gateway?.id
   });
@@ -39,7 +39,7 @@ export const CardForm: React.FC<Props> = (props) => {
   } as StripeCardUpdateInterface);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const handleCancel = () => { props.setMode("display"); };
-  const handleSave = () => { setShowSave(false); props.card.id ? updateCard() : createCard(); };
+  const handleSave = () => { setShowSave(false); if (props.card.id) updateCard(); else createCard(); };
   const saveDisabled = () => { /* Function for disabled save state */ };
   const handleDelete = () => { props.deletePayment(); };
 

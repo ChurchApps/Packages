@@ -230,7 +230,14 @@ const MultiGatewayDonationInner: React.FC<Props> = (props) => {
     }
 
     const { endpoint, body } = paymentProvider.buildChargeRequest(ctx, token);
-    let results = await ApiHelper.post(endpoint, body, "GivingApi");
+    let results: any;
+    try {
+      results = await ApiHelper.post(endpoint, body, "GivingApi");
+    } catch (e: any) {
+      setShowDonationPreviewModal(false);
+      setErrorMessage(Locale.label("donation.common.error") + ": " + (e.message || "Unknown error"));
+      return;
+    }
 
     // Terminal: a freshly-tokenized payment must never silently retry on a falsy
     // response, or we'd double-charge.
@@ -259,6 +266,11 @@ const MultiGatewayDonationInner: React.FC<Props> = (props) => {
       setShowDonationPreviewModal(false);
       setDonationType(undefined);
       props.donationSuccess(message);
+    }
+    if (results?.error) {
+      setShowDonationPreviewModal(false);
+      setErrorMessage(Locale.label("donation.common.error") + ": " + results.error);
+      return;
     }
     if (results?.raw?.message || results?.message) {
       setShowDonationPreviewModal(false);

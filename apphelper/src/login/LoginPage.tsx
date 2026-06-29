@@ -94,7 +94,8 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
 
     // Handle redirect after logout
     const search = new URLSearchParams(location?.search);
-    const returnUrl = search.get("returnUrl") || props.returnUrl || "/";
+    const rawReturnUrl = search.get("returnUrl") || props.returnUrl || "/";
+    const returnUrl = rawReturnUrl.startsWith("/") && !rawReturnUrl.startsWith("//") ? rawReturnUrl : "/";
 
     // Use handleRedirect if available, otherwise use window.location
     if (props.handleRedirect) {
@@ -157,7 +158,7 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
         if (CommonEnvironmentHelper.GoogleAnalyticsTag && typeof (window) !== "undefined") {
           ga4.gtag("event", "conversion", { send_to: "AW-427967381/Ba2qCLrXgJoYEJWHicwB" });
         }
-      } catch { }
+      } catch { /* best-effort analytics */ }
     } else AnalyticsHelper.logEvent("Church", "Select", UserHelper.currentUserChurch.church.name);
 
     if (props.churchRegisteredCallback && registeredChurch) {
@@ -211,7 +212,8 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
 
     // Handle redirect with actual data
     const search = new URLSearchParams(location?.search);
-    const returnUrl = search.get("returnUrl") || props.returnUrl || "/";
+    const rawReturnUrl = search.get("returnUrl") || props.returnUrl || "/";
+    const returnUrl = rawReturnUrl.startsWith("/") && !rawReturnUrl.startsWith("//") ? rawReturnUrl : "/";
     if (returnUrl && typeof window !== "undefined") {
       // Use handleRedirect function if available, otherwise fallback to window.location
       if (props.handleRedirect) {
@@ -340,7 +342,7 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
     alignItems: "center",
     justifyContent: "center",
     padding: "16px",
-    position: "relative",
+    position: "relative"
   };
 
   return (

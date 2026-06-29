@@ -139,7 +139,10 @@ const MultiGatewayDonationInner: React.FC<Props> = (props) => {
 
   const handleSave = useCallback(() => {
     if (donation.amount < .5) setErrorMessage(Locale.label("donation.donationForm.tooLow"));
-    else setShowDonationPreviewModal(true);
+    else {
+      setErrorMessage(undefined);
+      setShowDonationPreviewModal(true);
+    }
   }, [donation.amount]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent<any>) => { if (e.key === "Enter") { e.preventDefault(); handleSave(); } }, [handleSave]);

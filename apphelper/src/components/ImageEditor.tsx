@@ -110,7 +110,9 @@ export function ImageEditor(props: Props) {
           height = imageData.naturalHeight;
         }
 
-        const url = cropper.getCroppedCanvas({ width, height }).toDataURL("image/png", 0.4);
+        const canvas = cropper.getCroppedCanvas({ width, height });
+        if (!canvas) return;
+        const url = canvas.toDataURL("image/png", 0.4);
         setCroppedImageDataUrl(url);
       }
     }, 200);

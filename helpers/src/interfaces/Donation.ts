@@ -36,6 +36,7 @@ export interface FundInterface {
   name: string;
   taxDeductible?: boolean;
   amount?: number;
+  visible?: boolean;
 }
 export interface FundDonationInterface {
   id?: string;

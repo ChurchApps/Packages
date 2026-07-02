@@ -97,7 +97,7 @@ export const PayPalProvider: PaymentProvider = {
   },
   // PayPal has no saved-method vault and no member subscribe path today; charges
   // are one-time via captured orders.
-  capabilities: { savedCard: false, savedBank: false, guestAch: false, memberNewCard: false, recurring: false, editRecurring: false },
+  capabilities: { savedCard: false, savedBank: false, guestAch: false, memberNewCard: false, recurring: false, editRecurring: false, pauseRecurring: false },
 
   MemberEntry: PayPalMemberEntry,
 

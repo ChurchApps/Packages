@@ -147,10 +147,18 @@ export class Locale {
       },
       "recurring": {
         "amount": "Amount",
+        "confirmPause": "Are you sure you want to pause this recurring donation?",
         "every": "Every",
         "interval": "Interval",
         "notFound": "Payment method not found.",
+        "paused": "Paused",
+        "pausedMessage": "Recurring donation paused.",
+        "pauseFailed": "Failed to pause recurring donation. Please try again.",
+        "pauseTooltip": "Pause recurring donation",
         "paymentMethod": "Payment Method",
+        "resumedMessage": "Recurring donation resumed.",
+        "resumeFailed": "Failed to resume recurring donation. Please try again.",
+        "resumeTooltip": "Resume recurring donation",
         "startDate": "Start Date",
         "noSubscriptions": "No subscription found"
       },

@@ -124,7 +124,7 @@ export const KingdomFundingProvider: PaymentProvider = {
       return "https://kingdomfunding.org/begin-registration/?" + params.map(([k, v]) => k + "=" + encodeURIComponent(v || "")).join("&");
     }
   },
-  capabilities: { savedCard: true, savedBank: true, guestAch: true, memberNewCard: true, recurring: true, editRecurring: false },
+  capabilities: { savedCard: true, savedBank: true, guestAch: true, memberNewCard: true, recurring: true, editRecurring: false, pauseRecurring: false },
 
   MemberEntry: KingdomFundingMemberEntry,
 

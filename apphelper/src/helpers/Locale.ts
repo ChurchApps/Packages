@@ -164,11 +164,60 @@ export class Locale {
       },
       "recurring": {
         "amount": "Amount",
+        "confirmPause": "Are you sure you want to pause this recurring donation?",
         "every": "Every",
         "interval": "Interval",
         "notFound": "Payment method not found.",
+        "paused": "Paused",
+        "pausedMessage": "Recurring donation paused.",
+        "pauseFailed": "Failed to pause recurring donation. Please try again.",
+        "pauseTooltip": "Pause recurring donation",
         "paymentMethod": "Payment Method",
+        "resumedMessage": "Recurring donation resumed.",
+        "resumeFailed": "Failed to resume recurring donation. Please try again.",
+        "resumeTooltip": "Resume recurring donation",
         "startDate": "Start Date"
+      }
+    },
+    "eventCalendar": {
+      "recurring": {
+        "day": {
+          "friday": "Friday",
+          "monday": "Monday",
+          "saturday": "Saturday",
+          "sunday": "Sunday",
+          "thursday": "Thursday",
+          "tuesday": "Tuesday",
+          "wednesday": "Wednesday"
+        },
+        "endDate": "End Date",
+        "endDateAria": "Recurrence end date",
+        "ends": "Ends",
+        "endsAfter": "After",
+        "endsAria": "Select when recurrence ends",
+        "endsOn": "On",
+        "freqDay": "Day",
+        "freqMonth": "Month",
+        "freqWeek": "Week",
+        "frequency": "Frequency",
+        "frequencyAria": "Select recurrence frequency",
+        "interval": "Interval",
+        "intervalAria": "Recurrence interval",
+        "monthlyOnDay": "Monthly on day {}",
+        "monthlyOnNth": "Monthly on the {ordinal} {day}",
+        "monthlyOptionAria": "Select monthly recurrence option",
+        "never": "Never",
+        "occurrences": "Occurances",
+        "occurrencesAria": "Number of recurrence occurrances",
+        "on": "On",
+        "ordinal": {
+          "first": "first",
+          "fourth": "fourth",
+          "last": "last",
+          "second": "second",
+          "third": "third"
+        },
+        "toggleWeekday": "Toggle {} for weekly recurrence"
       }
     },
     "formSubmissionEdit": {

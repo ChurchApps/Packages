@@ -144,7 +144,7 @@ export const StripeProvider: PaymentProvider = {
     setupInstructionsKey: "settings.givingSettingsEdit.stripeSetup",
     signupUrl: () => "https://dashboard.stripe.com/"
   },
-  capabilities: { savedCard: true, savedBank: true, guestAch: true, memberNewCard: false, recurring: true, editRecurring: true },
+  capabilities: { savedCard: true, savedBank: true, guestAch: true, memberNewCard: false, recurring: true, editRecurring: true, pauseRecurring: true },
 
   MemberWrapper: ({ stripePromise, children }) => (
     <Elements stripe={stripePromise ?? null}>

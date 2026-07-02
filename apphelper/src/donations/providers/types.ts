@@ -58,6 +58,7 @@ export interface ProviderCapabilities {
   memberNewCard: boolean; // offer "enter new card" inline during a member donation
   recurring: boolean;
   editRecurring: boolean; // edit an existing subscription's payment method
+  pauseRecurring?: boolean; // pause/resume an existing subscription's collection; absent = unsupported
 }
 
 export interface ProviderDescriptor {

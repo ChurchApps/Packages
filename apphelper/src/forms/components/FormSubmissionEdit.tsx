@@ -19,7 +19,7 @@ interface Props {
 	churchId?: string,
 	showHeader?: boolean,
 	noBackground?: boolean,
-	updatedFunction: () => void,
+	updatedFunction: (formSubmission?: FormSubmissionInterface) => void,
 	cancelFunction?: () => void,
 	stripePromise?: Promise<any>,
 	FormCardPaymentComponent?: React.ComponentType<any>
@@ -49,7 +49,7 @@ export const FormSubmissionEdit: React.FC<Props> = ({ showHeader = true, noBackg
 
   const setFormSubmissionData = (data: any) => {
     const formId = props.addFormId || props.unRestrictedFormId;
-    const fs: FormSubmissionInterface = { formId, contentType: props.contentType, contentId: props.contentId, answers: [] };
+    const fs: FormSubmissionInterface = { formId, contentType: props.contentType, contentId: props.contentId, submittedBy: props.personId || undefined, churchId: props.churchId || undefined, answers: [] };
     fs.questions = data;
     if (fs.questions !== null && fs.questions !== undefined) {
       fs.answers = fs.answers || [];
@@ -146,9 +146,12 @@ export const FormSubmissionEdit: React.FC<Props> = ({ showHeader = true, noBackg
       (fs as any).submissionDate = new Date();
       promises.push(ApiHelper.post("/formsubmissions", [fs], "MembershipApi"));
 
-      Promise.all(promises).then(() => {
+      Promise.all(promises).then((results) => {
         setIsSubmitting(false);
-        props.updatedFunction();
+        const savedSubmission: FormSubmissionInterface | undefined = results?.[0]?.[0];
+        // keep the saved id so a retried save updates instead of inserting an orphan
+        if (savedSubmission?.id) setFormSubmission((prev) => prev ? { ...prev, id: savedSubmission.id } : prev);
+        props.updatedFunction(savedSubmission);
       }).catch(() => {
         setIsSubmitting(false);
       });

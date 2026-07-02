@@ -48,6 +48,8 @@ export interface FormSubmissionInterface {
   formId?: string;
   contentType?: string;
   contentId?: string;
+  churchId?: string;
+  submittedBy?: string;
   form?: FormInterface;
   answers?: AnswerInterface[];
   questions?: QuestionInterface[];
@@ -70,6 +72,7 @@ export interface GroupInterface {
   slug?: string;
   campusId?: string;
   joinPolicy?: "open" | "request" | "closed";
+  archived?: boolean;
 }
 export interface GroupMemberInterface {
   id?: string;

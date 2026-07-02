@@ -79,6 +79,34 @@ export const RecurringDonations: React.FC<Props> = (props) => {
     }
   };
 
+  const isPaused = (sub: any) => !!sub.pause_collection;
+
+  const handlePauseSubscription = (sub: any) => async () => {
+    const confirmed = window.confirm(Locale.label("donation.recurring.confirmPause"));
+    if (!confirmed) return;
+    try {
+      const providerParam = sub.provider ? `?provider=${encodeURIComponent(sub.provider)}` : "";
+      await ApiHelper.post(`/subscriptions/${sub.id}/pause${providerParam}`, {}, "GivingApi");
+      props.dataUpdate(Locale.label("donation.recurring.pausedMessage"));
+      loadData();
+    } catch (e: any) {
+      console.error("Failed to pause subscription:", e);
+      alert(Locale.label("donation.recurring.pauseFailed"));
+    }
+  };
+
+  const handleResumeSubscription = (sub: any) => async () => {
+    try {
+      const providerParam = sub.provider ? `?provider=${encodeURIComponent(sub.provider)}` : "";
+      await ApiHelper.post(`/subscriptions/${sub.id}/resume${providerParam}`, {}, "GivingApi");
+      props.dataUpdate(Locale.label("donation.recurring.resumedMessage"));
+      loadData();
+    } catch (e: any) {
+      console.error("Failed to resume subscription:", e);
+      alert(Locale.label("donation.recurring.resumeFailed"));
+    }
+  };
+
   const getPaymentMethod = (sub: SubscriptionInterface) => {
     const pm = props.paymentMethods.find((pm: any) => pm.id === (sub.default_payment_method || sub.default_source));
     if (!pm) return <span style={{ color: "red" }}>{Locale.label("donation.recurring.notFound")}</span>;
@@ -109,10 +137,15 @@ export const RecurringDonations: React.FC<Props> = (props) => {
     // or the user has no other methods on file. Edit additionally requires the
     // provider to support editing a subscription's payment method (e.g. Kingdom
     // Funding subscriptions are read-only at the gateway — cancel only).
-    const canEdit = getPaymentProvider((sub as any).provider).capabilities.editRecurring
-      && (props?.paymentMethods?.length || 0) > 0;
+    const capabilities = getPaymentProvider((sub as any).provider).capabilities;
+    const canEdit = capabilities.editRecurring && (props?.paymentMethods?.length || 0) > 0;
+    const canPause = capabilities.pauseRecurring;
+    const paused = isPaused(sub);
     return (
       <div style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+        {paused && (
+          <span style={{ color: "#f0ad4e", fontSize: 12, marginRight: 4 }}>{Locale.label("donation.recurring.paused")}</span>
+        )}
         {canEdit && (
           <button
             type="button"
@@ -122,6 +155,31 @@ export const RecurringDonations: React.FC<Props> = (props) => {
           >
             <Icon>edit</Icon>
           </button>
+        )}
+        {canPause && (
+          paused ? (
+            <Tooltip title={Locale.label("donation.recurring.resumeTooltip")}>
+              <IconButton
+                aria-label="resume-subscription"
+                size="small"
+                onClick={handleResumeSubscription(sub)}
+                sx={{ color: "#28a745" }}
+              >
+                <Icon fontSize="small">play_arrow</Icon>
+              </IconButton>
+            </Tooltip>
+          ) : (
+            <Tooltip title={Locale.label("donation.recurring.pauseTooltip")}>
+              <IconButton
+                aria-label="pause-subscription"
+                size="small"
+                onClick={handlePauseSubscription(sub)}
+                sx={{ color: "#f0ad4e" }}
+              >
+                <Icon fontSize="small">pause</Icon>
+              </IconButton>
+            </Tooltip>
+          )
         )}
         <Tooltip title="Cancel recurring donation">
           <IconButton

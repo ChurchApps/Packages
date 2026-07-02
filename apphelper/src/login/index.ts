@@ -5,6 +5,7 @@ export { Login } from "./components/Login";
 export { Forgot } from "./components/Forgot";
 export { LoginSetPassword } from "./components/LoginSetPassword";
 export { VerificationCodeInput } from "./components/VerificationCodeInput";
+export { SsoButtons } from "./components/SsoButtons";
 export { SelectChurchModal } from "./components/SelectChurchModal";
 export { SelectChurchRegister } from "./components/SelectChurchRegister";
 export { SelectChurchSearch } from "./components/SelectChurchSearch";

@@ -107,14 +107,23 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
 
   const init = () => {
     const search = new URLSearchParams(location?.search);
+    // SSO delivers the login JWT / error in the URL fragment (never sent to servers or in Referer).
+    const hashParams = typeof window !== "undefined" ? new URLSearchParams(window.location.hash.replace(/^#/, "")) : new URLSearchParams();
+    const hashJwt = hashParams.get("jwt") || "";
+    const hashLoginError = hashParams.get("loginError");
+    if (hashJwt || hashLoginError) window.history.replaceState(null, "", window.location.pathname + window.location.search);
+
+    const loginError = hashLoginError || search.get("loginError");
+    if (loginError) setErrors([loginError]);
     const action = search.get("action");
     if (action === "logout") performLogout();
     else if (action === "forgot") setShowForgot(true);
     else if (action === "register") setShowRegister(true);
     else {
-      if (!props.auth && props.jwt) {
+      const jwt = hashJwt || props.jwt;
+      if (!props.auth && jwt) {
         setWelcomeBackName(cookies.name);
-        login({ jwt: props.jwt });
+        login({ jwt });
         setPendingAutoLogin(true);
       } else {
         setPendingAutoLogin(false);
@@ -304,12 +313,12 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
       const before = parts[0].replace(/<b>/g, "").replace(/<\/b>/g, "");
       const after = (parts[1] || "").replace(/<b>/g, "").replace(/<\/b>/g, "");
       return (
-				<>
-					<Alert severity="info">
-						{before}<b>{welcomeBackName}</b>{after}
-					</Alert>
-					<Loading />
-				</>
+        <>
+          <Alert severity="info">
+            {before}<b>{welcomeBackName}</b>{after}
+          </Alert>
+          <Loading />
+        </>
       );
     }
   };
@@ -324,7 +333,7 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
     if (showRegister) {
       return (
 
-			<Register updateErrors={setErrors} appName={props.appName} appUrl={cleanAppUrl()} loginCallback={handleLoginCallback} userRegisteredCallback={props.userRegisteredCallback} onVerified={handleCodeVerified} defaultEmail={registrationData?.email} defaultFirstName={registrationData?.firstName} defaultLastName={registrationData?.lastName} defaultChurchId={registrationData?.churchId} defaultChurchName={registrationData?.churchName} />
+        <Register updateErrors={setErrors} appName={props.appName} appUrl={cleanAppUrl()} loginCallback={handleLoginCallback} userRegisteredCallback={props.userRegisteredCallback} onVerified={handleCodeVerified} defaultEmail={registrationData?.email} defaultFirstName={registrationData?.firstName} defaultLastName={registrationData?.lastName} defaultChurchId={registrationData?.churchId} defaultChurchName={registrationData?.churchName} />
 
       );
     } else if (showForgot) return (<Forgot registerCallback={handleRegisterCallback} loginCallback={handleLoginCallback} onVerified={handleCodeVerified} />);
@@ -346,14 +355,14 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
   };
 
   return (
-		<div style={{ ...defaultContainerStyle, ...props.containerStyle }}>
-			<ErrorMessages errors={errors} />
-			{getWelcomeBack()}
-			{getCheckEmail()}
-			{!pendingAutoLogin && getInputBox()}
-			<SelectChurchModal show={showSelectModal} userChurches={loginResponse?.userChurches} selectChurch={selectChurch} registeredChurchCallback={handleChurchRegistered} errors={errors} appName={props.appName} handleRedirect={props.handleRedirect} />
-			<FloatingSupport appName={props.appName} />
-		</div>
+    <div style={{ ...defaultContainerStyle, ...props.containerStyle }}>
+      <ErrorMessages errors={errors} />
+      {getWelcomeBack()}
+      {getCheckEmail()}
+      {!pendingAutoLogin && getInputBox()}
+      <SelectChurchModal show={showSelectModal} userChurches={loginResponse?.userChurches} selectChurch={selectChurch} registeredChurchCallback={handleChurchRegistered} errors={errors} appName={props.appName} handleRedirect={props.handleRedirect} />
+      <FloatingSupport appName={props.appName} />
+    </div>
   );
 
 };
@@ -361,8 +370,8 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
 export const LoginPage: React.FC<Props> = (props) => {
   // Always wrap with CookiesProvider to ensure context is available
   return (
-		<CookiesProvider defaultSetOptions={{ path: "/" }}>
-			<LoginPageContent {...props} />
-		</CookiesProvider>
+    <CookiesProvider defaultSetOptions={{ path: "/" }}>
+      <LoginPageContent {...props} />
+    </CookiesProvider>
   );
 };

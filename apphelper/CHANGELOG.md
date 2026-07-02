@@ -1,5 +1,18 @@
 # @churchapps/apphelper
 
+## 0.18.0
+
+### Minor Changes
+
+- 337a092: Add three church-data website-builder element types (contract + public renderers): `campaignProgress` (fund total vs. goal with animated progress bar, GivingApi), `staffGrid` (public group roster as photo/name/role cards, MembershipApi), and `serviceTimes` (schedule grouped by service with best-effort schema.org Event JSON-LD, AttendanceApi). All fetch in effects (SSR-safe), render nothing on public pages when empty and an editor-only hint when editing. Add two site-wide widget components with parse helpers: `AnnouncementBanner` (sticky dismissible bar with a date window, `parseAnnouncementConfig`) and `Launcher` (Nucleus-style floating action hub, `parseLauncherConfig`).
+- 337a092: Add conversational (one-question-at-a-time) form mode. When a form's `displayMode` is `"conversational"`, `FormSubmissionEdit` renders questions one at a time with a progress indicator, Continue/Back navigation, Enter-to-advance, per-step required validation, and reduced-motion-aware transitions, instead of the full stacked form. Standard/absent `displayMode` is unchanged. Adds `displayMode` to `FormInterface` in `@churchapps/helpers`.
+- 337a092: Add layout options to the `sermons` website element (`layout`: browse/grid/list/featuredLatest, plus `playlistId`, `itemCount`, `showTitles`, `showDates`) — the empty-answers default stays the legacy playlist browser. Add a shared `SectionDivider` component (SVG shape dividers: wave, waves, slant, curve, triangle, peaks) with a `parseDividerConfig` helper for wiring section top/bottom dividers.
+- 337a092: Add six website-builder element types (contract + public renderers): `iconFeature` (icon + heading + text), `gallery` (photo grid/masonry with lightbox), `testimonial` (blockquote with optional auto-rotate), `socialIcons` (follow-link row with brand icons), `countdown` (fixed-date or weekly countdown timer, SSR-safe), and `stats` (count-up number row animated on scroll into view).
+
+### Patch Changes
+
+- 337a092: Raise announcement banner z-index above app-bar/drawer tiers so fixed transparent headers don't intercept its clicks.
+
 ## 0.17.6
 
 ### Patch Changes

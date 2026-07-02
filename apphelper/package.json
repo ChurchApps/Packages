@@ -1,6 +1,6 @@
 {
   "name": "@churchapps/apphelper",
-  "version": "0.17.6",
+  "version": "0.18.0",
   "description": "Library of helper functions, components, and feature modules (donations/forms/login/markdown/website) for React and NextJS ChurchApps",
   "type": "module",
   "main": "dist/index.js",
@@ -138,7 +138,7 @@
     "slug": "^11.0.0"
   },
   "devDependencies": {
-    "@churchapps/helpers": "^1.8.4",
+    "@churchapps/helpers": "^1.9.0",
     "@eslint/js": "^10.0.1",
     "@stripe/react-stripe-js": "^3.10.0",
     "@stripe/stripe-js": "^7.9.0",

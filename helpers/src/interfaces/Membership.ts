@@ -74,6 +74,10 @@ export interface GroupInterface {
   campusId?: string;
   joinPolicy?: "open" | "request" | "closed";
   archived?: boolean;
+  minAgeMonths?: number;
+  maxAgeMonths?: number;
+  minGrade?: string;
+  maxGrade?: string;
 }
 export interface GroupMemberInterface {
   id?: string;

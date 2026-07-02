@@ -192,6 +192,116 @@ export const ElementTypes: Record<string, ElementTypeDefinition> = {
       additionalProperties: true
     }
   },
+  iconFeature: {
+    elementType: "iconFeature",
+    label: "Icon Feature",
+    category: "content",
+    schemaVersion: 1,
+    defaults: { icon: "volunteer_activism", title: "", description: "", iconColor: "#03a9f4", iconSize: "medium", textAlignment: "center" },
+    answersSchema: {
+      type: "object",
+      properties: {
+        icon: { type: "string", description: "Material Icons ligature name (e.g. \"volunteer_activism\") rendered via the Material Icons font." },
+        title: { type: "string" },
+        description: { type: "string", description: "HTML markup from the rich-text editor." },
+        iconColor: { type: "string", description: "Color hex for the icon (default #03a9f4)." },
+        iconSize: { type: "string", enum: ["small", "medium", "large"], description: "Icon size preset; maps to font-size (small 32px, medium 48px, large 72px)." },
+        textAlignment: { type: "string", enum: ["left", "center", "right"] }
+      },
+      additionalProperties: true
+    }
+  },
+  gallery: {
+    elementType: "gallery",
+    label: "Gallery",
+    category: "media",
+    schemaVersion: 1,
+    defaults: { photos: [], layout: "grid", columns: 3, spacing: "medium" },
+    answersSchema: {
+      type: "object",
+      properties: {
+        photos: { type: "array", description: "Native array of { url, alt?, caption? } objects. Empty shows an editor-only hint and nothing on the public page." },
+        layout: { type: "string", enum: ["grid", "masonry", "square", "wide"], description: "grid/square/wide are CSS aspect-ratio variants; masonry uses CSS columns." },
+        columns: { type: ["number", "string"], description: "Column count 2-4 (fallback 3); renderer parseInts string values." },
+        spacing: { type: "string", enum: ["small", "medium", "large"], description: "Gap between photos (small 4px, medium 8px, large 16px)." }
+      },
+      additionalProperties: true
+    }
+  },
+  testimonial: {
+    elementType: "testimonial",
+    label: "Testimonial",
+    category: "content",
+    schemaVersion: 1,
+    defaults: { quotes: [], displayMode: "single" },
+    answersSchema: {
+      type: "object",
+      properties: {
+        quotes: { type: "array", description: "Native array of { text, author, role?, photoUrl? } objects. Empty shows an editor-only hint and nothing on the public page." },
+        displayMode: { type: "string", enum: ["single", "rotate"], description: "\"rotate\" auto-advances every ~7s with a fade (skipped when prefers-reduced-motion)." }
+      },
+      additionalProperties: true
+    }
+  },
+  socialIcons: {
+    elementType: "socialIcons",
+    label: "Social Icons",
+    category: "content",
+    schemaVersion: 1,
+    defaults: { iconStyle: "filled", size: "medium", alignment: "center", color: "#444444" },
+    answersSchema: {
+      type: "object",
+      properties: {
+        facebook: { type: "string", description: "Profile URL; the icon renders only when set." },
+        instagram: { type: "string", description: "Profile URL; the icon renders only when set." },
+        youtube: { type: "string", description: "Channel URL; the icon renders only when set." },
+        x: { type: "string", description: "X/Twitter profile URL; the icon renders only when set." },
+        tiktok: { type: "string", description: "TikTok profile URL; the icon renders only when set." },
+        vimeo: { type: "string", description: "Vimeo profile URL; the icon renders only when set." },
+        iconStyle: { type: "string", enum: ["filled", "outlined"], description: "filled draws a colored circle; outlined draws a bordered circle." },
+        size: { type: "string", enum: ["small", "medium", "large"] },
+        alignment: { type: "string", enum: ["left", "center", "right"] },
+        color: { type: "string", description: "Color hex used for the circle (filled) or icon+border (outlined)." }
+      },
+      additionalProperties: true
+    }
+  },
+  countdown: {
+    elementType: "countdown",
+    label: "Countdown",
+    category: "content",
+    schemaVersion: 1,
+    defaults: { mode: "weekly", dayOfWeek: 0, time: "10:00", title: "", completedText: "Starting now!", showDays: "true", showHours: "true" },
+    answersSchema: {
+      type: "object",
+      properties: {
+        mode: { type: "string", enum: ["date", "weekly"], description: "\"date\" counts to a fixed targetDate; \"weekly\" counts to the next dayOfWeek/time occurrence in browser-local time." },
+        targetDate: { type: "string", description: "ISO date-time string for mode \"date\"." },
+        dayOfWeek: { type: ["number", "string"], description: "0-6 (Sunday=0) for mode \"weekly\"; renderer parseInts string values." },
+        time: { type: "string", description: "24h HH:mm target time for mode \"weekly\" (default 10:00)." },
+        title: { type: "string", description: "Optional heading shown above the tiles." },
+        completedText: { type: "string", description: "Shown when the target is reached; in weekly mode it rolls to next week after a ~1h grace period." },
+        showDays: { type: ["string", "boolean"], description: "Checkbox boolean; hides the days tile when \"false\"." },
+        showHours: { type: ["string", "boolean"], description: "Checkbox boolean; hides the hours tile when \"false\"." }
+      },
+      additionalProperties: true
+    }
+  },
+  stats: {
+    elementType: "stats",
+    label: "Stats",
+    category: "content",
+    schemaVersion: 1,
+    defaults: { items: [], columns: 3 },
+    answersSchema: {
+      type: "object",
+      properties: {
+        items: { type: "array", description: "Native array of { value (number), prefix?, suffix?, label } objects. Empty shows an editor-only hint and nothing on the public page." },
+        columns: { type: ["number", "string"], description: "Column count 2-4 (fallback 3); renderer parseInts string values." }
+      },
+      additionalProperties: true
+    }
+  },
   table: {
     elementType: "table",
     label: "Table",
@@ -299,8 +409,18 @@ export const ElementTypes: Record<string, ElementTypeDefinition> = {
     label: "Sermons",
     category: "church",
     schemaVersion: 1,
-    defaults: {},
-    answersSchema: { type: "object", properties: {}, additionalProperties: true }
+    defaults: { layout: "browse", itemCount: 6, showTitles: "true", showDates: "true" },
+    answersSchema: {
+      type: "object",
+      properties: {
+        layout: { type: "string", enum: ["browse", "grid", "list", "featuredLatest"], description: "\"browse\" (default) is the interactive playlist->sermon->video browser and preserves the legacy no-settings behavior. \"grid\"/\"list\" render a flat set of sermons; \"featuredLatest\" renders a single hero for the newest sermon." },
+        playlistId: { type: "string", description: "Optional playlist id filter for grid/list/featuredLatest layouts; ignored by the browse layout." },
+        itemCount: { type: ["number", "string"], description: "Max sermons shown by grid/list (fallback 6); number input may store a string. Ignored by browse and featuredLatest." },
+        showTitles: { type: ["string", "boolean"], description: "Checkbox boolean (string \"true\"/\"false\" or native); hides titles in grid/list/featuredLatest when false." },
+        showDates: { type: ["string", "boolean"], description: "Checkbox boolean (string \"true\"/\"false\" or native); hides publish dates in grid/list/featuredLatest when false." }
+      },
+      additionalProperties: true
+    }
   },
   stream: {
     elementType: "stream",
@@ -406,6 +526,57 @@ export const ElementTypes: Record<string, ElementTypeDefinition> = {
         label: { type: "string", description: "Pre-filter to a single group label." },
         showSearch: { type: ["string", "boolean"], description: "Editor writes the strings \"true\"/\"false\" but readers compare against native booleans; permissive union for production data." },
         showCategory: { type: ["string", "boolean"], description: "Same string-written / boolean-read history as showSearch." }
+      },
+      additionalProperties: true
+    }
+  },
+  campaignProgress: {
+    elementType: "campaignProgress",
+    label: "Campaign Progress",
+    category: "church",
+    schemaVersion: 1,
+    defaults: { showAmounts: "true" },
+    answersSchema: {
+      type: "object",
+      properties: {
+        fundId: { type: "string", description: "GivingApi fund id whose public total drives the bar. Empty shows an editor-only hint and nothing on the public page." },
+        goalAmount: { type: ["number", "string"], description: "Fundraising goal in dollars; renderer Numbers it. Percent and the goal amount only render when > 0." },
+        title: { type: "string", description: "Optional heading shown above the bar." },
+        startDate: { type: "string", description: "Optional ISO campaign-window start; passed to the total endpoint as startDate." },
+        endDate: { type: "string", description: "Optional ISO campaign-window end; passed to the total endpoint as endDate." },
+        showAmounts: { type: ["string", "boolean"], description: "Checkbox boolean (string \"true\"/\"false\" or native), default true. When false only the percent renders (no raised/goal amounts or donation count)." },
+        donateUrl: { type: "string", description: "Optional donation-page URL rendered as a Give button below the bar." }
+      },
+      additionalProperties: true
+    }
+  },
+  staffGrid: {
+    elementType: "staffGrid",
+    label: "Staff Grid",
+    category: "church",
+    schemaVersion: 1,
+    defaults: { columns: 3, showRoles: "true" },
+    answersSchema: {
+      type: "object",
+      properties: {
+        groupId: { type: "string", description: "MembershipApi group id; only returns members when the group's publicRoster flag is on. Empty/locked-down shows an editor-only hint and nothing on the public page." },
+        columns: { type: ["number", "string"], description: "Column count 2-4 (fallback 3); renderer parseInts string values." },
+        showRoles: { type: ["string", "boolean"], description: "Checkbox boolean (string \"true\"/\"false\" or native), default true; hides the leader role chip when false." }
+      },
+      additionalProperties: true
+    }
+  },
+  serviceTimes: {
+    elementType: "serviceTimes",
+    label: "Service Times",
+    category: "church",
+    schemaVersion: 1,
+    defaults: { title: "Service Times", showCampus: "true" },
+    answersSchema: {
+      type: "object",
+      properties: {
+        title: { type: "string", description: "Heading shown above the schedule (default \"Service Times\")." },
+        showCampus: { type: ["string", "boolean"], description: "Checkbox boolean (string \"true\"/\"false\" or native), default true; hides the campus label when false." }
       },
       additionalProperties: true
     }

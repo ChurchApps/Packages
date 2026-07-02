@@ -42,6 +42,7 @@ export interface FormInterface {
   accessEndTime?: Date;
   archived: boolean;
   action?: string;
+  displayMode?: "standard" | "conversational";
 }
 export interface FormSubmissionInterface {
   id?: string;

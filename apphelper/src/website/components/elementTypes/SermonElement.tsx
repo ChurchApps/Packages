@@ -4,18 +4,22 @@ import { Typography, Breadcrumbs, Button, Grid, Card, CardContent, Box } from "@
 import FolderCopyIcon from "@mui/icons-material/FolderCopy";
 import TopicIcon from "@mui/icons-material/Topic";
 import LiveTvIcon from "@mui/icons-material/LiveTv";
+import PlayCircleOutlineIcon from "@mui/icons-material/PlayCircleOutline";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { ApiHelper } from "../../..";
 import { AppearanceHelper } from "../../..";
 import { Loading } from "../../..";
 import type { PlaylistInterface, SermonInterface } from "@churchapps/helpers";
+import { ElementInterface } from "../../helpers";
 import { EnvironmentHelper } from "../../helpers/EnvironmentHelper";
 
 interface Props {
   churchId: string;
   appearance: any;
+  element?: ElementInterface;
 }
 
-export const SermonElement = ({ churchId, appearance }: Props) => {
+export const SermonElement = ({ churchId, appearance, element }: Props) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isActive, setIsActive] = useState<string>("playlists");
   const [playlists, setPlaylists] = useState<PlaylistInterface[]>([]);
@@ -23,6 +27,13 @@ export const SermonElement = ({ churchId, appearance }: Props) => {
   const [sermons, setSermons] = useState<SermonInterface[]>([]);
   const [activeSermons, setActiveSermons] = useState<SermonInterface[]>([]);
   const [activeVideo, setActiveVideo] = useState<SermonInterface>();
+
+  const answers: any = element?.answers || {};
+  const layout = (answers.layout as string) || "browse";
+  const filterPlaylistId = (answers.playlistId as string) || "";
+  const itemCount = Math.max(1, parseInt(answers.itemCount, 10) || 6);
+  const showTitles = answers.showTitles !== false && answers.showTitles !== "false";
+  const showDates = answers.showDates !== false && answers.showDates !== "false";
 
   useEffect(() => {
     EnvironmentHelper.init();
@@ -42,7 +53,93 @@ export const SermonElement = ({ churchId, appearance }: Props) => {
     setActiveSermons(filteredData);
   };
 
+  const formatDate = (date?: Date) => {
+    if (!date) return "";
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return "";
+    return d.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+  };
+
+  const thumbFor = (item: SermonInterface) => item.thumbnail || AppearanceHelper.getLogo(appearance, "/images/logo.png", "/images/logo.png", "#FFF");
+
+  const playVideo = (item: SermonInterface) => {
+    setActiveVideo(item);
+    setIsActive("video");
+  };
+
   if (isLoading) return <Loading />;
+
+  if (layout !== "browse") {
+    if (isActive === "video" && activeVideo?.videoUrl) {
+      return (
+        <div>
+          <Button size="small" startIcon={<ArrowBackIcon />} sx={{ borderRadius: 3, marginBottom: 1 }} onClick={() => { setActiveVideo(undefined); setIsActive("playlists"); }}>
+            Back
+          </Button>
+          <div className="videoWrapper">
+            <iframe src={activeVideo.videoUrl.replace("controls=0", "controls=1")} allowFullScreen style={{ border: 0 }} />
+          </div>
+        </div>
+      );
+    }
+
+    const items = (Array.isArray(sermons) ? sermons : [])
+      .filter((item) => !filterPlaylistId || item.playlistId === filterPlaylistId)
+      .sort((a, b) => new Date(b.publishDate || 0).getTime() - new Date(a.publishDate || 0).getTime());
+
+    if (layout === "featuredLatest") {
+      const featured = items[0];
+      if (!featured) return null;
+      return (
+        <div className="sermonFeatured" onClick={() => playVideo(featured)} data-testid="sermon-featured">
+          <div className="sermonThumb sermonThumbFeatured">
+            <img src={thumbFor(featured)} alt={featured.title} loading="lazy" />
+            <PlayCircleOutlineIcon className="sermonPlayIcon" sx={{ fontSize: 96 }} />
+          </div>
+          {showTitles && <h2 className="sermonFeaturedTitle">{featured.title}</h2>}
+          {showDates && featured.publishDate && <div className="sermonCardDate">{formatDate(featured.publishDate)}</div>}
+        </div>
+      );
+    }
+
+    const shown = items.slice(0, itemCount);
+    if (shown.length === 0) return null;
+
+    if (layout === "list") {
+      return (
+        <div className="sermonList" data-testid="sermon-list">
+          {shown.map((item) => (
+            <div className="sermonListItem" key={item.id} onClick={() => playVideo(item)}>
+              <div className="sermonThumb sermonThumbList">
+                <img src={thumbFor(item)} alt={item.title} loading="lazy" />
+                <PlayCircleOutlineIcon className="sermonPlayIcon" sx={{ fontSize: 48 }} />
+              </div>
+              <div className="sermonListBody">
+                {showTitles && <h3 className="sermonCardTitle">{item.title}</h3>}
+                {showDates && item.publishDate && <div className="sermonCardDate">{formatDate(item.publishDate)}</div>}
+                {item.description && <p className="sermonListDesc">{item.description}</p>}
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    return (
+      <div className="sermonGrid" data-testid="sermon-grid">
+        {shown.map((item) => (
+          <div className="sermonCard" key={item.id} onClick={() => playVideo(item)}>
+            <div className="sermonThumb">
+              <img src={thumbFor(item)} alt={item.title} loading="lazy" />
+              <PlayCircleOutlineIcon className="sermonPlayIcon" sx={{ fontSize: 56 }} />
+            </div>
+            {showTitles && <h3 className="sermonCardTitle">{item.title}</h3>}
+            {showDates && item.publishDate && <div className="sermonCardDate">{formatDate(item.publishDate)}</div>}
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <>

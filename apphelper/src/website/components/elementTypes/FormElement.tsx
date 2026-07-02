@@ -13,7 +13,7 @@ interface Props {
   church: ChurchInterface;
 }
 
-export interface FormInterface { id?: string, name?: string, contentType?: string, restricted?: boolean, accessStartTime?: Date, accessEndTime?: Date, archived: boolean, action?: string, thankYouMessage?: string }
+export interface FormInterface { id?: string, name?: string, contentType?: string, restricted?: boolean, accessStartTime?: Date, accessEndTime?: Date, archived: boolean, action?: string, thankYouMessage?: string, displayMode?: "standard" | "conversational" }
 
 export const FormElement = (props: Props) => {
   const [addFormId, setAddFormId] = useState<string>("");
@@ -76,6 +76,7 @@ export const FormElement = (props: Props) => {
         updatedFunction={handleUpdate}
         showHeader={false}
         noBackground={true}
+        displayMode={form?.displayMode}
       />
     </>
   );

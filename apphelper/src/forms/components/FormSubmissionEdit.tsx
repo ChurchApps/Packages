@@ -4,8 +4,9 @@
 import React, { useRef } from "react";
 import { Elements } from "@stripe/react-stripe-js";
 import { ErrorMessages, InputBox, QuestionEdit } from "./";
+import { ConversationalForm } from "./ConversationalForm";
 import { Locale } from "../helpers";
-import { AnswerInterface, FormSubmissionInterface } from "@churchapps/helpers";
+import { AnswerInterface, FormSubmissionInterface, QuestionInterface } from "@churchapps/helpers";
 import { ApiHelper, UniqueIdHelper } from "../..";
 // FormCardPayment will be imported dynamically when needed
 
@@ -19,6 +20,7 @@ interface Props {
 	churchId?: string,
 	showHeader?: boolean,
 	noBackground?: boolean,
+	displayMode?: "standard" | "conversational",
 	updatedFunction: (formSubmission?: FormSubmissionInterface) => void,
 	cancelFunction?: () => void,
 	stripePromise?: Promise<any>,
@@ -75,31 +77,31 @@ export const FormSubmissionEdit: React.FC<Props> = ({ showHeader = true, noBackg
     setFormSubmission(fs);
   };
 
+  const renderQuestion = (q: QuestionInterface) => {
+    const answer = getAnswer(q.id || "");
+    return (
+			<QuestionEdit
+				key={q.id}
+				answer={answer || { questionId: q.id || "", value: "" }}
+				question={q}
+				changeFunction={handleChange}
+				noBackground={noBackground}
+				churchId={props.churchId}
+				onPaymentRequired={(question) =>
+				  props.stripePromise && props.FormCardPaymentComponent ? (
+						<Elements stripe={props.stripePromise}>
+							<props.FormCardPaymentComponent churchId={props.churchId} question={question} ref={paymentRef} />
+						</Elements>
+				  ) : null
+				}
+			/>
+    );
+  };
+
   const getQuestions = () => {
     const result: React.ReactElement[] = [];
     if (formSubmission?.questions !== undefined && formSubmission?.questions !== null) {
-      for (let i = 0; i < formSubmission.questions.length; i++) {
-        const q = formSubmission.questions[i];
-        const answer = getAnswer(q.id || "");
-
-        result.push(
-					<QuestionEdit
-						key={q.id}
-						answer={answer || { questionId: q.id || "", value: "" }}
-						question={q}
-						changeFunction={handleChange}
-						noBackground={noBackground}
-						churchId={props.churchId}
-						onPaymentRequired={(question) =>
-						  props.stripePromise && props.FormCardPaymentComponent ? (
-								<Elements stripe={props.stripePromise}>
-									<props.FormCardPaymentComponent churchId={props.churchId} question={question} ref={paymentRef} />
-								</Elements>
-						  ) : null
-						}
-					/>
-        );
-      }
+      for (let i = 0; i < formSubmission.questions.length; i++) result.push(renderQuestion(formSubmission.questions[i]));
     }
     return result;
   };
@@ -177,6 +179,20 @@ export const FormSubmissionEdit: React.FC<Props> = ({ showHeader = true, noBackg
   React.useEffect(loadData, [props.formSubmissionId, props.addFormId, props.unRestrictedFormId]);
 
   if (!formSubmission) return null;
+
+  if (props.displayMode === "conversational" && (formSubmission.questions?.length || 0) > 0) {
+    return (
+			<ConversationalForm
+				questions={formSubmission.questions || []}
+				getAnswer={getAnswer}
+				renderInput={renderQuestion}
+				errors={errors}
+				setErrors={setErrors}
+				isSubmitting={isSubmitting}
+				onSubmit={handleSave}
+			/>
+    );
+  }
 
   return (
 		<InputBox

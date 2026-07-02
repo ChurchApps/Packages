@@ -54,9 +54,12 @@ export class Locale {
 
     // Form submission
     "formSubmissionEdit": {
+      "back": "Back",
       "confirmDelete": "Are you sure you wish to delete this form data?",
+      "continue": "Continue",
       "editForm": "Edit Form",
       "isRequired": "is required",
+      "stepProgress": "{current} of {total}",
       "submit": "Submit"
     },
 

@@ -31,6 +31,15 @@ import { GroupListElement } from "./elementTypes/GroupListElement";
 import { GroupsElement } from "./elementTypes/GroupsElement";
 import { TableElement } from "./elementTypes/TableElement";
 import { CalendarElement } from "./elementTypes/CalendarElement";
+import { IconFeatureElement } from "./elementTypes/IconFeatureElement";
+import { GalleryElement } from "./elementTypes/GalleryElement";
+import { TestimonialElement } from "./elementTypes/TestimonialElement";
+import { SocialIconsElement } from "./elementTypes/SocialIconsElement";
+import { CountdownElement } from "./elementTypes/CountdownElement";
+import { StatsElement } from "./elementTypes/StatsElement";
+import { CampaignProgressElement } from "./elementTypes/CampaignProgressElement";
+import { StaffGridElement } from "./elementTypes/StaffGridElement";
+import { ServiceTimesElement } from "./elementTypes/ServiceTimesElement";
 import { NonAuthDonationWrapper } from "./donate/NonAuthDonationWrapper";
 import { ElementRenderProps, getElementRenderer, registerDefaultElementRenderer } from "./ElementRegistry";
 
@@ -50,7 +59,7 @@ registerDefaultElementRenderer("row", (p) => <RowElement key={p.element.id} elem
 registerDefaultElementRenderer("logo", (p) => <LogoElement key={p.element.id} element={p.element} churchSettings={p.churchSettings} textColor={p.textColor} />);
 registerDefaultElementRenderer("map", (p) => <MapElement key={p.element.id} element={p.element} />);
 registerDefaultElementRenderer("rawHTML", (p) => <RawHTMLElement key={p.element.id} element={p.element} onEdit={p.onEdit} />);
-registerDefaultElementRenderer("sermons", (p) => <SermonElement key={p.element.id} churchId={p.church?.id || ""} appearance={p.churchSettings} />);
+registerDefaultElementRenderer("sermons", (p) => <SermonElement key={p.element.id} churchId={p.church?.id || ""} appearance={p.churchSettings} element={p.element} />);
 registerDefaultElementRenderer("stream", (p) => p.church ? <StreamElement key={p.element.id} element={p.element} churchSettings={p.churchSettings} church={p.church} editMode={!!p.onEdit} /> : null);
 registerDefaultElementRenderer("donation", (p) => {
   const donationSettings: any = p.element.answers || (p.element.answersJSON ? (() => { try { return JSON.parse(p.element.answersJSON) || {}; } catch { return {}; } })() : {});
@@ -68,6 +77,15 @@ registerDefaultElementRenderer("groupList", (p) => <GroupListElement key={p.elem
 registerDefaultElementRenderer("groups", (p) => <GroupsElement key={p.element.id} churchId={p.church?.id || p.element.churchId || ""} element={p.element} />);
 registerDefaultElementRenderer("table", (p) => <TableElement key={p.element.id} element={p.element} />);
 registerDefaultElementRenderer("calendar", (p) => <CalendarElement key={p.element.id} element={p.element} churchId={p.church?.id || p.element.churchId || ""} />);
+registerDefaultElementRenderer("iconFeature", (p) => <IconFeatureElement key={p.element.id} element={p.element} />);
+registerDefaultElementRenderer("gallery", (p) => <GalleryElement key={p.element.id} element={p.element} onEdit={p.onEdit} />);
+registerDefaultElementRenderer("testimonial", (p) => <TestimonialElement key={p.element.id} element={p.element} onEdit={p.onEdit} />);
+registerDefaultElementRenderer("socialIcons", (p) => <SocialIconsElement key={p.element.id} element={p.element} onEdit={p.onEdit} />);
+registerDefaultElementRenderer("countdown", (p) => <CountdownElement key={p.element.id} element={p.element} />);
+registerDefaultElementRenderer("stats", (p) => <StatsElement key={p.element.id} element={p.element} onEdit={p.onEdit} />);
+registerDefaultElementRenderer("campaignProgress", (p) => <CampaignProgressElement key={p.element.id} element={p.element} churchId={p.church?.id || p.element.churchId || ""} onEdit={p.onEdit} />);
+registerDefaultElementRenderer("staffGrid", (p) => <StaffGridElement key={p.element.id} element={p.element} churchId={p.church?.id || p.element.churchId || ""} onEdit={p.onEdit} />);
+registerDefaultElementRenderer("serviceTimes", (p) => <ServiceTimesElement key={p.element.id} element={p.element} churchId={p.church?.id || p.element.churchId || ""} churchName={p.church?.name} onEdit={p.onEdit} />);
 
 interface Props {
   element: ElementInterface;

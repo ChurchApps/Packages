@@ -13,8 +13,14 @@ export * from "./interfaces";
 // Utilities
 export { navigateToPath } from "./instructionPathUtils";
 
-// Helper classes (for standalone use or custom providers)
-export { TokenHelper } from "./helpers";
+// Helper classes (for standalone use or custom providers).
+// OAuthHelper/DeviceFlowHelper were dropped in 0.4.0, but FreePlay drives device flow
+// via `new DeviceFlowHelper()` + provider.config, so they are part of the real contract.
+export { TokenHelper, OAuthHelper, DeviceFlowHelper } from "./helpers";
+export { toAuthData } from "./helpers/TokenHelper";
+
+// Base class for implementing custom providers
+export { BaseProvider } from "./providers/BaseProvider";
 
 // Built-in providers
 export { APlayProvider } from "./providers/aPlay";

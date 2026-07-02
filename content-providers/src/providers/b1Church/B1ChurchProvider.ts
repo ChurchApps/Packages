@@ -1,7 +1,8 @@
-import { ContentProviderConfig, ContentProviderAuthData, ContentItem, ContentFile, ProviderLogos, Plan, PlanPresentation, Instructions, ProviderCapabilities, DeviceAuthorizationResponse, DeviceFlowPollResult, IProvider, AuthType, InstructionItem, CurrentPlan } from "../../interfaces";
+import { ContentProviderConfig, ContentProviderAuthData, ContentItem, ContentFile, ProviderLogos, Plan, PlanPresentation, Instructions, ProviderCapabilities, DeviceAuthorizationResponse, DeviceFlowPollResult, AuthType, InstructionItem, CurrentPlan } from "../../interfaces";
 import { parsePath } from "../../pathUtils";
 import { navigateToPath } from "../../instructionPathUtils";
-import { ApiHelper, DeviceFlowHelper } from "../../helpers";
+import { DeviceFlowHelper } from "../../helpers";
+import { BaseProvider } from "../BaseProvider";
 import { instructionsToPlaylist } from "../../utils";
 import { getProvider } from "../registry";
 import { B1Plan, B1PlanItem } from "./B1ChurchTypes";
@@ -30,8 +31,7 @@ function isExternalProviderItem(item: B1PlanItem): boolean {
   return itemType.startsWith("provider");
 }
 
-export class B1ChurchProvider implements IProvider {
-  private readonly apiHelper = new ApiHelper();
+export class B1ChurchProvider extends BaseProvider {
   private readonly deviceFlowHelper = new DeviceFlowHelper();
 
   // Unified cache for external provider data to avoid duplicate calls across methods
@@ -41,15 +41,12 @@ export class B1ChurchProvider implements IProvider {
     playlists: new Map<string, ContentFile[] | null>()
   };
 
-  private async apiRequest<T>(path: string, authData?: ContentProviderAuthData | null): Promise<T | null> {
-    return this.apiHelper.apiRequest<T>(this.config, this.id, path, authData);
-  }
   readonly id = "b1church";
   readonly name = "B1.Church";
 
   readonly logos: ProviderLogos = { light: "https://b1.church/b1-church-logo.png", dark: "https://b1.church/b1-church-logo.png" };
 
-  readonly config: ContentProviderConfig = { id: "b1church", name: "B1.Church", apiBase: `${API_BASE}/doing`, oauthBase: `${API_BASE}/membership/oauth`, clientId: "nsowldn58dk", scopes: ["plans"], supportsDeviceFlow: true, deviceAuthEndpoint: "/device/authorize", endpoints: { planItems: (churchId: string, planId: string) => `/planFeed/presenter/${churchId}/${planId}` } };
+  readonly config: ContentProviderConfig = { id: "b1church", name: "B1.Church", apiBase: `${API_BASE}/doing`, oauthBase: `${API_BASE}/membership/oauth`, clientId: "nsowldn58dk", scopes: ["plans"], supportsDeviceFlow: true, deviceAuthEndpoint: "/device/authorize" };
 
   private appBase = "https://admin.b1.church";
 
@@ -248,8 +245,7 @@ export class B1ChurchProvider implements IProvider {
       return null;
     }
 
-    const pathFn = this.config.endpoints.planItems as (churchId: string, planId: string) => string;
-    const planItems = await this.apiRequest<B1PlanItem[]>(pathFn(churchId, planId), authData);
+    const planItems = await this.apiRequest<B1PlanItem[]>(`/planFeed/presenter/${churchId}/${planId}`, authData);
 
     // If no planItems but plan has associated provider content, fetch from that provider
     if ((!planItems || planItems.length === 0) && planFolder.providerId && planFolder.providerPlanId) {
@@ -400,8 +396,7 @@ export class B1ChurchProvider implements IProvider {
       return null;
     }
 
-    const pathFn = this.config.endpoints.planItems as (churchId: string, planId: string) => string;
-    const planItems = await this.apiRequest<B1PlanItem[]>(pathFn(churchId, planId), authData);
+    const planItems = await this.apiRequest<B1PlanItem[]>(`/planFeed/presenter/${churchId}/${planId}`, authData);
 
     // If no planItems but plan has associated provider content, fetch from that provider
     if ((!planItems || planItems.length === 0) && planFolder.providerId && planFolder.providerPlanId) {
@@ -515,9 +510,5 @@ export class B1ChurchProvider implements IProvider {
       return null;
     }
     return files;
-  }
-
-  supportsDeviceFlow(): boolean {
-    return !!this.config.supportsDeviceFlow;
   }
 }

@@ -1,4 +1,4 @@
-import { ContentFile, FeedVenueInterface, Plan, PlanSection, PlanPresentation, InstructionItem, Instructions, VenueActionsResponseInterface } from "../../interfaces";
+import { ContentFile, FeedVenueInterface, InstructionItem, Instructions, VenueActionsResponseInterface } from "../../interfaces";
 import { detectMediaType, IMAGE_DURATION_SECONDS } from "../../utils";
 import { apiRequest, API_BASE } from "./LessonsChurchApi";
 
@@ -46,41 +46,6 @@ export function getEmbedUrl(apiType?: string, relatedId?: string): string | unde
     case "lessonSection": return `${baseUrl}/embed/section/${relatedId}`;
     default: return undefined;
   }
-}
-
-export function convertVenueToPlan(venue: FeedVenueInterface): Plan {
-  const sections: PlanSection[] = [];
-  const allFiles: ContentFile[] = [];
-
-  for (const section of venue.sections || []) {
-    const presentations: PlanPresentation[] = [];
-
-    for (const action of section.actions || []) {
-      const rawActionType = action.actionType?.toLowerCase() || "other";
-      if (rawActionType !== "play" && rawActionType !== "add-on") continue;
-
-      const files: ContentFile[] = [];
-
-      for (const file of action.files || []) {
-        if (!file.url) continue;
-
-        const contentFile: ContentFile = { type: "file", id: file.id || "", title: file.name || "", mediaType: detectMediaType(file.url, file.fileType), thumbnail: file.thumbnail || venue.lessonImage, url: file.url, downloadUrl: file.url, seconds: file.seconds, streamUrl: file.streamUrl };
-
-        files.push(contentFile);
-        allFiles.push(contentFile);
-      }
-
-      if (files.length > 0) {
-        presentations.push({ id: action.id || "", name: action.content || section.name || "Untitled", actionType: "play", files });
-      }
-    }
-
-    if (presentations.length > 0) {
-      sections.push({ id: section.id || "", name: section.name || "Untitled Section", presentations });
-    }
-  }
-
-  return { id: venue.id || "", name: venue.lessonName || venue.name || "Plan", thumbnail: venue.lessonImage, sections, allFiles };
 }
 
 export async function convertAddOnToFile(addOn: Record<string, unknown>): Promise<ContentFile | null> {
@@ -215,29 +180,6 @@ export function processInstructionItem(item: Record<string, unknown>, sectionAct
     downloadUrl: undefined,
     thumbnail: isFileType ? thumbnail : undefined
   };
-}
-
-export async function convertAddOnCategoryToPlan(category: string): Promise<Plan | null> {
-  const decodedCategory = decodeURIComponent(category);
-  const response = await apiRequest<Record<string, unknown>[]>("/addOns/public");
-  if (!response || !Array.isArray(response)) return null;
-
-  const filtered = response.filter((a) => a.category === decodedCategory);
-  const presentations: PlanPresentation[] = [];
-  const allFiles: ContentFile[] = [];
-
-  for (const addOn of filtered) {
-    const file = await convertAddOnToFile(addOn);
-    if (file) {
-      presentations.push({ id: addOn.id as string, name: addOn.name as string, actionType: "play", files: [file] });
-      allFiles.push(file);
-    }
-  }
-
-  if (presentations.length === 0) return null;
-
-  const section: PlanSection = { id: `category-${decodedCategory}`, name: decodedCategory, presentations };
-  return { id: `addons-${decodedCategory}`, name: decodedCategory, sections: [section], allFiles };
 }
 
 export async function convertAddOnCategoryToInstructions(category: string): Promise<Instructions | null> {

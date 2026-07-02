@@ -1,4 +1,4 @@
-import { ContentFile, ContentItem, Instructions, InstructionItem } from "../../interfaces";
+import { ContentFile, ContentItem } from "../../interfaces";
 import { createFolder, createFile } from "../../utils";
 import { CbnCatalogCourse, CbnLesson, CbnLessonPlaylist, CbnThumb } from "./CbnInterfaces";
 
@@ -54,26 +54,4 @@ export function convertPlaylistToFiles(playlist: CbnLessonPlaylist): ContentFile
     };
     return file;
   });
-}
-
-/** Convert a lesson playlist into Instructions (mirrors APlayConverters.convertFilesToInstructions) */
-export function convertPlaylistToInstructions(playlist: CbnLessonPlaylist): Instructions {
-  const files = convertPlaylistToFiles(playlist);
-  const items: InstructionItem[] = files.map(file => ({
-    id: file.id + "-action",
-    itemType: "action",
-    label: file.title,
-    actionType: "play",
-    children: [
-      {
-        id: file.id,
-        itemType: "file",
-        label: file.title,
-        seconds: file.seconds,
-        downloadUrl: file.url,
-        thumbnail: file.thumbnail
-      }
-    ]
-  }));
-  return { name: playlist.lesson_title || "Lesson", items };
 }

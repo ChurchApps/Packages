@@ -1,7 +1,8 @@
-import { ContentProviderConfig, ContentProviderAuthData, ContentItem, ContentFile, ProviderLogos, ProviderCapabilities, IProvider, AuthType, Instructions, InstructionItem, DeviceAuthorizationResponse, DeviceFlowPollResult } from "../../interfaces";
-import { detectMediaType, createFile } from "../../utils";
+import { ContentProviderConfig, ContentProviderAuthData, ContentItem, ContentFile, ProviderLogos, ProviderCapabilities, AuthType, Instructions, DeviceAuthorizationResponse, DeviceFlowPollResult } from "../../interfaces";
+import { detectMediaType, createFile, filesToInstructions } from "../../utils";
 import { parsePath } from "../../pathUtils";
-import { ApiHelper, OAuthHelper, DeviceFlowHelper } from "../../helpers";
+import { OAuthHelper, DeviceFlowHelper } from "../../helpers";
+import { BaseProvider } from "../BaseProvider";
 
 /**
  * SignPresenter Provider
@@ -10,20 +11,16 @@ import { ApiHelper, OAuthHelper, DeviceFlowHelper } from "../../helpers";
  *   /playlists                    -> list playlists
  *   /playlists/{playlistId}       -> list messages (files)
  */
-export class SignPresenterProvider implements IProvider {
-  private readonly apiHelper = new ApiHelper();
+export class SignPresenterProvider extends BaseProvider {
   private readonly oauthHelper = new OAuthHelper();
   private readonly deviceFlowHelper = new DeviceFlowHelper();
 
-  private async apiRequest<T>(path: string, auth?: ContentProviderAuthData | null): Promise<T | null> {
-    return this.apiHelper.apiRequest<T>(this.config, this.id, path, auth);
-  }
   readonly id = "signpresenter";
   readonly name = "SignPresenter";
 
   readonly logos: ProviderLogos = { light: "https://signpresenter.com/files/shared/images/logo.png", dark: "https://signpresenter.com/files/shared/images/logo.png" };
 
-  readonly config: ContentProviderConfig = { id: "signpresenter", name: "SignPresenter", apiBase: "https://api.signpresenter.com", oauthBase: "https://api.signpresenter.com/oauth", clientId: "lessonsscreen-tv", scopes: ["openid", "profile", "content"], supportsDeviceFlow: true, deviceAuthEndpoint: "/device/authorize", endpoints: { playlists: "/content/playlists", messages: (playlistId: string) => `/content/playlists/${playlistId}/messages` } };
+  readonly config: ContentProviderConfig = { id: "signpresenter", name: "SignPresenter", apiBase: "https://api.signpresenter.com", oauthBase: "https://api.signpresenter.com/oauth", clientId: "lessonsscreen-tv", scopes: ["openid", "profile", "content"], supportsDeviceFlow: true, deviceAuthEndpoint: "/device/authorize" };
 
   readonly requiresAuth = true;
   readonly authTypes: AuthType[] = ["oauth_pkce", "device_flow"];
@@ -33,45 +30,28 @@ export class SignPresenterProvider implements IProvider {
     const { segments, depth } = parsePath(path);
 
     if (depth === 0) {
-      return [
-        {
-          type: "folder" as const,
-          id: "playlists-root",
-          title: "Playlists",
-          path: "/playlists"
-        }
-      ];
+      return [{ type: "folder" as const, id: "playlists-root", title: "Playlists", path: "/playlists" }];
     }
 
-    const root = segments[0];
-    if (root !== "playlists") return [];
-
-    // /playlists -> list all playlists
-    if (depth === 1) {
-      return this.getPlaylists(auth);
-    }
-
-    // /playlists/{playlistId} -> list messages
-    if (depth === 2) {
-      const playlistId = segments[1];
-      return this.getMessages(playlistId, auth);
-    }
+    if (segments[0] !== "playlists") return [];
+    if (depth === 1) return this.getPlaylists(auth);
+    if (depth === 2) return this.getMessages(segments[1], auth);
 
     return [];
   }
 
+  private extractList(response: unknown, key: string): Record<string, unknown>[] {
+    if (Array.isArray(response)) return response;
+    const record = response as Record<string, unknown> | null;
+    const list = record?.data || record?.[key] || [];
+    return Array.isArray(list) ? list : [];
+  }
+
   private async getPlaylists(auth?: ContentProviderAuthData | null): Promise<ContentItem[]> {
-    const apiPath = this.config.endpoints.playlists as string;
-    const response = await this.apiRequest<unknown>(apiPath, auth);
+    const response = await this.apiRequest<unknown>("/content/playlists", auth);
     if (!response) return [];
 
-    const playlists = Array.isArray(response)
-      ? response
-      : ((response as Record<string, unknown>).data || (response as Record<string, unknown>).playlists || []) as Record<string, unknown>[];
-
-    if (!Array.isArray(playlists)) return [];
-
-    return playlists.map((p) => ({
+    return this.extractList(response, "playlists").map((p) => ({
       type: "folder" as const,
       id: p.id as string,
       title: p.name as string,
@@ -81,34 +61,20 @@ export class SignPresenterProvider implements IProvider {
     }));
   }
 
-  private async getMessages(playlistId: string, auth?: ContentProviderAuthData | null): Promise<ContentItem[]> {
-    const pathFn = this.config.endpoints.messages as (id: string) => string;
-    const response = await this.apiRequest<unknown>(pathFn(playlistId), auth);
+  private async getMessages(playlistId: string, auth?: ContentProviderAuthData | null): Promise<ContentFile[]> {
+    const response = await this.apiRequest<unknown>(`/content/playlists/${playlistId}/messages`, auth);
     if (!response) return [];
 
-    const messages = Array.isArray(response)
-      ? response
-      : ((response as Record<string, unknown>).data || (response as Record<string, unknown>).messages || []) as Record<string, unknown>[];
-
-    if (!Array.isArray(messages)) return [];
-
     const files: ContentFile[] = [];
-
-    for (const msg of messages) {
+    for (const msg of this.extractList(response, "messages")) {
       if (!msg.url) continue;
 
       const url = msg.url as string;
-      const seconds = msg.seconds as number | undefined;
-      const file = createFile(
-        msg.id as string,
-        msg.name as string,
-        url,
-        {
-          mediaType: detectMediaType(url, msg.mediaType as string | undefined),
-          thumbnail: (msg.thumbnail || msg.image) as string | undefined,
-          seconds
-        }
-      );
+      const file = createFile(msg.id as string, msg.name as string, url, {
+        mediaType: detectMediaType(url, msg.mediaType as string | undefined),
+        thumbnail: (msg.thumbnail || msg.image) as string | undefined,
+        seconds: msg.seconds as number | undefined
+      });
       file.downloadUrl = url;
       files.push(file);
     }
@@ -118,70 +84,29 @@ export class SignPresenterProvider implements IProvider {
 
   async getPlaylist(path: string, auth?: ContentProviderAuthData | null, _resolution?: number): Promise<ContentFile[] | null> {
     const { segments, depth } = parsePath(path);
-
     if (depth < 2 || segments[0] !== "playlists") return null;
 
-    const playlistId = segments[1];
-    const files = await this.getMessages(playlistId, auth) as ContentFile[];
+    const files = await this.getMessages(segments[1], auth);
     return files.length > 0 ? files : null;
   }
 
   async getInstructions(path: string, auth?: ContentProviderAuthData | null): Promise<Instructions | null> {
     const { segments, depth } = parsePath(path);
-
     if (depth < 2 || segments[0] !== "playlists") return null;
 
     const playlistId = segments[1];
-    const files = await this.getMessages(playlistId, auth) as ContentFile[];
+    const files = await this.getMessages(playlistId, auth);
     if (files.length === 0) return null;
 
-    // Get playlist info for title
     const playlists = await this.getPlaylists(auth);
-    const playlist = playlists.find(p => p.id === playlistId);
-    const title = playlist?.title || "Playlist";
+    const title = (playlists.find(p => p.id === playlistId)?.title || "Playlist") as string;
 
-    const actionItems: InstructionItem[] = files.map(file => ({
-      id: file.id + "-action",
-      itemType: "action",
-      label: file.title,
-      actionType: "play",
-      seconds: file.seconds,
-      children: [
-        {
-          id: file.id,
-          itemType: "file",
-          label: file.title,
-          seconds: file.seconds,
-          downloadUrl: file.downloadUrl || file.url,
-          thumbnail: file.thumbnail
-        }
-      ]
-    }));
-
-    // Wrap actions in a section using the playlist name
-    const sectionItem: InstructionItem = {
-      id: playlistId + "-section",
-      itemType: "section",
-      label: title as string,
-      children: actionItems
-    };
-
-    // Wrap section in a header for consistency with other providers
-    const headerItem: InstructionItem = {
-      id: playlistId + "-header",
-      itemType: "header",
-      label: title as string,
-      children: [sectionItem]
-    };
-
-    return { name: title as string, items: [headerItem] };
+    const instructions = filesToInstructions(title, files, { id: playlistId + "-section", label: title });
+    // Wrap the section in a header for consistency with other providers
+    return { name: title, items: [{ id: playlistId + "-header", itemType: "header", label: title, children: instructions.items }] };
   }
 
   // Auth methods
-  supportsDeviceFlow(): boolean {
-    return this.deviceFlowHelper.supportsDeviceFlow(this.config);
-  }
-
   generateCodeVerifier(): string {
     return this.oauthHelper.generateCodeVerifier();
   }

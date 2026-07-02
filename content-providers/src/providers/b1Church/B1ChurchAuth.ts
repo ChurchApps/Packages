@@ -1,18 +1,6 @@
 import { ContentProviderAuthData, ContentProviderConfig } from "../../interfaces";
-
-async function generateCodeChallenge(verifier: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(verifier);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-  const hashArray = new Uint8Array(hashBuffer);
-
-  let binary = "";
-  for (let i = 0; i < hashArray.length; i++) {
-    binary += String.fromCharCode(hashArray[i]);
-  }
-  const base64 = btoa(binary);
-  return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-}
+import { generateCodeChallenge } from "../../helpers/OAuthHelper";
+import { toAuthData } from "../../helpers/TokenHelper";
 
 export async function buildB1AuthUrl(config: ContentProviderConfig, appBase: string, redirectUri: string, codeVerifier: string, state?: string): Promise<{ url: string; challengeMethod: string }> {
   const codeChallenge = await generateCodeChallenge(codeVerifier);
@@ -41,7 +29,7 @@ export async function exchangeCodeForTokensWithPKCE(config: ContentProviderConfi
     }
 
     const data = await response.json();
-    return { access_token: data.access_token, refresh_token: data.refresh_token, token_type: data.token_type || "Bearer", created_at: Math.floor(Date.now() / 1000), expires_in: data.expires_in, scope: data.scope || config.scopes.join(" ") };
+    return toAuthData(data, { scope: config.scopes.join(" ") });
   } catch {
     return null;
   }
@@ -59,7 +47,7 @@ export async function exchangeCodeForTokensWithSecret(config: ContentProviderCon
     }
 
     const data = await response.json();
-    return { access_token: data.access_token, refresh_token: data.refresh_token, token_type: data.token_type || "Bearer", created_at: Math.floor(Date.now() / 1000), expires_in: data.expires_in, scope: data.scope || config.scopes.join(" ") };
+    return toAuthData(data, { scope: config.scopes.join(" ") });
   } catch {
     return null;
   }
@@ -74,7 +62,7 @@ export async function refreshTokenWithSecret(config: ContentProviderConfig, auth
     if (!response.ok) return null;
 
     const data = await response.json();
-    return { access_token: data.access_token, refresh_token: data.refresh_token || auth.refresh_token, token_type: data.token_type || "Bearer", created_at: Math.floor(Date.now() / 1000), expires_in: data.expires_in, scope: data.scope || auth.scope };
+    return toAuthData(data, { refreshToken: auth.refresh_token, scope: auth.scope });
   } catch {
     return null;
   }

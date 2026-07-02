@@ -1,6 +1,7 @@
-import { ContentProviderConfig, ContentProviderAuthData, ContentItem, ContentFile, ProviderLogos, FeedVenueInterface, Instructions, VenueActionsResponseInterface, ProviderCapabilities, IProvider, AuthType } from "../../interfaces";
+import { ContentProviderConfig, ContentProviderAuthData, ContentItem, ContentFile, ProviderLogos, FeedVenueInterface, Instructions, VenueActionsResponseInterface, ProviderCapabilities, AuthType } from "../../interfaces";
 import { detectMediaType, createFolder } from "../../utils";
 import { parsePath, getSegment } from "../../pathUtils";
+import { BaseProvider } from "../BaseProvider";
 import { apiRequest, API_BASE } from "./LessonsChurchApi";
 import { convertAddOnToFile, convertAddOnCategoryToInstructions, buildSectionActionsMap, processInstructionItem } from "./LessonsChurchConverters";
 
@@ -18,13 +19,13 @@ import { convertAddOnToFile, convertAddOnCategoryToInstructions, buildSectionAct
  *   /addons/{category}                                  -> individual add-ons
  *   /addons/{category}/{addOnId}                        -> single add-on file
  */
-export class LessonsChurchProvider implements IProvider {
+export class LessonsChurchProvider extends BaseProvider {
   readonly id = "lessonschurch";
   readonly name = "Lessons.church";
 
   readonly logos: ProviderLogos = { light: "https://lessons.church/images/logo.png", dark: "https://lessons.church/images/logo-dark.png" };
 
-  readonly config: ContentProviderConfig = { id: "lessonschurch", name: "Lessons.church", apiBase: API_BASE, oauthBase: "", clientId: "", scopes: [], endpoints: { programs: "/programs/public", studies: (programId: string) => `/studies/public/program/${programId}`, lessons: (studyId: string) => `/lessons/public/study/${studyId}`, venues: (lessonId: string) => `/venues/public/lesson/${lessonId}`, playlist: (venueId: string) => `/venues/playlist/${venueId}`, feed: (venueId: string) => `/venues/public/feed/${venueId}`, addOns: "/addOns/public", addOnDetail: (id: string) => `/addOns/public/${id}` } };
+  readonly config: ContentProviderConfig = { id: "lessonschurch", name: "Lessons.church", apiBase: API_BASE, oauthBase: "", clientId: "", scopes: [] };
 
   readonly requiresAuth = false;
   readonly authTypes: AuthType[] = ["none"];
@@ -96,7 +97,7 @@ export class LessonsChurchProvider implements IProvider {
   }
 
   private async getPrograms(): Promise<ContentItem[]> {
-    const response = await apiRequest<Record<string, unknown>[]>(this.config.endpoints.programs as string);
+    const response = await apiRequest<Record<string, unknown>[]>("/programs/public");
     if (!response) return [];
 
     const programs = Array.isArray(response) ? response : [];
@@ -104,8 +105,7 @@ export class LessonsChurchProvider implements IProvider {
   }
 
   private async getStudies(programId: string, currentPath: string): Promise<ContentItem[]> {
-    const pathFn = this.config.endpoints.studies as (id: string) => string;
-    const response = await apiRequest<Record<string, unknown>[]>(pathFn(programId));
+    const response = await apiRequest<Record<string, unknown>[]>(`/studies/public/program/${programId}`);
     if (!response) return [];
 
     const studies = Array.isArray(response) ? response : [];
@@ -115,8 +115,7 @@ export class LessonsChurchProvider implements IProvider {
   }
 
   private async getLessons(studyId: string, currentPath: string): Promise<ContentItem[]> {
-    const pathFn = this.config.endpoints.lessons as (id: string) => string;
-    const response = await apiRequest<Record<string, unknown>[]>(pathFn(studyId));
+    const response = await apiRequest<Record<string, unknown>[]>(`/lessons/public/study/${studyId}`);
     if (!response) return [];
 
     const lessons = Array.isArray(response) ? response : [];
@@ -124,8 +123,7 @@ export class LessonsChurchProvider implements IProvider {
   }
 
   private async getVenues(lessonId: string, currentPath: string): Promise<ContentItem[]> {
-    const pathFn = this.config.endpoints.venues as (id: string) => string;
-    const response = await apiRequest<Record<string, unknown>[]>(pathFn(lessonId));
+    const response = await apiRequest<Record<string, unknown>[]>(`/venues/public/lesson/${lessonId}`);
     if (!response) return [];
 
     const lessonResponse = await apiRequest<Record<string, unknown>>(`/lessons/public/${lessonId}`);
@@ -156,7 +154,7 @@ export class LessonsChurchProvider implements IProvider {
   }
 
   private async getAddOnCategories(): Promise<ContentItem[]> {
-    const response = await apiRequest<Record<string, unknown>[]>(this.config.endpoints.addOns as string);
+    const response = await apiRequest<Record<string, unknown>[]>("/addOns/public");
     if (!response) return [];
 
     const addOns = Array.isArray(response) ? response : [];
@@ -168,7 +166,7 @@ export class LessonsChurchProvider implements IProvider {
   private async getAddOnsByCategory(category: string, currentPath: string): Promise<ContentItem[]> {
     const decodedCategory = decodeURIComponent(category);
 
-    const response = await apiRequest<Record<string, unknown>[]>(this.config.endpoints.addOns as string);
+    const response = await apiRequest<Record<string, unknown>[]>("/addOns/public");
     if (!response) return [];
 
     const allAddOns = Array.isArray(response) ? response : [];
@@ -218,9 +216,5 @@ export class LessonsChurchProvider implements IProvider {
     }
 
     return null;
-  }
-
-  supportsDeviceFlow(): boolean {
-    return false;
   }
 }

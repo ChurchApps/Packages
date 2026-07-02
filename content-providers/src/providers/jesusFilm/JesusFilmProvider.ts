@@ -1,6 +1,7 @@
-import { ContentProviderConfig, ContentProviderAuthData, ContentItem, ContentFile, ProviderLogos, ProviderCapabilities, IProvider, AuthType, Instructions, InstructionItem } from "../../interfaces";
-import { createFile, createFolder } from "../../utils";
+import { ContentProviderConfig, ContentProviderAuthData, ContentItem, ContentFile, ProviderLogos, ProviderCapabilities, AuthType, Instructions } from "../../interfaces";
+import { createFile, createFolder, filesToInstructions } from "../../utils";
 import { parsePath } from "../../pathUtils";
+import { BaseProvider } from "../BaseProvider";
 import type { ArclightMediaListResponse, ArclightLanguageVariant, ArclightMediaComponent, ArclightMediaComponentLinksResponse } from "./JesusFilmInterfaces";
 
 const API_BASE = "https://api.arclight.org/v2";
@@ -11,6 +12,12 @@ const CATEGORY_MAP: Record<string, string> = {
   "feature-films": "featureFilm",
   "series": "series",
   "collections": "collection"
+};
+
+const CATEGORY_NAMES: Record<string, string> = {
+  "feature-films": "Feature Films",
+  "series": "Series",
+  "collections": "Collections"
 };
 
 /**
@@ -24,7 +31,7 @@ const CATEGORY_MAP: Record<string, string> = {
  *   /{category}/{id}                     -> single video (feature film) or container children (series/collection)
  *   /{category}/{...containerIds}/{id}   -> nested containers or single video (supports arbitrary depth)
  */
-export class JesusFilmProvider implements IProvider {
+export class JesusFilmProvider extends BaseProvider {
   readonly id = "jesusfilm";
   readonly name = "Jesus Film Project";
 
@@ -39,8 +46,7 @@ export class JesusFilmProvider implements IProvider {
     apiBase: API_BASE,
     oauthBase: "",
     clientId: "",
-    scopes: [],
-    endpoints: { watch: "/watch" }
+    scopes: []
   };
 
   readonly requiresAuth = false;
@@ -52,12 +58,20 @@ export class JesusFilmProvider implements IProvider {
     mediaLicensing: false
   };
 
+  // Not ApiHelper: Arclight needs the apiKey query param and callers rely on throw-on-error.
   private async fetchApi<T>(path: string): Promise<T> {
     const separator = path.includes("?") ? "&" : "?";
     const url = `${API_BASE}${path}${separator}apiKey=${API_KEY}`;
     const response = await fetch(url);
     if (!response.ok) throw new Error(`Arclight API error: ${response.status}`);
     return response.json() as Promise<T>;
+  }
+
+  private async fetchCategoryComponents(subType: string): Promise<ArclightMediaComponent[]> {
+    const data = await this.fetchApi<ArclightMediaListResponse>(
+      `/media-components?filter=master&subTypes=${subType}&languageIds=${LANGUAGE_ID}&limit=100`
+    );
+    return data._embedded.mediaComponents;
   }
 
   async browse(path?: string | null, _auth?: ContentProviderAuthData | null): Promise<ContentItem[]> {
@@ -91,20 +105,14 @@ export class JesusFilmProvider implements IProvider {
     const subType = CATEGORY_MAP[category];
     if (!subType) return [];
 
-    const data = await this.fetchApi<ArclightMediaListResponse>(
-      `/media-components?filter=master&subTypes=${subType}&languageIds=${LANGUAGE_ID}&limit=100`
-    );
-
-    return data._embedded.mediaComponents.map(item => {
-      const isLeaf = item.containsCount === 0;
-      return createFolder(
-        item.mediaComponentId,
-        item.title,
-        `/${category}/${item.mediaComponentId}`,
-        item.imageUrls.mobileCinematicHigh || item.imageUrls.videoStill || item.imageUrls.thumbnail,
-        isLeaf
-      );
-    });
+    const components = await this.fetchCategoryComponents(subType);
+    return components.map(item => createFolder(
+      item.mediaComponentId,
+      item.title,
+      `/${category}/${item.mediaComponentId}`,
+      item.imageUrls.mobileCinematicHigh || item.imageUrls.videoStill || item.imageUrls.thumbnail,
+      item.containsCount === 0
+    ));
   }
 
   private async getVideoFile(mediaComponentId: string): Promise<ContentItem[]> {
@@ -124,12 +132,10 @@ export class JesusFilmProvider implements IProvider {
     const seconds = component ? Math.round(component.lengthInMilliseconds / 1000) : 0;
     const thumbnail = component?.imageUrls.mobileCinematicHigh || component?.imageUrls.videoStill;
 
-    const muxPlaybackId = this.extractMuxPlaybackId(downloadUrl);
-
     return [
       createFile(mediaComponentId, title, downloadUrl, {
         mediaType: "video",
-        muxPlaybackId,
+        muxPlaybackId: this.extractMuxPlaybackId(downloadUrl),
         seconds,
         thumbnail
       })
@@ -144,9 +150,8 @@ export class JesusFilmProvider implements IProvider {
     const childIds = linksData.linkedMediaComponentIds?.contains;
     if (!childIds || childIds.length === 0) return [];
 
-    const idsParam = childIds.join(",");
     const childrenData = await this.fetchApi<ArclightMediaListResponse>(
-      `/media-components?ids=${idsParam}&languageIds=${LANGUAGE_ID}`
+      `/media-components?ids=${childIds.join(",")}&languageIds=${LANGUAGE_ID}`
     );
 
     if (!childrenData._embedded?.mediaComponents) return [];
@@ -163,47 +168,6 @@ export class JesusFilmProvider implements IProvider {
   private extractMuxPlaybackId(url: string): string | undefined {
     const match = url.match(/stream\.mux\.com\/([^/]+)/);
     return match ? match[1] : undefined;
-  }
-
-  async getPlaylist(path: string, _auth?: ContentProviderAuthData | null, _resolution?: number): Promise<ContentFile[] | null> {
-    const { segments, depth } = parsePath(path);
-    if (depth < 1) return null;
-
-    const category = segments[0];
-
-    if (depth >= 3) {
-      const lastId = segments[depth - 1];
-      // Try as video first, then as container
-      const items = await this.getVideoFile(lastId);
-      const files = items.filter((item): item is ContentFile => item.type === "file");
-      if (files.length > 0) return files;
-      const containerFiles = await this.fetchContainerVideoFiles(lastId);
-      return containerFiles.length > 0 ? containerFiles : null;
-    }
-
-    if (depth === 2) {
-      if (category === "feature-films") {
-        const items = await this.getVideoFile(segments[1]);
-        if (items.length === 0) return null;
-        return items.filter((item): item is ContentFile => item.type === "file");
-      }
-
-      // Series/Collection container: return all children as playlist
-      const files = await this.fetchContainerVideoFiles(segments[1]);
-      return files.length > 0 ? files : null;
-    }
-
-    // Depth 1: return all items in category as playlist
-    const subType = CATEGORY_MAP[category];
-    if (!subType) return null;
-
-    const data = await this.fetchApi<ArclightMediaListResponse>(
-      `/media-components?filter=master&subTypes=${subType}&languageIds=${LANGUAGE_ID}&limit=100`
-    );
-
-    const contentComponents = data._embedded.mediaComponents.filter(item => item.containsCount === 0);
-    const files = await this.fetchVideoFiles(contentComponents);
-    return files.length > 0 ? files : null;
   }
 
   private async fetchVideoFiles(components: ArclightMediaComponent[]): Promise<ContentFile[]> {
@@ -242,9 +206,8 @@ export class JesusFilmProvider implements IProvider {
     const childIds = linksData.linkedMediaComponentIds?.contains;
     if (!childIds || childIds.length === 0) return [];
 
-    const idsParam = childIds.join(",");
     const childrenData = await this.fetchApi<ArclightMediaListResponse>(
-      `/media-components?ids=${idsParam}&languageIds=${LANGUAGE_ID}`
+      `/media-components?ids=${childIds.join(",")}&languageIds=${LANGUAGE_ID}`
     );
     if (!childrenData._embedded?.mediaComponents) return [];
 
@@ -259,73 +222,61 @@ export class JesusFilmProvider implements IProvider {
     return files;
   }
 
-  private async buildVideoInstructions(mediaComponentId: string, category: string): Promise<Instructions | null> {
-    const items = await this.getVideoFile(mediaComponentId);
-    if (items.length === 0) return null;
+  async getPlaylist(path: string, _auth?: ContentProviderAuthData | null, _resolution?: number): Promise<ContentFile[] | null> {
+    const { segments, depth } = parsePath(path);
+    if (depth < 1) return null;
 
-    const file = items[0];
-    if (file.type !== "file") return null;
+    const category = segments[0];
 
-    const actionItem: InstructionItem = {
-      id: mediaComponentId + "-action",
-      itemType: "action",
-      label: file.title,
-      actionType: "play",
-      children: [
-        {
-          id: mediaComponentId,
-          itemType: "file",
-          label: file.title,
-          downloadUrl: file.url,
-          thumbnail: file.thumbnail
-        }
-      ]
-    };
+    if (depth >= 3) {
+      const lastId = segments[depth - 1];
+      // Try as video first, then as container
+      const items = await this.getVideoFile(lastId);
+      const files = items.filter((item): item is ContentFile => item.type === "file");
+      if (files.length > 0) return files;
+      const containerFiles = await this.fetchContainerVideoFiles(lastId);
+      return containerFiles.length > 0 ? containerFiles : null;
+    }
 
-    const sectionItem: InstructionItem = {
-      id: category + "-section",
-      itemType: "section",
-      label: file.title,
-      children: [actionItem]
-    };
+    if (depth === 2) {
+      if (category === "feature-films") {
+        const items = await this.getVideoFile(segments[1]);
+        if (items.length === 0) return null;
+        return items.filter((item): item is ContentFile => item.type === "file");
+      }
 
-    return { name: file.title, items: [sectionItem] };
+      // Series/Collection container: return all children as playlist
+      const files = await this.fetchContainerVideoFiles(segments[1]);
+      return files.length > 0 ? files : null;
+    }
+
+    // Depth 1: return all items in category as playlist
+    const subType = CATEGORY_MAP[category];
+    if (!subType) return null;
+
+    const components = await this.fetchCategoryComponents(subType);
+    const files = await this.fetchVideoFiles(components.filter(item => item.containsCount === 0));
+    return files.length > 0 ? files : null;
   }
 
-  private async buildContainerInstructions(containerId: string, category: string): Promise<Instructions | null> {
+  private async buildVideoInstructions(mediaComponentId: string, category: string): Promise<Instructions | null> {
+    const items = await this.getVideoFile(mediaComponentId);
+    const file = items.find((item): item is ContentFile => item.type === "file");
+    if (!file) return null;
+
+    return filesToInstructions(file.title, [file], { id: category + "-section", label: file.title });
+  }
+
+  private async buildContainerInstructions(containerId: string): Promise<Instructions> {
     const containerData = await this.fetchApi<ArclightMediaListResponse>(
       `/media-components?ids=${containerId}&languageIds=${LANGUAGE_ID}`
     );
-    const container = containerData._embedded?.mediaComponents?.[0];
-    const containerName = container?.title || containerId;
+    const containerName = containerData._embedded?.mediaComponents?.[0]?.title || containerId;
 
     const videoFiles = await this.fetchContainerVideoFiles(containerId);
     if (videoFiles.length === 0) return { name: containerName, items: [] };
 
-    const actionItems: InstructionItem[] = videoFiles.map(file => ({
-      id: file.id + "-action",
-      itemType: "action",
-      label: file.title,
-      actionType: "play",
-      children: [
-        {
-          id: file.id,
-          itemType: "file",
-          label: file.title,
-          downloadUrl: file.url,
-          thumbnail: file.thumbnail
-        }
-      ]
-    }));
-
-    const sectionItem: InstructionItem = {
-      id: containerId + "-section",
-      itemType: "section",
-      label: containerName,
-      children: actionItems
-    };
-
-    return { name: containerName, items: [sectionItem] };
+    return filesToInstructions(containerName, videoFiles, { id: containerId + "-section", label: containerName });
   }
 
   async getInstructions(path: string, _auth?: ContentProviderAuthData | null): Promise<Instructions | null> {
@@ -337,70 +288,20 @@ export class JesusFilmProvider implements IProvider {
     if (!subType) return null;
 
     if (depth === 1) {
-      const data = await this.fetchApi<ArclightMediaListResponse>(
-        `/media-components?filter=master&subTypes=${subType}&languageIds=${LANGUAGE_ID}&limit=100`
-      );
-
-      const categoryName = category === "feature-films" ? "Feature Films" : category === "series" ? "Series" : "Collections";
-
-      const actionItems: InstructionItem[] = await Promise.all(
-        data._embedded.mediaComponents.map(async (component) => {
-          let downloadUrl: string | undefined;
-          if (component.containsCount === 0) {
-            try {
-              const variant = await this.fetchApi<ArclightLanguageVariant>(
-                `/media-components/${component.mediaComponentId}/languages/${LANGUAGE_ID}?platform=web`
-              );
-              downloadUrl = variant.downloadUrls.high?.url || variant.downloadUrls.low?.url;
-            } catch {
-              // Skip
-            }
-          }
-
-          return {
-            id: component.mediaComponentId + "-action",
-            itemType: "action",
-            label: component.title,
-            actionType: "play",
-            children: downloadUrl ? [
-              {
-                id: component.mediaComponentId,
-                itemType: "file",
-                label: component.title,
-                downloadUrl,
-                thumbnail: component.imageUrls.mobileCinematicHigh || component.imageUrls.videoStill
-              }
-            ] : []
-          } satisfies InstructionItem;
-        })
-      );
-
-      const sectionItem: InstructionItem = {
-        id: category + "-section",
-        itemType: "section",
-        label: categoryName,
-        children: actionItems.filter(a => a.children && a.children.length > 0)
-      };
-
-      return { name: categoryName, items: [sectionItem] };
+      const categoryName = CATEGORY_NAMES[category];
+      const components = await this.fetchCategoryComponents(subType);
+      const files = await this.fetchVideoFiles(components.filter(c => c.containsCount === 0));
+      return filesToInstructions(categoryName, files, { id: category + "-section", label: categoryName });
     }
 
     if (depth === 2) {
       if (category === "feature-films") return this.buildVideoInstructions(segments[1], category);
-      return this.buildContainerInstructions(segments[1], category);
+      return this.buildContainerInstructions(segments[1]);
     }
 
-    if (depth >= 3) {
-      const lastId = segments[depth - 1];
-      const videoResult = await this.buildVideoInstructions(lastId, category);
-      if (videoResult) return videoResult;
-      return this.buildContainerInstructions(lastId, category);
-    }
-
-    return null;
-  }
-
-  supportsDeviceFlow(): boolean {
-    return false;
+    const lastId = segments[depth - 1];
+    const videoResult = await this.buildVideoInstructions(lastId, category);
+    if (videoResult) return videoResult;
+    return this.buildContainerInstructions(lastId);
   }
 }

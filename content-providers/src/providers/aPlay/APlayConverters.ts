@@ -1,4 +1,4 @@
-import { ContentFile, ContentItem, InstructionItem } from "../../interfaces";
+import { ContentFile, ContentItem } from "../../interfaces";
 import { detectMediaType, createFolder, createFile } from "../../utils";
 import { parsePath } from "../../pathUtils";
 
@@ -87,28 +87,4 @@ export function convertProductsToFolders(products: Record<string, unknown>[], cu
     const id = (p.productId || p.id) as string;
     return createFolder(id, (p.title || p.name) as string, `${currentPath}/products/${id}`, p.image as string | undefined);
   });
-}
-
-/**
- * Convert files to instructions
- */
-export function convertFilesToInstructions(files: ContentFile[], _libraryId: string): { name: string; items: InstructionItem[] } {
-  const items: InstructionItem[] = files.map(file => ({
-    id: file.id + "-action",
-    itemType: "action",
-    label: file.title,
-    actionType: "play",
-    children: [
-      {
-        id: file.id,
-        itemType: "file",
-        label: file.title,
-        seconds: file.seconds,
-        downloadUrl: file.url,
-        thumbnail: file.thumbnail
-      }
-    ]
-  }));
-
-  return { name: "Library", items };
 }

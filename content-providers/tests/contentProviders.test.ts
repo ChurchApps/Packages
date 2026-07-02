@@ -10,7 +10,8 @@ import { navigateToPath } from "../src/instructionPathUtils";
 import { detectMediaType, isMediaFile, createFolder, createFile } from "../src/utils";
 // instructionsToPlaylist was relocated from FormatConverters into utils (a general content
 // converter used by B1Church and the playground). Behavior must hold across the move.
-import { instructionsToPlaylist } from "../src/utils";
+import { instructionsToPlaylist, filesToInstructions } from "../src/utils";
+import { toAuthData } from "../src/helpers/TokenHelper";
 import { getPlaylistWithMeta } from "../playground/formats";
 
 const EXPECTED_IDS = "dropbox lessonschurch aplay jesusfilm signpresenter b1church bibleproject planningcenter cbn highvoltagekids lifechurch".split(" ");
@@ -238,4 +239,41 @@ test("getPlaylistWithMeta prefers the native playlist when getPlaylist returns f
   const { data, meta } = await getPlaylistWithMeta(stub, "/leaf", null);
   assert.equal(data?.[0].id, "n1");
   assert.equal(meta.isNative, true);
+});
+
+// --- Shared builders (refactor invariants: every provider's instruction tree and every
+//     OAuth token mapping now flow through these two functions) ---
+
+test("toAuthData maps a token response with Bearer default and fallbacks", () => {
+  const auth = toAuthData({ access_token: "at", expires_in: 3600 }, { refreshToken: "rt-old", scope: "openid" });
+  assert.equal(auth.access_token, "at");
+  assert.equal(auth.refresh_token, "rt-old");
+  assert.equal(auth.token_type, "Bearer");
+  assert.equal(auth.scope, "openid");
+  assert.equal(auth.expires_in, 3600);
+  assert.ok(Math.abs(auth.created_at - Math.floor(Date.now() / 1000)) <= 1);
+
+  const fresh = toAuthData({ access_token: "at2", refresh_token: "rt-new", token_type: "bearer", expires_in: 60, scope: "s" });
+  assert.equal(fresh.refresh_token, "rt-new");
+  assert.equal(fresh.token_type, "bearer");
+  assert.equal(fresh.scope, "s");
+});
+
+test("filesToInstructions builds the section → action → file tree", () => {
+  const file = { type: "file" as const, id: "f1", title: "Clip", mediaType: "video" as const, url: "https://x/v.mp4", downloadUrl: "https://x/dl.mp4", thumbnail: "https://x/t.jpg", seconds: 12 };
+  const wrapped = filesToInstructions("Lesson", [file], { id: "unit1-section", label: "Unit 1" });
+  assert.equal(wrapped.name, "Lesson");
+  assert.equal(wrapped.items.length, 1);
+  const section = wrapped.items[0];
+  assert.deepEqual([section.id, section.itemType, section.label], ["unit1-section", "section", "Unit 1"]);
+  const action = section.children![0];
+  assert.deepEqual([action.id, action.itemType, action.actionType, action.label, action.seconds], ["f1-action", "action", "play", "Clip", 12]);
+  const item = action.children![0];
+  assert.deepEqual([item.id, item.itemType, item.downloadUrl, item.thumbnail, item.mediaType, item.seconds], ["f1", "file", "https://x/dl.mp4", "https://x/t.jpg", "video", 12]);
+
+  const flat = filesToInstructions("Library", [file]);
+  assert.equal(flat.items[0].id, "f1-action");
+
+  const defaultLabel = filesToInstructions("Folder", [file], { id: "s1" });
+  assert.equal(defaultLabel.items[0].label, "Folder");
 });

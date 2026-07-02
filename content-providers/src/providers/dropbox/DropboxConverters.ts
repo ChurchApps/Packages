@@ -1,4 +1,4 @@
-import { ContentFile, ContentFolder, Instructions, InstructionItem } from "../../interfaces";
+import { ContentFile, ContentFolder } from "../../interfaces";
 import { detectMediaType, isMediaFile } from "../../utils";
 import { DropboxEntry, DropboxFileEntry, DropboxFolderEntry } from "./DropboxInterfaces";
 
@@ -25,32 +25,4 @@ export function filterMediaEntries(entries: DropboxEntry[]): { folders: DropboxF
     else if (entry[".tag"] === "file" && isMediaFile(entry.name)) mediaFiles.push(entry);
   }
   return { folders, mediaFiles };
-}
-
-export function buildInstructionsFromFiles(files: ContentFile[], folderName: string): Instructions {
-  const actionItems: InstructionItem[] = files.map(file => ({
-    id: file.id + "-action",
-    itemType: "action",
-    label: file.title,
-    actionType: "play",
-    children: [
-      {
-        id: file.id,
-        itemType: "file",
-        label: file.title,
-        seconds: file.seconds,
-        downloadUrl: file.downloadUrl || file.url,
-        thumbnail: file.thumbnail
-      }
-    ]
-  }));
-
-  const sectionItem: InstructionItem = {
-    id: "dropbox-section",
-    itemType: "section",
-    label: folderName,
-    children: actionItems
-  };
-
-  return { name: folderName, items: [sectionItem] };
 }

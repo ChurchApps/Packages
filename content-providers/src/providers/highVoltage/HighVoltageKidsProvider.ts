@@ -1,5 +1,6 @@
-import { ContentProviderConfig, ContentProviderAuthData, ContentItem, ContentFile, ProviderLogos, ProviderCapabilities, Instructions, IProvider, AuthType } from "../../interfaces";
+import { ContentProviderConfig, ContentProviderAuthData, ContentItem, ContentFile, ProviderLogos, ProviderCapabilities, Instructions, AuthType } from "../../interfaces";
 import { parsePath } from "../../pathUtils";
+import { BaseProvider } from "../BaseProvider";
 import highVoltageData from "./data.json";
 import { HighVoltageData } from "./HighVoltageKidsInterfaces";
 import { getCollections, getStudyFolders, getLessonFolders, getLessonFiles, findStudy, findLesson, buildStudyPlaylist, buildLessonPlaylist } from "./HighVoltageConverters";
@@ -14,7 +15,7 @@ import { buildStudyInstructions, buildLessonInstructions } from "./HighVoltageIn
  *   /{collectionSlug}/{studyId}                -> list lessons
  *   /{collectionSlug}/{studyId}/{lessonId}     -> lesson files (leaf)
  */
-export class HighVoltageKidsProvider implements IProvider {
+export class HighVoltageKidsProvider extends BaseProvider {
   readonly id = "highvoltagekids";
   readonly name = "High Voltage Kids";
 
@@ -29,8 +30,7 @@ export class HighVoltageKidsProvider implements IProvider {
     apiBase: "https://highvoltagekids.com",
     oauthBase: "",
     clientId: "",
-    scopes: [],
-    endpoints: { downloads: "/membership-downloads/" }
+    scopes: []
   };
 
   private data: HighVoltageData = highVoltageData;
@@ -95,9 +95,5 @@ export class HighVoltageKidsProvider implements IProvider {
     }
 
     return null;
-  }
-
-  supportsDeviceFlow(): boolean {
-    return false;
   }
 }

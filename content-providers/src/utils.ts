@@ -39,6 +39,37 @@ function generateId(): string {
   return "gen-" + Math.random().toString(36).substring(2, 11);
 }
 
+/** Wrap a ContentFile in the standard play-action InstructionItem used by most providers. */
+export function fileToActionItem(file: ContentFile): InstructionItem {
+  return {
+    id: file.id + "-action",
+    itemType: "action",
+    label: file.title,
+    actionType: "play",
+    seconds: file.seconds || undefined,
+    children: [
+      {
+        id: file.id,
+        itemType: "file",
+        label: file.title,
+        seconds: file.seconds || undefined,
+        downloadUrl: file.downloadUrl || file.url,
+        thumbnail: file.thumbnail,
+        mediaType: file.mediaType
+      }
+    ]
+  };
+}
+
+/** Build the standard section → play-action → file Instructions tree from a flat file list. */
+export function filesToInstructions(name: string, files: ContentFile[], section?: { id: string; label?: string }): Instructions {
+  const actions = files.map(fileToActionItem);
+  const items: InstructionItem[] = section
+    ? [{ id: section.id, itemType: "section", label: section.label ?? name, children: actions }]
+    : actions;
+  return { name, items };
+}
+
 /** Flatten an Instructions tree into a playlist of downloadable files. */
 export function instructionsToPlaylist(instructions: Instructions): ContentFile[] {
   const files: ContentFile[] = [];

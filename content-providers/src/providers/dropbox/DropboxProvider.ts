@@ -1,23 +1,25 @@
 import {
   ContentProviderConfig, ContentProviderAuthData, ContentItem,
-  ContentFile, ProviderLogos, ProviderCapabilities, IProvider,
+  ContentFile, ProviderLogos, ProviderCapabilities,
   AuthType, Instructions
 } from "../../interfaces";
-import { OAuthHelper, ApiHelper } from "../../helpers";
+import { OAuthHelper } from "../../helpers";
+import { toAuthData } from "../../helpers/TokenHelper";
+import { filesToInstructions } from "../../utils";
+import { BaseProvider } from "../BaseProvider";
 import {
   DropboxListFolderResponse, DropboxEntry,
   DropboxFileEntry, DropboxTemporaryLinkResponse, DropboxSharedLinkResponse
 } from "./DropboxInterfaces";
 import {
   filterMediaEntries, folderEntryToContentFolder,
-  fileEntryToContentFile, buildInstructionsFromFiles
+  fileEntryToContentFile
 } from "./DropboxConverters";
 
 const MAX_PAGINATION_CALLS = 50;
 
-export class DropboxProvider implements IProvider {
+export class DropboxProvider extends BaseProvider {
   private readonly oauthHelper = new OAuthHelper();
-  private readonly apiHelper = new ApiHelper();
 
   readonly id = "dropbox";
   readonly name = "Dropbox";
@@ -33,12 +35,7 @@ export class DropboxProvider implements IProvider {
     apiBase: "https://api.dropboxapi.com",
     oauthBase: "https://www.dropbox.com/oauth2",
     clientId: "9io0q0q9angdz9j",
-    scopes: [],
-    endpoints: {
-      listFolder: "/2/files/list_folder",
-      listFolderContinue: "/2/files/list_folder/continue",
-      getTemporaryLink: "/2/files/get_temporary_link"
-    }
+    scopes: []
   };
 
   readonly requiresAuth = true;
@@ -54,14 +51,14 @@ export class DropboxProvider implements IProvider {
 
   private dropboxPost<T>(endpoint: string, body: Record<string, unknown>, auth?: ContentProviderAuthData | null): Promise<T | null> {
     if (!auth) { console.error("[Dropbox] No auth token provided"); return Promise.resolve(null); }
-    return this.apiHelper.apiRequest<T>(this.config, this.id, endpoint, auth, "POST", body);
+    return this.apiRequest<T>(endpoint, auth, "POST", body);
   }
 
   private async listAllEntries(dropboxPath: string, auth?: ContentProviderAuthData | null): Promise<DropboxEntry[]> {
     const allEntries: DropboxEntry[] = [];
 
     const response = await this.dropboxPost<DropboxListFolderResponse>(
-      this.config.endpoints.listFolder as string,
+      "/2/files/list_folder",
       { path: dropboxPath, recursive: false, include_media_info: false },
       auth
     );
@@ -73,7 +70,7 @@ export class DropboxProvider implements IProvider {
     let calls = 0;
     while (hasMore && calls < MAX_PAGINATION_CALLS) {
       const cont = await this.dropboxPost<DropboxListFolderResponse>(
-        this.config.endpoints.listFolderContinue as string,
+        "/2/files/list_folder/continue",
         { cursor },
         auth
       );
@@ -133,7 +130,7 @@ export class DropboxProvider implements IProvider {
 
   private async getTemporaryLink(filePath: string, auth?: ContentProviderAuthData | null): Promise<string | null> {
     const response = await this.dropboxPost<DropboxTemporaryLinkResponse>(
-      this.config.endpoints.getTemporaryLink as string,
+      "/2/files/get_temporary_link",
       { path: filePath },
       auth
     );
@@ -159,7 +156,7 @@ export class DropboxProvider implements IProvider {
 
   private async checkIsLeaf(folderPath: string, auth?: ContentProviderAuthData | null): Promise<boolean> {
     const response = await this.dropboxPost<DropboxListFolderResponse>(
-      this.config.endpoints.listFolder as string,
+      "/2/files/list_folder",
       { path: folderPath, recursive: false, include_media_info: false },
       auth
     );
@@ -186,19 +183,8 @@ export class DropboxProvider implements IProvider {
     return [...folderItems, ...fileItems];
   }
 
-  async getPlaylist(path: string, auth?: ContentProviderAuthData | null, _resolution?: number): Promise<ContentFile[] | null> {
-    if (!path || path === "/") return null;
-    const dropboxPath = path.startsWith("/") ? path : "/" + path;
-
-    const allEntries = await this.listAllEntries(dropboxPath, auth);
-    const { mediaFiles } = filterMediaEntries(allEntries);
-    if (mediaFiles.length === 0) return null;
-
-    const files = await this.resolveFileLinks(mediaFiles, auth);
-    return files.length > 0 ? files : null;
-  }
-
-  async getInstructions(path: string, auth?: ContentProviderAuthData | null): Promise<Instructions | null> {
+  /** Resolve a folder path to playable files (list + media filter + link resolution). */
+  private async resolveMediaFiles(path: string, auth?: ContentProviderAuthData | null): Promise<{ files: ContentFile[]; dropboxPath: string } | null> {
     if (!path || path === "/") return null;
     const dropboxPath = path.startsWith("/") ? path : "/" + path;
 
@@ -208,17 +194,24 @@ export class DropboxProvider implements IProvider {
 
     const files = await this.resolveFileLinks(mediaFiles, auth);
     if (files.length === 0) return null;
+    return { files, dropboxPath };
+  }
 
-    const segments = dropboxPath.split("/").filter(Boolean);
+  async getPlaylist(path: string, auth?: ContentProviderAuthData | null, _resolution?: number): Promise<ContentFile[] | null> {
+    const resolved = await this.resolveMediaFiles(path, auth);
+    return resolved?.files ?? null;
+  }
+
+  async getInstructions(path: string, auth?: ContentProviderAuthData | null): Promise<Instructions | null> {
+    const resolved = await this.resolveMediaFiles(path, auth);
+    if (!resolved) return null;
+
+    const segments = resolved.dropboxPath.split("/").filter(Boolean);
     const folderName = segments[segments.length - 1] || "Dropbox";
-    return buildInstructionsFromFiles(files, folderName);
+    return filesToInstructions(folderName, resolved.files, { id: "dropbox-section", label: folderName });
   }
 
   // -- Auth methods --
-
-  supportsDeviceFlow(): boolean {
-    return false;
-  }
 
   generateCodeVerifier(): string {
     return this.oauthHelper.generateCodeVerifier();
@@ -264,15 +257,7 @@ export class DropboxProvider implements IProvider {
 
       if (!response.ok) return null;
 
-      const data = await response.json();
-      return {
-        access_token: data.access_token,
-        refresh_token: data.refresh_token,
-        token_type: data.token_type || "Bearer",
-        created_at: Math.floor(Date.now() / 1000),
-        expires_in: data.expires_in,
-        scope: data.scope || ""
-      };
+      return toAuthData(await response.json());
     } catch {
       return null;
     }

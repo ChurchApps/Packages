@@ -1,8 +1,9 @@
-import { ContentProviderConfig, ContentProviderAuthData, ContentItem, ContentFile, ProviderLogos, ProviderCapabilities, MediaLicenseResult, IProvider, AuthType, Instructions } from "../../interfaces";
+import { ContentProviderConfig, ContentProviderAuthData, ContentItem, ContentFile, ProviderLogos, ProviderCapabilities, MediaLicenseResult, AuthType, Instructions } from "../../interfaces";
 import { parsePath } from "../../pathUtils";
-import { ApiHelper } from "../../helpers";
+import { filesToInstructions } from "../../utils";
+import { BaseProvider } from "../BaseProvider";
 import { checkMediaLicense, API_BASE } from "./APlayApi";
-import { extractLibraryId, convertMediaToFiles, convertModulesToFolders, convertLibrariesToFolders, convertProductsToFolders, convertFilesToInstructions } from "./APlayConverters";
+import { extractLibraryId, convertMediaToFiles, convertModulesToFolders, convertLibrariesToFolders, convertProductsToFolders } from "./APlayConverters";
 
 /**
  * Extracts an array from an API response that may have different formats.
@@ -34,19 +35,13 @@ function extractArray<T = Record<string, unknown>>(
  *   /modules/{moduleId}/products/{productId}/{libraryId}  -> media files
  *   /modules/{moduleId}/libraries/{libraryId}             -> media files (if module has 0-1 products)
  */
-export class APlayProvider implements IProvider {
-  private readonly apiHelper = new ApiHelper();
-
-  private async apiRequest<T>(path: string, auth?: ContentProviderAuthData | null): Promise<T | null> {
-    return this.apiHelper.apiRequest<T>(this.config, this.id, path, auth);
-  }
-
+export class APlayProvider extends BaseProvider {
   readonly id = "aplay";
   readonly name = "APlay";
 
   readonly logos: ProviderLogos = { light: "https://www.joinamazing.com/_assets/v11/3ba846c5afd7e73d27bc4d87b63d423e7ae2dc73.svg", dark: "https://www.joinamazing.com/_assets/v11/3ba846c5afd7e73d27bc4d87b63d423e7ae2dc73.svg" };
 
-  readonly config: ContentProviderConfig = { id: "aplay", name: "APlay", apiBase: API_BASE, oauthBase: "https://api.joinamazing.com/prod/aims/oauth", clientId: "xFJFq7yNYuXXXMx0YBiQ", scopes: ["openid", "profile", "email"], endpoints: { modules: "/prod/curriculum/modules", productLibraries: (productId: string) => `/prod/curriculum/modules/products/${productId}/libraries`, libraryMedia: (libraryId: string) => `/prod/creators/libraries/${libraryId}/media` } };
+  readonly config: ContentProviderConfig = { id: "aplay", name: "APlay", apiBase: API_BASE, oauthBase: "https://api.joinamazing.com/prod/aims/oauth", clientId: "xFJFq7yNYuXXXMx0YBiQ", scopes: ["openid", "profile", "email"] };
 
   readonly requiresAuth = true;
   readonly authTypes: AuthType[] = ["oauth_pkce"];
@@ -72,13 +67,13 @@ export class APlayProvider implements IProvider {
   }
 
   private async getModules(auth?: ContentProviderAuthData | null): Promise<ContentItem[]> {
-    const response = await this.apiRequest<Record<string, unknown>>(this.config.endpoints.modules as string, auth);
+    const response = await this.apiRequest<Record<string, unknown>>("/prod/curriculum/modules", auth);
     const modules = extractArray(response, "data", "modules");
     return convertModulesToFolders(modules);
   }
 
   private async getModuleContent(moduleId: string, currentPath: string, auth?: ContentProviderAuthData | null): Promise<ContentItem[]> {
-    const response = await this.apiRequest<Record<string, unknown>>(this.config.endpoints.modules as string, auth);
+    const response = await this.apiRequest<Record<string, unknown>>("/prod/curriculum/modules", auth);
     const modules = extractArray(response, "data", "modules");
     const module = modules.find(m => (m.id || m.moduleId) === moduleId);
     if (!module) return [];
@@ -97,15 +92,13 @@ export class APlayProvider implements IProvider {
   }
 
   private async getLibraryFolders(productId: string, currentPath: string, auth?: ContentProviderAuthData | null): Promise<ContentItem[]> {
-    const pathFn = this.config.endpoints.productLibraries as (id: string) => string;
-    const response = await this.apiRequest<Record<string, unknown>>(pathFn(productId), auth);
+    const response = await this.apiRequest<Record<string, unknown>>(`/prod/curriculum/modules/products/${productId}/libraries`, auth);
     const libraries = extractArray(response, "data", "libraries");
     return convertLibrariesToFolders(libraries, currentPath);
   }
 
-  private async getMediaFiles(libraryId: string, auth?: ContentProviderAuthData | null): Promise<ContentItem[]> {
-    const pathFn = this.config.endpoints.libraryMedia as (id: string) => string;
-    const response = await this.apiRequest<Record<string, unknown>>(pathFn(libraryId), auth);
+  private async getMediaFiles(libraryId: string, auth?: ContentProviderAuthData | null): Promise<ContentFile[]> {
+    const response = await this.apiRequest<Record<string, unknown>>(`/prod/creators/libraries/${libraryId}/media`, auth);
     const mediaItems = extractArray(response, "data", "media");
     return convertMediaToFiles(mediaItems);
   }
@@ -114,7 +107,7 @@ export class APlayProvider implements IProvider {
     const libraryId = extractLibraryId(path);
     if (!libraryId) return null;
 
-    const files = await this.getMediaFiles(libraryId, auth) as ContentFile[];
+    const files = await this.getMediaFiles(libraryId, auth);
     return files.length > 0 ? files : null;
   }
 
@@ -122,17 +115,13 @@ export class APlayProvider implements IProvider {
     const libraryId = extractLibraryId(path);
     if (!libraryId) return null;
 
-    const files = await this.getMediaFiles(libraryId, auth) as ContentFile[];
+    const files = await this.getMediaFiles(libraryId, auth);
     if (files.length === 0) return null;
 
-    return convertFilesToInstructions(files, libraryId);
+    return filesToInstructions("Library", files);
   }
 
   async checkMediaLicense(mediaId: string, auth?: ContentProviderAuthData | null): Promise<MediaLicenseResult | null> {
     return checkMediaLicense(mediaId, auth);
-  }
-
-  supportsDeviceFlow(): boolean {
-    return false;
   }
 }

@@ -1,34 +1,43 @@
 import { ContentProviderAuthData, ContentProviderConfig } from "../interfaces";
+import { toAuthData } from "./TokenHelper";
+
+export function generateCodeVerifier(): string {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~";
+  const length = 64;
+  const array = new Uint8Array(length);
+  crypto.getRandomValues(array);
+  let result = "";
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(array[i] % chars.length);
+  }
+  return result;
+}
+
+export async function generateCodeChallenge(verifier: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(verifier);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = new Uint8Array(hashBuffer);
+
+  let binary = "";
+  for (let i = 0; i < hashArray.length; i++) {
+    binary += String.fromCharCode(hashArray[i]);
+  }
+  const base64 = btoa(binary);
+  return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
 
 export class OAuthHelper {
   generateCodeVerifier(): string {
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~";
-    const length = 64;
-    const array = new Uint8Array(length);
-    crypto.getRandomValues(array);
-    let result = "";
-    for (let i = 0; i < length; i++) {
-      result += chars.charAt(array[i] % chars.length);
-    }
-    return result;
+    return generateCodeVerifier();
   }
 
   async generateCodeChallenge(verifier: string): Promise<string> {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(verifier);
-    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-    const hashArray = new Uint8Array(hashBuffer);
-
-    let binary = "";
-    for (let i = 0; i < hashArray.length; i++) {
-      binary += String.fromCharCode(hashArray[i]);
-    }
-    const base64 = btoa(binary);
-    return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    return generateCodeChallenge(verifier);
   }
 
   async buildAuthUrl(config: ContentProviderConfig, codeVerifier: string, redirectUri: string, state?: string): Promise<{ url: string; challengeMethod: string }> {
-    const codeChallenge = await this.generateCodeChallenge(codeVerifier);
+    const codeChallenge = await generateCodeChallenge(codeVerifier);
     const params = new URLSearchParams({
       response_type: "code",
       client_id: config.clientId,
@@ -59,7 +68,7 @@ export class OAuthHelper {
       }
 
       const data = await response.json();
-      return { access_token: data.access_token, refresh_token: data.refresh_token, token_type: data.token_type || "Bearer", created_at: Math.floor(Date.now() / 1000), expires_in: data.expires_in, scope: data.scope || config.scopes.join(" ") };
+      return toAuthData(data, { scope: config.scopes.join(" ") });
     } catch {
       return null;
     }

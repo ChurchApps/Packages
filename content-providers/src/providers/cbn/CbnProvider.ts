@@ -1,8 +1,10 @@
-import { ContentProviderConfig, ContentProviderAuthData, ContentItem, ContentFile, ProviderLogos, ProviderCapabilities, IProvider, AuthType, Instructions, DeviceAuthorizationResponse, DeviceFlowPollResult } from "../../interfaces";
+import { ContentProviderConfig, ContentProviderAuthData, ContentItem, ContentFile, ProviderLogos, ProviderCapabilities, AuthType, Instructions, DeviceAuthorizationResponse, DeviceFlowPollResult } from "../../interfaces";
 import { parsePath } from "../../pathUtils";
-import { ApiHelper, DeviceFlowHelper } from "../../helpers";
+import { filesToInstructions } from "../../utils";
+import { DeviceFlowHelper } from "../../helpers";
+import { BaseProvider } from "../BaseProvider";
 import { CbnCatalogCourse, CbnCourseDetail, CbnLessonPlaylist } from "./CbnInterfaces";
-import { convertCoursesToFolders, convertLessonsToFolders, convertPlaylistToFiles, convertPlaylistToInstructions } from "./CbnConverters";
+import { convertCoursesToFolders, convertLessonsToFolders, convertPlaylistToFiles } from "./CbnConverters";
 import { CBN_LOGO } from "./logo";
 
 const API_BASE = "https://sbamemberdev.wpenginepowered.com/wp-json/superbook/v1";
@@ -18,13 +20,8 @@ const API_BASE = "https://sbamemberdev.wpenginepowered.com/wp-json/superbook/v1"
  *   /catalog/{courseId}            -> lesson folders (GET /catalog/{courseId})
  *   /catalog/{courseId}/{lessonId} -> video files   (GET /lesson-playlist/{lessonId})
  */
-export class CbnProvider implements IProvider {
-  private readonly apiHelper = new ApiHelper();
+export class CbnProvider extends BaseProvider {
   private readonly deviceFlowHelper = new DeviceFlowHelper();
-
-  private async apiRequest<T>(path: string, auth?: ContentProviderAuthData | null): Promise<T | null> {
-    return this.apiHelper.apiRequest<T>(this.config, this.id, path, auth);
-  }
 
   readonly id = "cbn";
   readonly name = "CBN";
@@ -39,12 +36,7 @@ export class CbnProvider implements IProvider {
     clientId: "freeplay",
     scopes: [],
     supportsDeviceFlow: true,
-    deviceAuthEndpoint: "/device",
-    endpoints: {
-      catalog: "/catalog",
-      courseDetail: (courseId: string) => `/catalog/${courseId}`,
-      lessonPlaylist: (lessonId: string) => `/lesson-playlist/${lessonId}`
-    }
+    deviceAuthEndpoint: "/device"
   };
 
   readonly requiresAuth = true;
@@ -60,56 +52,41 @@ export class CbnProvider implements IProvider {
 
     if (segments[0] !== "catalog") return [];
 
-    if (depth === 1) return this.getCourses(auth);
-    if (depth === 2) return this.getLessons(segments[1], path!, auth);
-    if (depth === 3) return this.getVideos(segments[2], auth);
+    if (depth === 1) {
+      const response = await this.apiRequest<CbnCatalogCourse[]>("/catalog", auth);
+      return Array.isArray(response) ? convertCoursesToFolders(response) : [];
+    }
+    if (depth === 2) {
+      const response = await this.apiRequest<CbnCourseDetail>(`/catalog/${segments[1]}`, auth);
+      return response?.lessons ? convertLessonsToFolders(response.lessons, path!) : [];
+    }
+    if (depth === 3) {
+      const resolved = await this.resolveFiles(path, auth);
+      return resolved?.files ?? [];
+    }
 
     return [];
   }
 
-  private async getCourses(auth?: ContentProviderAuthData | null): Promise<ContentItem[]> {
-    const response = await this.apiRequest<CbnCatalogCourse[]>(this.config.endpoints.catalog as string, auth);
-    if (!Array.isArray(response)) return [];
-    return convertCoursesToFolders(response);
-  }
+  /** Resolve a leaf path (/catalog/{courseId}/{lessonId}) to its playlist files. */
+  private async resolveFiles(path: string | null | undefined, auth?: ContentProviderAuthData | null): Promise<{ files: ContentFile[]; lessonTitle?: string } | null> {
+    const { segments, depth } = parsePath(path);
+    if (depth !== 3 || segments[0] !== "catalog") return null;
 
-  private async getLessons(courseId: string, coursePath: string, auth?: ContentProviderAuthData | null): Promise<ContentItem[]> {
-    const pathFn = this.config.endpoints.courseDetail as (id: string) => string;
-    const response = await this.apiRequest<CbnCourseDetail>(pathFn(courseId), auth);
-    if (!response?.lessons) return [];
-    return convertLessonsToFolders(response.lessons, coursePath);
-  }
-
-  private async getVideos(lessonId: string, auth?: ContentProviderAuthData | null): Promise<ContentItem[]> {
-    const playlist = await this.fetchPlaylist(lessonId, auth);
-    return playlist ? convertPlaylistToFiles(playlist) : [];
-  }
-
-  private async fetchPlaylist(lessonId: string, auth?: ContentProviderAuthData | null): Promise<CbnLessonPlaylist | null> {
-    const pathFn = this.config.endpoints.lessonPlaylist as (id: string) => string;
-    return this.apiRequest<CbnLessonPlaylist>(pathFn(lessonId), auth);
+    const playlist = await this.apiRequest<CbnLessonPlaylist>(`/lesson-playlist/${segments[2]}`, auth);
+    if (!playlist || playlist.playlist.length === 0) return null;
+    return { files: convertPlaylistToFiles(playlist), lessonTitle: playlist.lesson_title };
   }
 
   async getPlaylist(path: string, auth?: ContentProviderAuthData | null, _resolution?: number): Promise<ContentFile[] | null> {
-    const { segments, depth } = parsePath(path);
-    if (depth !== 3 || segments[0] !== "catalog") return null;
-
-    const playlist = await this.fetchPlaylist(segments[2], auth);
-    if (!playlist || playlist.playlist.length === 0) return null;
-    return convertPlaylistToFiles(playlist);
+    const resolved = await this.resolveFiles(path, auth);
+    return resolved?.files ?? null;
   }
 
   async getInstructions(path: string, auth?: ContentProviderAuthData | null): Promise<Instructions | null> {
-    const { segments, depth } = parsePath(path);
-    if (depth !== 3 || segments[0] !== "catalog") return null;
-
-    const playlist = await this.fetchPlaylist(segments[2], auth);
-    if (!playlist || playlist.playlist.length === 0) return null;
-    return convertPlaylistToInstructions(playlist);
-  }
-
-  supportsDeviceFlow(): boolean {
-    return this.deviceFlowHelper.supportsDeviceFlow(this.config);
+    const resolved = await this.resolveFiles(path, auth);
+    if (!resolved) return null;
+    return filesToInstructions(resolved.lessonTitle || "Lesson", resolved.files);
   }
 
   async initiateDeviceFlow(): Promise<DeviceAuthorizationResponse | null> {

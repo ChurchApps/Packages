@@ -374,28 +374,23 @@ b1Church/
 | `fetchPlanTypes()` | Get plan types for a ministry |
 | `fetchPlans()` | Get plans for a plan type |
 | `fetchVenueFeed()` | Get venue feed with files |
-| `fetchVenuePlanItems()` | Get venue plan item structure |
 | `fetchVenueActions()` | Get venue actions with files |
-| `fetchArrangementKey()` | Get song/arrangement data |
 | `fetchFromProviderProxy()` | Proxy requests to external providers |
 
 ### converters.ts
 
 | Function | Purpose |
 |----------|---------|
-| `planItemToPresentation()` | Convert B1PlanItem to PlanPresentation |
 | `planItemToInstruction()` | Convert B1PlanItem to InstructionItem |
 | `getFilesFromVenueFeed()` | Extract files for a section/action from venue feed |
 | `getFileFromProviderFileItem()` | Create ContentFile from providerFile item |
 | `buildSectionActionsMap()` | Build map from section IDs to expanded actions |
-| `processVenueInstructionItem()` | Expand venue item with section actions |
 
 ### B1ChurchProvider.ts
 
 | Method | Purpose |
 |--------|---------|
 | `browse()` | Navigate ministry/plan hierarchy |
-| `getPresentations()` | Get presentations for a plan |
 | `getPlaylist()` | Get media files for playback |
 | `getInstructions()` | Get expanded instruction tree |
 | `processInstructionItems()` | Recursively process and expand items |

@@ -41,32 +41,30 @@ const plan = await provider.getPresentations(serviceId);
 
 ### Built-in Providers
 
-- **B1ChurchProvider** - B1.Church content integration
-- **PlanningCenterProvider** - Planning Center Services
-- **LessonsChurchProvider** - Lessons.church curriculum
+- **B1ChurchProvider** - B1.Church plans (merges plan items with lesson venues and external providers)
+- **LessonsChurchProvider** - Lessons.church curriculum and add-ons
+- **PlanningCenterProvider** - Planning Center Services (browse only)
 - **BibleProjectProvider** - Bible Project videos
 - **APlayProvider** - A.Play media library
-- **SignPresenterProvider** - Sign Presenter content
+- **SignPresenterProvider** - Sign Presenter playlists
+- **DropboxProvider** - Media files from a Dropbox account
+- **JesusFilmProvider** - Jesus Film Project (Arclight API)
+- **CbnProvider** - CBN Superbook curriculum
+- **HighVoltageKidsProvider** - High Voltage Kids curriculum (static catalog)
+- **LifeChurchProvider** - Life.Church kids curriculum (static catalog)
 
 ### Create a Custom Provider
 
 ```typescript
-import { ContentProvider, registerProvider } from '@churchapps/content-providers';
+import { BaseProvider, registerProvider } from '@churchapps/content-providers';
 
-class MyProvider extends ContentProvider {
-  // Implement required methods
+class MyProvider extends BaseProvider {
+  // Declare id/name/logos/config/requiresAuth/authTypes/capabilities and implement browse().
+  // Optionally implement getPlaylist()/getInstructions(); the protected apiRequest() helper
+  // performs authenticated JSON fetches against config.apiBase.
 }
 
 registerProvider(new MyProvider());
-```
-
-### Utilities
-
-```typescript
-import { detectMediaType } from '@churchapps/content-providers';
-
-detectMediaType('https://example.com/video.mp4'); // 'video'
-detectMediaType('https://example.com/image.png'); // 'image'
 ```
 
 ## Get Involved

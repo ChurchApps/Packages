@@ -1,4 +1,5 @@
 import { ContentProviderConfig, DeviceAuthorizationResponse, DeviceFlowPollResult } from "../interfaces";
+import { toAuthData } from "./TokenHelper";
 
 export class DeviceFlowHelper {
   supportsDeviceFlow(config: ContentProviderConfig): boolean {
@@ -23,7 +24,7 @@ export class DeviceFlowHelper {
 
       if (response.ok) {
         const data = await response.json();
-        return { access_token: data.access_token, refresh_token: data.refresh_token, token_type: data.token_type || "Bearer", created_at: Math.floor(Date.now() / 1000), expires_in: data.expires_in, scope: data.scope || config.scopes.join(" ") };
+        return toAuthData(data, { scope: config.scopes.join(" ") });
       }
 
       const errorData = await response.json();

@@ -1,5 +1,7 @@
-import { ContentProviderConfig, ContentProviderAuthData, ContentItem, ContentFile, ProviderLogos, ProviderCapabilities, IProvider, AuthType, Instructions, InstructionItem, CurrentPlan } from "../../interfaces";
+import { ContentProviderConfig, ContentProviderAuthData, ContentItem, ContentFile, ProviderLogos, ProviderCapabilities, AuthType, Instructions, CurrentPlan } from "../../interfaces";
 import { parsePath } from "../../pathUtils";
+import { filesToInstructions } from "../../utils";
+import { BaseProvider } from "../BaseProvider";
 import lifeChurchData from "./data.json";
 import { LifeChurchData, LifeChurchSeries, LifeChurchUnit, LifeChurchLesson, LifeChurchScheduledLesson } from "./LifeChurchInterfaces";
 
@@ -23,7 +25,7 @@ import { LifeChurchData, LifeChurchSeries, LifeChurchUnit, LifeChurchLesson, Lif
  * range requests — plays in any standard mp4 player including
  * react-native-video.
  */
-export class LifeChurchProvider implements IProvider {
+export class LifeChurchProvider extends BaseProvider {
   readonly id = "lifechurch";
   readonly name = "Life.Church";
 
@@ -38,8 +40,7 @@ export class LifeChurchProvider implements IProvider {
     apiBase: "https://www.life.church",
     oauthBase: "",
     clientId: "",
-    scopes: [],
-    endpoints: {}
+    scopes: []
   };
 
   readonly requiresAuth = false;
@@ -57,14 +58,6 @@ export class LifeChurchProvider implements IProvider {
     return this.data.series.find(s => s.id === seriesId);
   }
 
-  private findUnit(series: LifeChurchSeries, unitId: string): LifeChurchUnit | undefined {
-    return series.units.find(u => u.id === unitId);
-  }
-
-  private findLesson(unit: LifeChurchUnit, lessonId: string): LifeChurchLesson | undefined {
-    return unit.lessons.find(l => l.id === lessonId);
-  }
-
   private findScheduled(scheduledId: string): LifeChurchScheduledLesson | undefined {
     return this.data.scheduledLessons?.find(s => s.id === scheduledId);
   }
@@ -72,8 +65,8 @@ export class LifeChurchProvider implements IProvider {
   /** Resolve a scheduled-lesson reference to the underlying lesson + unit + series. */
   private resolveScheduled(sched: LifeChurchScheduledLesson): { series: LifeChurchSeries; unit: LifeChurchUnit; lesson: LifeChurchLesson } | null {
     const series = this.findSeries(sched.seriesId);
-    const unit = series && this.findUnit(series, sched.unitId);
-    const lesson = unit && this.findLesson(unit, sched.lessonId);
+    const unit = series?.units.find(u => u.id === sched.unitId);
+    const lesson = unit?.lessons.find(l => l.id === sched.lessonId);
     if (!series || !unit || !lesson) return null;
     return { series, unit, lesson };
   }
@@ -90,18 +83,47 @@ export class LifeChurchProvider implements IProvider {
     };
   }
 
+  /** Resolve a leaf-or-unit path to its files plus the name/section used for instructions. */
+  private resolve(path: string | null | undefined): { files: ContentFile[]; name: string; section: { id: string; label: string } } | null {
+    const { segments, depth } = parsePath(path);
+
+    if (segments[0] === "scheduled") {
+      if (depth !== 2) return null;
+      const sched = this.findScheduled(segments[1]);
+      const resolved = sched && this.resolveScheduled(sched);
+      if (!sched || !resolved) return null;
+      const label = `${sched.ageGroup} — ${resolved.lesson.title}`;
+      return {
+        files: [this.lessonToFile(resolved.lesson, label)],
+        name: label,
+        section: { id: `scheduled-${sched.id}-section`, label: "This Sunday" }
+      };
+    }
+
+    const series = this.findSeries(segments[0]);
+    const unit = series?.units.find(u => u.id === segments[1]);
+    if (!unit) return null;
+
+    if (depth === 2) {
+      return { files: unit.lessons.map(l => this.lessonToFile(l)), name: unit.name, section: { id: `${unit.id}-section`, label: unit.name } };
+    }
+
+    if (depth === 3) {
+      const lesson = unit.lessons.find(l => l.id === segments[2]);
+      if (!lesson) return null;
+      return { files: [this.lessonToFile(lesson)], name: lesson.title, section: { id: `${unit.id}-section`, label: unit.name } };
+    }
+
+    return null;
+  }
+
   async browse(path?: string | null, _auth?: ContentProviderAuthData | null): Promise<ContentItem[]> {
     const { segments, depth } = parsePath(path);
 
     if (depth === 0) {
       const items: ContentItem[] = [];
       if (this.data.scheduledLessons && this.data.scheduledLessons.length > 0) {
-        items.push({
-          type: "folder",
-          id: "scheduled",
-          title: "This Sunday",
-          path: "/scheduled"
-        });
+        items.push({ type: "folder", id: "scheduled", title: "This Sunday", path: "/scheduled" });
       }
       for (const s of this.data.series) {
         items.push({ type: "folder", id: s.id, title: s.name, thumbnail: s.thumbnail, path: `/${s.id}` });
@@ -123,13 +145,7 @@ export class LifeChurchProvider implements IProvider {
           };
         });
       }
-      if (depth === 2) {
-        const sched = this.findScheduled(segments[1]);
-        const resolved = sched && this.resolveScheduled(sched);
-        if (!sched || !resolved) return [];
-        return [this.lessonToFile(resolved.lesson, `${sched.ageGroup} — ${resolved.lesson.title}`)];
-      }
-      return [];
+      return this.resolve(path)?.files ?? [];
     }
 
     if (depth === 1) {
@@ -146,103 +162,34 @@ export class LifeChurchProvider implements IProvider {
 
     if (depth === 2) {
       const series = this.findSeries(segments[0]);
-      const unit = series && this.findUnit(series, segments[1]);
-      if (!series || !unit) return [];
+      const unit = series?.units.find(u => u.id === segments[1]);
+      if (!unit) return [];
       return unit.lessons.map(l => ({
         type: "folder" as const,
         id: l.id,
         title: l.title,
         thumbnail: l.thumbnail,
         isLeaf: true,
-        path: `/${series.id}/${unit.id}/${l.id}`
+        path: `/${series!.id}/${unit.id}/${l.id}`
       }));
     }
 
     if (depth === 3) {
-      const series = this.findSeries(segments[0]);
-      const unit = series && this.findUnit(series, segments[1]);
-      const lesson = unit && this.findLesson(unit, segments[2]);
-      if (!lesson) return [];
-      return [this.lessonToFile(lesson)];
+      return this.resolve(path)?.files ?? [];
     }
 
     return [];
   }
 
   async getPlaylist(path: string, _auth?: ContentProviderAuthData | null, _resolution?: number): Promise<ContentFile[] | null> {
-    const { segments, depth } = parsePath(path);
-
-    if (segments[0] === "scheduled" && depth === 2) {
-      const sched = this.findScheduled(segments[1]);
-      const resolved = sched && this.resolveScheduled(sched);
-      return resolved ? [this.lessonToFile(resolved.lesson, `${sched!.ageGroup} — ${resolved.lesson.title}`)] : null;
-    }
-
-    if (depth === 3) {
-      const series = this.findSeries(segments[0]);
-      const unit = series && this.findUnit(series, segments[1]);
-      const lesson = unit && this.findLesson(unit, segments[2]);
-      return lesson ? [this.lessonToFile(lesson)] : null;
-    }
-
-    if (depth === 2 && segments[0] !== "scheduled") {
-      const series = this.findSeries(segments[0]);
-      const unit = series && this.findUnit(series, segments[1]);
-      if (!unit) return null;
-      const files = unit.lessons.map(l => this.lessonToFile(l));
-      return files.length > 0 ? files : null;
-    }
-
-    return null;
+    const resolved = this.resolve(path);
+    return resolved && resolved.files.length > 0 ? resolved.files : null;
   }
 
   async getInstructions(path: string, _auth?: ContentProviderAuthData | null): Promise<Instructions | null> {
-    const { segments, depth } = parsePath(path);
-
-    const buildItem = (lesson: LifeChurchLesson, label?: string): InstructionItem => ({
-      id: `${lesson.id}-action`,
-      itemType: "action",
-      label: label ?? lesson.title,
-      actionType: "play",
-      children: [
-        {
-          id: lesson.id,
-          itemType: "file",
-          label: label ?? lesson.title,
-          downloadUrl: lesson.videoUrl,
-          thumbnail: lesson.thumbnail,
-          mediaType: "video"
-        }
-      ]
-    });
-
-    if (segments[0] === "scheduled" && depth === 2) {
-      const sched = this.findScheduled(segments[1]);
-      const resolved = sched && this.resolveScheduled(sched);
-      if (!sched || !resolved) return null;
-      const label = `${sched.ageGroup} — ${resolved.lesson.title}`;
-      return {
-        name: label,
-        items: [{ id: `scheduled-${sched.id}-section`, itemType: "section", label: "This Sunday", children: [buildItem(resolved.lesson, label)] }]
-      };
-    }
-
-    if (depth === 3) {
-      const series = this.findSeries(segments[0]);
-      const unit = series && this.findUnit(series, segments[1]);
-      const lesson = unit && this.findLesson(unit, segments[2]);
-      if (!series || !unit || !lesson) return null;
-      return { name: lesson.title, items: [{ id: `${unit.id}-section`, itemType: "section", label: unit.name, children: [buildItem(lesson)] }] };
-    }
-
-    if (depth === 2 && segments[0] !== "scheduled") {
-      const series = this.findSeries(segments[0]);
-      const unit = series && this.findUnit(series, segments[1]);
-      if (!unit) return null;
-      return { name: unit.name, items: [{ id: `${unit.id}-section`, itemType: "section", label: unit.name, children: unit.lessons.map(l => buildItem(l)) }] };
-    }
-
-    return null;
+    const resolved = this.resolve(path);
+    if (!resolved) return null;
+    return filesToInstructions(resolved.name, resolved.files, resolved.section);
   }
 
   /**
@@ -272,9 +219,5 @@ export class LifeChurchProvider implements IProvider {
         }
       ]
     };
-  }
-
-  supportsDeviceFlow(): boolean {
-    return false;
   }
 }

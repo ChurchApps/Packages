@@ -22,7 +22,8 @@ export interface ContentProviderConfig {
   scopes: string[];
   supportsDeviceFlow?: boolean;
   deviceAuthEndpoint?: string;
-  endpoints: EndpointsConfig;
+  /** @deprecated URL templates now live in each provider; kept optional for type compatibility. */
+  endpoints?: EndpointsConfig;
 }
 
 export interface DeviceAuthorizationResponse {

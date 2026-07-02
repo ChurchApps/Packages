@@ -1,8 +1,13 @@
-import { ContentProviderConfig, ContentProviderAuthData, ContentItem, ProviderLogos, ProviderCapabilities, IProvider, AuthType } from "../../interfaces";
+import { ContentProviderConfig, ContentProviderAuthData, ContentItem, ProviderLogos, ProviderCapabilities, AuthType } from "../../interfaces";
 import { parsePath } from "../../pathUtils";
-import { ApiHelper } from "../../helpers";
+import { BaseProvider } from "../BaseProvider";
 import { PCOServiceType, PCOPlan, PCOPlanItem } from "./PlanningCenterInterfaces";
-import { formatDate } from "./PlanningCenterConverters";
+
+const ONE_WEEK_MS = 604800000;
+
+function formatDate(dateString: string): string {
+  return new Date(dateString).toISOString().slice(0, 10);
+}
 
 /**
  * PlanningCenter Provider
@@ -12,25 +17,18 @@ import { formatDate } from "./PlanningCenterConverters";
  *   /serviceTypes/{serviceTypeId}            -> list plans
  *   /serviceTypes/{serviceTypeId}/{planId}   -> plan items (leaf)
  */
-export class PlanningCenterProvider implements IProvider {
-  private readonly apiHelper = new ApiHelper();
-
-  private async apiRequest<T>(path: string, auth?: ContentProviderAuthData | null): Promise<T | null> {
-    return this.apiHelper.apiRequest<T>(this.config, this.id, path, auth);
-  }
-
+export class PlanningCenterProvider extends BaseProvider {
   readonly id = "planningcenter";
   readonly name = "Planning Center";
 
   readonly logos: ProviderLogos = { light: "https://www.planningcenter.com/icons/icon-512x512.png", dark: "https://www.planningcenter.com/icons/icon-512x512.png" };
 
-  readonly config: ContentProviderConfig = { id: "planningcenter", name: "Planning Center", apiBase: "https://api.planningcenteronline.com", oauthBase: "https://api.planningcenteronline.com/oauth", clientId: "", scopes: ["services"], endpoints: { serviceTypes: "/services/v2/service_types", plans: (serviceTypeId: string) => `/services/v2/service_types/${serviceTypeId}/plans`, planItems: (serviceTypeId: string, planId: string) => `/services/v2/service_types/${serviceTypeId}/plans/${planId}/items`, song: (itemId: string) => `/services/v2/songs/${itemId}`, arrangement: (songId: string, arrangementId: string) => `/services/v2/songs/${songId}/arrangements/${arrangementId}`, arrangementSections: (songId: string, arrangementId: string) => `/services/v2/songs/${songId}/arrangements/${arrangementId}/sections`, media: (mediaId: string) => `/services/v2/media/${mediaId}`, mediaAttachments: (mediaId: string) => `/services/v2/media/${mediaId}/attachments` } };
-
-  private readonly ONE_WEEK_MS = 604800000;
+  readonly config: ContentProviderConfig = { id: "planningcenter", name: "Planning Center", apiBase: "https://api.planningcenteronline.com", oauthBase: "https://api.planningcenteronline.com/oauth", clientId: "", scopes: ["services"] };
 
   readonly requiresAuth = true;
   readonly authTypes: AuthType[] = ["oauth_pkce"];
-  readonly capabilities: ProviderCapabilities = { browse: true, playlist: true, instructions: true, mediaLicensing: false };
+  // Plan items come back without media URLs, so playlist/instructions are not actually supported yet.
+  readonly capabilities: ProviderCapabilities = { browse: true, playlist: false, instructions: false, mediaLicensing: false };
 
   async browse(path?: string | null, auth?: ContentProviderAuthData | null): Promise<ContentItem[]> {
     const { segments, depth } = parsePath(path);
@@ -39,8 +37,7 @@ export class PlanningCenterProvider implements IProvider {
       return [{ type: "folder" as const, id: "serviceTypes-root", title: "Service Types", path: "/serviceTypes" }];
     }
 
-    const root = segments[0];
-    if (root !== "serviceTypes") return [];
+    if (segments[0] !== "serviceTypes") return [];
 
     if (depth === 1) return this.getServiceTypes(auth);
     if (depth === 2) return this.getPlans(segments[1], path!, auth);
@@ -50,11 +47,7 @@ export class PlanningCenterProvider implements IProvider {
   }
 
   private async getServiceTypes(auth?: ContentProviderAuthData | null): Promise<ContentItem[]> {
-    const response = await this.apiRequest<{ data: PCOServiceType[] }>(
-      this.config.endpoints.serviceTypes as string,
-      auth
-    );
-
+    const response = await this.apiRequest<{ data: PCOServiceType[] }>("/services/v2/service_types", auth);
     if (!response?.data) return [];
 
     return response.data.map((serviceType) => ({
@@ -66,19 +59,17 @@ export class PlanningCenterProvider implements IProvider {
   }
 
   private async getPlans(serviceTypeId: string, currentPath: string, auth?: ContentProviderAuthData | null): Promise<ContentItem[]> {
-    const pathFn = this.config.endpoints.plans as (id: string) => string;
     const response = await this.apiRequest<{ data: PCOPlan[] }>(
-      `${pathFn(serviceTypeId)}?filter=future&order=sort_date`,
+      `/services/v2/service_types/${serviceTypeId}/plans?filter=future&order=sort_date`,
       auth
     );
-
     if (!response?.data) return [];
 
     const now = Date.now();
     const filteredPlans = response.data.filter((plan) => {
       if (plan.attributes.items_count === 0) return false;
       const planDate = new Date(plan.attributes.sort_date).getTime();
-      return planDate < now + this.ONE_WEEK_MS;
+      return planDate < now + ONE_WEEK_MS;
     });
 
     return filteredPlans.map((plan) => ({
@@ -91,18 +82,12 @@ export class PlanningCenterProvider implements IProvider {
   }
 
   private async getPlanItems(serviceTypeId: string, planId: string, auth?: ContentProviderAuthData | null): Promise<ContentItem[]> {
-    const pathFn = this.config.endpoints.planItems as (stId: string, pId: string) => string;
     const response = await this.apiRequest<{ data: PCOPlanItem[] }>(
-      `${pathFn(serviceTypeId, planId)}?per_page=100`,
+      `/services/v2/service_types/${serviceTypeId}/plans/${planId}/items?per_page=100`,
       auth
     );
-
     if (!response?.data) return [];
 
     return response.data.map((item) => ({ type: "file" as const, id: item.id, title: item.attributes.title || "", mediaType: "image" as const, url: "" }));
-  }
-
-  supportsDeviceFlow(): boolean {
-    return false;
   }
 }

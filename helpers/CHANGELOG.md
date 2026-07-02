@@ -1,5 +1,11 @@
 # @churchapps/helpers
 
+## 1.9.2
+
+### Patch Changes
+
+- 8c026c9: Add age/grade fields to membership interfaces: `grade`/`school` on `PersonInterface` and `minAgeMonths`/`maxAgeMonths`/`minGrade`/`maxGrade` on `GroupInterface`.
+
 ## 1.9.0
 
 ### Minor Changes

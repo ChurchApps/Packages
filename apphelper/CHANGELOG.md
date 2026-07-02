@@ -1,5 +1,24 @@
 # @churchapps/apphelper
 
+## 0.17.6
+
+### Patch Changes
+
+- 91ccd1c: Fix the member donation form re-showing a stale error when re-previewing.
+
+  `MultiGatewayDonationForm.handleSave` (the "Preview Donation" button) opened the preview modal without clearing the previous `errorMessage`. Because `ErrorMessages` re-opens its Snackbar whenever `props.errors` changes reference (and the parent passes a fresh `[errorMessage]` array on every render), re-previewing re-rendered the form and the old error toast popped up again — even after the donor fixed the problem (e.g. entered the missing postal code, which is captured in the isolated Stripe iframe and never clears the form's error state). `handleSave` now clears `errorMessage` before opening the preview, so each retry starts clean.
+
+- 4530c1e: Guard against a null cropped canvas in `ImageEditor`.
+
+  `Cropper.getCroppedCanvas()` returns `null` when the crop box has no area (e.g. a zero-size or not-yet-laid-out image), so calling `.toDataURL()` on it threw and crashed the editor. The crop preview now bails out when the canvas is null instead of dereferencing it.
+
+- c49defa: Add pause/resume support for recurring donations, localize the recurrence editor, and extend a few interfaces.
+
+  - New `pauseRecurring` provider capability (Stripe: true; Kingdom Funding and PayPal: false). `RecurringDonations` shows pause/resume buttons and a "Paused" badge for capable providers, calling the new GivingApi `/subscriptions/:id/pause` and `/subscriptions/:id/resume` endpoints, with new `donation.recurring.*` locale strings in all 28 languages.
+  - `RRuleEditor` labels and aria text are now localized under `eventCalendar.recurring.*` (previously hard-coded English), and the never/count/until option handling uses `undefined` instead of `null as any`.
+  - `FormSubmissionEdit` passes the saved submission to `updatedFunction` (parameter is optional, so existing callers are unaffected).
+  - `@churchapps/helpers`: optional `FundInterface.visible` and `GroupInterface.archived` fields.
+
 ## 0.17.4
 
 ### Patch Changes

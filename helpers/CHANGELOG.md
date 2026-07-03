@@ -1,5 +1,12 @@
 # @churchapps/helpers
 
+## 1.10.0
+
+### Minor Changes
+
+- b663fad: Phase 4 member features: add `EventRsvpInterface` and `EventInterface.rsvpDisabled` (GR-1 event RSVP), `GroupInterface.confidential` (confidential groups), `MessageInterface.reactions` + `MessageReactionSummaryInterface`, and the `"reaction"` socket action on `SocketPayloadAction` (chat reactions realtime protocol).
+- b663fad: Add Phase 2 paid-registration interfaces: RegistrationType, RegistrationSelection, RegistrationSelectionChoice, RegistrationPayment, and RegistrationCoupon, plus new fields on RegistrationInterface (totalAmount, amountPaid, couponId, waitlistNotifiedDate, selectionChoices, payments), RegistrationMemberInterface (registrationTypeId), and EventInterface (waitlistEnabled).
+
 ## 1.9.2
 
 ### Patch Changes

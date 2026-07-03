@@ -3,16 +3,12 @@ import { ElementInterface, SectionInterface } from "./index";
 
 export class StyleHelper {
 
-  // Get CSS variable for a token
   static getTokenVariable(tokenName: string): string {
     if (!tokenName) return "";
-    // If it's already a CSS variable, return as-is
     if (tokenName.startsWith("var(--")) return tokenName;
-    // Otherwise wrap it in var()
     return `var(--${tokenName})`;
   }
 
-  // Get all available tokens by category
   static getAvailableTokens(): {
     colors: string[];
     spacing: string[];
@@ -38,12 +34,9 @@ export class StyleHelper {
     };
   }
 
-  // Check if a value is a token reference
   static isTokenValue(value: string): boolean {
     if (!value) return false;
-    // Check if it's a CSS variable
     if (value.startsWith("var(--")) return true;
-    // Check if it matches any known token names
     const tokens = this.getAvailableTokens();
     const allTokens = [
       ...tokens.colors,
@@ -125,8 +118,7 @@ export class StyleHelper {
     return { all, desktop, mobile };
   };
 
-  // Hide classes set by Element/Section wrappers from styles.desktop/mobile display:none;
-  // class-based because several element types render no el-{id} and public sections lose ids.
+  // Class-based to hide when element types render no el-{id} or sections lose ids.
   private static getVisibilityCss = (forceDevice?:string) => {
     const desktopRule = ".hiddenOnDesktop { display: none !important; }";
     const mobileRule = ".hiddenOnMobile { display: none !important; }";

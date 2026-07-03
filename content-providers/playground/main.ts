@@ -27,10 +27,8 @@ import {
 import { renderPlanView, showPresentationDetails } from './views/plans';
 import { renderInstructionsView } from './views/instructions';
 
-// Configure providers on load
 configureProviders();
 
-// Set up auth success callback
 setOnAuthSuccess(() => {
   navigateToBrowser();
   renderProvidersView();
@@ -96,7 +94,6 @@ function setupEventListeners() {
   elements.authChoiceDeviceBtn.addEventListener('click', () => startDeviceFlow());
   elements.authChoiceOAuthBtn.addEventListener('click', () => showOAuthModal());
 
-  // Handle Enter key in form login fields
   elements.loginEmail.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') elements!.loginPassword.focus();
   });
@@ -122,17 +119,13 @@ function setupEventListeners() {
 function setupEventDelegation() {
   if (!elements) return;
 
-  // Content grid delegation - handles all dynamic content
   elements.contentGrid.addEventListener('click', handleContentGridClick);
-
-  // Modal delegation - handles presentation detail and playlist queue
   elements.modal.addEventListener('click', handleModalClick);
 }
 
 function handleContentGridClick(e: Event) {
   const target = e.target as HTMLElement;
 
-  // Folder card click
   const folderCard = target.closest('.folder-card');
   if (folderCard) {
     const folderId = folderCard.getAttribute('data-folder-id');
@@ -144,7 +137,6 @@ function handleContentGridClick(e: Event) {
     return;
   }
 
-  // File card click
   const fileCard = target.closest('.file-card');
   if (fileCard) {
     const fileId = fileCard.getAttribute('data-file-id');
@@ -159,32 +151,6 @@ function handleContentGridClick(e: Event) {
     return;
   }
 
-  // // Play presentation button
-  // const playPresentationBtn = target.closest('.play-presentation-btn');
-  // if (playPresentationBtn) {
-  //   e.stopPropagation();
-  //   const sectionIdx = parseInt(playPresentationBtn.getAttribute('data-section') || '0');
-  //   const presentationIdx = parseInt(playPresentationBtn.getAttribute('data-presentation') || '0');
-  //   if (state.currentPlan) {
-  //     const presentation = state.currentPlan.sections[sectionIdx]?.presentations[presentationIdx];
-  //     if (presentation) playPlanFiles(presentation.files);
-  //   }
-  //   return;
-  // }
-
-  // // Presentation card click (for details)
-  // const presentationCard = target.closest('.presentation-card');
-  // if (presentationCard && !target.closest('button')) {
-  //   const sectionIdx = parseInt(presentationCard.getAttribute('data-section') || '0');
-  //   const presentationIdx = parseInt(presentationCard.getAttribute('data-presentation') || '0');
-  //   if (state.currentPlan) {
-  //     const presentation = state.currentPlan.sections[sectionIdx]?.presentations[presentationIdx];
-  //     if (presentation) showPresentationDetails(presentation);
-  //   }
-  //   return;
-  // }
-
-  // Play All button
   const playAllBtn = target.closest('#play-all-btn');
   if (playAllBtn) {
     if (state.currentPlan) {
@@ -195,7 +161,6 @@ function handleContentGridClick(e: Event) {
     return;
   }
 
-  // Playlist file click
   const playlistFile = target.closest('.playlist-file');
   if (playlistFile && !target.closest('a')) {
     const fileIndex = parseInt(playlistFile.getAttribute('data-file-index') || '0');
@@ -207,7 +172,6 @@ function handleContentGridClick(e: Event) {
     return;
   }
 
-  // JSON toggle
   const jsonToggle = target.closest('.json-toggle');
   if (jsonToggle) {
     const viewer = jsonToggle.closest('.json-viewer');
@@ -223,7 +187,6 @@ function handleContentGridClick(e: Event) {
     return;
   }
 
-  // JSON copy
   const jsonCopyBtn = target.closest('.json-copy-btn');
   if (jsonCopyBtn) {
     const content = jsonCopyBtn.closest('.json-viewer')?.querySelector('.json-content');
@@ -238,7 +201,6 @@ function handleContentGridClick(e: Event) {
     return;
   }
 
-  // Instruction item click
   const instructionItem = target.closest('.instruction-item');
   if (instructionItem && !target.closest('a')) {
     const downloadUrl = instructionItem.getAttribute('data-embed-url');
@@ -248,10 +210,8 @@ function handleContentGridClick(e: Event) {
     return;
   }
 
-  // Browse fallback button in empty state
   const browseFallbackBtn = target.closest('.browse-fallback-btn');
   if (browseFallbackBtn) {
-    // Go back to regular browse view
     if (state.currentVenueFolder) {
       state.currentPath = state.currentVenueFolder.path;
       loadAndRenderContent();
@@ -263,7 +223,6 @@ function handleContentGridClick(e: Event) {
 function handleModalClick(e: Event) {
   const target = e.target as HTMLElement;
 
-  // Queue navigation
   if (target.id === 'queue-next-btn') {
     playNextInQueue();
     return;
@@ -278,7 +237,6 @@ function handleModalClick(e: Event) {
     return;
   }
 
-  // Queue item click
   const queueItem = target.closest('.queue-item');
   if (queueItem) {
     const index = parseInt(queueItem.getAttribute('data-queue-index') || '0');
@@ -286,11 +244,9 @@ function handleModalClick(e: Event) {
     return;
   }
 
-  // Presentation detail actions
   if (target.id === 'presentation-play-all-btn') {
     const filesEl = document.getElementById('presentation-detail-files');
     if (filesEl && state.currentPlan) {
-      // Find the presentation from stored state
       const sectionIdx = parseInt(filesEl.getAttribute('data-section') || '0');
       const presentationIdx = parseInt(filesEl.getAttribute('data-presentation') || '0');
       const presentation = state.currentPlan.sections[sectionIdx]?.presentations[presentationIdx];
@@ -307,7 +263,6 @@ function handleModalClick(e: Event) {
   }
 }
 
-// Store current content items for delegation lookup
 let currentContentItems: ContentItem[] | null = null;
 
 function getCurrentContentItems(): ContentItem[] | null {
@@ -321,16 +276,13 @@ function setCurrentContentItems(items: ContentItem[] | null) {
 function switchTab(tab: string) {
   if (!elements) return;
 
-  // Update tab buttons
   elements.mainTabs.querySelectorAll('.tab-btn').forEach(btn => {
     btn.classList.toggle('active', btn.getAttribute('data-tab') === tab);
   });
 
-  // Show/hide views
   elements.providersView.classList.toggle('hidden', tab !== 'providers');
   elements.docsView.classList.toggle('hidden', tab !== 'docs');
 
-  // Hide browser view when switching tabs
   if (tab !== 'providers') {
     elements.browserView.classList.add('hidden');
     elements.breadcrumb.classList.add('hidden');

@@ -35,15 +35,12 @@ export class CommonEnvironmentHelper {
     const trimmed = base.replace(/\/$/, "");
     CommonEnvironmentHelper.MembershipApi = trimmed + "/membership";
     CommonEnvironmentHelper.AttendanceApi = trimmed + "/attendance";
-    CommonEnvironmentHelper.ContentApi    = trimmed + "/content";
-    CommonEnvironmentHelper.GivingApi     = trimmed + "/giving";
-    CommonEnvironmentHelper.MessagingApi  = trimmed + "/messaging";
-    CommonEnvironmentHelper.DoingApi      = trimmed + "/doing";
-    CommonEnvironmentHelper.ReportingApi  = trimmed + "/reporting";
-    // When the REST API points at localhost, derive the WebSocket URL too. Without this,
-    // the socket falls back to the previously-set staging URL — REST goes to localhost
-    // but the WS connection (and its server-side connections table entries) live on
-    // staging, so server-side broadcasts find nobody. Explicit env vars below still win.
+    CommonEnvironmentHelper.ContentApi = trimmed + "/content";
+    CommonEnvironmentHelper.GivingApi = trimmed + "/giving";
+    CommonEnvironmentHelper.MessagingApi = trimmed + "/messaging";
+    CommonEnvironmentHelper.DoingApi = trimmed + "/doing";
+    CommonEnvironmentHelper.ReportingApi = trimmed + "/reporting";
+    // Derive WS URL from REST API when both point to localhost; avoids broadcasts on wrong server.
     try {
       const url = new URL(trimmed);
       if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {

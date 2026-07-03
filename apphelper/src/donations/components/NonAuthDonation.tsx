@@ -21,9 +21,6 @@ interface Props {
   defaultFundId?: string;
 }
 
-// Guest donation shell: resolves the church's configured gateway and hands off
-// to that provider's guest form. The processor is never a donor choice — Stripe
-// and Kingdom Funding present an identical card form.
 export const NonAuthDonation: React.FC<Props> = ({ mainContainerCssProps, showHeader, ...props }) => {
   const [gateway, setGateway] = useState<PaymentGateway | null>(null);
   const [loading, setLoading] = useState(true);

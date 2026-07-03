@@ -13,9 +13,6 @@ export class SocketHelper {
     const personChanged = pc.personId !== this.personIdChurchId.personId;
     if (!churchChanged && !personChanged) return;
 
-    // If we're already connected and the church/person changed, fire the changed callbacks
-    // so caches scoped to the previous tenant get cleared. Each subscriber decides whether
-    // it cares about church-only vs person-only changes.
     if (this.personIdChurchId.churchId || this.personIdChurchId.personId) {
       this.changeListeners.forEach((cb) => {
         try { cb({ previous: this.personIdChurchId, next: pc }); } catch (err) { console.error("SocketHelper change listener error:", err); }
@@ -63,11 +60,9 @@ export class SocketHelper {
   };
 
   static init = async () => {
-    // Idempotent: if a socket is already open or connecting, do not tear it down.
+    // Idempotent: don't tear down an open or connecting socket; wait for socketId instead.
     if (SocketHelper.socket && (SocketHelper.socket.readyState === SocketHelper.socket.OPEN || SocketHelper.socket.readyState === SocketHelper.socket.CONNECTING)) {
-      // If we already have a socketId, the connection is fully usable — return immediately.
       if (SocketHelper.socketId) return;
-      // Otherwise wait briefly for socketId to arrive instead of tearing down.
       await new Promise<void>((resolve) => {
         const start = Date.now();
         const tick = () => {
@@ -84,9 +79,7 @@ export class SocketHelper {
     SocketHelper.isCleanedUp = false;
 
     if (SocketHelper.socket && SocketHelper.socket.readyState !== SocketHelper.socket.CLOSED) {
-      try {
-        SocketHelper.socket.close();
-      } catch { /* ignore */ }
+      try { SocketHelper.socket.close(); } catch { /* ignore */ }
     }
 
     await new Promise((resolve, reject) => {
@@ -95,7 +88,6 @@ export class SocketHelper {
 
         SocketHelper.socket.onmessage = (event) => {
           if (SocketHelper.isCleanedUp) return;
-
           try {
             const payload = JSON.parse(event.data);
             SocketHelper.handleMessage(payload);
@@ -151,8 +143,7 @@ export class SocketHelper {
         const previousId = SocketHelper.socketId;
         SocketHelper.socketId = payload.data;
         SocketHelper.createAlertConnection();
-        // Notify listeners that a socketId is available — used by SubscriptionManager
-        // to flush rooms that called joinRoom before the socket finished connecting.
+        // Notify SubscriptionManager to flush pending joinRoom calls.
         if (!previousId) {
           SocketHelper.socketIdListeners.forEach((cb) => {
             try { cb(payload.data); } catch (err) { console.error("SocketHelper socketId listener error:", err); }
@@ -176,14 +167,13 @@ export class SocketHelper {
   static cleanup = () => {
     SocketHelper.isCleanedUp = true;
 
-    // Close socket connection
     if (SocketHelper.socket && SocketHelper.socket.readyState !== SocketHelper.socket.CLOSED) {
       try {
         SocketHelper.socket.close();
       } catch { /* ignore */ }
     }
 
-    // Clear references but preserve handlers - they should persist across reconnects
+    // Preserve handlers across reconnects.
     SocketHelper.socket = null;
     SocketHelper.socketId = null;
     SocketHelper.personIdChurchId = { personId: "", churchId: "" };
@@ -209,7 +199,6 @@ export class SocketHelper {
     }
   };
 
-  // Global cleanup on window unload
   static setupGlobalCleanup = () => {
     if (typeof window !== "undefined") {
       const cleanup = () => {
@@ -218,14 +207,6 @@ export class SocketHelper {
 
       window.addEventListener("beforeunload", cleanup);
       window.addEventListener("unload", cleanup);
-
-      // Also cleanup on page visibility change (when tab is closed)
-      document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "hidden") {
-          // Optional: cleanup when tab becomes hidden
-          // SocketHelper.cleanup();
-        }
-      });
 
       return cleanup;
     }

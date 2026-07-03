@@ -5,11 +5,7 @@ import { ContentFile, ContentItem, isContentFile } from '../../src';
 import type { ResolvedFormatMeta } from '../formats';
 import { renderFormatSourceBadge } from './common';
 
-/**
- * Render the playlist view with file list and controls
- * @param playlist - Array of content files to display
- * @param meta - Format metadata indicating native or derived source
- */
+/** Render the playlist view with file list and controls. */
 export function renderPlaylistView(playlist: ContentFile[], meta: ResolvedFormatMeta): void {
   if (!elements) return;
 
@@ -65,11 +61,7 @@ export function renderPlaylistView(playlist: ContentFile[], meta: ResolvedFormat
   });
 }
 
-/**
- * Play files with queue UI
- * Opens first file immediately and shows queue modal if multiple files
- * @param files - Array of content items to play
- */
+/** Play files with queue UI; opens first file immediately and shows queue modal if multiple files. */
 export function playPlanFiles(files: ContentItem[]): void {
   if (files.length === 0) {
     showStatus('No files to play', 'error');
@@ -87,7 +79,6 @@ export function playPlanFiles(files: ContentItem[]): void {
   window.open(firstFile.url, '_blank');
 
   if (contentFiles.length > 1) {
-    // Set up playlist queue
     state.playlistQueue = {
       files: contentFiles,
       currentIndex: 0
@@ -102,10 +93,7 @@ export function playPlanFiles(files: ContentItem[]): void {
   console.log('Playlist:', files);
 }
 
-/**
- * Render the playlist queue modal UI
- * Shows current file, navigation buttons, and queue list
- */
+/** Render the playlist queue modal UI. */
 export function renderPlaylistQueue(): void {
   const queueSection = document.getElementById('playlist-queue-section');
   if (!queueSection || !state.playlistQueue) return;
@@ -150,7 +138,6 @@ export function renderPlaylistQueue(): void {
 
   queueSection.innerHTML = queueHtml;
 
-  // Set up event listeners
   document.getElementById('queue-prev-btn')?.addEventListener('click', playPrevInQueue);
   document.getElementById('queue-next-btn')?.addEventListener('click', playNextInQueue);
 
@@ -162,10 +149,7 @@ export function renderPlaylistQueue(): void {
   });
 }
 
-/**
- * Play a specific item in the queue by index
- * @param index - The index of the item to play
- */
+/** Play a specific item in the queue by index. */
 export function playQueueItem(index: number): void {
   if (!state.playlistQueue) return;
 
@@ -181,9 +165,7 @@ export function playQueueItem(index: number): void {
   renderPlaylistQueue();
 }
 
-/**
- * Play the next item in the queue
- */
+/** Play the next item in the queue. */
 export function playNextInQueue(): void {
   if (!state.playlistQueue) return;
 
@@ -193,9 +175,7 @@ export function playNextInQueue(): void {
   }
 }
 
-/**
- * Play the previous item in the queue
- */
+/** Play the previous item in the queue. */
 export function playPrevInQueue(): void {
   if (!state.playlistQueue) return;
 

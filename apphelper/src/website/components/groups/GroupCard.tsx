@@ -13,7 +13,6 @@ export default function GroupCard(props: Props) {
 
   return (
     <a href={"/groups/details/" + props.group.slug} style={{ textDecoration: "none" }}>
-      {/* Card */}
       <div
         style={{
           borderRadius: "16px",
@@ -32,13 +31,11 @@ export default function GroupCard(props: Props) {
         onMouseLeave={() => setIsHovered(false)}
       >
         <div style={{ position: "relative" }}>
-          {/* Group Image */}
           <img
             src={props.group.photoUrl || "/images/group.jpg"}
             alt={props.group.name}
             style={{ width: "100%", height: "auto", display: "block", aspectRatio: 16 / 9 }}
           />
-          {/* Black color gradient */}
           <div
             style={{
               position: "absolute",
@@ -50,7 +47,6 @@ export default function GroupCard(props: Props) {
                 "linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent)"
             }}
           ></div>
-          {/* Group Name */}
           <div
             style={{
               position: "absolute",
@@ -71,7 +67,6 @@ export default function GroupCard(props: Props) {
           </div>
         </div>
 
-        {/* Meeting Info */}
         <div style={{ padding: "16px", height: "35px", color: "#757575" }}>
           <div style={{ fontSize: 14, fontWeight: "bold" }}>
             <span style={{ float: "right" }}>
@@ -80,7 +75,6 @@ export default function GroupCard(props: Props) {
             <span>{props.group.meetingTime || "--"}</span>
           </div>
         </div>
-        {/* Description */}
         <div style={{ fontSize: "14px", color: "#757575", padding: "0 16px 16px 16px" }}>
           {!props.group.about || props.group.about === ""
             ? (

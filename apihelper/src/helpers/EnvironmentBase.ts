@@ -33,10 +33,7 @@ export class EnvironmentBase {
   static smtpSecure: boolean;
   static smtpUser: string;
 
-  /**
-   * Resolves config/<env>.json, parses it, runs populateBase, and returns the parsed
-   * data so subclasses can layer their app-specific fields on top.
-   */
+  /** Loads config/<env>.json and enables subclass field extension. */
   static async initBase(environment: string, options: EnvironmentInitOptions): Promise<Record<string, any>> {
     const env = environment.toLowerCase();
     const files = { ...ENV_FILES, ...options.fileMap };

@@ -1,21 +1,7 @@
 import { B1ApiError } from "./B1ApiError";
 import { B1_BASE_URLS, B1Module, B1RequestOptions, B1RestClientOptions } from "../types";
 
-/**
- * A typed REST client for the B1 Api, authenticated with a `cak_` API key.
- *
- * The Api is a single host with per-module path prefixes — use `request()`
- * with a full `/membership/...` path, or the module helpers which prefix it
- * for you.
- *
- * ```ts
- * const client = new B1RestClient({ apiKey: "cak_..." });
- * const people = await client.membership<Person[]>("/people");
- * ```
- *
- * Non-2xx responses throw `B1ApiError` (carrying status + parsed body) so a
- * caller can distinguish 401/403/404/500.
- */
+/** Typed REST client for the B1 Api, authenticated with a `cak_` API key; module methods prefix the path. */
 export class B1RestClient {
   private readonly apiKey: string;
   private readonly baseUrl: string;
@@ -30,7 +16,6 @@ export class B1RestClient {
     this.fetchImpl = f;
   }
 
-  /** Issues a request against a full Api path (e.g. `/membership/people`). */
   async request<T = unknown>(path: string, options: B1RequestOptions = {}): Promise<T> {
     const method = options.method ?? "GET";
     const url = this.buildUrl(path, options.query);
@@ -69,37 +54,30 @@ export class B1RestClient {
     return body as T;
   }
 
-  /** Request against the `/membership` module. */
   membership<T = unknown>(path: string, options?: B1RequestOptions): Promise<T> {
     return this.module<T>("membership", path, options);
   }
 
-  /** Request against the `/giving` module. */
   giving<T = unknown>(path: string, options?: B1RequestOptions): Promise<T> {
     return this.module<T>("giving", path, options);
   }
 
-  /** Request against the `/attendance` module. */
   attendance<T = unknown>(path: string, options?: B1RequestOptions): Promise<T> {
     return this.module<T>("attendance", path, options);
   }
 
-  /** Request against the `/content` module. */
   content<T = unknown>(path: string, options?: B1RequestOptions): Promise<T> {
     return this.module<T>("content", path, options);
   }
 
-  /** Request against the `/messaging` module. */
   messaging<T = unknown>(path: string, options?: B1RequestOptions): Promise<T> {
     return this.module<T>("messaging", path, options);
   }
 
-  /** Request against the `/doing` module. */
   doing<T = unknown>(path: string, options?: B1RequestOptions): Promise<T> {
     return this.module<T>("doing", path, options);
   }
 
-  /** Request against the `/reporting` module. */
   reporting<T = unknown>(path: string, options?: B1RequestOptions): Promise<T> {
     return this.module<T>("reporting", path, options);
   }

@@ -1,4 +1,4 @@
-import { $isCodeHighlightNode } from "@lexical/code";
+﻿import { $isCodeHighlightNode } from "@lexical/code";
 import { $isLinkNode } from "@lexical/link";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { mergeRegister } from "@lexical/utils";
@@ -143,8 +143,7 @@ function TextFormatFloatingToolbar({ editor, anchorElem, isLink, isBold, isItali
       const selection = $getSelection();
       if ($isRangeSelection(selection)) {
         $wrapNodes(selection, () =>
-          //@ts-ignore
-          type === "paragraph" ? $createParagraphNode() : $createHeadingNode(type));
+          type === "paragraph" ? $createParagraphNode() : $createHeadingNode(type as any));
       }
     });
     setBlockType(type);
@@ -153,55 +152,55 @@ function TextFormatFloatingToolbar({ editor, anchorElem, isLink, isBold, isItali
 
   return (
     <FloatingDivContainer ref={popupCharStylesEditorRef}>
-        <>
-          <Select
-            value={blockType}
-            onChange={(e) => formatBlock(e.target.value)}
-            sx={{
-              minWidth: 120,
-              backgroundColor: "#fff",
-              borderRadius: 2,
-              marginRight: 0.3
-            }}
-            aria-label="Text format"
-          >
-            <MenuItem value="paragraph">Normal</MenuItem>
-            <MenuItem value="h1">Heading 1</MenuItem>
-            <MenuItem value="h2">Heading 2</MenuItem>
-            <MenuItem value="h3">Heading 3</MenuItem>
-            <MenuItem value="h4">Heading 4</MenuItem>
-          </Select>
-          <IconButton
-            onClick={() => {
-              applyFormatting("bold");
-            }}
-            sx={{ backgroundColor: isBold ? "#e0e0e0" : undefined, borderRadius: 2, marginRight: 0.3 }}
-            aria-label="Bold"
-          >
-            <Icon>format_bold_outline</Icon>
-          </IconButton>
+      <>
+        <Select
+          value={blockType}
+          onChange={(e) => formatBlock(e.target.value)}
+          sx={{
+            minWidth: 120,
+            backgroundColor: "#fff",
+            borderRadius: 2,
+            marginRight: 0.3
+          }}
+          aria-label="Text format"
+        >
+          <MenuItem value="paragraph">Normal</MenuItem>
+          <MenuItem value="h1">Heading 1</MenuItem>
+          <MenuItem value="h2">Heading 2</MenuItem>
+          <MenuItem value="h3">Heading 3</MenuItem>
+          <MenuItem value="h4">Heading 4</MenuItem>
+        </Select>
+        <IconButton
+          onClick={() => {
+            applyFormatting("bold");
+          }}
+          sx={{ backgroundColor: isBold ? "#e0e0e0" : undefined, borderRadius: 2, marginRight: 0.3 }}
+          aria-label="Bold"
+        >
+          <Icon>format_bold_outline</Icon>
+        </IconButton>
 
-          <IconButton
-            onClick={() => {
-              applyFormatting("italic");
-            }}
-            sx={{ backgroundColor: isItalic ? "#e0e0e0" : undefined, borderRadius: 2, marginRight: 0.3 }}
-            aria-label="Italic"
-          >
-            <Icon>format_italic_outline</Icon>
-          </IconButton>
+        <IconButton
+          onClick={() => {
+            applyFormatting("italic");
+          }}
+          sx={{ backgroundColor: isItalic ? "#e0e0e0" : undefined, borderRadius: 2, marginRight: 0.3 }}
+          aria-label="Italic"
+        >
+          <Icon>format_italic_outline</Icon>
+        </IconButton>
 
-          <IconButton
-            onClick={() => {
-              applyFormatting("underline");
-            }}
-            sx={{ backgroundColor: isUnderline ? "#e0e0e0" : undefined, borderRadius: 2, marginRight: 0.3 }}
-            aria-label="Underline"
-          >
-            <Icon>format_underlined_outline</Icon>
-          </IconButton>
+        <IconButton
+          onClick={() => {
+            applyFormatting("underline");
+          }}
+          sx={{ backgroundColor: isUnderline ? "#e0e0e0" : undefined, borderRadius: 2, marginRight: 0.3 }}
+          aria-label="Underline"
+        >
+          <Icon>format_underlined_outline</Icon>
+        </IconButton>
 
-          {/* <IconButton
+        {/* <IconButton
             onClick={() => {
               applyFormatting("strikethrough");
             }}
@@ -210,31 +209,30 @@ function TextFormatFloatingToolbar({ editor, anchorElem, isLink, isBold, isItali
             <Icon>strikethrough_s_outline</Icon>
           </IconButton> */}
 
-          <IconButton
-            onClick={() => {
-              applyFormatting("code");
-            }}
-            sx={{ backgroundColor: isCode ? "#e0e0e0" : undefined, borderRadius: 2, marginRight: 0.3 }}
-            aria-label="Code"
-          >
-            <Icon>code</Icon>
-          </IconButton>
+        <IconButton
+          onClick={() => {
+            applyFormatting("code");
+          }}
+          sx={{ backgroundColor: isCode ? "#e0e0e0" : undefined, borderRadius: 2, marginRight: 0.3 }}
+          aria-label="Code"
+        >
+          <Icon>code</Icon>
+        </IconButton>
 
-          {/* <IconButton
+        {/* <IconButton
             onClick={insertLink}
             sx={{ backgroundColor: isLink ? "#e0e0e0" : undefined, borderRadius: 2 }}
           >
             <Icon>insert_link_outline</Icon>
           </IconButton> */}
-        </>
+      </>
     </FloatingDivContainer>
   );
 }
 
-let lastFormattingState = {}; // Track last formatting state
+let lastFormattingState: any = {};
 
-//@ts-ignore
-const getFormattingState = (selection) => {
+const getFormattingState = (selection: any) => {
   const node = getSelectedNode(selection);
   let blockType = "paragraph";
   if ($isHeadingNode(node)) {
@@ -257,18 +255,16 @@ const saveChanges = (editor: any) => {
     if ($isRangeSelection(selection)) {
       const newFormattingState = getFormattingState(selection); // Get current formatting
 
-      // Get the parent block node (ensuring it's not just a text node)
       const node = getSelectedNode(selection);
-      const parentNode = node.getParent(); // Get the parent block-level node
+      const parentNode = node.getParent();
       let blockType = "paragraph";
 
       if ($isHeadingNode(parentNode)) {
-        blockType = parentNode.getTag(); // Get heading type
+        blockType = parentNode.getTag();
       } else if ($isHeadingNode(node)) {
         blockType = node.getTag();
       }
 
-      //@ts-ignore
       if (JSON.stringify(newFormattingState) !== JSON.stringify(lastFormattingState) || blockType !== lastFormattingState.blockType) {
         lastFormattingState = { ...newFormattingState, blockType };
 
@@ -335,7 +331,6 @@ function useFloatingTextFormatToolbar(editor: any, anchorElem: any) {
 
       const node = getSelectedNode(selection);
 
-      // Update text format
       setIsBold(selection.hasFormat("bold"));
       setIsItalic(selection.hasFormat("italic"));
       setIsUnderline(selection.hasFormat("underline"));
@@ -344,7 +339,6 @@ function useFloatingTextFormatToolbar(editor: any, anchorElem: any) {
       setIsSuperscript(selection.hasFormat("superscript"));
       setIsCode(selection.hasFormat("code"));
 
-      // Update links
       const parent = node.getParent();
       if ($isLinkNode(parent) || $isLinkNode(node)) {
         setIsLink(true);

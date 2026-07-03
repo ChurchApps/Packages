@@ -1,7 +1,3 @@
-// Pluggable image-optimization seam. Host apps (B1App / Next.js) register an optimizer that
-// produces responsive <img> props and optimized CSS backgrounds via the Next image pipeline.
-// The default is identity, so the Vite editor and any non-Next host render plain images unchanged.
-
 export interface ResponsiveImgProps {
   src: string;
   srcSet?: string;
@@ -9,9 +5,7 @@ export interface ResponsiveImgProps {
 }
 
 export interface ImageOptimizer {
-  // Responsive props to spread onto an <img>.
   img: (url: string, sizes?: string) => ResponsiveImgProps;
-  // A CSS background-image value: url('…') or image-set(…).
   background: (url: string) => string;
 }
 

@@ -9,7 +9,7 @@ export function MarkdownPreviewLight({ value: markdownString = "", textAlign }: 
 
   const getTargetAndClasses = (extra: string) => {
     let result = "";
-    const classRegex = /\.[^( |\})]+/g;
+    const classRegex = /\.[^( |})]+/g;
     const matches = extra.match(classRegex);
     if (matches && matches.length > 0) {
       let classes = matches.join(" ");
@@ -22,13 +22,9 @@ export function MarkdownPreviewLight({ value: markdownString = "", textAlign }: 
     return result;
   };
 
-  // \[([^\]]+)\] - text
-  // \(([^)]+)\) - url
-  // \{([^\}]+)\} - target and classes
-  // \[([^\]]+)\]\(([^)]+)\)\{([^\}]+)\} - full
   const getSpecialLinks = (markdownString: string) => {
     if (!markdownString) return "";
-    const regex = /\[([^\]]+)\]\(([^)]+)\)\{([^\}]+)\}/g;
+    const regex = /\[([^\]]+)\]\(([^)]+)\)\{([^}]+)\}/g;
     const convertedText = markdownString.replace(regex, (match, text, url, extra) => {
       if (!match) return text;
       let result = "<a href=\"" + url + "\"";
@@ -42,10 +38,9 @@ export function MarkdownPreviewLight({ value: markdownString = "", textAlign }: 
   if (markdownString === null || markdownString === undefined || !markdownString) return <></>;
   else {
     const convertedText = getSpecialLinks(markdownString || "");
-    let processedMarkdown = convertedText;
-    processedMarkdown = convertedText.replace(/__(.*?)__/g, "<u>$1</u>"); //Replace `__underlined__` with `<u>underlined</u>`
-    processedMarkdown = processedMarkdown.replace(/```([\s\S]+?)```/g, "<pre class='code-block'><code>$1</code></pre>"); //Convert block code ```code``` to <pre><code>code</code></pre>
-    processedMarkdown = processedMarkdown.replace(/`([^`]+)`/g, "<code>$1</code>"); //Convert inline code `code` to <code>code</code>
+    let processedMarkdown = convertedText.replace(/__(.*?)__/g, "<u>$1</u>");
+    processedMarkdown = processedMarkdown.replace(/```([\s\S]+?)```/g, "<pre class='code-block'><code>$1</code></pre>");
+    processedMarkdown = processedMarkdown.replace(/`([^`]+)`/g, "<code>$1</code>");
     const html = marked.parse(processedMarkdown || "");
     const style = (textAlign) ? { textAlign } : {};
     return <div style={style} dangerouslySetInnerHTML={{ __html: html as string }}></div>;

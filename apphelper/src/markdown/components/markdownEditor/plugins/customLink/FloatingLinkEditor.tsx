@@ -15,19 +15,17 @@ const positionEditorElement = (editor: HTMLElement, rect: DOMRect | null) => {
     editor.style.left = "-1000px";
   } else {
     editor.style.opacity = "1";
-    // Add viewport height check
     const editorHeight = editor.offsetHeight;
     const viewportHeight = window.innerHeight;
     let topPosition = rect.top + rect.height + 10;
 
-    // If editor would go off bottom of screen, position it above the selection instead
+    // Reposition above if would overflow viewport
     if (topPosition + editorHeight > viewportHeight) {
       topPosition = rect.top - editorHeight - 10;
     }
 
     editor.style.top = `${topPosition}px`;
 
-    // Ensure editor stays within horizontal bounds
     const leftPosition = Math.max(
       0,
       Math.min(

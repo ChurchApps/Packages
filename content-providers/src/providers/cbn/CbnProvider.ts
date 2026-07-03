@@ -9,17 +9,7 @@ import { CBN_LOGO } from "./logo";
 
 const API_BASE = "https://sbamemberdev.wpenginepowered.com/wp-json/superbook/v1";
 
-/**
- * CBN Provider
- *
- * Faith-based kids' video curriculum. Auth uses OAuth 2.0 Device Flow.
- *
- * Path structure:
- *   /                              -> single "Catalog" root folder
- *   /catalog                       -> course folders (GET /catalog)
- *   /catalog/{courseId}            -> lesson folders (GET /catalog/{courseId})
- *   /catalog/{courseId}/{lessonId} -> video files   (GET /lesson-playlist/{lessonId})
- */
+/** Faith-based kids' video curriculum with OAuth 2.0 Device Flow auth. */
 export class CbnProvider extends BaseProvider {
   private readonly deviceFlowHelper = new DeviceFlowHelper();
 

@@ -17,7 +17,6 @@ import {
   DeviceFlowHelper,
 } from '../src/index.js';
 
-// Device flow helper for providers that support it
 const deviceFlowHelper = new DeviceFlowHelper();
 import {
   displayContentTable,
@@ -34,7 +33,6 @@ import {
   sleep,
 } from './utils.js';
 
-// App state
 interface CliState {
   currentProvider: IProvider | null;
   currentAuth: ContentProviderAuthData | null;
@@ -51,9 +49,6 @@ const state: CliState = {
   connectedProviders: new Map(),
 };
 
-/**
- * Check if a provider can be used in CLI (public, device flow, or form login)
- */
 function canUseInCli(provider: ProviderInfo): boolean {
   if (!provider.implemented) return false;
   if (!provider.requiresAuth) return true;
@@ -62,9 +57,6 @@ function canUseInCli(provider: ProviderInfo): boolean {
   return false;
 }
 
-/**
- * Main menu
- */
 async function mainMenu(): Promise<void> {
   displayHeader('Content Provider Helper - CLI Playground');
 
@@ -102,9 +94,6 @@ async function mainMenu(): Promise<void> {
   }
 }
 
-/**
- * Provider selection
- */
 async function selectProvider(): Promise<void> {
   const providers = getAvailableProviders();
 
@@ -126,9 +115,6 @@ async function selectProvider(): Promise<void> {
   await handleProviderSelection(providerId);
 }
 
-/**
- * Handle provider selection - connect and navigate
- */
 async function handleProviderSelection(providerId: string): Promise<void> {
   const provider = getProvider(providerId);
   if (!provider) {
@@ -136,7 +122,6 @@ async function handleProviderSelection(providerId: string): Promise<void> {
     return;
   }
 
-  // Already connected?
   if (state.connectedProviders.has(providerId)) {
     state.currentProvider = provider;
     state.currentAuth = state.connectedProviders.get(providerId) || null;
@@ -147,9 +132,7 @@ async function handleProviderSelection(providerId: string): Promise<void> {
     return;
   }
 
-  // Check if auth is needed
   if (!provider.requiresAuth) {
-    // Public API - no auth needed
     state.currentProvider = provider;
     state.currentAuth = null;
     state.connectedProviders.set(providerId, null);
@@ -160,7 +143,6 @@ async function handleProviderSelection(providerId: string): Promise<void> {
     return;
   }
 
-  // Device flow auth
   if (provider.supportsDeviceFlow()) {
     const auth = await handleDeviceFlow(provider);
     if (auth) {
@@ -175,7 +157,6 @@ async function handleProviderSelection(providerId: string): Promise<void> {
     return;
   }
 
-  // Form login auth
   if (provider.authTypes.includes('form_login')) {
     const auth = await handleFormLogin(provider);
     if (auth) {
@@ -190,13 +171,9 @@ async function handleProviderSelection(providerId: string): Promise<void> {
     return;
   }
 
-  // OAuth only - not supported in CLI
   showError(`${provider.name} requires OAuth authentication. Please use the web playground.`);
 }
 
-/**
- * Handle device flow authentication
- */
 async function handleDeviceFlow(provider: IProvider): Promise<ContentProviderAuthData | null> {
   const spinner = ora('Initiating device authorization...').start();
 
@@ -240,7 +217,6 @@ async function handleDeviceFlow(provider: IProvider): Promise<ContentProviderAut
       continue;
     }
 
-    // Success!
     pollSpinner.succeed('Authorization successful!');
     return result;
   }
@@ -249,9 +225,6 @@ async function handleDeviceFlow(provider: IProvider): Promise<ContentProviderAut
   return null;
 }
 
-/**
- * Handle form-based login authentication
- */
 async function handleFormLogin(provider: IProvider): Promise<ContentProviderAuthData | null> {
   console.log(chalk.cyan('\n' + '═'.repeat(50)));
   console.log(chalk.bold(`  Login to ${provider.name}`));
@@ -290,9 +263,6 @@ async function handleFormLogin(provider: IProvider): Promise<ContentProviderAuth
   }
 }
 
-/**
- * Disconnect from current provider
- */
 function disconnect(): void {
   if (state.currentProvider) {
     const name = state.currentProvider.name;
@@ -305,24 +275,16 @@ function disconnect(): void {
   }
 }
 
-/**
- * Go back one level in the path
- */
 function goBack(): void {
   if (!state.currentPath) return;
 
-  // Remove last segment from path
   const segments = state.currentPath.split('/').filter(Boolean);
   segments.pop();
   state.currentPath = segments.length > 0 ? '/' + segments.join('/') : '';
 
-  // Remove last breadcrumb title
   state.breadcrumbTitles.pop();
 }
 
-/**
- * Browse content
- */
 async function browseContent(): Promise<void> {
   if (!state.currentProvider) {
     showError('No provider selected');
@@ -353,9 +315,6 @@ async function browseContent(): Promise<void> {
   }
 }
 
-/**
- * Handle content item selection
- */
 async function handleContentSelection(items: ContentItem[]): Promise<void> {
   const choices: Array<{ name: string; value: string }> = items.map((item, i) => ({
     name: `${i + 1}. ${isContentFolder(item) ? '📁' : item.mediaType === 'video' ? '🎬' : '🖼️'} ${item.title}`,
@@ -398,27 +357,18 @@ async function handleContentSelection(items: ContentItem[]): Promise<void> {
   }
 }
 
-/**
- * Handle folder selection - check for venue or navigate
- */
 async function handleFolderSelection(folder: ContentFolder): Promise<void> {
-  // Check if this is a leaf folder (offers view modes)
-  // Providers set isLeaf: true to indicate the bottom of the browse tree
   const isLeafFolder = folder.isLeaf;
 
   if (isLeafFolder && state.currentProvider) {
     await showViewModeMenu(folder);
   } else {
-    // Navigate into the folder using its path
     state.currentPath = folder.path;
     state.breadcrumbTitles.push(folder.title);
     await browseContent();
   }
 }
 
-/**
- * Show view mode selection for venue folders
- */
 async function showViewModeMenu(folder: ContentFolder): Promise<void> {
   if (!state.currentProvider) return;
 
@@ -466,16 +416,12 @@ async function showViewModeMenu(folder: ContentFolder): Promise<void> {
   }
 }
 
-/**
- * Show playlist view
- */
 async function showPlaylistView(path: string, title: string): Promise<void> {
   if (!state.currentProvider) return;
 
   const spinner = ora('Loading playlist...').start();
 
   try {
-    // Try getPlaylist first, fall back to browse
     let files: ContentFile[] | null = null;
 
     if (state.currentProvider.capabilities.playlist && state.currentProvider.getPlaylist) {
@@ -483,7 +429,6 @@ async function showPlaylistView(path: string, title: string): Promise<void> {
     }
 
     if (!files) {
-      // Fall back to browse and filter files
       const items = await state.currentProvider.browse(path, state.currentAuth);
       files = items?.filter(isContentFile) || [];
     }
@@ -506,9 +451,6 @@ async function showPlaylistView(path: string, title: string): Promise<void> {
   }
 }
 
-/**
- * Handle playlist menu actions
- */
 async function handlePlaylistMenu(files: ContentFile[]): Promise<void> {
   const choices = [
     { name: '📋 View as JSON', value: 'json' },
@@ -532,13 +474,8 @@ async function handlePlaylistMenu(files: ContentFile[]): Promise<void> {
     await browseContent();
     return;
   }
-
-  // menu - return to main
 }
 
-/**
- * Show presentations view
- */
 async function showPresentationsView(path: string, title: string): Promise<void> {
   if (!state.currentProvider) return;
 
@@ -565,9 +502,6 @@ async function showPresentationsView(path: string, title: string): Promise<void>
   }
 }
 
-/**
- * Handle plan menu actions
- */
 async function handlePlanMenu(plan: any): Promise<void> {
   const choices = [
     { name: '📋 View as JSON', value: 'json' },
@@ -591,13 +525,8 @@ async function handlePlanMenu(plan: any): Promise<void> {
     await browseContent();
     return;
   }
-
-  // menu - return to main
 }
 
-/**
- * Show instructions view
- */
 async function showInstructionsView(path: string, title: string): Promise<void> {
   if (!state.currentProvider) return;
 
@@ -627,9 +556,6 @@ async function showInstructionsView(path: string, title: string): Promise<void> 
   }
 }
 
-/**
- * Handle instructions menu actions
- */
 async function handleInstructionsMenu(instructions: any): Promise<void> {
   const choices = [
     { name: '📋 View as JSON', value: 'json' },
@@ -653,13 +579,8 @@ async function handleInstructionsMenu(instructions: any): Promise<void> {
     await browseContent();
     return;
   }
-
-  // menu - return to main
 }
 
-/**
- * Handle file selection
- */
 async function handleFileSelection(file: ContentFile): Promise<void> {
   console.log(chalk.cyan('\n' + '─'.repeat(50)));
   console.log(chalk.bold(`  ${file.title}`));
@@ -687,9 +608,6 @@ async function handleFileSelection(file: ContentFile): Promise<void> {
   await browseContent();
 }
 
-/**
- * Handle back or menu when at empty content
- */
 async function handleBackOrMenu(): Promise<void> {
   const choices = [];
 
@@ -707,10 +625,8 @@ async function handleBackOrMenu(): Promise<void> {
     goBack();
     await browseContent();
   }
-  // else return to main menu
 }
 
-// Start the CLI
 console.clear();
 mainMenu().catch((error) => {
   if (error.name === 'ExitPromptError') {

@@ -31,10 +31,7 @@ const modalSectionIds: Record<ModalView, string> = {
   playlist_queue: 'playlist-queue-section'
 };
 
-/**
- * Shows the main modal and displays the requested section while hiding all others.
- * @param view - The modal view to display
- */
+/** Shows the main modal and displays the requested section while hiding all others. */
 export function showModal(view: ModalView): void {
   if (!elements) return;
 
@@ -79,11 +76,7 @@ export function closeModal(): void {
   }
 }
 
-/**
- * Shows a toast notification message that auto-hides after 4 seconds.
- * @param message - The message to display
- * @param type - The type of notification ('success' or 'error')
- */
+/** Shows a toast notification message that auto-hides after 4 seconds. */
 export function showStatus(message: string, type: 'success' | 'error' = 'success'): void {
   if (!elements) return;
 
@@ -99,10 +92,7 @@ export function showStatus(message: string, type: 'success' | 'error' = 'success
   }, 4000);
 }
 
-/**
- * Toggles the visibility of the loading spinner.
- * @param show - Whether to show or hide the loading spinner
- */
+/** Toggles the visibility of the loading spinner. */
 export function showLoading(show: boolean): void {
   if (!elements) return;
 

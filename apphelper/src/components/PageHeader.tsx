@@ -30,7 +30,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({ icon, title, subtitle, c
         height: 400,
         borderRadius: "50%",
         background: "rgba(255,255,255,0.05)",
-        pointerEvents: "none",
+        pointerEvents: "none"
       },
       "&::after": {
         content: "''",
@@ -41,12 +41,11 @@ export const PageHeader: React.FC<PageHeaderProps> = ({ icon, title, subtitle, c
         height: 300,
         borderRadius: "50%",
         background: "rgba(255,255,255,0.04)",
-        pointerEvents: "none",
-      },
+        pointerEvents: "none"
+      }
     }}>
       <Container maxWidth="xl" sx={{ position: "relative", zIndex: 1, paddingY: 6 }}>
         <Stack direction={{ xs: "column", md: "row" }} spacing={{ xs: 2, md: 4 }} alignItems={{ xs: "flex-start", md: "center" }} sx={{ width: "100%" }}>
-          {/* Left side: Title and optional Icon */}
           {icon
             ? (
               <Stack id="page-header-title-section" direction="row" spacing={2} alignItems="center" sx={{ flex: 1 }}>
@@ -89,7 +88,6 @@ export const PageHeader: React.FC<PageHeaderProps> = ({ icon, title, subtitle, c
             )
           }
 
-          {/* Right side: Action Buttons/Tabs */}
           {children && (
             <Stack
               id="page-header-actions"
@@ -106,7 +104,6 @@ export const PageHeader: React.FC<PageHeaderProps> = ({ icon, title, subtitle, c
           )}
         </Stack>
 
-        {/* Statistics row */}
         {statistics && statistics.length > 0 && (
           <Stack id="page-header-statistics" direction={{ xs: "column", sm: "row" }} spacing={3} sx={{ mt: 3 }}>
             {statistics.map((stat) => (

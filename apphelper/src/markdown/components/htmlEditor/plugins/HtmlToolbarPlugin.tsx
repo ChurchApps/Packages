@@ -106,7 +106,6 @@ export default function HtmlToolbarPlugin({ setIsLinkEditMode, isSourceMode = fa
         setIsLink(false);
       }
 
-      // Get element format/alignment
       const elementNode = anchorNode.getKey() === "root"
         ? anchorNode
         : anchorNode.getTopLevelElementOrThrow();
@@ -211,7 +210,6 @@ export default function HtmlToolbarPlugin({ setIsLinkEditMode, isSourceMode = fa
       input.style.left = `${Math.round(rect.left)}px`;
       input.style.top = `${Math.round(rect.bottom)}px`;
     } else {
-      // Fallback: place near top-left but within viewport
       input.style.left = "12px";
       input.style.top = "12px";
     }
@@ -238,20 +236,17 @@ export default function HtmlToolbarPlugin({ setIsLinkEditMode, isSourceMode = fa
     };
     input.addEventListener("input", handleInput);
     input.addEventListener("change", () => {
-      // Finalize selection; input event already applied live updates
       cleanup();
     });
     input.addEventListener("blur", () => {
-      // Close without change
       cleanup();
     });
 
-    // Open the native color picker, prefer showPicker when available
     try {
       input.focus();
-      // @ts-ignore - showPicker not in all TS lib defs yet
+      // @ts-expect-error - showPicker not in all TS lib defs yet
       if (typeof input.showPicker === "function") {
-        // @ts-ignore
+        // @ts-expect-error - showPicker not in all TS lib defs yet
         input.showPicker();
       } else {
         input.click();

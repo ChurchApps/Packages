@@ -25,9 +25,7 @@ const toggleSx = {
   "&.Mui-selected:hover": { backgroundColor: "#1565c0" }
 };
 
-// Stripe guest form: owns its own card/bank (ACH) toggle and Elements wrapper,
-// then renders the existing Stripe inner form. This is what the NonAuthDonation
-// shell used to inline for `=== "stripe"`.
+// Stripe guest form owns card/bank toggle + Elements wrapper; replaces inlined NonAuthDonation shell.
 const StripeGuestForm: React.FC<GuestFormProps> = (props) => {
   const [paymentType, setPaymentType] = useState<"card" | "bank">("card");
   const stripePromise = useMemo(
@@ -70,10 +68,7 @@ const StripeGuestForm: React.FC<GuestFormProps> = (props) => {
   );
 };
 
-// Inline card entry for a member with no saved card. Mirrors the proven guest
-// path: tokenize the card, then save it via /paymentmethods/addcard (which creates
-// the Stripe customer + attaches the card) so the charge runs through the normal
-// saved-method flow. The card is therefore always saved on submit.
+// Mirrors guest path: tokenize card, save via /paymentmethods/addcard (creates customer), charge saved method.
 const StripeMemberEntry = forwardRef<MemberEntryHandle, MemberEntryProps>(({ gateway, getContext }, ref) => {
   const stripe = useStripe();
   const elements = useElements();
@@ -104,16 +99,13 @@ const StripeMemberEntry = forwardRef<MemberEntryHandle, MemberEntryProps>(({ gat
 });
 StripeMemberEntry.displayName = "StripeMemberEntry";
 
-// Publishes the resolved Stripe instance (read inside <Elements>) so the shared
-// member form gets it via context instead of calling useStripe() itself.
+// Publish resolved Stripe instance to context so member form reads it without calling useStripe().
 const StripeInstancePublisher: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const stripe = useStripe();
   return <StripeInstanceContext.Provider value={stripe}>{children}</StripeInstanceContext.Provider>;
 };
 
-// Member Stripe donations charge a saved payment method — either one the member
-// already had, or the card StripeMemberEntry just saved (token carries the new
-// customerId, since a first-time donor's ctx.customerId is still empty).
+// Charge saved method (existing or fresh card); token carries new customerId for first-time donors.
 function buildSavedMethodBody(ctx: ChargeContext, token: PaymentToken, providerKey: string) {
   return {
     id: token.id,

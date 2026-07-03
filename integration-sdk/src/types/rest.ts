@@ -1,5 +1,3 @@
-// REST client types — module names, base URLs, request/option shapes.
-
 /** The B1 Api modules, each addressed by a `/<module>` path prefix. */
 export type B1Module =
   | "membership"

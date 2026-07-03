@@ -24,12 +24,7 @@ export interface LifeChurchSeries {
   units: LifeChurchUnit[];
 }
 
-/**
- * A scheduled lesson — Life.Church publishes a weekly schedule via the
- * open.life.church calendar (categories 266 / 303 / 301 for 4-6th Grade,
- * Elementary, and Early Childhood respectively). Each entry resolves to a
- * lesson that already exists in this catalog's series → unit → lesson tree.
- */
+/** Scheduled lesson from Life.Church's open.life.church calendar; references an existing lesson in the series → unit → lesson tree. */
 export interface LifeChurchScheduledLesson {
   id: string;          // stable id, e.g. "loop-2026-05-10"
   weekOf: string;      // ISO Sunday date (YYYY-MM-DD)

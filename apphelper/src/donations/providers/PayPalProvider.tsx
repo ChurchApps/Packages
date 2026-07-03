@@ -9,9 +9,7 @@ import type {
   MemberEntryHandle, MemberEntryProps
 } from "./types";
 
-// Member PayPal entry — Hosted Fields create a server-side order at submit time,
-// so it reads live amount/funds through getContext(). tokenize() returns the
-// captured order id.
+// Hosted Fields create server-side order at submit; tokenize() returns order id.
 const PayPalMemberEntry = forwardRef<MemberEntryHandle, MemberEntryProps>(({ gateway, getContext }, ref) => {
   const hostedRef = useRef<PayPalHostedFieldsHandle>(null);
   useImperativeHandle(ref, () => ({
@@ -74,8 +72,6 @@ const PayPalGuestForm: React.FC<GuestFormProps> = (props) => (
     churchLogo={props?.churchLogo}
     paypalClientId={props.gateway?.publicKey || null}
     allowSingleGift={props.allowSingleGift}
-    // PayPal has no subscribe path (capabilities.recurring=false); never offer
-    // a recurring toggle that would silently downgrade to a one-time charge.
     allowRecurring={false}
     showFundSelector={props.showFundSelector}
     allowedFundIds={props.allowedFundIds}
@@ -95,8 +91,6 @@ export const PayPalProvider: PaymentProvider = {
     setupInstructionsKey: "settings.givingSettingsEdit.paypalSetup",
     signupUrl: () => "https://developer.paypal.com/"
   },
-  // PayPal has no saved-method vault and no member subscribe path today; charges
-  // are one-time via captured orders.
   capabilities: { savedCard: false, savedBank: false, guestAch: false, memberNewCard: false, recurring: false, editRecurring: false, pauseRecurring: false },
 
   MemberEntry: PayPalMemberEntry,

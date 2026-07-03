@@ -306,14 +306,12 @@ export function ToolbarPlugin(props: Props) {
           }
         }
       }
-      // Update text format
       setIsBold(selection.hasFormat("bold"));
       setIsItalic(selection.hasFormat("italic"));
       setIsUnderline(selection.hasFormat("underline"));
       setIsCode(selection.hasFormat("code"));
       //setIsStrikethrough(selection.hasFormat("strikethrough"));
 
-      // Update links
       const node = getSelectedNode(selection);
       const parent = node.getParent();
       if ($isCustomLinkNode(parent) || $isCustomLinkNode(node)) {

@@ -19,7 +19,6 @@ interface Props {
   onIneligible?: (reason: string) => void;
 }
 
-// Lightweight loader for the PayPal JS SDK with hosted-fields component
 function loadPayPalSdk(clientId: string, clientToken?: string): Promise<any> {
   return new Promise((resolve, reject) => {
     if (typeof window === "undefined") { reject(new Error("Window not available")); return; }

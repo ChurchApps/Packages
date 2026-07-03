@@ -3,11 +3,7 @@
  * Base: https://<host>/wp-json/superbook/v1
  */
 
-/**
- * The API returns `thumb` either as a plain URL string or as a full WordPress
- * attachment object, depending on the course. Consumers should run it through
- * `resolveThumb` rather than using it directly.
- */
+/** Either a URL string or WordPress attachment object; use resolveThumb() to normalize. */
 export type CbnThumb = string | { url?: string; sizes?: Record<string, unknown> };
 
 /** A course stub from GET /catalog */

@@ -1,12 +1,7 @@
 import { AuthType, ContentItem, ContentProviderAuthData, ContentProviderConfig, IProvider, ProviderCapabilities, ProviderLogos } from "../interfaces";
 import { ApiHelper } from "../helpers";
 
-/**
- * Shared base for providers: identity metadata, an authenticated fetch wrapper, and a
- * config-driven supportsDeviceFlow. Auth-flow methods (initiateDeviceFlow, buildAuthUrl, ...)
- * deliberately do NOT live here: consumers feature-detect them with `"method" in provider`,
- * so they must exist only on the providers that actually support each flow.
- */
+/** Base for providers; auth-flow methods are intentionally not here so consumers can feature-detect with `"method" in provider`. */
 export abstract class BaseProvider implements IProvider {
   abstract readonly id: string;
   abstract readonly name: string;

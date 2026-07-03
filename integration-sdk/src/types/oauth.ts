@@ -1,5 +1,3 @@
-// OAuth types — mirror the B1 Api scope catalog (`shared/auth/Scopes.ts`) and
-// the token responses from `OAuthController`.
 
 /** A recognised OAuth / API-key scope. */
 export type B1KnownScope =

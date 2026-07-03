@@ -1,13 +1,5 @@
 /**
  * @vitest-environment jsdom
- *
- * Unit test for the consolidated apphelper WebPushHelper.subscribe() flow.
- * Stubs the browser push APIs + the underlying ApiHelper, then runs subscribe()
- * end-to-end and asserts:
- *   - the right VAPID public key is fetched from the server
- *   - pushManager.subscribe is called with userVisibleOnly + the decoded VAPID key
- *   - POST /webpush/subscribe is called with the right body shape (the same shape
- *     the server's `webpush:` token decoder expects)
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -18,7 +10,7 @@ const apiGetMock = vi.fn().mockResolvedValue({ publicKey: "BNcRdreALRFXTkOOUHK1E
 
 vi.mock("@churchapps/helpers", () => ({
   ApiHelper: { get: apiGetMock, post: apiPostMock },
-  UserHelper: { user: { id: "USR00000001" } },
+  UserHelper: { user: { id: "USR00000001" } }
 }));
 
 const { WebPushHelper } = await import("../WebPushHelper");
@@ -37,9 +29,9 @@ describe("WebPushHelper.subscribe", () => {
       toJSON() {
         return {
           endpoint: this.endpoint,
-          keys: { p256dh: "p256dh-fake", auth: "auth-fake" },
+          keys: { p256dh: "p256dh-fake", auth: "auth-fake" }
         };
-      },
+      }
     };
     pushManagerSubscribeMock = vi.fn().mockResolvedValue(fakeSubscription);
     pushManagerGetSubscriptionMock = vi.fn().mockResolvedValue(null);
@@ -48,8 +40,8 @@ describe("WebPushHelper.subscribe", () => {
       scope: "/mobile",
       pushManager: {
         subscribe: pushManagerSubscribeMock,
-        getSubscription: pushManagerGetSubscriptionMock,
-      },
+        getSubscription: pushManagerGetSubscriptionMock
+      }
     };
 
     Object.defineProperty(navigator, "serviceWorker", {
@@ -57,8 +49,8 @@ describe("WebPushHelper.subscribe", () => {
       value: {
         getRegistration: vi.fn().mockResolvedValue(fakeRegistration),
         register: vi.fn().mockResolvedValue(fakeRegistration),
-        ready: Promise.resolve(fakeRegistration),
-      },
+        ready: Promise.resolve(fakeRegistration)
+      }
     });
     // PushManager presence is what isSupported() checks for
     (window as any).PushManager = function () { /* */ };
@@ -77,24 +69,21 @@ describe("WebPushHelper.subscribe", () => {
     expect(sub).toBeTruthy();
     expect(sub?.endpoint).toBe(fakeSubscription.endpoint);
 
-    // VAPID public key request to the server
     expect(apiGetMock).toHaveBeenCalledWith("/webpush/publicKey", "MessagingApi");
 
-    // pushManager.subscribe was called with userVisibleOnly + the decoded key bytes
     expect(pushManagerSubscribeMock).toHaveBeenCalledTimes(1);
     const args = pushManagerSubscribeMock.mock.calls[0][0];
     expect(args.userVisibleOnly).toBe(true);
     expect(args.applicationServerKey).toBeInstanceOf(Uint8Array);
 
-    // The subscription POST carries the right body shape
     expect(apiPostMock).toHaveBeenCalledWith(
       "/webpush/subscribe",
       expect.objectContaining({
         appName: "B1AppPwa",
         subscription: expect.objectContaining({
           endpoint: fakeSubscription.endpoint,
-          keys: expect.objectContaining({ p256dh: "p256dh-fake", auth: "auth-fake" }),
-        }),
+          keys: expect.objectContaining({ p256dh: "p256dh-fake", auth: "auth-fake" })
+        })
       }),
       "MessagingApi"
     );

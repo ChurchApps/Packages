@@ -29,14 +29,7 @@ export function convertLessonsToFolders(lessons: CbnLesson[], coursePath: string
   });
 }
 
-/**
- * Convert a lesson playlist into ContentFile array.
- *
- * CBN resolves the Brightcove Playback API server-side and embeds a direct
- * progressive `mp4_url` on each item. We set `url`/`downloadUrl` to that MP4,
- * falling back to the Brightcove `playback_url` when CBN couldn't resolve one.
- * The raw Brightcove fields are kept in `providerData` so nothing is lost.
- */
+/** Convert playlist to files; CBN server-resolves Brightcove MP4 URLs where available. */
 export function convertPlaylistToFiles(playlist: CbnLessonPlaylist): ContentFile[] {
   return playlist.playlist.map(v => {
     const file = createFile(v.video_id, v.title, v.mp4_url || v.playback_url, {

@@ -1,7 +1,3 @@
-// Webhook event names, the delivery envelope, and per-event `data` shapes.
-// These mirror the B1 Api — `shared/webhooks/WebhookEvents.ts` for the names
-// and `WebhookSamplePayloads.ts` for the data shapes.
-
 /** Every webhook event B1 can emit. */
 export type B1WebhookEventName =
   | "person.created" | "person.updated" | "person.destroyed"
@@ -31,9 +27,7 @@ export interface B1WebhookEnvelope<T = unknown> {
   data: T;
 }
 
-// --- per-event data shapes ------------------------------------------------
-// `destroyed` events carry only `{ id, churchId }`, so the descriptive fields
-// are optional on the shared shape.
+// `destroyed` events carry only { id, churchId }, so descriptive fields are optional.
 
 export interface PersonWebhookData {
   id: string;

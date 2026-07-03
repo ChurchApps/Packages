@@ -5,7 +5,7 @@ import {
   Typography,
   Alert,
   Stack,
-  Divider,
+  Divider
 } from "@mui/material";
 import { Link } from "react-router-dom";
 import type { Stripe } from "@stripe/stripe-js";
@@ -18,7 +18,7 @@ import {
   RecurringDonations,
   StripePaymentMethod,
   PaymentGateway,
-  PaymentMethod,
+  PaymentMethod
 } from "../../../src/donations";
 import { ApiHelper, CurrencyHelper } from "@churchapps/helpers";
 import { Elements } from "@stripe/react-stripe-js";
@@ -27,11 +27,9 @@ import { loadStripe } from "@stripe/stripe-js";
 export default function AppHelperDonationsPage() {
   const context = React.useContext(UserContext);
 
-  // Stripe for authenticated components (will be initialized after getting gateway info)
   const [stripePromise, setStripePromise] =
     React.useState<Promise<Stripe | null> | null>(null);
 
-  // Live data state for authenticated donation features
   const [customerId, setCustomerId] = React.useState<string>("");
   const [stripePaymentMethods, setStripePaymentMethods] = React.useState<
     StripePaymentMethod[]
@@ -46,49 +44,43 @@ export default function AppHelperDonationsPage() {
   const [history, setHistory] = React.useState<any[] | null>(null);
   const [historyError, setHistoryError] = React.useState<string | null>(null);
 
-  // Load authenticated data from staging APIs
   React.useEffect(() => {
     const loadAuthData = async () => {
       if (!context?.user || !context?.person) return;
       setLoadingAuthData(true);
       try {
-        // Gateways for the selected church
         const gws: any[] = await ApiHelper.get("/gateways", "GivingApi");
         const pg: PaymentGateway[] = (gws || []).map((g: any) => ({
           id: g.id,
           provider: g.provider,
           publicKey: g.publicKey,
           enabled: g.enabled !== false,
-          currency: g?.currency || "usd",
+          currency: g?.currency || "usd"
         }));
         setPaymentGateways(pg);
 
-        // Initialize Stripe with the public key from gateway
         const stripeGateway = pg.find(
-          (g) => g.provider?.toLowerCase() === "stripe",
+          (g) => g.provider?.toLowerCase() === "stripe"
         );
         if (stripeGateway?.publicKey) {
           setStripePromise(loadStripe(stripeGateway.publicKey));
         }
 
-        // Load payment methods - API now returns normalized format
         try {
           const pms = await ApiHelper.get(
             `/paymentmethods/personid/${context.person.id}`,
-            "GivingApi",
+            "GivingApi"
           );
           const stripePMs: StripePaymentMethod[] = [];
           const allPMs: PaymentMethod[] = [];
 
           if (Array.isArray(pms)) {
             for (const pm of pms) {
-              // StripePaymentMethod is a generic wrapper — include KF saved cards too.
               if (pm.provider === "stripe" || pm.provider === "kingdomfunding") {
                 stripePMs.push(new StripePaymentMethod(pm));
               }
               allPMs.push(pm);
 
-              // Extract customer ID from first payment method if we don't have one
               if (pm.customerId && !customerId) {
                 setCustomerId(pm.customerId);
               }
@@ -98,16 +90,14 @@ export default function AppHelperDonationsPage() {
           setStripePaymentMethods(stripePMs);
           setPaymentMethodsAll(allPMs);
         } catch (e) {
-          // As a fallback, leave methods empty; components will allow adding
           setStripePaymentMethods([]);
           setPaymentMethodsAll([]);
         }
 
-        // Donation history (best-effort)
         try {
           const hist = await ApiHelper.get(
             `/donations?personId=${context.person.id}`,
-            "GivingApi",
+            "GivingApi"
           );
           if (Array.isArray(hist)) setHistory(hist);
         } catch (e: any) {
@@ -157,8 +147,6 @@ export default function AppHelperDonationsPage() {
 
         <ErrorBoundary>
           {!context?.user ? (
-            // Non-authenticated donation form as specified in PRD
-            // JNZUfFMKiWI AOjIt0W-SeYAOjIt0W-SeY
             <Box sx={{ mt: 3 }}>
               <Alert severity="info" sx={{ mb: 3 }}>
                 <Typography variant="h6" gutterBottom>
@@ -179,7 +167,6 @@ export default function AppHelperDonationsPage() {
               />
             </Box>
           ) : (
-            // Authenticated user sees all donation components as specified in PRD
             <Stack spacing={4} sx={{ mt: 3 }}>
               <Alert severity="success">
                 <Typography variant="h6" gutterBottom>
@@ -188,7 +175,6 @@ export default function AppHelperDonationsPage() {
                 Access all donation and payment management features below.
               </Alert>
 
-              {/* Multi-Gateway Donation Form */}
               <Box>
                 <Typography variant="h5" gutterBottom>
                   Make a Donation
@@ -217,7 +203,6 @@ export default function AppHelperDonationsPage() {
 
               <Divider />
 
-              {/* Payment Methods Management */}
               <Box>
                 <Typography variant="h5" gutterBottom>
                   Payment Methods
@@ -236,11 +221,10 @@ export default function AppHelperDonationsPage() {
                       stripePromise={stripePromise}
                       appName="AppHelper Playground"
                       dataUpdate={(_message?: string) => {
-                        // Reload methods after add/edit/delete
                         if (context?.person?.id) {
                           ApiHelper.get(
                             `/paymentmethods/personid/${context.person.id}`,
-                            "GivingApi",
+                            "GivingApi"
                           )
                             .then((pms: any[]) => {
                               const stripePMs: StripePaymentMethod[] = [];
@@ -252,7 +236,6 @@ export default function AppHelperDonationsPage() {
                                 }
                                 allPMs.push(pm);
 
-                                // Extract customer ID if we don't have one
                                 if (pm.customerId && !customerId) {
                                   setCustomerId(pm.customerId);
                                 }
@@ -273,7 +256,6 @@ export default function AppHelperDonationsPage() {
 
               <Divider />
 
-              {/* Recurring Donations Management */}
               <Box>
                 <Typography variant="h5" gutterBottom>
                   Recurring Donations
@@ -299,7 +281,6 @@ export default function AppHelperDonationsPage() {
 
               <Divider />
 
-              {/* Donation History */}
               <Box>
                 <Typography variant="h5" gutterBottom>
                   Donation History
@@ -318,23 +299,23 @@ export default function AppHelperDonationsPage() {
                     {history.slice(0, 10).map((d: any) => (
                       <li key={d.id || d.donationId || `${d.date}-${d.amount}`}>
                         {new Date(
-                          d.donationDate || d.date || d.created || d.timestamp || Date.now(),
+                          d.donationDate || d.date || d.created || d.timestamp || Date.now()
                         ).toLocaleDateString()}{" "}
                         —
                         {` ${CurrencyHelper.getCurrencySymbol(d.currency || "usd")} ${(d.amount || d.total || 0) / (d.amount && d.amount > 1000 ? 100 : 1)}`}
                         {d.funds &&
                           Array.isArray(d.funds) &&
                           d.funds.length > 0 && (
-                            <>
-                              {` — `}
-                              {d.funds
-                                .map(
-                                  (f: any) =>
-                                    `${f.name || ""} ${CurrencyHelper.getCurrencySymbol(d.currency || "usd")} ${f.amount}`,
-                                )
-                                .join(", ")}
-                            </>
-                          )}
+                          <>
+                            {` — `}
+                            {d.funds
+                              .map(
+                                (f: any) =>
+                                  `${f.name || ""} ${CurrencyHelper.getCurrencySymbol(d.currency || "usd")} ${f.amount}`
+                              )
+                              .join(", ")}
+                          </>
+                        )}
                       </li>
                     ))}
                   </ul>

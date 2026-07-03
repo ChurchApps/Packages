@@ -32,7 +32,6 @@ export const RecurringDonations: React.FC<Props> = (props) => {
             s.funds = subFunds;
             subs.push(s);
           }).catch(() => {
-            // If subscription funds fails, include subscription without funds
             s.funds = [];
             subs.push(s);
           }));
@@ -40,7 +39,6 @@ export const RecurringDonations: React.FC<Props> = (props) => {
         Promise.all(requests).then(() => {
           setSubscriptions(subs);
         }).catch(() => {
-          // If any request fails, still show what we have
           setSubscriptions(subs);
         });
       }).catch(() => {
@@ -133,10 +131,7 @@ export const RecurringDonations: React.FC<Props> = (props) => {
   };
 
   const getEditOptions = (sub: SubscriptionInterface) => {
-    // Cancel is ALWAYS available — even when the saved payment method is missing
-    // or the user has no other methods on file. Edit additionally requires the
-    // provider to support editing a subscription's payment method (e.g. Kingdom
-    // Funding subscriptions are read-only at the gateway — cancel only).
+    // Cancel always available; edit requires provider editRecurring support + saved methods.
     const capabilities = getPaymentProvider((sub as any).provider).capabilities;
     const canEdit = capabilities.editRecurring && (props?.paymentMethods?.length || 0) > 0;
     const canPause = capabilities.pauseRecurring;

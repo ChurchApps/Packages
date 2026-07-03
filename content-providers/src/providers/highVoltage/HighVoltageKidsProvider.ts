@@ -7,13 +7,8 @@ import { getCollections, getStudyFolders, getLessonFolders, getLessonFiles, find
 import { buildStudyInstructions, buildLessonInstructions } from "./HighVoltageInstructions";
 
 /**
- * HighVoltageKids Provider
- *
- * Path structure:
- *   /                                          -> list collections (Elementary, Preschool)
- *   /{collectionSlug}                          -> list studies
- *   /{collectionSlug}/{studyId}                -> list lessons
- *   /{collectionSlug}/{studyId}/{lessonId}     -> lesson files (leaf)
+ * Path structure: / → collections, /{collection} → studies, /{collection}/{study} → lessons,
+ * /{collection}/{study}/{lesson} → files (leaf).
  */
 export class HighVoltageKidsProvider extends BaseProvider {
   readonly id = "highvoltagekids";

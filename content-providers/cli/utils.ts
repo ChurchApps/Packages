@@ -174,7 +174,6 @@ export function displayInstructions(instructions: Instructions, isExpanded: bool
 export function displayJson(data: unknown, title: string): void {
   console.log(chalk.cyan(`\n─── ${title} ───\n`));
   const json = JSON.stringify(data, null, 2);
-  // Simple syntax highlighting
   const highlighted = json
     .replace(/"([^"]+)":/g, (_, key) => `${chalk.cyan(`"${key}"`)}:`)
     .replace(/: "([^"]*)"/g, (_, val) => `: ${chalk.green(`"${val}"`)}`)

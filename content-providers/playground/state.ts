@@ -107,10 +107,7 @@ export interface DOMElements {
  */
 export let elements: DOMElements;
 
-/**
- * Initialize and cache all DOM element references
- * Call this once after DOM is ready
- */
+/** Initialize and cache all DOM element references. */
 export function initElements(): void {
   elements = {
     // Main views

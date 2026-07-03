@@ -13,9 +13,7 @@ export const RawHTMLElement = ({ element, onEdit }: Props) => {
 
   const insertJavascript = () => {
     if (window && element.answers.javascript) {
-      // Skip church-pasted HTML markup (`<script src=...>` etc) — the browser would
-      // parse it as JS body and throw `SyntaxError: Unexpected token '<'`, which surfaces
-      // in Sentry as an appendChild error.
+      // Skip HTML markup start-tags to avoid SyntaxError in Sentry appendChild errors.
       if (element.answers.javascript.trim().startsWith("<")) return;
       try {
         const script = document.createElement("script");

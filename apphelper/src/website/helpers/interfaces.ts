@@ -14,13 +14,7 @@ export interface StreamingTabInterface {
   updated?: boolean;
 }
 
-/**
- * Extended version of StreamingServiceInterface for API responses and client-side usage.
- * The base StreamingServiceInterface uses typed Date/number fields, but API responses
- * return strings that need parsing. This interface adds:
- * - String representations of time fields (serviceTime, earlyStart, chatBefore, chatAfter)
- * - Computed client-side Date properties (local*) for UI display
- */
+/** Extended version for API responses with string time fields and computed local Date properties for UI display. */
 export interface StreamingServiceExtendedInterface {
   videoUrl: string;
   serviceTime: string;

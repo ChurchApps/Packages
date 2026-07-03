@@ -141,10 +141,7 @@ export const KingdomFundingTokenForm = forwardRef<KingdomFundingTokenFormHandle,
       setLoading(true);
       configuredRef.current = false;
 
-      // NMI Collect.js only honors one configure() per script load, so switching the field
-      // set (card <-> ACH) needs a FULL reload — a second configure() is silently ignored and
-      // the form hangs on the spinner. Remove any existing instance, clear the field
-      // containers, then load a fresh script and configure the currently-selected set.
+      // NMI Collect.js only honors one configure() per script load; switching field set needs a full reload.
       const existing = document.querySelector<HTMLScriptElement>(`script[src="${COLLECT_JS_URL}"]`);
       if (existing) existing.remove();
       try { delete (window as any).CollectJS; } catch { (window as any).CollectJS = undefined; }
@@ -165,8 +162,7 @@ export const KingdomFundingTokenForm = forwardRef<KingdomFundingTokenFormHandle,
       };
       document.head.appendChild(script);
 
-      // Fail-safe: never hang on the spinner if the fields never report ready (e.g. the
-      // domain isn't whitelisted for this Collect.js key).
+      // Fail-safe: never hang if fields don't report ready.
       const failSafe = setTimeout(() => setLoading(false), 12000);
 
       return () => {

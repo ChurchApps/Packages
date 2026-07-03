@@ -9,14 +9,7 @@ export interface PresenceSnapshot {
 
 type Listener = (snapshot: PresenceSnapshot) => void;
 
-/**
- * In-memory cache of presence (attendance) per conversationId. Mirrors ConversationStore's
- * pattern: registers the "attendance" socket handler exactly once, applies broadcasts to
- * whichever conversations are currently open, and notifies subscribers.
- *
- * Server-side, attendance is derived from the Connection rows joined to the conversation
- * and rebroadcast on every join/leave, so consumers see updates without polling.
- */
+/** In-memory cache of presence per conversation; socket handler registered once, rebroadcast on server join/leave so no polling needed */
 export class PresenceStore {
   private static snapshots: Map<string, PresenceSnapshot> = new Map();
   private static listeners: Map<string, Set<Listener>> = new Map();

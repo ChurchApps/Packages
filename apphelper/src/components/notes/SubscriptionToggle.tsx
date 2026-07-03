@@ -5,12 +5,7 @@ import { IconButton, Tooltip, Icon } from "@mui/material";
 import { ApiHelper, Locale } from "../../helpers";
 import type { MessageInterface } from "@churchapps/helpers";
 
-/**
- * Subscription markers piggyback on the messages table — messageType="subscription"
- * rows toggle whether the poster wants notifications for new content. They never
- * render in the visible thread; the server reads them in NotificationHelper to
- * decide who gets the bell / push.
- */
+/** Subscription markers toggle notifications per person; never render in visible thread */
 export const SUBSCRIPTION_MESSAGE_TYPE = "subscription";
 
 /** Strip subscription markers from a message list before display. */
@@ -19,12 +14,7 @@ export function filterVisibleMessages(messages: MessageInterface[] | null | unde
   return messages.filter((m) => m.messageType !== SUBSCRIPTION_MESSAGE_TYPE);
 }
 
-/**
- * Walks all messages chronologically; the latest action by `personId` wins.
- *   - real comment → subscribed
- *   - "subscription" with content="off" → muted
- *   - "subscription" with content="on" (or any non-"off") → subscribed
- */
+/** Compute subscription state: latest action by personId wins (real comment=subscribed, "subscription"/"off"=muted, else=subscribed) */
 export function computeSubscriptionState(messages: MessageInterface[] | null | undefined, personId: string | undefined): boolean {
   if (!messages || !personId) return false;
   let subscribed = false;
@@ -52,13 +42,7 @@ interface Props {
   mutedColor?: string;
 }
 
-/**
- * Bell icon that shows whether the current user is subscribed to notifications for
- * this conversation. Clicking flips the state by posting a marker message.
- *
- * Renders nothing if conversationId or personId is missing — the toggle is only
- * meaningful once both are known.
- */
+/** Bell icon toggling notification subscription for this conversation; renders nothing if conversationId or personId missing */
 export const SubscriptionToggle: React.FC<Props> = ({ conversationId, messages, personId, size = "small", color, mutedColor }) => {
   const subscribed = React.useMemo(() => computeSubscriptionState(messages, personId), [messages, personId]);
   const [busy, setBusy] = React.useState(false);

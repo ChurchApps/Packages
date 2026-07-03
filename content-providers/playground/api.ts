@@ -27,10 +27,6 @@ export interface InstructionsResult {
   meta: ResolvedFormatMeta;
 }
 
-/**
- * Load content from the current provider at the current path.
- * @returns Array of content items, or empty array on error
- */
 export async function loadContent(): Promise<ContentItem[]> {
   if (!state.currentProvider) return [];
 
@@ -47,12 +43,6 @@ export async function loadContent(): Promise<ContentItem[]> {
   }
 }
 
-/**
- * Get playlist data for a folder using FormatResolver.
- * Updates state with current path and breadcrumb information.
- * @param folder - The folder to get playlist data for
- * @returns Playlist data with metadata, or null on error
- */
 export async function viewAsPlaylist(folder: ContentFolder): Promise<PlaylistResult | null> {
   if (!state.currentProvider) return null;
 
@@ -62,7 +52,7 @@ export async function viewAsPlaylist(folder: ContentFolder): Promise<PlaylistRes
     const { data: playlist, meta } = await getPlaylistWithMeta(state.currentProvider, folder.path, state.currentAuth);
 
     if (!playlist || playlist.length === 0) {
-      // Update state even for empty playlist (caller may want to fallback to browse)
+      // Caller may want to fallback to browse
       state.currentVenueFolder = folder;
       state.currentPath = folder.path;
       state.breadcrumbTitles.push(folder.title);
@@ -70,7 +60,6 @@ export async function viewAsPlaylist(folder: ContentFolder): Promise<PlaylistRes
       return null;
     }
 
-    // Update state
     state.currentVenueFolder = folder;
     state.currentPath = folder.path;
     state.breadcrumbTitles.push(folder.title);
@@ -123,12 +112,6 @@ export async function viewAsPlaylist(folder: ContentFolder): Promise<PlaylistRes
 //   }
 // }
 
-/**
- * Get instructions data for a folder using FormatResolver.
- * Updates state with current path, breadcrumb, and instructions information.
- * @param folder - The folder to get instructions data for
- * @returns Instructions data with metadata, or null on error
- */
 export async function viewAsInstructions(folder: ContentFolder): Promise<InstructionsResult | null> {
   if (!state.currentProvider) return null;
 
@@ -143,7 +126,6 @@ export async function viewAsInstructions(folder: ContentFolder): Promise<Instruc
       return null;
     }
 
-    // Update state
     state.currentInstructions = instructions;
     state.currentVenueFolder = folder;
     state.currentView = 'instructions';

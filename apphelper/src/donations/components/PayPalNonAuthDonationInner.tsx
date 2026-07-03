@@ -4,7 +4,6 @@ import React, { useState, useRef, useEffect } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
 import { ErrorMessages, InputBox } from "../..";
 import { FundDonations } from ".";
-// PayPal Hosted Fields for secure card entry
 import { PayPalHostedFields, PayPalHostedFieldsHandle } from "./PayPalHostedFields";
 import { ApiHelper, DateHelper, CurrencyHelper } from "@churchapps/helpers";
 import { Locale, DonationHelper, PayPalDonationInterface } from "../helpers";
@@ -48,8 +47,7 @@ export const PayPalNonAuthDonationInner: React.FC<Props> = ({ mainContainerCssPr
   const [startDate, setStartDate] = useState(new Date().toDateString());
   const bypassRecaptcha = typeof process !== "undefined" && process.env?.NEXT_PUBLIC_BYPASS_RECAPTCHA === "true";
   const [_captchaResponse, setCaptchaResponse] = useState(bypassRecaptcha ? "success" : "");
-  // Keep church for potential future metadata usage
-  const [_church, _setChurch] = useState<ChurchInterface>();
+  const [_church, _setChurch] = useState<ChurchInterface>(); // reserved for future metadata
   const [gateway, setGateway] = useState<any>(null);
   const [searchParams, setSearchParams] = useState<any>(null);
   const [notes, setNotes] = useState("");
@@ -97,7 +95,6 @@ export const PayPalNonAuthDonationInner: React.FC<Props> = ({ mainContainerCssPr
     if (value) {
       ApiHelper.postAnonymous("/donate/captcha-verify", { token: value }, "GivingApi")
         .then((data: any) => {
-          // Check for various success indicators
           if (data.response === "success" || data.response === "human" || data.success === true || data.score >= 0.5) {
             setCaptchaResponse("success");
           } else {
@@ -137,7 +134,6 @@ export const PayPalNonAuthDonationInner: React.FC<Props> = ({ mainContainerCssPr
   };
 
   const savePayPalDonation = async (_user: UserInterface, person: PersonInterface) => {
-    // Try Hosted Fields first if client ID provided
     let hostedOrderId: string | undefined;
     if (props.paypalClientId && useHostedFields) {
       try {
@@ -155,8 +151,8 @@ export const PayPalNonAuthDonationInner: React.FC<Props> = ({ mainContainerCssPr
     }
 
     const donation: PayPalDonationInterface = {
-      id: "", // PayPal will generate this
-      customerId: "", // Will be set by backend
+      id: "",
+      customerId: "",
       type: "paypal",
       provider: "paypal",
       gatewayId: gateway?.id,
@@ -170,7 +166,6 @@ export const PayPalNonAuthDonationInner: React.FC<Props> = ({ mainContainerCssPr
       },
       notes: notes
     };
-    // Attach hosted order id when available for backend capture
     if (hostedOrderId) (donation as any).paypalOrderId = hostedOrderId;
 
     if (donationType === "recurring") {
@@ -184,9 +179,6 @@ export const PayPalNonAuthDonationInner: React.FC<Props> = ({ mainContainerCssPr
       }
     }
 
-    // Church object is no longer required for unified PayPal capture.
-
-    // Capture via existing /donate/charge endpoint (PayPal)
     const compactFunds = (donation.funds || []).map(f => ({ id: f.id, amount: f.amount }));
     const results = await ApiHelper.post(
       "/donate/charge",
@@ -340,7 +332,6 @@ export const PayPalNonAuthDonationInner: React.FC<Props> = ({ mainContainerCssPr
             />
           </Grid>
         </Grid>
-        {/* Use PayPal Hosted Fields only (no fallback form) */}
         {props.paypalClientId && useHostedFields ? (
           <PayPalHostedFields
             ref={hostedFieldsRef}
@@ -361,7 +352,6 @@ export const PayPalNonAuthDonationInner: React.FC<Props> = ({ mainContainerCssPr
             onValidityChange={setHostedValid}
             onIneligible={() => setUseHostedFields(false)}
             createOrder={async () => {
-              // Create order on backend if supported; fallback to simple legacy flow
               try {
                 const fundsPayload = (fundDonations || [])
                   .filter(fd => (fd.amount || 0) > 0 && fd.fundId)

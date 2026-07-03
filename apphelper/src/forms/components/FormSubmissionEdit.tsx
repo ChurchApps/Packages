@@ -128,7 +128,6 @@ export const FormSubmissionEdit: React.FC<Props> = ({ showHeader = true, noBackg
     if (errors.length === 0) {
       const promises: Promise<any>[] = [];
 
-      // Handle payment if needed
       if (formSubmission.questions) {
         for (let i = 0; i < formSubmission.questions.length; i++) {
           const q = formSubmission.questions[i];
@@ -143,7 +142,6 @@ export const FormSubmissionEdit: React.FC<Props> = ({ showHeader = true, noBackg
         }
       }
 
-      // Save form submission
       const fs = { ...formSubmission };
       (fs as any).submissionDate = new Date();
       promises.push(ApiHelper.post("/formsubmissions", [fs], "MembershipApi"));
@@ -151,7 +149,6 @@ export const FormSubmissionEdit: React.FC<Props> = ({ showHeader = true, noBackg
       Promise.all(promises).then((results) => {
         setIsSubmitting(false);
         const savedSubmission: FormSubmissionInterface | undefined = results?.[0]?.[0];
-        // keep the saved id so a retried save updates instead of inserting an orphan
         if (savedSubmission?.id) setFormSubmission((prev) => prev ? { ...prev, id: savedSubmission.id } : prev);
         props.updatedFunction(savedSubmission);
       }).catch(() => {

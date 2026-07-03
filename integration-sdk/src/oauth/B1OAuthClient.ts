@@ -41,10 +41,7 @@ export interface AwaitDeviceTokenOptions {
   signal?: AbortSignal;
 }
 
-/**
- * Helper for B1's OAuth flows — authorization-code, refresh-token, and the
- * RFC 8628 device flow — against `/membership/oauth/*`.
- */
+/** Helper for B1's OAuth flows (authorization-code, refresh-token, device flow). */
 export class B1OAuthClient {
   private readonly clientId: string;
   private readonly clientSecret?: string;
@@ -61,10 +58,7 @@ export class B1OAuthClient {
     this.fetchImpl = f;
   }
 
-  /**
-   * Requests an authorization code. B1's `/authorize` endpoint is an
-   * authenticated POST, so this needs the *user's* access token (a JWT).
-   */
+  /** Requests an authorization code via the user's JWT. */
   async getAuthorizationCode(params: {
     userAccessToken: string;
     redirectUri: string;

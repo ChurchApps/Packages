@@ -47,8 +47,6 @@ export class DropboxProvider extends BaseProvider {
     mediaLicensing: false
   };
 
-  // -- Pagination helper --
-
   private dropboxPost<T>(endpoint: string, body: Record<string, unknown>, auth?: ContentProviderAuthData | null): Promise<T | null> {
     if (!auth) { console.error("[Dropbox] No auth token provided"); return Promise.resolve(null); }
     return this.apiRequest<T>(endpoint, auth, "POST", body);
@@ -83,8 +81,6 @@ export class DropboxProvider extends BaseProvider {
 
     return allEntries;
   }
-
-  // -- File link helpers --
 
   private async getSharedLink(filePath: string, auth?: ContentProviderAuthData | null): Promise<string | null> {
     if (!auth) return null;
@@ -121,7 +117,6 @@ export class DropboxProvider extends BaseProvider {
   }
 
   private sharedLinkToRawUrl(sharedUrl: string): string {
-    // Convert shared link to raw content URL: replace dl=0 with raw=1
     const url = new URL(sharedUrl);
     url.searchParams.delete("dl");
     url.searchParams.set("raw", "1");
@@ -152,8 +147,6 @@ export class DropboxProvider extends BaseProvider {
       .map(r => fileEntryToContentFile(r.entry, r.viewUrl || r.downloadUrl!, r.downloadUrl));
   }
 
-  // -- Leaf detection --
-
   private async checkIsLeaf(folderPath: string, auth?: ContentProviderAuthData | null): Promise<boolean> {
     const response = await this.dropboxPost<DropboxListFolderResponse>(
       "/2/files/list_folder",
@@ -164,16 +157,13 @@ export class DropboxProvider extends BaseProvider {
     return !response.entries.some(e => e[".tag"] === "folder");
   }
 
-  // -- IProvider methods --
-
   async browse(path?: string | null, auth?: ContentProviderAuthData | null): Promise<ContentItem[]> {
-    // Root = "" for Dropbox API, subfolders use their path_lower directly
+    // Dropbox API: root = "", subfolders use path_lower
     const dropboxPath = (path && path !== "/") ? (path.startsWith("/") ? path : "/" + path) : "";
 
     const allEntries = await this.listAllEntries(dropboxPath, auth);
     const { folders, mediaFiles } = filterMediaEntries(allEntries);
 
-    // Check each subfolder for leaf status in parallel
     const leafChecks = await Promise.all(
       folders.map(f => this.checkIsLeaf(f.path_lower, auth).then(isLeaf => ({ folder: f, isLeaf })))
     );
@@ -183,7 +173,6 @@ export class DropboxProvider extends BaseProvider {
     return [...folderItems, ...fileItems];
   }
 
-  /** Resolve a folder path to playable files (list + media filter + link resolution). */
   private async resolveMediaFiles(path: string, auth?: ContentProviderAuthData | null): Promise<{ files: ContentFile[]; dropboxPath: string } | null> {
     if (!path || path === "/") return null;
     const dropboxPath = path.startsWith("/") ? path : "/" + path;
@@ -211,8 +200,6 @@ export class DropboxProvider extends BaseProvider {
     return filesToInstructions(folderName, resolved.files, { id: "dropbox-section", label: folderName });
   }
 
-  // -- Auth methods --
-
   generateCodeVerifier(): string {
     return this.oauthHelper.generateCodeVerifier();
   }
@@ -238,8 +225,7 @@ export class DropboxProvider extends BaseProvider {
   }
 
   async exchangeCodeForTokens(code: string, codeVerifier: string, redirectUri: string): Promise<ContentProviderAuthData | null> {
-    // Custom implementation: Dropbox token endpoint is on api.dropboxapi.com,
-    // not www.dropbox.com (which OAuthHelper would construct from oauthBase).
+    // Dropbox token endpoint differs: api.dropboxapi.com not www.dropbox.com
     try {
       const params = new URLSearchParams({
         grant_type: "authorization_code",

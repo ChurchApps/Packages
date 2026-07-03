@@ -22,15 +22,7 @@ const isSupported = (): boolean =>
   "PushManager" in window &&
   "Notification" in window;
 
-/**
- * Cross-app helper for registering a Web Push subscription with the MessagingApi.
- * Hosts call WebPushHelper.configure({ scope, appName }) once at boot, then
- * WebPushHelper.subscribe() at login (and on userChurch changes).
- *
- * The server stores the subscription under the active userChurch's churchId, so
- * switching churches without re-enrolling would leave the device tied to the wrong
- * tenant — call subscribe() again after each church switch.
- */
+/** Cross-app helper for registering a Web Push subscription with the MessagingApi. */
 export const WebPushHelper = {
   configure(options: { scope?: string; appName?: string }) {
     if (options.scope) scope = options.scope;
@@ -74,21 +66,16 @@ export const WebPushHelper = {
 
   async getRegistration(): Promise<ServiceWorkerRegistration | null> {
     if (!isSupported()) return null;
-    try { return (await navigator.serviceWorker.getRegistration(scope)) || null; }
-    catch { return null; }
+    try { return (await navigator.serviceWorker.getRegistration(scope)) || null; } catch { return null; }
   },
 
   async getExistingSubscription(): Promise<PushSubscription | null> {
     const reg = await WebPushHelper.getRegistration();
     if (!reg) return null;
-    try { return await reg.pushManager.getSubscription(); }
-    catch { return null; }
+    try { return await reg.pushManager.getSubscription(); } catch { return null; }
   },
 
-  /**
-   * Subscribe (or re-enroll) the active user. Safe to call multiple times — the server
-   * upserts based on (churchId, fcmToken). Call after login and after any userChurch change.
-   */
+  /** Subscribe (or re-enroll) the active user. Safe to call multiple times. */
   async subscribe(): Promise<PushSubscription | null> {
     if (!isSupported() || !UserHelper.user?.id) return null;
     const reg = await WebPushHelper.getRegistration();
@@ -118,10 +105,7 @@ export const WebPushHelper = {
     return subscription;
   },
 
-  /**
-   * Re-enroll the existing subscription (no permission prompt). Use this on userChurch
-   * change so the device record updates to the new church without re-prompting the user.
-   */
+  /** Re-enroll the existing subscription without re-prompting. */
   async refreshEnrollment(): Promise<void> {
     if (!isSupported() || !UserHelper.user?.id) return;
     const sub = await WebPushHelper.getExistingSubscription();
@@ -135,8 +119,7 @@ export const WebPushHelper = {
     if (!sub) return;
     const endpoint = sub.endpoint;
     try { await sub.unsubscribe(); } catch { /* ignore */ }
-    try { await ApiHelper.post("/webpush/unsubscribe", { endpoint }, "MessagingApi"); }
-    catch { /* ignore */ }
+    try { await ApiHelper.post("/webpush/unsubscribe", { endpoint }, "MessagingApi"); } catch { /* ignore */ }
   },
 
   async postSubscription(sub: PushSubscription) {
@@ -150,7 +133,6 @@ export const WebPushHelper = {
       appName,
       deviceInfo: typeof navigator !== "undefined" ? navigator.userAgent : undefined
     };
-    try { await ApiHelper.post("/webpush/subscribe", body, "MessagingApi"); }
-    catch { /* ignore */ }
+    try { await ApiHelper.post("/webpush/subscribe", body, "MessagingApi"); } catch { /* ignore */ }
   }
 };

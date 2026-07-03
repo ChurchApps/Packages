@@ -40,7 +40,7 @@ export const CardForm: React.FC<Props> = (props) => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const handleCancel = () => { props.setMode("display"); };
   const handleSave = () => { setShowSave(false); if (props.card.id) updateCard(); else createCard(); };
-  const saveDisabled = () => { /* Function for disabled save state */ };
+  const saveDisabled = () => { };
   const handleDelete = () => { props.deletePayment(); };
 
   const handleKeyPress = (e: React.KeyboardEvent<any>) => {

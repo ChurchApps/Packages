@@ -26,7 +26,6 @@ export { PlanningCenterProvider } from "./planningCenter";
 export { SignPresenterProvider } from "./signPresenter";
 export { CbnProvider } from "./cbn";
 
-// Unimplemented providers (coming soon)
 interface UnimplementedProvider {
   id: string;
   name: string;
@@ -76,7 +75,6 @@ const unimplementedProviders: UnimplementedProvider[] = [
   }
 ];
 
-// Register built-in providers
 function initializeProviders() {
   const providers: IProvider[] = [
     new APlayProvider(),
@@ -94,7 +92,6 @@ function initializeProviders() {
   for (const provider of providers) registerProvider(provider);
 }
 
-// Initialize on module load
 initializeProviders();
 
 /**
@@ -105,11 +102,7 @@ export function getProviderConfig(providerId: string) {
   return provider?.config || null;
 }
 
-/**
- * Get list of available providers with their info including logos and auth types.
- * Includes both implemented providers and coming soon providers.
- * @param ids - Optional array of provider IDs to filter the results. If provided, only providers with matching IDs will be returned.
- */
+/** Get available providers (implemented and coming soon), optionally filtered by IDs. */
 export function getAvailableProviders(ids?: string[]): ProviderInfo[] {
   // Implemented providers
   const implemented: ProviderInfo[] = getAllProviders().map((provider) => ({

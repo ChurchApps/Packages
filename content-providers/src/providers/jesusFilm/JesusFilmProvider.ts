@@ -21,15 +21,8 @@ const CATEGORY_NAMES: Record<string, string> = {
 };
 
 /**
- * Jesus Film Project Provider
- *
- * Uses the public Arclight API to browse video content from jesusfilm.org.
- *
- * Path structure:
- *   /                                    -> categories (Feature Films, Series, Collections)
- *   /{category}                          -> list items in category
- *   /{category}/{id}                     -> single video (feature film) or container children (series/collection)
- *   /{category}/{...containerIds}/{id}   -> nested containers or single video (supports arbitrary depth)
+ * Path: / → categories, /{category} → items, /{category}/{id} → video or children,
+ * /{category}/{...ids}/{id} → nested containers or video.
  */
 export class JesusFilmProvider extends BaseProvider {
   readonly id = "jesusfilm";
@@ -123,7 +116,6 @@ export class JesusFilmProvider extends BaseProvider {
     const downloadUrl = variant.downloadUrls.high?.url || variant.downloadUrls.low?.url;
     if (!downloadUrl) return [];
 
-    // Also fetch the media component metadata for title and duration
     const components = await this.fetchApi<ArclightMediaListResponse>(
       `/media-components?ids=${mediaComponentId}&languageIds=${LANGUAGE_ID}`
     );

@@ -8,11 +8,7 @@ export default defineConfig({
     root: __dirname,
     environment: "jsdom",
     include: ["src/**/*.{test,spec}.{ts,tsx}"],
-    exclude: ["node_modules", "dist", "playground"],
+    exclude: ["node_modules", "dist", "playground"]
   },
-  resolve: {
-    alias: {
-      "@churchapps/helpers": resolve(__dirname, "node_modules/@churchapps/helpers/dist/index.js"),
-    },
-  },
+  resolve: { alias: { "@churchapps/helpers": resolve(__dirname, "node_modules/@churchapps/helpers/dist/index.js") } }
 });

@@ -36,7 +36,6 @@ export function ReportingTestPage() {
           to function fully. This demo shows the component structure and interfaces.
         </Alert>
 
-        {/* ReportWithFilter - Complete Reporting Solution */}
         <Paper elevation={2} sx={{ p: 3 }}>
           <Typography variant="h5" gutterBottom>
             1. ReportWithFilter - Complete Reporting Solution
@@ -61,7 +60,6 @@ export function ReportingTestPage() {
           </Box>
         </Paper>
 
-        {/* ReportOutput - Standalone Output */}
         <Paper elevation={2} sx={{ p: 3 }}>
           <Typography variant="h5" gutterBottom>
             2. ReportOutput - Standalone Output Component
@@ -86,7 +84,6 @@ export function ReportingTestPage() {
           </Box>
         </Paper>
 
-        {/* ReportFilter - Standalone Filter */}
         <Paper elevation={2} sx={{ p: 3 }}>
           <Typography variant="h5" gutterBottom>
             3. ReportFilter - Standalone Filter Component
@@ -112,7 +109,6 @@ export function ReportingTestPage() {
           </Box>
         </Paper>
 
-        {/* ReportFilterField - Individual Filter Field */}
         <Paper elevation={2} sx={{ p: 3 }}>
           <Typography variant="h5" gutterBottom>
             4. ReportFilterField - Individual Filter Field
@@ -138,7 +134,6 @@ export function ReportingTestPage() {
           </Box>
         </Paper>
 
-        {/* Report Configuration Structure */}
         <Paper elevation={2} sx={{ p: 3, bgcolor: "grey.50" }}>
           <Typography variant="h5" gutterBottom>
             Report Configuration Structure
@@ -168,7 +163,6 @@ interface ParameterInterface {
           </Box>
         </Paper>
 
-        {/* Data Visualization Components */}
         <Paper elevation={2} sx={{ p: 3 }}>
           <Typography variant="h5" gutterBottom>
             Data Visualization Components
@@ -207,7 +201,6 @@ interface ParameterInterface {
           </Stack>
         </Paper>
 
-        {/* Integration Notes */}
         <Paper elevation={2} sx={{ p: 3, bgcolor: "info.main", color: "info.contrastText" }}>
           <Typography variant="h5" gutterBottom>
             Integration Notes

@@ -9,14 +9,7 @@ function formatDate(dateString: string): string {
   return new Date(dateString).toISOString().slice(0, 10);
 }
 
-/**
- * PlanningCenter Provider
- *
- * Path structure:
- *   /serviceTypes                            -> list service types
- *   /serviceTypes/{serviceTypeId}            -> list plans
- *   /serviceTypes/{serviceTypeId}/{planId}   -> plan items (leaf)
- */
+/** Browses Planning Center service types → plans → items. */
 export class PlanningCenterProvider extends BaseProvider {
   readonly id = "planningcenter";
   readonly name = "Planning Center";

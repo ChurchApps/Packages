@@ -2,11 +2,7 @@
  * Utility functions for the playground
  */
 
-/**
- * Escape HTML special characters to prevent XSS attacks
- * @param unsafe - The string to escape (can be undefined or null)
- * @returns The escaped string, or empty string if input is null/undefined
- */
+/** Escape HTML special characters to prevent XSS attacks. */
 export function escapeHtml(unsafe: string | undefined | null): string {
   if (unsafe === undefined || unsafe === null) {
     return '';
@@ -19,11 +15,7 @@ export function escapeHtml(unsafe: string | undefined | null): string {
     .replace(/'/g, '&#039;');
 }
 
-/**
- * Format a duration in seconds as a human-readable string
- * @param seconds - The duration in seconds
- * @returns Formatted string as "m:ss" or "h:mm:ss"
- */
+/** Format a duration in seconds as a human-readable string. */
 export function formatDuration(seconds: number): string {
   if (!Number.isFinite(seconds) || seconds < 0) {
     return '0:00';
@@ -40,14 +32,7 @@ export function formatDuration(seconds: number): string {
   return `${minutes}:${secs.toString().padStart(2, '0')}`;
 }
 
-/**
- * Render a collapsible JSON viewer HTML component
- * Issue #9: JSON viewers are collapsed by default to reduce visual clutter
- * @param data - The data to display as JSON
- * @param title - The title for the JSON viewer section
- * @param collapsed - Whether the viewer should be collapsed by default (true by default)
- * @returns HTML string for the JSON viewer component
- */
+/** Render a collapsible JSON viewer HTML component. Issue #9: JSON viewers are collapsed by default to reduce visual clutter. */
 export function renderJsonViewer(data: unknown, title: string, collapsed: boolean = true): string {
   const jsonStr = JSON.stringify(data, null, 2);
   const escapedJson = escapeHtml(jsonStr);

@@ -3,9 +3,7 @@ import type { Stripe } from "@stripe/stripe-js";
 import type { PaymentGateway } from "../helpers";
 import type { PaperProps } from "@mui/material/Paper";
 
-// Uniform token produced by any provider's payment-entry widget (or a reused
-// saved method). `id` is the provider's reference: Stripe payment-method id,
-// Kingdom Funding nonce, or PayPal order id.
+/** Uniform token from any provider's payment widget; id is provider's reference (PM id/nonce/order). */
 export interface PaymentToken {
   id: string;
   type: "card" | "bank" | "paypal";
@@ -19,9 +17,7 @@ export interface PaymentToken {
   customerId?: string;
 }
 
-// Everything the payload builder needs about the gift in flight. Funds are
-// compact ({id, amount}) for every provider — the shape the server already
-// accepts on the KF/PayPal paths.
+/** All payload builder context for a gift in flight; funds compact for all providers. */
 export interface ChargeContext {
   provider: string;
   gatewayId?: string;
@@ -52,18 +48,16 @@ export interface FinalizeResult {
 }
 
 export interface ProviderCapabilities {
-  savedCard: boolean;     // store + reuse cards (member flow)
-  savedBank: boolean;     // store + reuse ACH, and offer "add bank"
-  guestAch: boolean;      // ACH option in the guest donor form
-  memberNewCard: boolean; // offer "enter new card" inline during a member donation
+  savedCard: boolean;
+  savedBank: boolean;
+  guestAch: boolean;
+  memberNewCard: boolean;
   recurring: boolean;
-  editRecurring: boolean; // edit an existing subscription's payment method
-  pauseRecurring?: boolean; // pause/resume an existing subscription's collection; absent = unsupported
+  editRecurring: boolean;
+  pauseRecurring?: boolean;
 }
 
 export interface ProviderDescriptor {
-  // Stored gateway provider value as the admin/db uses it (Title-case), so the
-  // settings screen can build its dropdown straight from the registry.
   adminValue: string;
   label: string;
   keyLabels: { public: string; private: string; webhook?: string };
@@ -81,8 +75,6 @@ export interface MemberEntryHandle {
 
 export interface MemberEntryProps {
   gateway: PaymentGateway;
-  // Providers that build a server-side order at tokenize time (PayPal) read
-  // live amount/funds through this; Stripe/KF ignore it.
   getContext?: () => ChargeContext;
 }
 
@@ -105,17 +97,10 @@ export interface PaymentProvider {
   readonly descriptor: ProviderDescriptor;
   readonly capabilities: ProviderCapabilities;
 
-  // Member donation -----------------------------------------------------------
-  // Optional SDK/context wrapper around the member form (Stripe -> <Elements>).
   MemberWrapper?: FC<{ stripePromise?: Promise<Stripe | null> | null; children: ReactNode }>;
-  // Inline widget to capture a NEW payment during a member donation. Undefined
-  // for providers that only charge saved methods (Stripe member flow).
   MemberEntry?: ForwardRefExoticComponent<MemberEntryProps & RefAttributes<MemberEntryHandle>>;
-  // token + context -> API request. The one place payload shape differs.
   buildChargeRequest(ctx: ChargeContext, token: PaymentToken): ChargeRequest;
-  // Post-charge handling (Stripe 3DS). Default = pass-through.
   finalizeResult?(result: any, deps: { stripe?: Stripe | null }): Promise<FinalizeResult>;
 
-  // Guest (unauthenticated) donation -------------------------------------------
   GuestForm: FC<GuestFormProps>;
 }

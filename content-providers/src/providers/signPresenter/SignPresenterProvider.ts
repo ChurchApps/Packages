@@ -4,13 +4,7 @@ import { parsePath } from "../../pathUtils";
 import { OAuthHelper, DeviceFlowHelper } from "../../helpers";
 import { BaseProvider } from "../BaseProvider";
 
-/**
- * SignPresenter Provider
- *
- * Path structure:
- *   /playlists                    -> list playlists
- *   /playlists/{playlistId}       -> list messages (files)
- */
+/** Browses SignPresenter playlists → messages (files). */
 export class SignPresenterProvider extends BaseProvider {
   private readonly oauthHelper = new OAuthHelper();
   private readonly deviceFlowHelper = new DeviceFlowHelper();
@@ -106,7 +100,6 @@ export class SignPresenterProvider extends BaseProvider {
     return { name: title, items: [{ id: playlistId + "-header", itemType: "header", label: title, children: instructions.items }] };
   }
 
-  // Auth methods
   generateCodeVerifier(): string {
     return this.oauthHelper.generateCodeVerifier();
   }

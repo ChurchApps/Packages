@@ -4,10 +4,7 @@ import { showStatus, showModal } from '../ui';
 import { getAvailableProviders, ContentItem, ContentFolder, ContentFile, isContentFolder, isContentFile } from '../../src';
 import type { ResolvedFormatMeta } from '../formats';
 
-/**
- * Render provider cards in the providers grid
- * @param onProviderClick - Callback when a provider card is clicked
- */
+/** Render provider cards in the providers grid. */
 export function renderProviders(onProviderClick: (providerId: string) => void): void {
   if (!elements) return;
 
@@ -95,12 +92,7 @@ export function renderProviders(onProviderClick: (providerId: string) => void): 
   });
 }
 
-/**
- * Render content items (folders and files) in the content grid
- * @param items - Array of content items to render
- * @param onFolderClick - Callback when a folder card is clicked
- * @param onFileClick - Callback when a file card is clicked
- */
+/** Render content items (folders and files) in the content grid. */
 export function renderContent(
   items: ContentItem[],
   onFolderClick: (folder: ContentFolder) => void,
@@ -148,11 +140,7 @@ export function renderContent(
   });
 }
 
-/**
- * Generate folder card HTML
- * @param folder - The folder to render
- * @returns HTML string for the folder card
- */
+/** Generate folder card HTML. */
 export function renderFolder(folder: ContentFolder): string {
   const escapedTitle = escapeHtml(folder.title);
   const imageHtml = folder.thumbnail
@@ -168,11 +156,7 @@ export function renderFolder(folder: ContentFolder): string {
   `;
 }
 
-/**
- * Generate file card HTML
- * @param file - The file to render
- * @returns HTML string for the file card
- */
+/** Generate file card HTML. */
 export function renderFile(file: ContentFile): string {
   const escapedTitle = escapeHtml(file.title);
   const mediaIcon = file.mediaType === 'video' ? '&#127916;' : '&#128444;';
@@ -193,10 +177,7 @@ export function renderFile(file: ContentFile): string {
   `;
 }
 
-/**
- * Render an empty state message for a specific view type
- * @param viewType - The type of view that is empty
- */
+/** Render an empty state message for a specific view type. */
 export function renderEmptyState(viewType: 'playlist' | 'presentations' | 'instructions' | 'browse'): void {
   if (!elements) return;
 
@@ -230,11 +211,7 @@ export function renderEmptyState(viewType: 'playlist' | 'presentations' | 'instr
   }
 }
 
-/**
- * Render a format source badge indicating native or derived format
- * @param meta - The resolved format metadata
- * @returns HTML string for the badge
- */
+/** Render a format source badge indicating native or derived format. */
 export function renderFormatSourceBadge(meta: ResolvedFormatMeta): string {
   if (meta.isNative) {
     return '<span class="format-source-badge native">Native</span>';

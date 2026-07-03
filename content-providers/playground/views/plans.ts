@@ -6,11 +6,7 @@ import type { ResolvedFormatMeta } from '../formats';
 import { renderFormatSourceBadge } from './common';
 import { playPlanFiles } from './playlist';
 
-/**
- * Render the presentations/plan view
- * @param plan - The plan object containing sections and presentations
- * @param meta - Format metadata indicating native or derived source
- */
+/** Render the presentations/plan view. */
 export function renderPlanView(plan: Plan, meta: ResolvedFormatMeta): void {
   if (!elements) return;
 
@@ -39,7 +35,6 @@ export function renderPlanView(plan: Plan, meta: ResolvedFormatMeta): void {
     `;
 
     section.presentations.forEach((presentation, presentationIndex) => {
-      // Issue #1 FIX: Changed 'add-on' to 'other' and badge text to "Other"
       const actionBadge = presentation.actionType === 'other'
         ? '<span class="action-badge addon">Other</span>'
         : '<span class="action-badge play">Play</span>';
@@ -102,11 +97,7 @@ export function renderPlanView(plan: Plan, meta: ResolvedFormatMeta): void {
   });
 }
 
-/**
- * Show presentation detail modal with file list
- * Issue #2: Populate the presentation-detail-section modal elements
- * @param presentation - The presentation to show details for
- */
+/** Show presentation detail modal with file list. */
 export function showPresentationDetails(presentation: PlanPresentation): void {
   const detailSection = document.getElementById('presentation-detail-section');
   if (!detailSection) {
@@ -116,7 +107,6 @@ export function showPresentationDetails(presentation: PlanPresentation): void {
     return;
   }
 
-  // Calculate total duration
   const totalSeconds = presentation.files.reduce((sum, file) => sum + (file.seconds || 0), 0);
 
   let detailHtml = `
@@ -156,10 +146,8 @@ export function showPresentationDetails(presentation: PlanPresentation): void {
 
   detailSection.innerHTML = detailHtml;
 
-  // Show the modal
   showModal('presentation_detail');
 
-  // Set up play button handler
   document.getElementById('play-presentation-detail-btn')?.addEventListener('click', () => {
     playPlanFiles(presentation.files);
   });

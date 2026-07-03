@@ -1,6 +1,5 @@
 import type { Stripe, PaymentIntent } from "@stripe/stripe-js";
 
-// Result of 3D Secure authentication attempt
 export interface ThreeDSResult {
   success: boolean;
   requiresAction: boolean;
@@ -10,7 +9,6 @@ export interface ThreeDSResult {
 
 export class DonationHelper {
 
-  // Handles Stripe 3D Secure authentication when required by the payment
   static async handle3DSIfRequired(apiResult: any, stripe: Stripe | null): Promise<ThreeDSResult> {
     if (apiResult?.status !== "requires_action" || !apiResult?.client_secret) {
       return { success: false, requiresAction: false };
@@ -69,9 +67,7 @@ export class DonationHelper {
     return gateways.find(g => this.isProvider(g.provider, provider));
   }
 
-  // A PayPal capture is money-in-hand only at COMPLETED/APPROVED. "CREATED"
-  // means an order was created but not yet captured — treating it as success
-  // shows the donor a thank-you screen for a payment that never collected.
+  // PayPal capture is money-in-hand only at COMPLETED/APPROVED.
   static isPayPalCaptureComplete(status?: string): boolean {
     return status === "COMPLETED" || status === "APPROVED";
   }

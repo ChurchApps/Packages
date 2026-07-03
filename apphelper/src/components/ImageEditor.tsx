@@ -5,7 +5,6 @@ import { InputBox, SmallButton, Loading } from ".";
 import { Locale } from "../helpers";
 import "cropperjs/dist/cropper.css";
 
-// Lazy load the Cropper component
 const Cropper = lazy(() => import("react-cropper").then(module => ({ default: module.default })));
 
 interface Props {
@@ -25,7 +24,6 @@ export function ImageEditor(props: Props) {
   const cropperRef = useRef<HTMLImageElement>(null);
   const timeoutRef = useRef<number | null>(null);
 
-  // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
       if (timeoutRef.current !== null) {

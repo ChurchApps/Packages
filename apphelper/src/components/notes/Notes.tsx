@@ -25,7 +25,6 @@ export function Notes(props: Props) {
   const churchId = props.context?.userChurch?.church?.id;
   const personId = props.context?.person?.id;
 
-  // Add CSS for custom scrollbar styling
   React.useEffect(() => {
     const styleId = "notes-scrollbar-styles";
     if (!document.getElementById(styleId)) {
@@ -63,7 +62,6 @@ export function Notes(props: Props) {
     }
   }, []);
 
-  // Hydrate via ConversationStore + subscribe + join the realtime room.
   React.useEffect(() => {
     let cancelled = false;
     let unsubscribe: (() => void) | null = null;
@@ -102,7 +100,7 @@ export function Notes(props: Props) {
       if (unsubscribe) unsubscribe();
       if (joined && churchId) SubscriptionManager.leaveRoom(conversationId, churchId).catch(() => { /* ignore */ });
     };
-  }, [props.conversationId, props.refreshKey, churchId, personId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [props.conversationId, props.refreshKey, churchId, personId]);
 
   const visibleMessages = React.useMemo(() => filterVisibleMessages(messages), [messages]);
 
@@ -165,9 +163,7 @@ export function Notes(props: Props) {
   }, [visibleMessages, props.maxHeight, isInitialLoad, previousMessageCount]);
 
   const onLocalUpdate = () => {
-    // Realtime path is authoritative; this fallback only fires when the socket isn't delivering
-    // (e.g. a self-post that the server still echoed back). The store applies the broadcast
-    // for us, so we just clear edit mode.
+    // Fallback when socket doesn't deliver; store applies broadcast, just clear edit mode.
     setEditMessageId(null);
   };
 
@@ -225,7 +221,7 @@ export function Notes(props: Props) {
   );
 
   if (props.noDisplayBox) return result;
-  else return (
+  return (
     <DisplayBox
       id="notesBox"
       data-testid="notes-box"

@@ -16,16 +16,13 @@ import FileDownloadIcon from "@mui/icons-material/FileDownload";
 export default function ModernLayoutPage() {
   const [currentSection, setCurrentSection] = React.useState("people");
 
-  // Add responsive CSS for proper mobile behavior
   React.useEffect(() => {
     const style = document.createElement("style");
     style.textContent = `
-      /* Mobile styles (≤740px) - hide horizontal secondary menu */
       @media (max-width: 740px) {
         #secondaryMenu { display: none !important; }
       }
-      
-      /* Desktop styles (≥741px) - hide mobile dropdown secondary menu */
+
       @media (min-width: 741px) {
         #secondaryMenuAlt { display: none !important; }
       }
@@ -223,7 +220,6 @@ export default function ModernLayoutPage() {
 										</PageHeader>
 									</div>
 
-									{/* Demo content area */}
 									<Box sx={{ p: 3, minHeight: "200px", bgcolor: "#f5f5f5" }}>
 										<Typography variant="h6" gutterBottom>
 											Main Content Area - {sectionConfig.pageHeader.title}

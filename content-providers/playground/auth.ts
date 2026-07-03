@@ -4,21 +4,17 @@ import { getProvider, B1ChurchProvider, DropboxProvider, ContentProviderAuthData
 import { OAuthHelper, DeviceFlowHelper } from '../src/helpers';
 import type { PlanningCenterProvider } from '../src';
 
-// OAuth configuration constants
 const OAUTH_REDIRECT_URI = `${window.location.origin}${window.location.pathname}`;
 const STORAGE_KEY_VERIFIER = 'oauth_code_verifier';
 const STORAGE_KEY_PROVIDER = 'oauth_provider_id';
 
-// Client IDs for OAuth providers (using FreeShow's registered app credentials for testing)
 const PCO_CLIENT_ID = '35d1112d839d678ce3f1de730d2cff0b81038c2944b11c5e2edf03f8b43abc05';
 const B1_CLIENT_ID = 'nsowldn58dk';
 const DROPBOX_CLIENT_ID = 'edggy1jh5vvnxyd';
 
-// Auth helpers
 export const oauthHelper = new OAuthHelper();
 export const deviceFlowHelper = new DeviceFlowHelper();
 
-// Callback for successful authentication
 let onAuthSuccess: (() => void) | null = null;
 
 /**
@@ -76,7 +72,6 @@ export function showFormLoginModal(): void {
   elements.loginPassword.value = '';
   elements.formLoginError.classList.add('hidden');
   showModal('form_login');
-  // Focus email field after modal opens
   setTimeout(() => elements.loginEmail.focus(), 100);
 }
 
@@ -358,7 +353,6 @@ export function retryAuth(): void {
   const supportsDeviceFlow = deviceFlowHelper.supportsDeviceFlow(state.currentProvider.config);
   const supportsOAuth = state.currentProvider.authTypes.includes('oauth_pkce');
 
-  // Show choice if both OAuth and Device Flow are supported
   if (supportsDeviceFlow && supportsOAuth) {
     showAuthChoiceModal();
   } else if (supportsDeviceFlow) {

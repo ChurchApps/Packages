@@ -39,9 +39,7 @@ interface Props {
   churchLogo?: string;
 }
 
-// ApiHelper rejects with the JSON response body as the Error message, so a bare
-// e.message can surface as `{"error":"Your card was declined."}`. Pull out the
-// human-readable reason for donors instead of dumping raw JSON.
+// ApiHelper rejects with JSON body; extract human-readable message instead of raw JSON.
 const cleanErrorMessage = (raw: any): string => {
   if (raw == null) return "Unknown error";
   const text = typeof raw === "string" ? raw : (raw.message || raw.error || "");
@@ -199,7 +197,7 @@ const MultiGatewayDonationInner: React.FC<Props> = (props) => {
   const handleSingleDonationClick = useCallback(() => handleDonationSelect("once"), [handleDonationSelect]);
   const handleRecurringDonationClick = useCallback(() => handleDonationSelect("recurring"), [handleDonationSelect]);
 
-  // Snapshot of the gift in flight, in the shape every provider adapter expects.
+  // Snapshot of gift in flight in provider-agnostic shape.
   const buildContext = useCallback((): ChargeContext => ({
     provider: selectedGateway,
     gatewayId: donation.gatewayId || gateway?.id || selectedGatewayObj?.id,
@@ -231,8 +229,7 @@ const MultiGatewayDonationInner: React.FC<Props> = (props) => {
   const makeDonation = useCallback(async (message: string) => {
     const ctx = buildContext();
 
-    // Capture a new payment if the provider needs one (no saved-card support, or
-    // the user is entering a fresh card); otherwise charge the chosen saved method.
+    // Need tokenize if no saved-card support, user entering fresh card, or no method selected.
     const needsToken = !!paymentProvider.MemberEntry
       && (!paymentProvider.capabilities.savedCard || useNewCard || !donation.id || donation.id === "");
 
@@ -262,8 +259,7 @@ const MultiGatewayDonationInner: React.FC<Props> = (props) => {
       return;
     }
 
-    // Terminal: a freshly-tokenized payment must never silently retry on a falsy
-    // response, or we'd double-charge.
+    // Freshly-tokenized payment never retries silently on falsy response (prevent double-charge).
     if (needsToken && !results) {
       setShowDonationPreviewModal(false);
       setErrorMessage(Locale.label("donation.kingdomFunding.unexpectedError"));
@@ -285,14 +281,12 @@ const MultiGatewayDonationInner: React.FC<Props> = (props) => {
         }
         results = fin.result;
       } catch (e: any) {
-        // e.g. a 3DS confirmation that throws — must not leave the modal spinning.
         showError(e);
         return;
       }
     }
 
-    // Exhaustive terminal: always close the modal so the Donate button can never
-    // hang with no feedback on an unrecognized response shape.
+    // Always close modal to prevent Donate button hanging with no feedback on unrecognized shapes.
     setShowDonationPreviewModal(false);
     const okStatuses = ["succeeded", "pending", "active", "processing", "CREATED", "Approved"];
     if (results?.status && okStatuses.includes(results.status)) {
@@ -401,8 +395,7 @@ const MultiGatewayDonationInner: React.FC<Props> = (props) => {
 
   const availablePaymentMethods = props.paymentMethods.filter(pm => DonationHelper.normalizeProvider(pm.provider) === selectedGateway);
 
-  // Show the provider's inline entry widget when there's no saved method to use:
-  // PayPal (no vault) always; Kingdom Funding when adding a new card or none saved.
+  // Show inline entry: PayPal always, KF when adding new or none saved.
   const showInlineEntry = !!paymentProvider.MemberEntry
     && (!paymentProvider.capabilities.savedCard || useNewCard || availablePaymentMethods.length === 0);
 
@@ -497,9 +490,7 @@ const MultiGatewayDonationInner: React.FC<Props> = (props) => {
                             d.id = "";
                             setDonation(d);
                           } else {
-                            // Switching back to a saved card after picking "Enter new card"
-                            // must clear useNewCard, otherwise the submit handler still
-                            // tries to tokenize a card the iframe never collected.
+                            // Clear useNewCard when switching back to saved card (prevent tokenize on unsaved iframe).
                             setUseNewCard(false);
                             handleChange(e);
                           }
@@ -524,8 +515,7 @@ const MultiGatewayDonationInner: React.FC<Props> = (props) => {
                       <>
                         <Typography variant="subtitle1" sx={{ mb: 1 }}>{Locale.label("donation.kingdomFunding.enterCardDetails")}</Typography>
                         <MemberEntry ref={entryRef} gateway={selectedGatewayObj} getContext={buildContext} />
-                        {/* Stripe saves the card implicitly (via /paymentmethods/addcard at
-                            tokenize time), so a "save this card" toggle would be misleading. */}
+                        {/* Stripe saves implicitly at tokenize; toggle would mislead. */}
                         {paymentProvider.capabilities.savedCard && props.person?.id && paymentProvider.key !== "stripe" && (
                           <FormGroup sx={{ mt: 1 }}>
                             <FormControlLabel
@@ -637,8 +627,7 @@ const MultiGatewayDonationInner: React.FC<Props> = (props) => {
   }
 };
 
-// Public member donation form. Applies the resolved provider's SDK wrapper
-// (Stripe -> <Elements>, so 3DS works) around the provider-agnostic inner form.
+// Apply provider SDK wrapper (Stripe <Elements> for 3DS) around provider-agnostic inner form.
 export const MultiGatewayDonationForm: React.FC<Props> = (props) => {
   const provider = getPaymentProvider(props?.paymentGateways?.find(g => g.enabled !== false)?.provider || "stripe");
   const Wrapper = provider.MemberWrapper;

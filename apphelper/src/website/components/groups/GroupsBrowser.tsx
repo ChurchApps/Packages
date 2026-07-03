@@ -9,9 +9,9 @@ import GroupCard from "./GroupCard";
 
 interface Props {
   churchId: string;
-  /** Pre-filter the result set to one category (admins use this to embed a "small groups" section). When set, the category dropdown is hidden. */
+  /** Pre-filter to one category; hides the category dropdown. */
   category?: string;
-  /** Pre-filter the result set to a single label (any group whose comma-separated labels contain this string). */
+  /** Pre-filter to a label (any group whose comma-separated labels contain this string). */
   label?: string;
   /** Optional heading text rendered above the filter row. */
   title?: string;

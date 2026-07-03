@@ -11,34 +11,14 @@ export interface UseNotificationsResult {
   error: string | null;
 }
 
-/**
- * Custom hook for managing real-time notifications
- *
- * @param context - User context containing person and church information
- * @returns Object containing notification counts and management functions
- *
- * @example
- * ```tsx
- * const { counts, isLoading, refresh } = useNotifications(context);
- *
- * return (
- *   <UserMenu
- *     notificationCounts={counts}
- *     loadCounts={refresh}
- *     // ... other props
- *   />
- * );
- * ```
- */
+/** Custom hook for managing real-time notifications */
 export function useNotifications(context: UserContextInterface | null): UseNotificationsResult {
   const [counts, setCounts] = useState<NotificationCounts>({ notificationCount: 0, pmCount: 0 });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Get the singleton instance only once
   const notificationService = React.useMemo(() => NotificationService.getInstance(), []);
 
-  // Initialize the service when context becomes available
   useEffect(() => {
     if (!context?.person?.id || !context?.userChurch?.church?.id) {
       setIsLoading(false);
@@ -62,19 +42,16 @@ export function useNotifications(context: UserContextInterface | null): UseNotif
     initializeService();
   }, [context?.person?.id, context?.userChurch?.church?.id]);
 
-  // Subscribe to notification count changes
   useEffect(() => {
     const unsubscribe = notificationService.subscribe((newCounts) => {
       setCounts(newCounts);
     });
 
-    // Cleanup subscription on unmount
     return () => {
       unsubscribe();
     };
   }, [notificationService]);
 
-  // Refresh function - memoized without dependencies for stable reference
   const refresh = useCallback(async () => {
     try {
       setError(null);

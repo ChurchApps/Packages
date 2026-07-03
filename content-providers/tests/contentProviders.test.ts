@@ -1,15 +1,12 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-// Import from submodules rather than ../src/index: the index injects a tsup build-time define
-// (__PACKAGE_VERSION__) that is absent under tsx. Importing providers/index still runs
-// initializeProviders(), so the registry is populated. The build/tsc step verifies the index barrel.
+// Index injects __PACKAGE_VERSION__ at build-time; import submodules under tsx.
 import { getProvider, getAllProviders, getProviderConfig, getAvailableProviders } from "../src/providers/index";
 import { parsePath, getSegment } from "../src/pathUtils";
 import { navigateToPath } from "../src/instructionPathUtils";
 import { detectMediaType, isMediaFile, createFolder, createFile } from "../src/utils";
-// instructionsToPlaylist was relocated from FormatConverters into utils (a general content
-// converter used by B1Church and the playground). Behavior must hold across the move.
+// Relocated from FormatConverters; behavior must hold across the move.
 import { instructionsToPlaylist, filesToInstructions } from "../src/utils";
 import { toAuthData } from "../src/helpers/TokenHelper";
 import { getPlaylistWithMeta } from "../playground/formats";
@@ -17,8 +14,6 @@ import { getPlaylistWithMeta } from "../playground/formats";
 const EXPECTED_IDS = "dropbox lessonschurch aplay jesusfilm signpresenter b1church bibleproject planningcenter cbn highvoltagekids lifechurch".split(" ");
 const COMING_SOON_IDS = "awana freeshow gocurriculum iteachchurch ministrystuff".split(" ");
 const DEVICE_FLOW_IDS = new Set(["signpresenter", "b1church", "cbn"]);
-
-// --- Registry ---
 
 test("registry holds exactly the 11 built-in providers", () => {
   const all = getAllProviders();
@@ -56,8 +51,6 @@ test("getAvailableProviders lists implemented + coming-soon and filters by id", 
   assert.equal(filtered.length, 2);
 });
 
-// --- Provider contract (data-driven over all providers) ---
-
 test("every provider satisfies the IProvider shape", () => {
   for (const provider of getAllProviders()) {
     assert.equal(typeof provider.id, "string");
@@ -80,8 +73,6 @@ test("supportsDeviceFlow matches the device-flow providers", () => {
     assert.equal(provider.supportsDeviceFlow(), DEVICE_FLOW_IDS.has(provider.id), provider.id);
   }
 });
-
-// --- Auth surface that B1Admin's ContentProviderAuthManager drives generically ---
 
 test("device-flow providers expose initiate/poll methods (B1Admin contract)", () => {
   for (const id of DEVICE_FLOW_IDS) {
@@ -112,8 +103,6 @@ test("generateCodeVerifier returns a 64-char PKCE string", () => {
   assert.match(verifier, /^[A-Za-z0-9\-._~]{64}$/);
 });
 
-// --- Offline browse (depth 0 is pure, no network) ---
-
 test("depth-0 browse returns the provider root folder without network", async () => {
   const sign = await getProvider("signpresenter")!.browse(null);
   assert.equal(sign.length, 1);
@@ -128,8 +117,6 @@ test("depth-0 browse returns the provider root folder without network", async ()
   assert.equal((b1[0] as any).path, "/ministries");
 });
 
-// --- pathUtils ---
-
 test("parsePath splits segments and computes depth", () => {
   assert.deepEqual(parsePath("/a/b/c"), { segments: ["a", "b", "c"], depth: 3 });
   assert.deepEqual(parsePath("a/b"), { segments: ["a", "b"], depth: 2 });
@@ -142,8 +129,6 @@ test("getSegment returns the indexed segment or null", () => {
   assert.equal(getSegment("/a/b/c", 1), "b");
   assert.equal(getSegment("/a", 5), null);
 });
-
-// --- instructionPathUtils (used by B1Admin + B1App) ---
 
 test("navigateToPath walks the dot-notation tree", () => {
   const tree = {
@@ -161,8 +146,6 @@ test("navigateToPath walks the dot-notation tree", () => {
   assert.equal(navigateToPath(tree, ""), null);
   assert.equal(navigateToPath(tree, "x"), null);
 });
-
-// --- utils ---
 
 test("detectMediaType honours explicit type then extension", () => {
   assert.equal(detectMediaType("https://x/clip.mp4"), "video");
@@ -189,8 +172,6 @@ test("isMediaFile / createFolder / createFile build the expected shapes", () => 
   assert.equal(file.url, "https://x/clip.mp4");
 });
 
-// --- instructionsToPlaylist (relocated function: behavior must be preserved) ---
-
 test("instructionsToPlaylist flattens downloadable leaves into files", () => {
   const instructions = {
     name: "Plan",
@@ -212,8 +193,7 @@ test("instructionsToPlaylist flattens downloadable leaves into files", () => {
   assert.equal(files[0].seconds, 10);
 });
 
-// --- Playground shim fallback (regression: Jesus Film / High Voltage Kids return null from
-//     getPlaylist at collection depth, so the playlist view must derive from instructions) ---
+// Fallback: Jesus Film / High Voltage Kids return null from getPlaylist at collection depth.
 
 test("getPlaylistWithMeta derives a playlist from instructions when getPlaylist yields nothing", async () => {
   const stub = {
@@ -241,8 +221,7 @@ test("getPlaylistWithMeta prefers the native playlist when getPlaylist returns f
   assert.equal(meta.isNative, true);
 });
 
-// --- Shared builders (refactor invariants: every provider's instruction tree and every
-//     OAuth token mapping now flow through these two functions) ---
+// Refactor invariant: instruction tree and OAuth token mappings flow through these two functions.
 
 test("toAuthData maps a token response with Bearer default and fallbacks", () => {
   const auth = toAuthData({ access_token: "at", expires_in: 3600 }, { refreshToken: "rt-old", scope: "openid" });

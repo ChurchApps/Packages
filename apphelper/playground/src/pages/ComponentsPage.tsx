@@ -12,7 +12,6 @@ import {
   Loading,
   SmallButton
 } from "../../../src";
-// Mock data removed - using minimal inline data for demo purposes
 
 function ComponentPage({ children, title }: { children: React.ReactNode, title: string }) {
   return (

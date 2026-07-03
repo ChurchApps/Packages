@@ -87,7 +87,6 @@ export const PaymentMethods: React.FC<Props> = (props) => {
             e.preventDefault();
             setAnchorEl(null);
             if (usesTokenEntry) {
-              // Open the token dialog directly — avoids setState during render in EditForm
               setShowAddCardDialog(true);
             } else {
               handleEdit(new StripePaymentMethod({ type: "card" }))(e);
@@ -106,14 +105,12 @@ export const PaymentMethods: React.FC<Props> = (props) => {
   };
 
   const getNewContent = () => {
-    // Allow adding payment methods if user has admin permissions OR it's their own account
     if (!UserHelper.checkAccess(Permissions.givingApi.settings.edit) &&
         props.person?.id !== UserHelper.currentUserChurch?.person?.id) return null;
     return <MenuIcon />;
   };
 
   const getEditOptions = (pm: StripePaymentMethod) => {
-    // Allow editing payment methods if user has admin permissions OR it's their own account
     if (!UserHelper.checkAccess(Permissions.givingApi.settings.edit) &&
         props.person?.id !== UserHelper.currentUserChurch?.person?.id) return null;
     return <button
@@ -164,11 +161,7 @@ export const PaymentMethods: React.FC<Props> = (props) => {
   const provider = gateway ? getPaymentProvider(gateway.provider) : undefined;
   const canSaveCard = !!provider?.capabilities.savedCard;
   const canSaveBank = !!provider?.capabilities.savedBank;
-  // Providers that capture a saved card through their own token widget (e.g.
-  // Kingdom Funding) instead of Stripe Elements — these use the add-card dialog.
-  // Stripe also exposes a MemberEntry (for inline donate), but it needs an
-  // <Elements> context (MemberWrapper) and its tokenize() already saves the card,
-  // so Stripe must go through the CardForm path, not the bare token dialog.
+  // Token-entry providers (KF) use add-card dialog; Stripe (with MemberWrapper) uses CardForm.
   const usesTokenEntry = canSaveCard && !!provider?.MemberEntry && !provider?.MemberWrapper;
   const TokenEntry = provider?.MemberEntry;
   const entryRef = useRef<MemberEntryHandle>(null);
@@ -240,8 +233,7 @@ export const PaymentMethods: React.FC<Props> = (props) => {
   );
 
   const EditForm = () => {
-    // Token-entry providers (e.g. Kingdom Funding) — edit/delete existing only;
-    // adding a new card is handled by the dialog, and cards can't be updated in place.
+    // Token-entry providers: delete only (no in-place updates); add via dialog.
     if (usesTokenEntry) {
       if (editPaymentMethod.id) {
         // Editing existing payment method (delete only — KF cards cannot be updated in place)
@@ -267,9 +259,7 @@ export const PaymentMethods: React.FC<Props> = (props) => {
           </DisplayBox>
         );
       }
-      // "Add new" on KF is handled by the dialog opened from MenuIcon; this
-      // fallback path is unreachable in normal flow. Render nothing rather
-      // than setState during render.
+      // KF "add new" via dialog; unreachable path.
       return null;
     }
 
@@ -316,6 +306,5 @@ export const PaymentMethods: React.FC<Props> = (props) => {
     } else return <EditForm></EditForm>;
   };
 
-  // Token-entry providers (e.g. KF) render even without a Stripe promise.
   return (props.stripePromise || usesTokenEntry) ? <><PaymentMethodsComponent />{usesTokenEntry && tokenAddCardDialog}</> : null;
 };

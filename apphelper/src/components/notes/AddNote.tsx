@@ -65,20 +65,15 @@ export function AddNote({ context, onCancel, ...props }: Props) {
     const isNewConversation = !cId;
     if (!cId) cId = await props.createConversation();
 
-    // If this post is creating the conversation, eagerly join the room before sending
-    // the message so the server's broadcast lands on this tab. Without this, the broadcast
-    // queries the connections table at save time and finds nobody — the message is
-    // persisted but never echoed live to either the sender or any other open tab.
+    // Join room before sending to ensure broadcast reaches this tab.
     if (isNewConversation && churchId && cId) {
-      try { await SubscriptionManager.joinRoom(cId, churchId, context?.person?.id); }
-      catch { /* ignore */ }
+      try { await SubscriptionManager.joinRoom(cId, churchId, context?.person?.id); } catch { /* ignore */ }
     }
 
     const m = { ...message, conversationId: cId };
     ApiHelper.post("/messages", [m], "MessagingApi")
       .then((saved: MessageInterface[]) => {
-        // Belt-and-suspenders: directly apply the saved message to the local store so the
-        // sender sees it instantly even if the broadcast missed (e.g. join-room race).
+        // Apply message locally for instant sender feedback in case broadcast misses.
         const result = Array.isArray(saved) ? saved[0] : saved;
         if (result?.conversationId) ConversationStore.applyMessage(result);
         props.onUpdate();
@@ -146,9 +141,7 @@ export function AddNote({ context, onCancel, ...props }: Props) {
               }}
             />
 
-            {/* Buttons: Cancel (left), Delete + Send (right) */}
             <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>
-              {/* Cancel Button */}
               {props.messageId && (
                 <IconButton
                   size="small"
@@ -163,10 +156,7 @@ export function AddNote({ context, onCancel, ...props }: Props) {
                 </IconButton>
               )}
 
-              {/* Spacer */}
               <Box sx={{ flex: 1 }} />
-
-              {/* Right buttons: Emoji + Delete + Send */}
               <Box sx={{ display: "flex", gap: 0.5 }}>
                 <IconButton
                   size="small"

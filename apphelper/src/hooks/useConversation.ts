@@ -30,15 +30,7 @@ export interface UseConversationResult {
   remove: (messageId: string) => Promise<void>;
 }
 
-/**
- * Subscribe to a conversation, get a live message list, and post/edit/delete.
- *
- * - On mount: hydrates via REST (by contentType/contentId or by conversationId) and joins the
- *   server room via SubscriptionManager so socket events update the store automatically.
- * - On unmount: leaves the room (ref-counted, so multiple consumers of the same conversation share one join).
- * - Mutations write to /messages and rely on the server's broadcast to fan out — including
- *   to this same tab, so we do not optimistically apply.
- */
+/** Subscribe to a conversation, get a live message list, and post/edit/delete. */
 export function useConversation(opts: UseConversationOptions): UseConversationResult {
   const [conversation, setConversation] = useState<ConversationInterface | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -64,7 +56,6 @@ export function useConversation(opts: UseConversationOptions): UseConversationRe
     }
   }, [opts.contentType, opts.contentId, opts.conversationId]);
 
-  // Initial hydration + subscribe
   useEffect(() => {
     let cancelled = false;
     let unsubscribe: (() => void) | null = null;
@@ -82,9 +73,7 @@ export function useConversation(opts: UseConversationOptions): UseConversationRe
           joinedConversationId = conv.id;
           await SubscriptionManager.joinRoom(conv.id, churchId, personId, displayName);
         }
-      }
-      // also subscribe by direct conversationId even if REST returned nothing yet
-      else if (opts.conversationId) {
+      } else if (opts.conversationId) {
         unsubscribe = ConversationStore.subscribe(opts.conversationId, (updated) => {
           if (!cancelled) setConversation(updated);
         });
@@ -129,7 +118,9 @@ export function useConversation(opts: UseConversationOptions): UseConversationRe
     ConversationStore.setConversation({ ...created, messages: [] });
     if (churchId) await SubscriptionManager.joinRoom(created.id, churchId, personId, displayName);
     return created.id;
-  }, [conversation?.id, opts.conversationId, opts.contentType, opts.contentId, opts.groupId, opts.visibility, churchId, personId, displayName]);
+  }, [
+    conversation?.id, opts.conversationId, opts.contentType, opts.contentId, opts.groupId, opts.visibility, churchId, personId, displayName
+  ]);
 
   const post = useCallback(async (content: string, messageType: string = "comment"): Promise<MessageInterface | null> => {
     const trimmed = content?.trim();

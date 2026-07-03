@@ -4,9 +4,7 @@ import { KingdomFundingProvider } from "./KingdomFundingProvider";
 import { PayPalProvider } from "./PayPalProvider";
 import type { PaymentProvider } from "./types";
 
-// Built-ins are referenced directly (not registered via a module side-effect),
-// so bundlers can't tree-shake the registration away. Built lazily on first
-// access so the providers/components import cycle is fully resolved by call time.
+// Built lazily on first access so providers/components import cycle is fully resolved.
 const custom = new Map<string, PaymentProvider>();
 let builtins: Map<string, PaymentProvider> | null = null;
 

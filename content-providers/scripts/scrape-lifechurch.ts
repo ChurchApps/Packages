@@ -1,23 +1,4 @@
-/**
- * Life.Church kids curriculum scraper.
- *
- * Source 1 — catalog: life.church sitemap + episode pages on www.life.church/media/.
- * Each episode page references a canonical mp4 on the d.life.church CDN
- * (e.g. https://d.life.church/konnect/konnect/build-others-up_720p.mp4),
- * publicly fetchable with no auth.
- *
- * Source 2 — schedule: open.life.church publishes a weekly calendar at
- * /schedule?category_id={266|303|301}&start_date=YYYY-MM-DD listing what each
- * age group is using this Sunday. We resolve those entries to lessons in the
- * catalog so the provider can surface "this Sunday" without runtime HTTP.
- *
- * Output: src/providers/lifeChurch/data.json
- *
- * Run: npx tsx scripts/scrape-lifechurch.ts
- *      npx tsx scripts/scrape-lifechurch.ts --max-per-series 5   (smoke test)
- *      npx tsx scripts/scrape-lifechurch.ts --series konnect      (one series)
- *      npx tsx scripts/scrape-lifechurch.ts --schedule-only       (refresh schedule, keep catalog)
- */
+/** Life.Church kids curriculum scraper: catalog from sitemap + episode pages, schedule from open.life.church; surfaces "this Sunday" without runtime HTTP. */
 
 import { writeFileSync, mkdirSync, existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -40,14 +21,37 @@ interface SeriesSpec {
 }
 
 const SERIES: SeriesSpec[] = [
-  { id: "loop",            sitemapPath: "loop",            name: "The Loop Show", ageGroup: "4th-6th Grade", scheduleCategoryId: 266,
-    description: "Bible-based, age-appropriate lessons for 4th-6th grade. YouTube-style challenges and teaching that tackles the big questions." },
-  { id: "konnect",         sitemapPath: "konnect",         name: "Konnect HQ", ageGroup: "1st-4th Grade", scheduleCategoryId: 303,
-    description: "Konnect HQ teaches elementary kids the truths of who Jesus created them to be." },
-  { id: "crosstown",       sitemapPath: "crosstown",       name: "Crosstown", ageGroup: "Pre-K / Kindergarten",
-    description: "An hour-long small-group experience for 5-year-olds and Kindergarteners with Bible stories, worship songs, and on-screen teaching." },
-  { id: "early-childhood", sitemapPath: "early-childhood", name: "Early Childhood", ageGroup: "Ages 2-5", scheduleCategoryId: 301,
-    description: "Life.Church preschool curriculum — short Bible-story videos for ages 2 through early elementary." }
+  {
+    id: "loop",
+    sitemapPath: "loop",
+    name: "The Loop Show",
+    ageGroup: "4th-6th Grade",
+    scheduleCategoryId: 266,
+    description: "Bible-based, age-appropriate lessons for 4th-6th grade. YouTube-style challenges and teaching that tackles the big questions."
+  },
+  {
+    id: "konnect",
+    sitemapPath: "konnect",
+    name: "Konnect HQ",
+    ageGroup: "1st-4th Grade",
+    scheduleCategoryId: 303,
+    description: "Konnect HQ teaches elementary kids the truths of who Jesus created them to be."
+  },
+  {
+    id: "crosstown",
+    sitemapPath: "crosstown",
+    name: "Crosstown",
+    ageGroup: "Pre-K / Kindergarten",
+    description: "An hour-long small-group experience for 5-year-olds and Kindergarteners with Bible stories, worship songs, and on-screen teaching."
+  },
+  {
+    id: "early-childhood",
+    sitemapPath: "early-childhood",
+    name: "Early Childhood",
+    ageGroup: "Ages 2-5",
+    scheduleCategoryId: 301,
+    description: "Life.Church preschool curriculum — short Bible-story videos for ages 2 through early elementary."
+  }
 ];
 
 interface ScrapedLesson { id: string; title: string; videoUrl: string; thumbnail?: string; sourceUrl: string; }
@@ -192,7 +196,10 @@ async function scrapeSeries(spec: SeriesSpec, entries: SitemapEntry[], maxPerSer
   })).filter(u => u.lessons.length > 0).sort((a, b) => a.name.localeCompare(b.name));
 
   return {
-    id: spec.id, name: spec.name, ageGroup: spec.ageGroup, description: spec.description,
+    id: spec.id,
+    name: spec.name,
+    ageGroup: spec.ageGroup,
+    description: spec.description,
     thumbnail: units[0]?.thumbnail,
     sourceUrl: `https://www.life.church/media/${spec.sitemapPath}/`,
     units
@@ -211,16 +218,7 @@ function nextSundayIso(): string {
   return `${y}-${m}-${day}`;
 }
 
-/**
- * Pull this Sunday's calendar entry for an age group from open.life.church
- * and resolve it to a lesson in our scraped catalog. The schedule references
- * curriculum units by open.life.church slug + part number; we map by slug
- * to a unit in life.church/media (which uses the same slug convention) and
- * then pick the Nth lesson within that unit (zero-based from `part - 1`).
- *
- * If the upstream slug doesn't exist on life.church/media (the surfaces
- * occasionally diverge), we skip that entry rather than emit a broken link.
- */
+/** Resolve schedule entries to lessons; skip if slug diverges between surfaces. */
 async function fetchSchedule(catalog: ScrapedSeries[], weekOf: string): Promise<ScheduledLesson[]> {
   const out: ScheduledLesson[] = [];
   for (const spec of SERIES) {
@@ -229,7 +227,6 @@ async function fetchSchedule(catalog: ScrapedSeries[], weekOf: string): Promise<
     const html = await fetchText(url);
     if (!html) { console.warn(`  schedule fetch failed for ${spec.id}`); continue; }
 
-    // Find first calendar-resource link near the target start date.
     const m = html.match(/<a class="calendar-resource"[^>]+href="\/resources\/(\d+)-([a-z0-9-]+)(?:\?[^"]*part=(\d+))?[^"]*"[^>]*>([\s\S]*?)<\/a>/);
     if (!m) { console.warn(`  no calendar entry for ${spec.id} on ${weekOf}`); continue; }
     const [, , unitSlug, partStr, titleBlock] = m;
@@ -241,7 +238,6 @@ async function fetchSchedule(catalog: ScrapedSeries[], weekOf: string): Promise<
     const series = catalog.find(s => s.id === spec.id);
     if (!series) { console.warn(`  catalog missing series ${spec.id}`); continue; }
 
-    // Try to find a unit by slug, otherwise look for a flat lesson by slug.
     const unit = series.units.find(u => u.id === unitSlug);
     let lesson: ScrapedLesson | undefined;
     let resolvedUnit = unit;

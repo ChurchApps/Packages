@@ -99,13 +99,13 @@ interface Props {
 
 export const Element: React.FC<Props> = props => {
   const handleDrop = (data: any, sort: number) => {
-    if (data.data) { // Existing element dropped
+    if (data.data) {
       const draggedElement: ElementInterface = data.data;
       draggedElement.sort = sort;
       draggedElement.sectionId = props.element.sectionId;
       draggedElement.parentId = props.element.parentId;
       ApiHelper.post("/elements", [draggedElement], "ContentApi").then(() => { if (props.onMove) props.onMove(); });
-    } else { // New element dropped
+    } else {
       const newElement: ElementInterface = { sectionId: props.element.sectionId, elementType: data.elementType, sort, blockId: props.element.blockId, parentId: props.parentId };
       if (data.blockId) newElement.answersJSON = JSON.stringify({ targetBlockId: data.blockId });
       else if (data.elementType === "row") newElement.answersJSON = JSON.stringify({ columns: "6,6" });
@@ -173,7 +173,6 @@ export const Element: React.FC<Props> = props => {
   const renderer = getElementRenderer(props.element.elementType || "");
   if (renderer) result = renderer(renderProps) ?? <></>;
   else if (props.onEdit) {
-    // Visible only in the editor; live pages render nothing for unknown types.
     result = (<Box sx={{ p: 2, border: "1px dashed", borderColor: "warning.main", color: "text.secondary", textAlign: "center" }}>
       <Typography variant="caption">Unknown element type: {props.element.elementType}</Typography>
     </Box>);

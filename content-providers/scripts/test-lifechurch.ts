@@ -1,9 +1,4 @@
-/**
- * Smoke test for LifeChurchProvider — exercises browse / getPlaylist / getInstructions
- * against the bundled data.json without requiring FreePlay or Maestro.
- *
- * Run: npx tsx scripts/test-lifechurch.ts
- */
+/** Smoke test for LifeChurchProvider against bundled data.json without requiring FreePlay or Maestro. */
 
 import { LifeChurchProvider } from "../src/providers/lifeChurch";
 import { isContentFolder, isContentFile } from "../src/interfaces";
@@ -20,7 +15,6 @@ async function main() {
     console.log(`  - ${item.id}: ${item.title}`);
   }
 
-  // Scheduled lessons (if present)
   const hasScheduled = root.some(r => r.id === "scheduled");
   if (hasScheduled) {
     console.log("\n=== /scheduled ===");
@@ -37,7 +31,6 @@ async function main() {
     }
   }
 
-  // Series
   for (const item of root) {
     if (!isContentFolder(item) || item.id === "scheduled") continue;
     const series = item;

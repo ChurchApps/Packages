@@ -22,13 +22,7 @@ interface Props {
   showCommentCount?: boolean;
 }
 
-/**
- * Realtime conversation surface keyed by (contentType, contentId). Hydrates via
- * GET /conversations/messages/{contentType}/{contentId}, joins the matching room
- * via SubscriptionManager, and re-renders on inbound message/deleteMessage events.
- *
- * Replaces the legacy B1App `notes/Conversations.tsx` + `notes/Conversation.tsx` pair.
- */
+/** Realtime conversation surface for (contentType, contentId). */
 export function Conversations(props: Props) {
   const canPost = props.canPost !== false;
   const churchId = props.context?.userChurch?.church?.id;

@@ -5,12 +5,7 @@ import { Instructions, InstructionItem } from '../../src';
 import type { ResolvedFormatMeta } from '../formats';
 import { renderFormatSourceBadge } from './common';
 
-/**
- * Render the instructions view with hierarchical item tree
- * Issue #13: Removed the unused `_isExpanded` parameter
- * @param instructions - The instructions object containing items
- * @param meta - Optional format metadata indicating native or derived source
- */
+/** Render the instructions view with hierarchical item tree. */
 export function renderInstructionsView(instructions: Instructions, meta?: ResolvedFormatMeta): void {
   if (!elements) return;
 
@@ -43,7 +38,6 @@ export function renderInstructionsView(instructions: Instructions, meta?: Resolv
     const indent = depth * 20;
     const hasChildren = item.children && item.children.length > 0;
 
-    // Type icons using HTML entities
     let typeIcon: string;
     switch (item.itemType) {
       case 'header':

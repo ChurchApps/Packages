@@ -28,9 +28,7 @@ export function CuratedEventCalendar(props: Props) {
   const [rruleReady, setRruleReady] = useState<boolean>(false);
 
   useEffect(() => {
-    // EventHelper.getRange uses rrule which is loaded via dynamic import.
-    // Wait for it before expanding recurring events; otherwise getRange throws
-    // on first render before the dynamic import resolves.
+    // EventHelper.getRange uses rrule (loaded via dynamic import); wait before expanding recurring events.
     const ensure = (EventHelper as any).ensureInitialized || (() => Promise.resolve());
     Promise.resolve(ensure()).then(() => setRruleReady(true)).catch(() => setRruleReady(true));
   }, []);

@@ -77,27 +77,21 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
   }, [props.callbackErrors]);
 
   const performLogout = () => {
-    // Clear all authentication cookies
     setCookie("jwt", "", { path: "/", maxAge: 0 });
     setCookie("name", "", { path: "/", maxAge: 0 });
     setCookie("email", "", { path: "/", maxAge: 0 });
     setCookie("lastChurchId", "", { path: "/", maxAge: 0 });
-    // Clear any JWT in the ApiHelper
     ApiHelper.clearPermissions();
-    // Clear user context
     props.context.setUser(null);
     props.context.setUserChurches([]);
     props.context.setUserChurch(null);
     props.context.setPerson(null);
-    // Show a logout success message
     setErrors(["You have been successfully logged out."]);
 
-    // Handle redirect after logout
     const search = new URLSearchParams(location?.search);
     const rawReturnUrl = search.get("returnUrl") || props.returnUrl || "/";
     const returnUrl = rawReturnUrl.startsWith("/") && !rawReturnUrl.startsWith("//") ? rawReturnUrl : "/";
 
-    // Use handleRedirect if available, otherwise use window.location
     if (props.handleRedirect) {
       props.handleRedirect(returnUrl);
     } else if (typeof window !== "undefined") {
@@ -107,7 +101,6 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
 
   const init = () => {
     const search = new URLSearchParams(location?.search);
-    // SSO delivers the login JWT / error in the URL fragment (never sent to servers or in Referer).
     const hashParams = typeof window !== "undefined" ? new URLSearchParams(window.location.hash.replace(/^#/, "")) : new URLSearchParams();
     const hashJwt = hashParams.get("jwt") || "";
     const hashLoginError = hashParams.get("loginError");
@@ -142,8 +135,6 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
     setCookie("name", `${resp.user.firstName} ${resp.user.lastName}`, { path: "/", maxAge: COOKIE_MAX_AGE });
     setCookie("email", resp.user.email, { path: "/", maxAge: COOKIE_MAX_AGE });
     UserHelper.user = resp.user;
-
-    // JWT church selection is handled by the server response, no client-side decoding needed
 
     const search = new URLSearchParams(location?.search);
     const churchIdInParams = search.get("churchId");
@@ -209,7 +200,6 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
     props.context.setUserChurches(UserHelper.userChurches);
     props.context.setUserChurch(UserHelper.currentUserChurch);
 
-    // Get or claim person before proceeding
     let person;
     try {
       person = await ApiHelper.get(`/people/${UserHelper.currentUserChurch.person?.id}`, "MembershipApi");
@@ -219,12 +209,10 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
       props.context.setPerson(person);
     }
 
-    // Handle redirect with actual data
     const search = new URLSearchParams(location?.search);
     const rawReturnUrl = search.get("returnUrl") || props.returnUrl || "/";
     const returnUrl = rawReturnUrl.startsWith("/") && !rawReturnUrl.startsWith("//") ? rawReturnUrl : "/";
     if (returnUrl && typeof window !== "undefined") {
-      // Use handleRedirect function if available, otherwise fallback to window.location
       if (props.handleRedirect) {
         props.handleRedirect(returnUrl, UserHelper.user, person, UserHelper.currentUserChurch, UserHelper.userChurches);
       } else {
@@ -242,7 +230,6 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
         const userChurch: LoginUserChurchInterface = await ApiHelper.post("/churches/select", { churchId: churchId }, "MembershipApi");
         UserHelper.setupApiHelper(userChurch);
 
-        //create/claim the person record and relogin
         await ApiHelper.get("/people/claim/" + churchId, "MembershipApi");
         login({ jwt: userJwt || userJwtBackup });
         return;
@@ -368,7 +355,6 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
 };
 
 export const LoginPage: React.FC<Props> = (props) => {
-  // Always wrap with CookiesProvider to ensure context is available
   return (
     <CookiesProvider defaultSetOptions={{ path: "/" }}>
       <LoginPageContent {...props} />

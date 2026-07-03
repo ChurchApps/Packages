@@ -1,7 +1,4 @@
-/**
- * View modules for the playground application
- * Re-exports all view-related functions for convenient importing
- */
+/** View modules for the playground application. */
 
 export * from './common';
 export * from './playlist';

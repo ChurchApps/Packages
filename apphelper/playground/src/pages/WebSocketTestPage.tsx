@@ -42,7 +42,6 @@ const WebSocketTestPage: React.FC = () => {
         const timestamp = new Date().toLocaleTimeString();
         let messageContent = event.data;
 
-        // Try to parse JSON if it looks like JSON
         if (typeof event.data === "string" && (event.data.startsWith("{") || event.data.startsWith("["))) {
           try {
             const parsed = JSON.parse(event.data);
@@ -55,11 +54,9 @@ const WebSocketTestPage: React.FC = () => {
 
         setMessages(prev => [...prev, `[${timestamp}] Received: ${messageContent}`]);
 
-        // Visual feedback for message activity
         setMessageActivity(true);
         setTimeout(() => setMessageActivity(false), 1000);
 
-        // Alert for debugging (you can remove this later)
         console.log("Adding message to UI:", messageContent);
       };
 
@@ -168,7 +165,6 @@ const WebSocketTestPage: React.FC = () => {
           Status: {getStatusText()}
         </Alert>
 
-        {/* Debug Information */}
         <Box sx={{ mb: 2, display: "flex", gap: 1, flexWrap: "wrap", alignItems: "center" }}>
           <Typography variant="body2" color="textSecondary">Debug:</Typography>
           <Chip

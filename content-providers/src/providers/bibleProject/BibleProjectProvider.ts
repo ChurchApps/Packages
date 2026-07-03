@@ -5,14 +5,7 @@ import { BaseProvider } from "../BaseProvider";
 import bibleProjectData from "./data.json";
 import { BibleProjectData, BibleProjectCollection, BibleProjectVideo } from "./BibleProjectInterfaces";
 
-/**
- * BibleProject Provider
- *
- * Path structure:
- *   /                              -> list collections
- *   /{collectionSlug}              -> list videos in collection
- *   /{collectionSlug}/{videoId}    -> single video
- */
+/** BibleProject Provider: Bible education video content. */
 export class BibleProjectProvider extends BaseProvider {
   readonly id = "bibleproject";
   readonly name = "The Bible Project";

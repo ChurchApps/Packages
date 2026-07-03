@@ -2,18 +2,13 @@ import { Instructions, InstructionItem } from "../../interfaces";
 import { IMAGE_DURATION_SECONDS } from "../../utils";
 import { LessonFileJson, LessonFolder, StudyFolder } from "./HighVoltageKidsInterfaces";
 
-/**
- * Get the base name from a title by removing trailing numbers
- * e.g., "Call to Action - Point 1" -> "Call to Action - Point"
- */
+/** Remove trailing numbers from title (e.g., "Point 1" → "Point"). */
 function getBaseName(title: string): string {
   const match = title.match(/^(.+?)\s*\d+$/);
   return match ? match[1].trim() : title;
 }
 
-/**
- * Group consecutive files with the same base name into actions
- */
+/** Group consecutive files with same base name into actions. */
 export function groupFilesIntoActions(files: LessonFileJson[], thumbnail?: string): InstructionItem[] {
   const actionItems: InstructionItem[] = [];
   let currentGroup: LessonFileJson[] = [];

@@ -34,7 +34,6 @@ export const SiteHeader = React.memo((props:Props) => {
   }, [props.context?.person?.id, props.context?.userChurch?.church?.id]);
 
   const refresh = React.useCallback(async () => {
-    // Direct access to NotificationService for refresh functionality
     await NotificationService.getInstance().refresh();
   }, []);
 
@@ -95,13 +94,13 @@ export const SiteHeader = React.memo((props:Props) => {
     let result: any [] = [];
     if (props.appName === "B1Admin") {
       if (props.primaryMenuLabel === "People") {
-        if (props.secondaryMenuLabel === "People")
+        if (props.secondaryMenuLabel === "People") {
           result = [
             "docs/b1-admin/people/adding-people",
             "docs/b1-admin/people/searching-people",
             "docs/b1-admin/people/roles-permissions"
           ];
-        else if (props.secondaryMenuLabel === "Groups") result = ["docs/b1-admin/groups/group-members", "docs/b1-admin/groups", "docs/b1-admin/groups/group-calendar"];
+        } else if (props.secondaryMenuLabel === "Groups") result = ["docs/b1-admin/groups/group-members", "docs/b1-admin/groups", "docs/b1-admin/groups/group-calendar"];
         else if (props.secondaryMenuLabel === "Attendance") result = ["docs/b1-admin/attendance/", "docs/b1-admin/attendance/check-in"];
       } else if (props.primaryMenuLabel === "Donations") {
         if (props.secondaryMenuLabel === "Summary") result = ["docs/b1-admin/donations/donation-reports"];
@@ -162,20 +161,17 @@ export const SiteHeader = React.memo((props:Props) => {
 }, (prevProps, nextProps) => {
   // Custom comparison to prevent unnecessary re-renders
 
-  // Check if essential props have changed
   if (prevProps.primaryMenuLabel !== nextProps.primaryMenuLabel ||
       prevProps.secondaryMenuLabel !== nextProps.secondaryMenuLabel ||
       prevProps.appName !== nextProps.appName) {
     return false;
   }
 
-  // Check if menu items arrays have changed (shallow comparison)
   if (prevProps.primaryMenuItems?.length !== nextProps.primaryMenuItems?.length ||
       prevProps.secondaryMenuItems?.length !== nextProps.secondaryMenuItems?.length) {
     return false;
   }
 
-  // Check if user context has actually changed (deep comparison of essential parts)
   const prevUser = prevProps.context?.user;
   const nextUser = nextProps.context?.user;
 
@@ -185,22 +181,18 @@ export const SiteHeader = React.memo((props:Props) => {
     return false;
   }
 
-  // Check if person context has changed
   if (prevProps.context?.person?.id !== nextProps.context?.person?.id) {
     return false;
   }
 
-  // Check if church context has changed
   if (prevProps.context?.userChurch?.church?.id !== nextProps.context?.userChurch?.church?.id) {
     return false;
   }
 
-  // Check if onNavigate function reference has changed
   if (prevProps.onNavigate !== nextProps.onNavigate) {
     return false;
   }
 
-  // All essential props are the same, skip re-render
   return true;
 });
 

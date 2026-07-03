@@ -1,14 +1,7 @@
 import { ApiHelper, ConnectionInterface } from "@churchapps/helpers";
 import { SocketHelper } from "./SocketHelper";
 
-/**
- * Tracks which conversation rooms the current tab has joined.
- * Backed by a single WebSocket (SocketHelper) and the server's /messaging/connections endpoint.
- *
- * - joinRoom: ref-counted POST /connections
- * - leaveRoom: decrements ref; DELETE /connections/:churchId/:conversationId/:socketId at zero
- * - rejoinAll: re-issues every active POST after a socket reconnect
- */
+/** Tracks conversation room subscriptions via ref-counted WebSocket connections. */
 export class SubscriptionManager {
   private static counts: Map<string, number> = new Map();
   private static rejoinHandlerRegistered = false;
@@ -19,15 +12,10 @@ export class SubscriptionManager {
     SocketHelper.addHandler("reconnect", "SubscriptionManager-Rejoin", () => {
       SubscriptionManager.rejoinAll();
     });
-    // Components may call joinRoom while the socket is still mid-handshake (no socketId yet).
-    // We record the intent in `counts`; this listener flushes those pending joins to the server
-    // as soon as socketId arrives.
+    // joinRoom calls may arrive before socketId is ready; flush when ready or if already present.
     SocketHelper.onSocketIdReady(() => {
       SubscriptionManager.rejoinAll();
     });
-    // setupRejoin is called from NotificationService.runInitialize *after* SocketHelper.init
-    // completes — so socketId may already be present by the time we register the listener.
-    // In that case there's no future socketId event to wait for; flush any pending joins now.
     if (SocketHelper.socketId) {
       SubscriptionManager.rejoinAll().catch(() => { /* ignore */ });
     }
@@ -42,12 +30,7 @@ export class SubscriptionManager {
     await SubscriptionManager.postConnection(conversationId, churchId, personId, displayName);
   };
 
-  // Debounced DELETE: when count hits zero, schedule the server-side leave a short
-  // delay later. If joinRoom comes back within that window (React StrictMode dev
-  // mount/cleanup/mount, or a useEffect dep update that immediately re-mounts), the
-  // pending DELETE is canceled and the server-side row is preserved — preventing the
-  // race where the inbound broadcast lands between DELETE and the next POST and
-  // finds an empty room.
+  // Debounce DELETE to avoid race where broadcast lands between DELETE and next POST (React StrictMode).
   private static pendingLeaves: Map<string, ReturnType<typeof setTimeout>> = new Map();
   private static LEAVE_DEBOUNCE_MS = 300;
 
@@ -61,12 +44,10 @@ export class SubscriptionManager {
       return;
     }
     SubscriptionManager.counts.delete(key);
-    // Debounce the actual DELETE — see comment above.
     const existing = SubscriptionManager.pendingLeaves.get(key);
     if (existing) clearTimeout(existing);
     const timer = setTimeout(async () => {
       SubscriptionManager.pendingLeaves.delete(key);
-      // If something rejoined in the meantime, abort.
       if ((SubscriptionManager.counts.get(key) ?? 0) > 0) return;
       if (!SocketHelper.socketId) return;
       try {

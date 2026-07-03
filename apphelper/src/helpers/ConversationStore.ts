@@ -3,14 +3,7 @@ import { SocketHelper } from "./SocketHelper";
 
 type Listener = (conv: ConversationInterface) => void;
 
-/**
- * In-memory cache of open conversations, keyed by conversationId.
- *
- * Components subscribe to a conversationId and receive a fresh snapshot every time
- * the underlying messages mutate (REST hydration, inbound socket message, edit, delete).
- * The store hooks SocketHelper's "message" / "deleteMessage" events once and applies them
- * to whichever conversations are currently open.
- */
+/** In-memory cache of conversations, subscribed via snapshot delivery on message mutations. */
 export class ConversationStore {
   private static conversations: Map<string, ConversationInterface> = new Map();
   private static listeners: Map<string, Set<Listener>> = new Map();
@@ -62,11 +55,6 @@ export class ConversationStore {
     ConversationStore.notify(conv.id);
   };
 
-  /**
-   * Hydrate from REST. Loads /conversations/messages/{contentType}/{contentId} and any
-   * unknown people. Returns the first conversation (matches existing UI which renders
-   * a single thread per content item). Caches the result.
-   */
   static loadByContent = async (contentType: string, contentId: string): Promise<ConversationInterface | null> => {
     if (!contentId) return null;
     ConversationStore.ensureHandlers();
@@ -82,8 +70,7 @@ export class ConversationStore {
   static loadByConversationId = async (conversationId: string, churchId?: string): Promise<ConversationInterface | null> => {
     if (!conversationId) return null;
     ConversationStore.ensureHandlers();
-    // Anonymous callers (no JWT) hit the unauthenticated /catchup route, which requires
-    // a churchId. Authenticated callers use the JWT-protected /conversation/:id route.
+    // Anonymous: unauthenticated /catchup (requires churchId); Authenticated: JWT /conversation/:id
     const messages: MessageInterface[] = ApiHelper.isAuthenticated
       ? await ApiHelper.get(`/messages/conversation/${conversationId}`, "MessagingApi")
       : (churchId ? await ApiHelper.getAnonymous(`/messages/catchup/${churchId}/${conversationId}`, "MessagingApi") : []);
@@ -97,9 +84,7 @@ export class ConversationStore {
 
   static applyMessage = (message: MessageInterface) => {
     if (!message?.conversationId) return;
-    // Auto-vivify the conversation entry — covers the "first post creates the conversation"
-    // case where the local tab never had a chance to call loadByConversationId before the
-    // message arrived (either via socket broadcast or via direct apply from a POST response).
+    // Auto-vivify handles first post before loadByConversationId.
     let existing = ConversationStore.conversations.get(message.conversationId);
     if (!existing) {
       existing = { id: message.conversationId, messages: [] };
@@ -128,7 +113,6 @@ export class ConversationStore {
       ConversationStore.notify(conversationId);
       return;
     }
-    // No conversationId on the payload — scan
     ConversationStore.conversations.forEach((conv, id) => {
       if (!conv.messages?.some(m => m.id === messageId)) return;
       const next = { ...conv, messages: conv.messages.filter(m => m.id !== messageId) };
@@ -174,8 +158,7 @@ export class ConversationStore {
       if (!missing.includes(m.personId)) missing.push(m.personId);
     });
     if (missing.length === 0) return;
-    // /people/ids requires auth; anonymous live-stream viewers rely on the displayName
-    // already on each message and skip person hydration.
+    // /people/ids requires auth; anonymous viewers skip person hydration.
     if (!ApiHelper.isAuthenticated) return;
     try {
       const people: PersonInterface[] = await ApiHelper.get(`/people/ids?ids=${missing.join(",")}`, "MembershipApi");

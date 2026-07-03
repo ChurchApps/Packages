@@ -69,7 +69,7 @@ export const Register: React.FC<Props> = (props) => {
         }
         setUser(u);
       }
-    } catch { /* silently ignore lookup failures */ }
+    } catch { /* no-op */ }
   };
 
   const handleRegisterErrors = (errs: string[]) => {
@@ -115,7 +115,7 @@ export const Register: React.FC<Props> = (props) => {
         .then((resp: any) => {
           if (resp.errors) handleRegisterErrors(resp.errors);
           else if (resp.mailConfigured === false && resp.authGuid && props.onVerified) {
-            // Email not configured on the server — skip the verification step entirely.
+            // Skip verification if email not configured on server.
             AnalyticsHelper.logEvent("User", "Register");
             if (props.userRegisteredCallback) props.userRegisteredCallback(resp);
             props.onVerified(resp.authGuid, user.email);

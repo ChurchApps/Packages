@@ -246,24 +246,19 @@ export interface MediaLicenseResult {
  * Core provider interface - all providers should implement this
  */
 export interface IProvider {
-  // Identity (required)
   readonly id: string;
   readonly name: string;
   readonly logos: ProviderLogos;
   readonly config: ContentProviderConfig;
 
-  // Metadata (required)
   readonly requiresAuth: boolean;
   readonly capabilities: ProviderCapabilities;
   readonly authTypes: AuthType[];
 
-  // Core methods (required)
   browse(path?: string | null, auth?: ContentProviderAuthData | null): Promise<ContentItem[]>;
 
-  // Auth methods (required)
   supportsDeviceFlow(): boolean;
 
-  // Auth methods (optional - only needed for providers that require auth)
   generateCodeVerifier?(): string;
   buildAuthUrl?(codeVerifier: string, redirectUri: string, state?: string): Promise<{ url: string; challengeMethod: string }>;
   exchangeCodeForTokens?(code: string, codeVerifier: string, redirectUri: string): Promise<ContentProviderAuthData | null>;
@@ -271,7 +266,6 @@ export interface IProvider {
   pollDeviceFlowToken?(deviceCode: string): Promise<DeviceFlowPollResult>;
   performLogin?(email: string, password: string): Promise<ContentProviderAuthData | null>;
 
-  // Optional methods - providers can implement these if they have custom logic
   getPlaylist?(path: string, auth?: ContentProviderAuthData | null, resolution?: number): Promise<ContentFile[] | null>;
   getInstructions?(path: string, auth?: ContentProviderAuthData | null): Promise<Instructions | null>;
   getCurrentPlan?(auth?: ContentProviderAuthData | null): Promise<CurrentPlan | null>;

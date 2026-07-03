@@ -6,18 +6,9 @@ import { apiRequest, API_BASE } from "./LessonsChurchApi";
 import { convertAddOnToFile, convertAddOnCategoryToInstructions, buildSectionActionsMap, processInstructionItem } from "./LessonsChurchConverters";
 
 /**
- * LessonsChurch Provider
- *
- * Path structure:
- *   /lessons                                            -> programs
- *   /lessons/{programId}                                -> studies
- *   /lessons/{programId}/{studyId}                      -> lessons
- *   /lessons/{programId}/{studyId}/{lessonId}           -> venues
- *   /lessons/{programId}/{studyId}/{lessonId}/{venueId} -> playlist files
- *
- *   /addons                                             -> categories
- *   /addons/{category}                                  -> individual add-ons
- *   /addons/{category}/{addOnId}                        -> single add-on file
+ * Path: /lessons → programs, /lessons/{id} → studies, /lessons/{id}/{id} → lessons,
+ * /lessons/{id}/{id}/{id} → venues, /lessons/{id}/{id}/{id}/{id} → files;
+ * /addons → categories, /addons/{cat} → items, /addons/{cat}/{id} → file.
  */
 export class LessonsChurchProvider extends BaseProvider {
   readonly id = "lessonschurch";

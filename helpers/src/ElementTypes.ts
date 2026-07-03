@@ -1,7 +1,4 @@
-// Canonical contract for website-builder element types. answersJSON has historically been
-// untyped; these definitions document the real stored shapes (including string-encoded
-// booleans from checkbox handlers) and back server-side validation. Lenient by design:
-// additionalProperties is always true and unknown element types pass validation.
+// Canonical contract for website-builder element types, documenting real stored shapes (string-encoded booleans, legacy fields).
 
 export interface ElementAnswersSchema {
   type: "object";
@@ -613,8 +610,7 @@ export const ElementTypes: Record<string, ElementTypeDefinition> = {
   }
 };
 
-// Type-level validation only: enum and unknown-key violations are tolerated because
-// production data predates this contract. Unknown element types pass.
+// Production data predates this contract; unknown element types and extra properties pass validation.
 export const validateElementAnswers = (elementType: string, answers: unknown): string[] => {
   const definition = ElementTypes[elementType];
   if (!definition || answers === null || answers === undefined) return [];

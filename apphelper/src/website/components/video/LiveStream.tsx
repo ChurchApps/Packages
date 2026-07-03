@@ -50,8 +50,6 @@ export const LiveStream: React.FC<Props> = (props) => {
           embedded={!props.includeHeader}
           appearance={props.appearance}
         />
-        {/* Interaction container would go here if includeInteraction is true */}
-        {/* This simplified version does not include chat/interaction features */}
       </div>
     </div>
   );

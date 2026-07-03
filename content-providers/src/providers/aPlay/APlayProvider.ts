@@ -5,10 +5,7 @@ import { BaseProvider } from "../BaseProvider";
 import { checkMediaLicense, API_BASE } from "./APlayApi";
 import { extractLibraryId, convertMediaToFiles, convertModulesToFolders, convertLibrariesToFolders, convertProductsToFolders } from "./APlayConverters";
 
-/**
- * Extracts an array from an API response that may have different formats.
- * Handles: { data: [...] }, { <key>: [...] }, or [...] directly.
- */
+/** Extracts an array from an API response with various formats: { data: [...] }, { key: [...] }, or [...] directly. */
 function extractArray<T = Record<string, unknown>>(
   response: Record<string, unknown> | null,
   ...keys: string[]
@@ -25,16 +22,7 @@ function extractArray<T = Record<string, unknown>>(
   return [];
 }
 
-/**
- * APlay Provider
- *
- * Path structure (variable depth based on module products):
- *   /modules                                              -> list modules
- *   /modules/{moduleId}                                   -> list products OR libraries (depends on module)
- *   /modules/{moduleId}/products/{productId}              -> list libraries (if module has multiple products)
- *   /modules/{moduleId}/products/{productId}/{libraryId}  -> media files
- *   /modules/{moduleId}/libraries/{libraryId}             -> media files (if module has 0-1 products)
- */
+/** APlay Provider: media curriculum library with OAuth 2.0 auth. */
 export class APlayProvider extends BaseProvider {
   readonly id = "aplay";
   readonly name = "APlay";

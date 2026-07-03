@@ -5,11 +5,7 @@ import { CuratedCalendar } from "../admin/calendar/CuratedCalendar";
 interface Props {
   element: ElementInterface;
   churchId: string;
-  /**
-   * Optional: Set to true to enable calendar editing capabilities.
-   * When used in authenticated contexts (e.g., admin panels), pass canEdit based on user permissions.
-   * When used in public websites, this should be false (default behavior).
-   */
+  /** Enable calendar editing (admin mode only). */
   canEdit?: boolean;
 }
 

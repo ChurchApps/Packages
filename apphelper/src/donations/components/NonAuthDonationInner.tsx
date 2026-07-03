@@ -58,7 +58,6 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
   const [bankConnecting, setBankConnecting] = useState(false);
   const captchaRef = useRef<ReCAPTCHA>(null);
 
-  // Use paymentType from props, defaulting to "card"
   const paymentType = props.paymentType || "card";
 
   const getUrlParam = (param: string) => {
@@ -100,7 +99,6 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
 
       ApiHelper.postAnonymous("/donate/captcha-verify", { token: value }, "GivingApi")
         .then((data: any) => {
-          // Check for various success indicators
           if (data.response === "success" || data.response === "human" || data.success === true || data.score >= 0.5) {
             setCaptchaResponse("success");
           } else {
@@ -109,7 +107,6 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
         })
         .catch((error: any) => {
           console.error("Error verifying captcha:", error);
-          // Log more details about the error
           if (error.response) {
             console.error("Error response data:", error.response.data);
             console.error("Error response status:", error.response.status);
@@ -130,7 +127,6 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
 
   const handleSave = async () => {
     if (validate()) {
-      // Validate captcha first
       if (!_captchaResponse) {
         setErrors(["Please complete the reCAPTCHA verification"]);
         return;
@@ -241,7 +237,6 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
         return;
       }
 
-      // Check if user completed the flow
       if (!collectedSetupIntent?.payment_method) {
         setErrors(["Bank account connection was not completed. Please try again."]);
         setProcessing(false);
@@ -249,7 +244,6 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
         return;
       }
 
-      // Confirm the SetupIntent
       const { error: confirmError, setupIntent } = await stripe.confirmUsBankAccountSetup(setupResponse.clientSecret);
 
       if (confirmError) {
@@ -261,7 +255,6 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
 
       setBankConnecting(false);
 
-      // Process the donation
       const donation: StripeDonationInterface = {
         amount: total,
         id: setupIntent?.payment_method as string,
@@ -420,7 +413,6 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
     if (gateway?.payFees === true) {
       setTotal(totalAmount + fee);
     } else {
-      // If the checkbox is checked, include the fee in the total
       setTotal(coverFees ? totalAmount + fee : totalAmount);
     }
   };
@@ -434,7 +426,7 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
           "GivingApi"
         );
         return response.calculatedFee;
-      } catch (error) {
+      } catch {
         return 0;
       }
     } else {
@@ -446,10 +438,10 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
     if (!funds) return null;
     if (showFundSelector) {
       return (<>
-				<hr />
-				<h4>{Locale.label("donation.donationForm.funds")}</h4>
-				<FundDonations fundDonations={fundDonations} funds={funds} params={searchParams} updatedFunction={handleFundDonationsChange} currency={gateway?.currency} />
-			</>);
+        <hr />
+        <h4>{Locale.label("donation.donationForm.funds")}</h4>
+        <FundDonations fundDonations={fundDonations} funds={funds} params={searchParams} updatedFunction={handleFundDonationsChange} currency={gateway?.currency} />
+      </>);
     }
     return (<>
       <hr />
@@ -466,7 +458,6 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
       <InputBox headerIcon={showHeader ? "volunteer_activism" : ""} headerText={showHeader ? "Donate" : ""} saveFunction={handleSave} saveText="Donate" isSubmitting={processing || bankConnecting} mainContainerCssProps={mainContainerCssProps}>
         <ErrorMessages errors={errors} />
         <Grid container spacing={3}>
-          {/* Only show recurring option for card payments */}
           {paymentType !== "bank" && allowSingleGift && allowRecurring && (
             <>
               <Grid size={{ xs: 12, md: 6 }}>
@@ -502,7 +493,6 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
             </Grid>
           )}
         </Grid>
-        {/* Show bank connection UI or card elements based on payment type */}
         {gateway?.provider?.toLowerCase() === "stripe" && paymentType === "bank" ? (
           <Box sx={{ textAlign: "center", py: 3, px: 2, mt: 2, border: "1px solid #CCC", borderRadius: 1 }}>
             <Typography variant="body1" sx={{ mb: 2 }}>
@@ -539,22 +529,22 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
         )}
         {donationType === "recurring" && paymentType !== "bank"
         && <Grid container spacing={3} style={{ marginTop: 0 }}>
-            <Grid size={{ xs: 12, md: 6 }}>
-              <FormControl fullWidth>
-                <InputLabel>{Locale.label("donation.donationForm.frequency")}</InputLabel>
-                <Select label="Frequency" name="interval" aria-label="interval" value={interval} onChange={(e) => { setInterval(e.target.value); }}>
-                  <MenuItem value="one_week">{Locale.label("donation.donationForm.weekly")}</MenuItem>
-                  <MenuItem value="two_week">{Locale.label("donation.donationForm.biWeekly")}</MenuItem>
-                  <MenuItem value="one_month">{Locale.label("donation.donationForm.monthly")}</MenuItem>
-                  <MenuItem value="three_month">{Locale.label("donation.donationForm.quarterly")}</MenuItem>
-                  <MenuItem value="one_year">{Locale.label("donation.donationForm.annually")}</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid size={{ xs: 12, md: 6 }}>
-              <TextField fullWidth name="startDate" type="date" aria-label="startDate" label={Locale.label("donation.donationForm.startDate")} value={DateHelper.formatHtml5Date(startDate ? new Date(startDate) : new Date())} onChange={handleChange} />
-            </Grid>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <FormControl fullWidth>
+              <InputLabel>{Locale.label("donation.donationForm.frequency")}</InputLabel>
+              <Select label="Frequency" name="interval" aria-label="interval" value={interval} onChange={(e) => { setInterval(e.target.value); }}>
+                <MenuItem value="one_week">{Locale.label("donation.donationForm.weekly")}</MenuItem>
+                <MenuItem value="two_week">{Locale.label("donation.donationForm.biWeekly")}</MenuItem>
+                <MenuItem value="one_month">{Locale.label("donation.donationForm.monthly")}</MenuItem>
+                <MenuItem value="three_month">{Locale.label("donation.donationForm.quarterly")}</MenuItem>
+                <MenuItem value="one_year">{Locale.label("donation.donationForm.annually")}</MenuItem>
+              </Select>
+            </FormControl>
           </Grid>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <TextField fullWidth name="startDate" type="date" aria-label="startDate" label={Locale.label("donation.donationForm.startDate")} value={DateHelper.formatHtml5Date(startDate ? new Date(startDate) : new Date())} onChange={handleChange} />
+          </Grid>
+        </Grid>
         }
         {getFundList()}
         <TextField fullWidth label="Memo (optional)" multiline aria-label="note" name="notes" value={notes} onChange={handleChange} style={{ marginTop: 10, marginBottom: 10 }} />
@@ -564,9 +554,9 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
               {(gateway?.payFees === true)
                 ? <Typography fontSize={14} fontStyle="italic">*{Locale.label("donation.donationForm.fees").replace("{}", CurrencyHelper.formatCurrencyWithLocale(transactionFee, gateway?.currency || "USD"))}</Typography>
                 : (
-                <FormGroup>
-                  <FormControlLabel control={<Checkbox checked={coverFees} />} name="transaction-fee" label={Locale.label("donation.donationForm.cover").replace("{}", CurrencyHelper.formatCurrencyWithLocale(transactionFee, gateway?.currency || "USD"))} onChange={handleCheckChange} />
-                </FormGroup>
+                  <FormGroup>
+                    <FormControlLabel control={<Checkbox checked={coverFees} />} name="transaction-fee" label={Locale.label("donation.donationForm.cover").replace("{}", CurrencyHelper.formatCurrencyWithLocale(transactionFee, gateway?.currency || "USD"))} onChange={handleCheckChange} />
+                  </FormGroup>
                 )}
               <p>Total Donation Amount: {CurrencyHelper.formatCurrencyWithLocale(total, gateway?.currency || "USD")}</p>
             </>

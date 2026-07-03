@@ -7,7 +7,8 @@ export class Permissions {
         contentType: "Attendance",
         action: "View Summary"
       },
-      edit: { api: "AttendanceApi", contentType: "Attendance", action: "Edit" }
+      edit: { api: "AttendanceApi", contentType: "Attendance", action: "Edit" },
+      checkin: { api: "AttendanceApi", contentType: "Attendance", action: "Checkin" }
     },
     services: { edit: { api: "AttendanceApi", contentType: "Services", action: "Edit" } }
   };

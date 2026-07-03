@@ -21,6 +21,8 @@ export interface VisitInterface {
   serviceId?: string;
   groupId?: string;
   visitDate?: Date;
+  checkinType?: "member" | "guest" | "volunteer";
+  checkedInById?: string;
   visitSessions?: VisitSessionInterface[];
   person?: PersonInterface;
 }

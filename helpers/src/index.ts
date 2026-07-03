@@ -9,6 +9,7 @@ export { DonationHelper } from "./DonationHelper.js";
 export { ErrorHelper } from "./ErrorHelper.js";
 export { EventHelper } from "./EventHelper.js";
 export { FileHelper } from "./FileHelper.js";
+export { GradeHelper, GRADES } from "./GradeHelper.js";
 export { PersonHelper } from "./PersonHelper.js";
 export { UserHelper } from "./UserHelper.js";
 export { UniqueIdHelper } from "./UniqueIdHelper.js";

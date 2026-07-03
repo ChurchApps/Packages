@@ -36,6 +36,12 @@ export interface MessageInterface {
   messageType?: string;
   content?: string;
   person?: PersonInterface;
+  reactions?: MessageReactionSummaryInterface[];
+}
+export interface MessageReactionSummaryInterface {
+  emoji: string;
+  count: number;
+  mine: boolean;
 }
 export interface NotificationInterface {
   id?: string;
@@ -89,6 +95,7 @@ export type SocketPayloadAction =
   | "privateRoomAdded"
   | "videoChatInvite"
   | "reconnect"
+  | "reaction"
   | "conversationActivity";
 export interface SocketPayloadInterface {
   action: SocketPayloadAction;

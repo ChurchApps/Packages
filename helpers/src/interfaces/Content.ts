@@ -74,10 +74,22 @@ export interface EventInterface {
   exceptionDates?: Date[];
   registrationEnabled?: boolean;
   capacity?: number;
+  waitlistEnabled?: boolean;
   registrationOpenDate?: Date;
   registrationCloseDate?: Date;
   tags?: string;
   formId?: string;
+  rsvpDisabled?: boolean;
+}
+export interface EventRsvpInterface {
+  id?: string;
+  churchId?: string;
+  eventId?: string;
+  personId?: string;
+  occurrenceStart?: Date;
+  response?: "yes" | "no" | "maybe";
+  timeAdded?: Date;
+  timeUpdated?: Date;
 }
 export interface EventExceptionInterface {
   id?: string;

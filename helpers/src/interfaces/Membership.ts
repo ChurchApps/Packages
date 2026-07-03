@@ -74,10 +74,27 @@ export interface GroupInterface {
   campusId?: string;
   joinPolicy?: "open" | "request" | "closed";
   archived?: boolean;
+  confidential?: boolean;
   minAgeMonths?: number;
   maxAgeMonths?: number;
   minGrade?: string;
   maxGrade?: string;
+  capacity?: number;
+  guestCapacity?: number;
+  checkinClosed?: boolean;
+  volunteerRatio?: number;
+  minVolunteers?: number;
+}
+export interface HouseholdPickupPersonInterface {
+  id?: string;
+  churchId?: string;
+  householdId?: string;
+  personId?: string;
+  name?: string;
+  photoUrl?: string;
+  relationship?: string;
+  status?: "trusted" | "notAuthorized";
+  notes?: string;
 }
 export interface GroupMemberInterface {
   id?: string;

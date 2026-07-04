@@ -1,5 +1,11 @@
 # @churchapps/helpers
 
+## 1.10.1
+
+### Patch Changes
+
+- 96e5726: Clean up package source for stricter linting and TypeScript builds, including unused import removal, simplified helper comments, and minor internal typing/formatting updates across app helpers, content providers, SDK clients, environment helpers, and texting exports.
+
 ## 1.10.0
 
 ### Minor Changes

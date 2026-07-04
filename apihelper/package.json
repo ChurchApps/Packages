@@ -1,6 +1,6 @@
 {
   "name": "@churchapps/apihelper",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Library of helper functions not specific to any one ChurchApps project or framework.",
   "type": "module",
   "main": "dist/index.js",
@@ -52,7 +52,7 @@
     "winston-cloudwatch": "^6.3.0"
   },
   "devDependencies": {
-    "@churchapps/helpers": "^1.6.0",
+    "@churchapps/helpers": "^1.10.1",
     "@types/express": "^4.17.21",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^24.2.0",

@@ -1,5 +1,15 @@
 # @churchapps/apphelper
 
+## 0.20.0
+
+### Minor Changes
+
+- 4222002: Add optional `avatar`, `breadcrumbs`, and `chips` slots to `PageHeader`. `avatar` renders in place of the boxed `icon` (for a person/entity photo), `breadcrumbs` renders a trail above the title row, and `chips` renders status pills next to the title. All are optional and backward-compatible — existing `icon`/`title`/`subtitle` usage is unchanged.
+
+### Patch Changes
+
+- 96e5726: Clean up package source for stricter linting and TypeScript builds, including unused import removal, simplified helper comments, and minor internal typing/formatting updates across app helpers, content providers, SDK clients, environment helpers, and texting exports.
+
 ## 0.19.0
 
 ### Minor Changes

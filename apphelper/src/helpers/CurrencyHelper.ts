@@ -1,4 +1,4 @@
-import { ApiHelper } from "@churchapps/helpers";
+import { ApiHelper } from "../";
 
 type RatesCache = {
   base: string;
@@ -9,44 +9,14 @@ type RatesCache = {
 export class CurrencyHelper {
   static CACHE_KEY = "exchange_rates_cache";
   static CACHE_EXPIRATION = 12 * 60 * 60 * 1000; // 12 hours
+  static rates: Record<string, number> = {};
+  static currentBase = "";
 
   static loadCurrency = async () => {
     const gateways = await ApiHelper.get("/gateways", "GivingApi");
     if (gateways.length === 0) return "usd";
     return gateways[0].currency || "usd";
   };
-
-  static formatCurrency(amount: number) {
-    const formatter = new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 2,
-    });
-    return formatter.format(amount);
-  }
-
-  static formatCurrencyWithLocale(
-    amount: number,
-    currency: string = "usd",
-    fractionDigits: number = 2,
-  ) {
-    const symbol = this.getCurrencySymbol(currency);
-
-    const normalizedCurrency = currency.toUpperCase();
-    const locale = this.getLocaleForCurrency(normalizedCurrency);
-
-    const formatter = new Intl.NumberFormat(locale, {
-      style: "currency",
-      currency: normalizedCurrency,
-      currencyDisplay: "code",
-      minimumFractionDigits: fractionDigits,
-      maximumFractionDigits: fractionDigits,
-    });
-
-    // replace the currency code with the symbol
-    const formattedAmount = formatter.format(amount);
-    return formattedAmount.replace(normalizedCurrency, symbol);
-  }
 
   static getCurrencySymbol(currency?: string) {
     const normalizedCurrency = currency?.toLowerCase() || "usd";
@@ -92,10 +62,24 @@ export class CurrencyHelper {
     return currencyLocaleMap[currency] || "en-US";
   }
 
+  //Initialize the exchange rates when the app loads which eliminates calling for exchange rates on every donation.
+  //The rates are stored in local storage and are cached for 12 hours.
+  //The rates are also stored in the CurrencyHelper class for easy access.
+  static async initializeExchangeRates() {
+    const gateways = await ApiHelper.get("/gateways", "GivingApi");
+    if (gateways.length === 0) return;
+
+    const baseCurrency = gateways[0].currency || "usd";
+    if (baseCurrency === this.currentBase && Object.keys(this.rates).length > 0) return;
+
+    this.currentBase = baseCurrency;
+    this.rates = await this.getExchangeRates(baseCurrency);
+  }
+
   static async getExchangeRates(
     baseCurrency: string,
   ): Promise<Record<string, number>> {
-    const cached = localStorage.getItem(this.CACHE_KEY);
+    const cached = localStorage.getItem(`${this.CACHE_KEY}_${baseCurrency}`);
 
     if (cached) {
       const parsed: RatesCache = JSON.parse(cached);
@@ -106,6 +90,7 @@ export class CurrencyHelper {
       }
     }
 
+    // extra URL for rates: `https://api.exchangerate.host/latest?base=${baseCurrency}`
     const response = await fetch(
       `https://api.frankfurter.dev/v1/latest?base=${baseCurrency}`,
     );
@@ -117,29 +102,60 @@ export class CurrencyHelper {
       timestamp: Date.now(),
     };
 
-    localStorage.setItem(this.CACHE_KEY, JSON.stringify(cache));
+    localStorage.setItem(`${this.CACHE_KEY}_${baseCurrency}`, JSON.stringify(cache));
 
     return data.rates;
   }
 
+  //TODO: we can remove this, once we switch to currency based formatter everyhere.
+  static formatCurrency(amount: number) {
+    const formatter = new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 2,
+    });
+    return formatter.format(amount);
+  }
+
+  static formatCurrencyWithLocale(
+    amount: number,
+    currency: string = "usd",
+    fractionDigits: number = 2,
+  ) {
+    const symbol = this.getCurrencySymbol(currency);
+
+    const normalizedCurrency = currency.toUpperCase();
+    const locale = this.getLocaleForCurrency(normalizedCurrency);
+
+    const formatter = new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency: normalizedCurrency,
+      currencyDisplay: "code",
+      minimumFractionDigits: fractionDigits,
+      maximumFractionDigits: fractionDigits,
+    });
+    const formattedAmount = formatter.format(amount);
+    return formattedAmount.replace(normalizedCurrency, symbol);
+  }
+
   static convertDonation(
     donation: { currency: string; amount: number },
-    rates: Record<string, number>,
     targetCurrency: string,
+    withCurrencyLabel: boolean = true
   ) {
     const converted = this.convertAmount(
       Number(donation.amount || 0),
       donation.currency?.toUpperCase() || "USD",
-      targetCurrency,
-      rates,
+      targetCurrency
     );
+
+    if (withCurrencyLabel === false) { return Number(converted).toFixed(2) };
 
     return this.formatCurrencyWithLocale(converted, targetCurrency);
   }
 
   static convertDonationTotals(
     donations: { currency: string; amount: number }[],
-    rates: Record<string, number>,
     targetCurrency: string,
   ) {
     const grouped: Record<string, number> = {};
@@ -157,46 +173,42 @@ export class CurrencyHelper {
     let total = 0;
 
     Object.entries(grouped).forEach(([currency, amount]) => {
-      total += this.convertAmount(amount, currency, targetCurrency, rates);
+      total += this.convertAmount(amount, currency, targetCurrency);
     });
 
-    return this.formatCurrencyWithLocale(total, targetCurrency);
+    return this.formatCurrencyWithLocale(total, targetCurrency, 0);
   }
 
   static convertAmount(
     amount: number,
     fromCurrency: string,
-    toCurrency: string,
-    rates: Record<string, number>,
+    toCurrency: string
   ): number {
-    const from = fromCurrency.toUpperCase();
+    const from = fromCurrency.toUpperCase() || "USD";
     const to = toCurrency.toUpperCase();
 
     if (from === to) {
       return amount;
     }
 
-    const rate = rates[from];
+    const rate = this.rates[from];
 
     if (!rate) {
       return amount;
     }
 
-    return amount / rate;
+    return Number((amount / rate).toFixed(2));
   }
 
-  //this is just temporary, we can remove this later
-  static async convertAmountWithLocale(
+  static convertAmountWithLocale(
     amount: number,
     donationCurrency: string,
-    selectedCurrency: string,
-    rates: Record<string, number>,
+    selectedCurrency: string
   ) {
     const converted = this.convertAmount(
       amount,
       donationCurrency,
-      selectedCurrency,
-      rates,
+      selectedCurrency
     );
 
     return this.formatCurrencyWithLocale(converted, selectedCurrency);

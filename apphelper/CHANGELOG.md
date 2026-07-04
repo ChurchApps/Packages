@@ -1,5 +1,12 @@
 # @churchapps/apphelper
 
+## 0.20.1
+
+### Patch Changes
+
+- 7e0a5d6: Deepen the SiteHeader AppBar and PageHeader gradient to the darker `--c1d5` blue for a stronger, more uniform top edge; drop the now-unused `--c1d3` CSS var.
+- e054052: Fix build: remove stale `@ts-expect-error` directives on `HTMLInputElement.showPicker` (now present in the TS lib defs), which triggered TS2578 and broke the topological package build.
+
 ## 0.20.0
 
 ### Minor Changes

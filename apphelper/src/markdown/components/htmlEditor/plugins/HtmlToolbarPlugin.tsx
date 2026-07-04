@@ -244,9 +244,7 @@ export default function HtmlToolbarPlugin({ setIsLinkEditMode, isSourceMode = fa
 
     try {
       input.focus();
-      // @ts-expect-error - showPicker not in all TS lib defs yet
       if (typeof input.showPicker === "function") {
-        // @ts-expect-error - showPicker not in all TS lib defs yet
         input.showPicker();
       } else {
         input.click();

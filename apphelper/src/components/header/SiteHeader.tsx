@@ -81,7 +81,7 @@ export const SiteHeader = React.memo((props:Props) => {
   const CustomAppBar = styled(AppBar)(
     ({ theme }) => ({
       zIndex: theme.zIndex.drawer + 1,
-      backgroundColor: "var(--c1d3, #0B2C52)",
+      backgroundColor: "var(--c1d5, #09245F)",
       boxShadow: "none",
       borderBottom: "none",
       transition: theme.transitions.create(["width", "margin"], {
@@ -129,13 +129,12 @@ export const SiteHeader = React.memo((props:Props) => {
       "--c1": "#1565C0",
       "--c1d1": "#1358AD",
       "--c1d2": "#114A99",
-      "--c1d3": "#0B2C52",
       "--c1l2": "#568BDA",
-      backgroundColor: "var(--c1d3, #0B2C52)",
+      backgroundColor: "var(--c1d5, #09245F)",
       color: "#FFF"
     } as React.CSSProperties}>
       <CustomAppBar id="site-app-bar" position="absolute" elevation={0}>
-        <Toolbar id="site-toolbar" sx={{ pr: "24px", backgroundColor: "var(--c1d3, #0B2C52)", minHeight: "64px !important" }}>
+        <Toolbar id="site-toolbar" sx={{ pr: "24px", backgroundColor: "var(--c1d5, #09245F)", minHeight: "64px !important" }}>
           <PrimaryMenu label={props.primaryMenuLabel} menuItems={props.primaryMenuItems} onNavigate={props.onNavigate} />
           <SecondaryMenu label={props.secondaryMenuLabel} menuItems={props.secondaryMenuItems} onNavigate={props.onNavigate} />
           <div id="secondary-menu-container" style={{ flex: 1 }}>

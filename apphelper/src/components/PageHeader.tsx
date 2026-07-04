@@ -16,8 +16,8 @@ interface PageHeaderProps {
 export const PageHeader: React.FC<PageHeaderProps> = ({ icon, avatar, title, subtitle, breadcrumbs, chips, children, statistics, tabs }) => {
   return (
     <Box id="page-header" sx={{
-      // Vertical gradient so the top edge is uniformly --c1d3 and blends seamlessly with the AppBar above.
-      background: "linear-gradient(180deg, var(--c1d3, #0B2C52) 0%, var(--c1, #1565C0) 60%, var(--c1l2, #3B71C9) 100%)",
+      // Vertical gradient: top edge stays uniformly --c1d5 to blend seamlessly with the AppBar above.
+      background: "linear-gradient(180deg, var(--c1d5, #09245F) 0%, var(--c1d2, #114A99) 55%, var(--c1l1, #3578CC) 100%)",
       color: "#FFF",
       position: "relative",
       left: "50%",

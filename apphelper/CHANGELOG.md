@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 0.21.0
+
+### Minor Changes
+
+- fad0bc1: Harden realtime socket handling: automatic reconnect with resume-probe, server heartbeat handling, and always-push with client-side dedup. SubscriptionManager and ConversationStore updated to match. Note: `onSocketIdReady` now fires on every (re)connect rather than only the first connect.
+
 ## 0.20.1
 
 ### Patch Changes

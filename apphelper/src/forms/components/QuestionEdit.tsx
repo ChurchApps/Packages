@@ -35,7 +35,7 @@ export const QuestionEdit = React.forwardRef<any, Props>(({ noBackground = false
 
   if (q.fieldType === "Heading") return <h5>{q.title}</h5>;
   else {
-    let input = null;
+    let input;
     const choiceOptions = [];
     if (q.choices !== undefined && q.choices !== null) {
       if (q.fieldType === "Multiple Choice") {

@@ -2,12 +2,12 @@
 
 import React, { forwardRef, useImperativeHandle, useRef } from "react";
 import { ApiHelper } from "@churchapps/helpers";
-import { PayPalHostedFields, PayPalHostedFieldsHandle } from "../components/PayPalHostedFields";
-import { PayPalNonAuthDonationInner } from "../components/PayPalNonAuthDonationInner";
+import { PayPalHostedFields, PayPalHostedFieldsHandle } from "./PayPalHostedFields";
+import { PayPalNonAuthDonationInner } from "./PayPalNonAuthDonationInner";
 import type {
   PaymentProvider, GuestFormProps, ChargeRequest, PaymentToken,
   MemberEntryHandle, MemberEntryProps
-} from "./types";
+} from "../types";
 
 // Hosted Fields create server-side order at submit; tokenize() returns order id.
 const PayPalMemberEntry = forwardRef<MemberEntryHandle, MemberEntryProps>(({ gateway, getContext }, ref) => {

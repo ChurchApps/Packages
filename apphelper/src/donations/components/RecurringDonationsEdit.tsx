@@ -7,9 +7,9 @@ import { InputBox } from "../..";
 import { SubscriptionInterface } from "@churchapps/helpers";
 import { FormControl, Grid, InputLabel, MenuItem, Select } from "@mui/material";
 import type { SelectChangeEvent } from "@mui/material";
-import { DonationHelper, StripePaymentMethod } from "../helpers";
+import { DonationHelper, SavedPaymentMethod } from "../helpers";
 
-interface Props { subscriptionUpdated: (message?: string) => void, customerId: string, paymentMethods: StripePaymentMethod[], editSubscription: SubscriptionInterface };
+interface Props { subscriptionUpdated: (message?: string) => void, customerId: string, paymentMethods: SavedPaymentMethod[], editSubscription: SubscriptionInterface };
 
 export const RecurringDonationsEdit: React.FC<Props> = (props) => {
   const [editSubscription, setEditSubscription] = useState<SubscriptionInterface>(props.editSubscription);
@@ -18,7 +18,7 @@ export const RecurringDonationsEdit: React.FC<Props> = (props) => {
   const handleCancel = () => { props.subscriptionUpdated(); };
   const handleSave = () => {
     const sub = { ...editSubscription } as SubscriptionInterface;
-    const pmFound = props.paymentMethods.find((pm: StripePaymentMethod) => pm.id === sub.id);
+    const pmFound = props.paymentMethods.find((pm: SavedPaymentMethod) => pm.id === sub.id);
     if (!pmFound) {
       const pm = props.paymentMethods[0];
       if (pm) {
@@ -42,15 +42,16 @@ export const RecurringDonationsEdit: React.FC<Props> = (props) => {
     const sub = { ...editSubscription } as SubscriptionInterface;
     const value = e.target.value;
     switch (e.target.name) {
-      case "method":
-        const pm = props.paymentMethods.find((pm: StripePaymentMethod) => pm.id === value);
+      case "method": {
+        const pm = props.paymentMethods.find((pm: SavedPaymentMethod) => pm.id === value);
         if (pm) {
           sub.default_payment_method = pm.type === "card" ? (value || "") : "";
           sub.default_source = pm.type === "bank" ? (value || "") : "";
           sub.gatewayId = pm.gatewayId || sub.gatewayId;
         }
         break;
-      case "interval":
+      }
+      case "interval": {
         setInterval(value);
         const inter = DonationHelper.getInterval(value);
         if (sub.plan) {
@@ -58,6 +59,7 @@ export const RecurringDonationsEdit: React.FC<Props> = (props) => {
           sub.plan.interval = inter.interval;
         }
         break;
+      }
     }
     setEditSubscription(sub);
   };

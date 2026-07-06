@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState, useCallback, forwardRef, useImperativeHandle } from "react";
 import { Box, CircularProgress, Typography } from "@mui/material";
-import { Locale } from "../helpers";
+import { Locale } from "../../helpers";
 
 export interface KingdomFundingTokenResult {
   nonce: string;

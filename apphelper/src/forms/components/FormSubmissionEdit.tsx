@@ -2,13 +2,12 @@
 
 /// <reference types="react" />
 import React, { useRef } from "react";
-import { Elements } from "@stripe/react-stripe-js";
 import { ErrorMessages, InputBox, QuestionEdit } from "./";
 import { ConversationalForm } from "./ConversationalForm";
 import { Locale } from "../helpers";
 import { AnswerInterface, FormSubmissionInterface, QuestionInterface } from "@churchapps/helpers";
 import { ApiHelper, UniqueIdHelper } from "../..";
-// FormCardPayment will be imported dynamically when needed
+import { FormPaymentQuestion } from "../../donations/components/FormPaymentQuestion";
 
 interface Props {
 	addFormId: string,
@@ -22,9 +21,7 @@ interface Props {
 	noBackground?: boolean,
 	displayMode?: "standard" | "conversational",
 	updatedFunction: (formSubmission?: FormSubmissionInterface) => void,
-	cancelFunction?: () => void,
-	stripePromise?: Promise<any>,
-	FormCardPaymentComponent?: React.ComponentType<any>
+	cancelFunction?: () => void
 }
 
 export const FormSubmissionEdit: React.FC<Props> = ({ showHeader = true, noBackground = false, ...props }) => {
@@ -80,21 +77,17 @@ export const FormSubmissionEdit: React.FC<Props> = ({ showHeader = true, noBackg
   const renderQuestion = (q: QuestionInterface) => {
     const answer = getAnswer(q.id || "");
     return (
-			<QuestionEdit
-				key={q.id}
-				answer={answer || { questionId: q.id || "", value: "" }}
-				question={q}
-				changeFunction={handleChange}
-				noBackground={noBackground}
-				churchId={props.churchId}
-				onPaymentRequired={(question) =>
-				  props.stripePromise && props.FormCardPaymentComponent ? (
-						<Elements stripe={props.stripePromise}>
-							<props.FormCardPaymentComponent churchId={props.churchId} question={question} ref={paymentRef} />
-						</Elements>
-				  ) : null
-				}
-			/>
+      <QuestionEdit
+        key={q.id}
+        answer={answer || { questionId: q.id || "", value: "" }}
+        question={q}
+        changeFunction={handleChange}
+        noBackground={noBackground}
+        churchId={props.churchId}
+        onPaymentRequired={(question) => (
+          <FormPaymentQuestion churchId={props.churchId || ""} question={question} ref={paymentRef} />
+        )}
+      />
     );
   };
 
@@ -179,32 +172,32 @@ export const FormSubmissionEdit: React.FC<Props> = ({ showHeader = true, noBackg
 
   if (props.displayMode === "conversational" && (formSubmission.questions?.length || 0) > 0) {
     return (
-			<ConversationalForm
-				questions={formSubmission.questions || []}
-				getAnswer={getAnswer}
-				renderInput={renderQuestion}
-				errors={errors}
-				setErrors={setErrors}
-				isSubmitting={isSubmitting}
-				onSubmit={handleSave}
-			/>
+      <ConversationalForm
+        questions={formSubmission.questions || []}
+        getAnswer={getAnswer}
+        renderInput={renderQuestion}
+        errors={errors}
+        setErrors={setErrors}
+        isSubmitting={isSubmitting}
+        onSubmit={handleSave}
+      />
     );
   }
 
   return (
-		<InputBox
-			id="formSubmissionBox"
-			headerIcon="assignment"
-			headerText={showHeader ? Locale.label("formSubmissionEdit.editForm") : ""}
-			saveFunction={handleSave}
-			saveText={Locale.label("formSubmissionEdit.submit")}
-			cancelFunction={props.cancelFunction}
-			deleteFunction={getDeleteFunction()}
-			isSubmitting={isSubmitting}
-			mainContainerCssProps={noBackground ? { elevation: 0, sx: { backgroundColor: "transparent" } } : undefined}
-		>
-			<ErrorMessages errors={errors} />
-			{getQuestions()}
-		</InputBox>
+    <InputBox
+      id="formSubmissionBox"
+      headerIcon="assignment"
+      headerText={showHeader ? Locale.label("formSubmissionEdit.editForm") : ""}
+      saveFunction={handleSave}
+      saveText={Locale.label("formSubmissionEdit.submit")}
+      cancelFunction={props.cancelFunction}
+      deleteFunction={getDeleteFunction()}
+      isSubmitting={isSubmitting}
+      mainContainerCssProps={noBackground ? { elevation: 0, sx: { backgroundColor: "transparent" } } : undefined}
+    >
+      <ErrorMessages errors={errors} />
+      {getQuestions()}
+    </InputBox>
   );
 };

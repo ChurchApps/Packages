@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { ApiHelper } from "@churchapps/helpers";
 import { PayPalNonAuthDonationInner } from "./PayPalNonAuthDonationInner";
-import { DonationHelper } from "../helpers";
+import { DonationHelper } from "../../helpers";
 import type { PaperProps } from "@mui/material/Paper";
 
 interface Props {

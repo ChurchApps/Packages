@@ -1,4 +1,4 @@
-export class StripePaymentMethod {
+export class SavedPaymentMethod {
   id: string;
   type: "card" | "bank" | "paypal";
   provider: string;

@@ -2,11 +2,13 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
-import { ErrorMessages, InputBox } from "../..";
-import { FundDonations } from ".";
+import { ErrorMessages, InputBox } from "../../../index";
+import { FundDonations } from "../../components";
 import { PayPalHostedFields, PayPalHostedFieldsHandle } from "./PayPalHostedFields";
 import { ApiHelper, DateHelper, CurrencyHelper } from "@churchapps/helpers";
-import { Locale, DonationHelper, PayPalDonationInterface } from "../helpers";
+import { Locale, DonationHelper } from "../../helpers";
+import type { PayPalDonationInterface } from "./PayPalDonationInterface";
+import { isPayPalCaptureComplete } from "./paypalStatus";
 import { FundDonationInterface, FundInterface, PersonInterface, UserInterface, ChurchInterface } from "@churchapps/helpers";
 import { Grid, Alert, TextField, Button, FormControl, InputLabel, Select, MenuItem, FormGroup, FormControlLabel, Checkbox, Typography } from "@mui/material";
 import type { PaperProps } from "@mui/material/Paper";
@@ -195,7 +197,7 @@ export const PayPalNonAuthDonationInner: React.FC<Props> = ({ mainContainerCssPr
       "GivingApi"
     );
 
-    if (DonationHelper.isPayPalCaptureComplete(results?.status)) {
+    if (isPayPalCaptureComplete(results?.status)) {
       setDonationComplete(true);
     } else {
       // Any non-captured status (including "CREATED") is a failure, not success.

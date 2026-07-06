@@ -4,9 +4,9 @@ import React, { useState } from "react";
 import { FormControl, Grid, InputLabel, MenuItem, Select, TextField, Button, CircularProgress, Box, Typography } from "@mui/material";
 import type { SelectChangeEvent } from "@mui/material";
 import { useStripe } from "@stripe/react-stripe-js";
-import { InputBox, ErrorMessages } from "../..";
+import { InputBox, ErrorMessages } from "../../../index";
 import { ApiHelper } from "@churchapps/helpers";
-import { Locale, StripePaymentMethod, PaymentGateway } from "../helpers";
+import { Locale, StripePaymentMethod, PaymentGateway } from "../../helpers";
 import { PersonInterface, PaymentMethodInterface, StripeBankAccountInterface, StripeBankAccountUpdateInterface, StripeBankAccountVerifyInterface } from "@churchapps/helpers";
 
 interface Props {
@@ -52,7 +52,8 @@ export const BankForm: React.FC<Props> = (props) => {
   const handleSave = () => {
     setShowSave(false);
     if (props.showVerifyForm) verifyBank();
-    else props.bank.id ? updateBank() : createBank();
+    else if (props.bank.id) updateBank();
+    else createBank();
   };
 
   // New method using Financial Connections (recommended)

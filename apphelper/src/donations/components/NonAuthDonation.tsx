@@ -2,9 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { ApiHelper } from "@churchapps/helpers";
-import { DonationHelper } from "../helpers";
 import type { PaymentGateway } from "../helpers";
-import { getPaymentProvider } from "../providers";
+import { getPaymentProvider, pickDefaultGateway } from "../providers";
 import { Box, Typography } from "@mui/material";
 import type { PaperProps } from "@mui/material/Paper";
 
@@ -28,12 +27,7 @@ export const NonAuthDonation: React.FC<Props> = ({ mainContainerCssProps, showHe
   const init = () => {
     ApiHelper.get(`/donate/gateways/${props.churchId}`, "GivingApi").then((response: any) => {
       const gateways = Array.isArray(response?.gateways) ? response.gateways : [];
-      const enabled = gateways.filter((g: any) => g && g.enabled !== false);
-      const def = DonationHelper.findGatewayByProvider(enabled, "stripe")
-        || DonationHelper.findGatewayByProvider(enabled, "kingdomfunding")
-        || enabled[0]
-        || null;
-      setGateway(def);
+      setGateway(pickDefaultGateway(gateways));
       setLoading(false);
     });
   };

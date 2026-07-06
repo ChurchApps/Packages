@@ -3,16 +3,14 @@
 import React, { useState, useEffect } from "react";
 import { DateHelper, CurrencyHelper } from "@churchapps/helpers";
 import { Locale } from "../helpers";
-import { StripeDonationInterface } from "@churchapps/helpers";
-import {
- Table, TableBody, TableRow, TableCell, Dialog, DialogTitle, DialogContent, DialogActions, Button 
-} from "@mui/material";
+import type { MultiGatewayDonationInterface } from "../helpers";
+import { Table, TableBody, TableRow, TableCell, Dialog, DialogTitle, DialogContent, DialogActions, Button } from "@mui/material";
 
 interface Props {
   show: boolean;
   onHide: () => void;
   handleDonate: (message: string) => void;
-  donation: StripeDonationInterface;
+  donation: MultiGatewayDonationInterface;
   donationType: string;
   paymentMethodName: string;
   funds: any;
@@ -40,8 +38,8 @@ export const DonationPreviewModal: React.FC<Props> = (props) => {
   };
 
   return (
-    <Dialog 
-      open={props.show} 
+    <Dialog
+      open={props.show}
       onClose={props.onHide}
       aria-labelledby="donation-preview-title"
       aria-describedby="donation-preview-content"

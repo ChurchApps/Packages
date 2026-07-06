@@ -1,6 +1,6 @@
 import type { ReactNode, FC, ForwardRefExoticComponent, RefAttributes } from "react";
-import type { Stripe } from "@stripe/stripe-js";
 import type { PaymentGateway } from "../helpers";
+import type { PersonInterface, QuestionInterface } from "@churchapps/helpers";
 import type { PaperProps } from "@mui/material/Paper";
 
 /** Uniform token from any provider's payment widget; id is provider's reference (PM id/nonce/order). */
@@ -55,6 +55,8 @@ export interface ProviderCapabilities {
   recurring: boolean;
   editRecurring: boolean;
   pauseRecurring?: boolean;
+  // Entry widget saves the method as part of tokenize(), so no separate "save card" toggle applies.
+  implicitSaveOnTokenize?: boolean;
 }
 
 export interface ProviderDescriptor {
@@ -67,6 +69,10 @@ export interface ProviderDescriptor {
   betaOnly?: boolean; // hidden in the admin dropdown in prod unless already configured
   setupInstructionsKey?: string;
   signupUrl?: (church: any, user: any) => string;
+  currencyHelpUrl?: string;
+  eventUrl?: (eventId: string) => string;
+  // Per-currency default fee rates the admin fee-settings form seeds from.
+  defaultFees?: Record<string, { percent: number; fixed: number; symbol: string }>;
 }
 
 export interface MemberEntryHandle {
@@ -92,15 +98,42 @@ export interface GuestFormProps {
   defaultFundId?: string;
 }
 
+export interface MethodEditFormProps {
+  method: any;
+  verify?: boolean;
+  customerId: string;
+  person: PersonInterface;
+  gateway?: PaymentGateway;
+  onCancel: () => void;
+  onDelete: () => void;
+  onUpdated: (message?: string) => void;
+}
+
+export interface FormPaymentHandle {
+  handlePayment(): Promise<{ paymentSuccessful: boolean; name?: string; errors: string[] }>;
+  questionId?: string;
+}
+
+export interface FormPaymentProps {
+  churchId: string;
+  question: QuestionInterface;
+  gateway: PaymentGateway;
+}
+
 export interface PaymentProvider {
   readonly key: string;
   readonly descriptor: ProviderDescriptor;
   readonly capabilities: ProviderCapabilities;
 
-  MemberWrapper?: FC<{ stripePromise?: Promise<Stripe | null> | null; children: ReactNode }>;
+  // Loads the provider's own SDK from the gateway config (e.g. Stripe <Elements>).
+  MemberWrapper?: FC<{ gateway?: PaymentGateway | null; children: ReactNode }>;
   MemberEntry?: ForwardRefExoticComponent<MemberEntryProps & RefAttributes<MemberEntryHandle>>;
   buildChargeRequest(ctx: ChargeContext, token: PaymentToken): ChargeRequest;
-  finalizeResult?(result: any, deps: { stripe?: Stripe | null }): Promise<FinalizeResult>;
+  finalizeResult?(result: any): Promise<FinalizeResult>;
 
   GuestForm: FC<GuestFormProps>;
+  // Saved-method add/edit UI; providers without in-place editing omit it and get generic delete-only handling.
+  MethodEditForm?: FC<MethodEditFormProps>;
+  // Card entry for form "Payment" questions; providers without it can't take form payments.
+  FormPayment?: ForwardRefExoticComponent<FormPaymentProps & RefAttributes<FormPaymentHandle>>;
 }

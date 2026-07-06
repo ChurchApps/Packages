@@ -2,10 +2,10 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
-import { ErrorMessages, InputBox } from "../..";
-import { FundDonations } from ".";
+import { ErrorMessages, InputBox } from "../../../index";
+import { FundDonations } from "../../components";
 import { ApiHelper, DateHelper, CurrencyHelper } from "@churchapps/helpers";
-import { Locale, DonationHelper } from "../helpers";
+import { Locale, DonationHelper } from "../../helpers";
 import { FundDonationInterface, FundInterface, ChurchInterface } from "@churchapps/helpers";
 import {
   Grid, Alert, TextField, Button, FormControl, InputLabel, Select, MenuItem,

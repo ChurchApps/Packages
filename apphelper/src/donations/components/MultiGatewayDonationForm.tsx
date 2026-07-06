@@ -1,14 +1,13 @@
 "use client";
 
 import React, { useCallback, useState, useEffect, useMemo, useRef } from "react";
-import type { Stripe } from "@stripe/stripe-js";
 import { InputBox, ErrorMessages } from "../..";
 import { FundDonations } from ".";
 import { DonationPreviewModal } from "../modals/DonationPreviewModal";
 import { ApiHelper, CurrencyHelper, DateHelper } from "@churchapps/helpers";
 import { Locale, DonationHelper } from "../helpers";
 import type { PaymentMethod, PaymentGateway, MultiGatewayDonationInterface } from "../helpers";
-import { getPaymentProvider, useStripeInstance } from "../providers";
+import { getPaymentProvider } from "../providers";
 import type { ChargeContext, MemberEntryHandle, PaymentToken } from "../providers";
 import { PersonInterface, FundDonationInterface, FundInterface, ChurchInterface } from "@churchapps/helpers";
 import {
@@ -33,7 +32,6 @@ interface Props {
   customerId: string;
   paymentMethods: PaymentMethod[];
   paymentGateways: PaymentGateway[];
-  stripePromise?: Promise<Stripe>;
   donationSuccess: (message: string) => void;
   church?: ChurchInterface;
   churchLogo?: string;
@@ -55,7 +53,6 @@ const cleanErrorMessage = (raw: any): string => {
 };
 
 const MultiGatewayDonationInner: React.FC<Props> = (props) => {
-  const stripe = useStripeInstance();
   const [errorMessage, setErrorMessage] = useState<string | undefined>();
   const [saveCard, setSaveCard] = useState<boolean>(false);
   const [useNewCard, setUseNewCard] = useState<boolean>(false);
@@ -71,7 +68,7 @@ const MultiGatewayDonationInner: React.FC<Props> = (props) => {
   );
 
   const [selectedGateway] = useState<string>(
-    DonationHelper.normalizeProvider(props?.paymentGateways?.find(g => g.enabled !== false)?.provider || "stripe")
+    getPaymentProvider(props?.paymentGateways?.find(g => g.enabled !== false)?.provider).key
   );
   const paymentProvider = useMemo(() => getPaymentProvider(selectedGateway), [selectedGateway]);
   const selectedGatewayObj = useMemo(() => {
@@ -89,8 +86,8 @@ const MultiGatewayDonationInner: React.FC<Props> = (props) => {
     id: props?.paymentMethods?.length > 0 ? props.paymentMethods[0].id : "",
     type: props?.paymentMethods?.length > 0 ? (props.paymentMethods[0].type as "card" | "bank" | "paypal") : "card",
     provider: props?.paymentMethods?.length > 0
-      ? DonationHelper.normalizeProvider(props.paymentMethods[0].provider) as "stripe" | "paypal" | "kingdomfunding"
-      : (selectedGateway as "stripe" | "paypal" | "kingdomfunding"),
+      ? DonationHelper.normalizeProvider(props.paymentMethods[0].provider)
+      : selectedGateway,
     customerId: props.customerId,
     person: {
       id: props.person?.id || "",
@@ -164,7 +161,7 @@ const MultiGatewayDonationInner: React.FC<Props> = (props) => {
         const pm = props.paymentMethods.find(pm => pm.id === value);
         if (pm) {
           d.type = pm.type as "card" | "bank" | "paypal";
-          d.provider = DonationHelper.normalizeProvider(pm.provider) as "stripe" | "paypal" | "kingdomfunding";
+          d.provider = DonationHelper.normalizeProvider(pm.provider);
           d.gatewayId = pm.gatewayId || gateway?.id || selectedGatewayObj?.id;
           setPaymentMethodName(`${pm.name} ${pm.last4 ? `****${pm.last4}` : pm.email || ""}`);
         }
@@ -268,7 +265,7 @@ const MultiGatewayDonationInner: React.FC<Props> = (props) => {
 
     if (paymentProvider.finalizeResult) {
       try {
-        const fin = await paymentProvider.finalizeResult(results, { stripe });
+        const fin = await paymentProvider.finalizeResult(results);
         if (fin.requiresAction) {
           if (fin.success) {
             setShowDonationPreviewModal(false);
@@ -297,9 +294,9 @@ const MultiGatewayDonationInner: React.FC<Props> = (props) => {
     } else {
       setErrorMessage(Locale.label("donation.common.error") + ": " + cleanErrorMessage(results));
     }
-  }, [buildContext, paymentProvider, donation.id, donation.type, useNewCard, stripe, props.donationSuccess]);
+  }, [buildContext, paymentProvider, donation.id, donation.type, useNewCard, props.donationSuccess]);
 
-  const getTransactionFee = useCallback(async (amount: number, activeGatewayId?: string, provider: string = "stripe", paymentMethodType?: "card" | "bank" | "paypal") => {
+  const getTransactionFee = useCallback(async (amount: number, activeGatewayId?: string, provider?: string, paymentMethodType?: "card" | "bank" | "paypal") => {
     if (amount > 0) {
       try {
         const payload: any = { amount, provider, gatewayId: activeGatewayId, currency: gateway?.currency || "USD" };
@@ -377,7 +374,7 @@ const MultiGatewayDonationInner: React.FC<Props> = (props) => {
 
   useEffect(() => {
     setDonation((prev) => {
-      const nextProvider = prev.provider || (selectedGateway as "stripe" | "paypal");
+      const nextProvider = prev.provider || selectedGateway;
       const nextGatewayId = selectedGatewayObj?.id || prev.gatewayId;
       if (nextProvider === prev.provider && nextGatewayId === prev.gatewayId) return prev;
       return { ...prev, provider: nextProvider, gatewayId: nextGatewayId, currency: selectedGatewayObj?.currency || "usd" };
@@ -515,8 +512,8 @@ const MultiGatewayDonationInner: React.FC<Props> = (props) => {
                       <>
                         <Typography variant="subtitle1" sx={{ mb: 1 }}>{Locale.label("donation.kingdomFunding.enterCardDetails")}</Typography>
                         <MemberEntry ref={entryRef} gateway={selectedGatewayObj} getContext={buildContext} />
-                        {/* Stripe saves implicitly at tokenize; toggle would mislead. */}
-                        {paymentProvider.capabilities.savedCard && props.person?.id && paymentProvider.key !== "stripe" && (
+                        {/* Providers that save implicitly at tokenize get no toggle; it would mislead. */}
+                        {paymentProvider.capabilities.savedCard && props.person?.id && !paymentProvider.capabilities.implicitSaveOnTokenize && (
                           <FormGroup sx={{ mt: 1 }}>
                             <FormControlLabel
                               control={<Checkbox checked={saveCard} onChange={(e) => setSaveCard(e.target.checked)} />}
@@ -627,10 +624,11 @@ const MultiGatewayDonationInner: React.FC<Props> = (props) => {
   }
 };
 
-// Apply provider SDK wrapper (Stripe <Elements> for 3DS) around provider-agnostic inner form.
+// Apply provider SDK wrapper (loaded from the gateway config) around the provider-agnostic inner form.
 export const MultiGatewayDonationForm: React.FC<Props> = (props) => {
-  const provider = getPaymentProvider(props?.paymentGateways?.find(g => g.enabled !== false)?.provider || "stripe");
+  const gateway = props?.paymentGateways?.find(g => g.enabled !== false) || null;
+  const provider = getPaymentProvider(gateway?.provider);
   const Wrapper = provider.MemberWrapper;
   const inner = <MultiGatewayDonationInner {...props} />;
-  return Wrapper ? <Wrapper stripePromise={props.stripePromise}>{inner}</Wrapper> : inner;
+  return Wrapper ? <Wrapper gateway={gateway}>{inner}</Wrapper> : inner;
 };

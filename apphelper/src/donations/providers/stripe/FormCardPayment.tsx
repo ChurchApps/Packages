@@ -1,18 +1,16 @@
 "use client";
 
-import { forwardRef, useImperativeHandle, useState, useEffect } from "react";
-import { CardElement, useElements, useStripe } from "@stripe/react-stripe-js";
+import { forwardRef, useImperativeHandle, useState, useEffect, useMemo } from "react";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements, CardElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import { Box, Grid, TextField } from "@mui/material";
-import { CurrencyHelper, QuestionInterface } from "@churchapps/helpers";
+import { CurrencyHelper } from "@churchapps/helpers";
 import { ApiHelper, UserInterface, PersonInterface, StripeDonationInterface, ChurchInterface, FundInterface, ArrayHelper, UserHelper } from "@churchapps/helpers";
-import { Locale, StripePaymentMethod, PaymentGateway, DonationHelper } from "../helpers";
+import { Locale } from "../../helpers";
+import { handle3DSIfRequired } from "./stripe3DS";
+import type { FormPaymentHandle, FormPaymentProps } from "../types";
 
-interface Props {
-	churchId: string,
-	question: QuestionInterface
-}
-
-export const FormCardPayment = forwardRef((props: Props, ref) => {
+const FormCardPaymentInner = forwardRef<FormPaymentHandle, FormPaymentProps>((props, ref) => {
   const formStyling = { style: { base: { fontSize: "18px" } } };
   const elements = useElements();
   const stripe = useStripe();
@@ -21,7 +19,7 @@ export const FormCardPayment = forwardRef((props: Props, ref) => {
   const [lastName, setLastName] = useState<string>((ApiHelper.isAuthenticated && UserHelper.user?.lastName) ? UserHelper.user.lastName : "");
   const [church, setChurch] = useState<ChurchInterface>();
   const [fund, setFund] = useState<FundInterface | undefined>(undefined);
-  const [gateway, setGateway] = useState<PaymentGateway | null>(null);
+  const gateway = props.gateway;
   const amt = Number(props.question.choices?.find(c => c.text === "Amount")?.value || 0);
   const fundId = props.question.choices?.find(c => c.text === "FundId")?.value || "";
 
@@ -32,11 +30,6 @@ export const FormCardPayment = forwardRef((props: Props, ref) => {
     ApiHelper.get("/funds/churchId/" + props.churchId, "GivingApi").then((data: any) => {
       const result = ArrayHelper.getOne(data, "id", fundId);
       setFund(result);
-    });
-    ApiHelper.get(`/donate/gateways/${props.churchId}`, "GivingApi").then((response: any) => {
-      const gateways = Array.isArray(response?.gateways) ? response.gateways : [];
-      const stripeGateway = gateways.find((g: any) => g.provider?.toLowerCase() === "stripe");
-      if (stripeGateway) setGateway(stripeGateway);
     });
   };
 
@@ -88,8 +81,7 @@ export const FormCardPayment = forwardRef((props: Props, ref) => {
           if (result?.raw?.message) {
             return { success: false, errors: [result.raw.message] };
           } else {
-            const p: { paymentMethod: StripePaymentMethod, customerId: string } = result;
-            const savedPaymentRes = await savePayment(p.paymentMethod, p.customerId, person);
+            const savedPaymentRes = await savePayment(result.paymentMethod, result.customerId, person);
             if (!savedPaymentRes?.success) {
               return { success: false, errors: savedPaymentRes?.errors || [] };
             }
@@ -104,7 +96,7 @@ export const FormCardPayment = forwardRef((props: Props, ref) => {
     }
   };
 
-  const savePayment = async (paymentMethod: StripePaymentMethod, customerId: string, person?: PersonInterface) => {
+  const savePayment = async (paymentMethod: any, customerId: string, person?: PersonInterface) => {
 
     const payment: StripeDonationInterface = {
       amount: amt,
@@ -128,10 +120,9 @@ export const FormCardPayment = forwardRef((props: Props, ref) => {
     };
 
     try {
-      const result = await ApiHelper.post("/donate/charge", { ...payment, church: churchObj }, "GivingApi");
+      const result = await ApiHelper.post("/donate/charge", { ...payment, church: churchObj, provider: "stripe", gatewayId: gateway?.id }, "GivingApi");
 
-      // Handle 3D Secure authentication if required
-      const threeDSResult = await DonationHelper.handle3DSIfRequired(result, stripe);
+      const threeDSResult = await handle3DSIfRequired(result, stripe);
       if (threeDSResult.requiresAction) {
         return { success: threeDSResult.success, errors: threeDSResult.error ? [threeDSResult.error] : [] };
       }
@@ -191,3 +182,18 @@ export const FormCardPayment = forwardRef((props: Props, ref) => {
     </Grid>
   </div>;
 });
+FormCardPaymentInner.displayName = "FormCardPaymentInner";
+
+// Self-contained: loads Stripe from the gateway and provides its own Elements context.
+export const FormCardPayment = forwardRef<FormPaymentHandle, FormPaymentProps>((props, ref) => {
+  const stripePromise = useMemo(
+    () => (props.gateway?.publicKey ? loadStripe(props.gateway.publicKey) : null),
+    [props.gateway?.publicKey]
+  );
+  return (
+    <Elements stripe={stripePromise}>
+      <FormCardPaymentInner {...props} ref={ref} />
+    </Elements>
+  );
+});
+FormCardPayment.displayName = "FormCardPayment";

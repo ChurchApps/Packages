@@ -3,9 +3,9 @@
 import React, { useEffect, useState } from "react";
 import { Grid, TextField } from "@mui/material";
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
-import { InputBox, ErrorMessages } from "../..";
+import { InputBox, ErrorMessages } from "../../../index";
 import { ApiHelper } from "@churchapps/helpers";
-import { Locale, StripePaymentMethod, PaymentGateway } from "../helpers";
+import { Locale, StripePaymentMethod, PaymentGateway } from "../../helpers";
 import { PersonInterface, PaymentMethodInterface, StripeCardUpdateInterface } from "@churchapps/helpers";
 
 interface Props {

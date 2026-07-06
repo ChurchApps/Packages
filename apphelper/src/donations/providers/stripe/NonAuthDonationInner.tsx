@@ -3,10 +3,11 @@
 import { CardNumberElement, CardExpiryElement, CardCvcElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import React, { useState, useRef, useEffect } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
-import { ErrorMessages, InputBox } from "../..";
-import { FundDonations } from ".";
+import { ErrorMessages, InputBox } from "../../../index";
+import { FundDonations } from "../../components";
 import { ApiHelper, DateHelper, CurrencyHelper } from "@churchapps/helpers";
-import { Locale, DonationHelper, StripePaymentMethod } from "../helpers";
+import { Locale, DonationHelper, StripePaymentMethod } from "../../helpers";
+import { handle3DSIfRequired } from "./stripe3DS";
 import { FundDonationInterface, FundInterface, PersonInterface, StripeDonationInterface, UserInterface, ChurchInterface } from "@churchapps/helpers";
 import { Grid, Alert, TextField, Button, FormControl, InputLabel, Select, MenuItem, FormGroup, FormControlLabel, Checkbox, Typography, Box, CircularProgress } from "@mui/material";
 import type { PaperProps } from "@mui/material/Paper";
@@ -344,7 +345,7 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
     if (donationType === "recurring") results = await ApiHelper.post("/donate/subscribe", donationPayload, "GivingApi");
 
     // Handle 3D Secure authentication if required
-    const threeDSResult = await DonationHelper.handle3DSIfRequired(results, stripe);
+    const threeDSResult = await handle3DSIfRequired(results, stripe);
     if (threeDSResult.requiresAction) {
       if (threeDSResult.success) {
         setDonationComplete(true);

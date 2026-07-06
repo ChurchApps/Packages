@@ -1,13 +1,10 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
-import type { Stripe } from "@stripe/stripe-js";
-import { Elements } from "@stripe/react-stripe-js";
-import { CardForm, BankForm } from ".";
 import { DisplayBox, Loading } from "../..";
 import { ApiHelper, UserHelper } from "@churchapps/helpers";
-import { Locale, StripePaymentMethod, PaymentGateway, DonationHelper } from "../helpers";
-import { getPaymentProvider } from "../providers";
+import { Locale, SavedPaymentMethod, PaymentGateway } from "../helpers";
+import { getPaymentProvider, pickDefaultGateway } from "../providers";
 import type { MemberEntryHandle } from "../providers";
 import { PersonInterface, Permissions } from "@churchapps/helpers";
 import {
@@ -15,10 +12,10 @@ import {
   Dialog, DialogTitle, DialogContent, DialogActions
 } from "@mui/material";
 
-interface Props { person: PersonInterface, customerId: string, paymentMethods: StripePaymentMethod[], stripePromise: Promise<Stripe | null> | null, appName: string, dataUpdate: (message?: string) => void }
+interface Props { person: PersonInterface, customerId: string, paymentMethods: SavedPaymentMethod[], appName: string, dataUpdate: (message?: string) => void }
 
 export const PaymentMethods: React.FC<Props> = (props) => {
-  const [editPaymentMethod, setEditPaymentMethod] = useState<StripePaymentMethod>(new StripePaymentMethod());
+  const [editPaymentMethod, setEditPaymentMethod] = useState<SavedPaymentMethod>(new SavedPaymentMethod());
   const [mode, setMode] = useState("display");
   const [verify, setVerify] = useState<boolean>(false);
   const [gateway, setGateway] = useState<PaymentGateway | undefined>(undefined);
@@ -26,17 +23,15 @@ export const PaymentMethods: React.FC<Props> = (props) => {
   useEffect(() => {
     ApiHelper.get(`/donate/gateways/${UserHelper.currentUserChurch?.church?.id || ""}`, "GivingApi").then((response: any) => {
       const gateways = Array.isArray(response?.gateways) ? response.gateways : [];
-      const stripeGateway = DonationHelper.findGatewayByProvider(gateways, "stripe");
-      const kfGateway = DonationHelper.findGatewayByProvider(gateways, "kingdomfunding");
-      setGateway(stripeGateway || kfGateway);
+      setGateway(pickDefaultGateway(gateways, "savedCard") || undefined);
     }).catch(() => {
       setGateway(undefined);
     });
   }, []);
 
-  const handleEdit = (pm?: StripePaymentMethod, verifyAccount?: boolean) => (e: React.MouseEvent) => {
+  const handleEdit = (pm?: SavedPaymentMethod, verifyAccount?: boolean) => (e: React.MouseEvent) => {
     e.preventDefault();
-    setEditPaymentMethod(pm || new StripePaymentMethod());
+    setEditPaymentMethod(pm || new SavedPaymentMethod());
     setVerify(verifyAccount || false);
     setMode("edit");
   };
@@ -89,13 +84,13 @@ export const PaymentMethods: React.FC<Props> = (props) => {
             if (usesTokenEntry) {
               setShowAddCardDialog(true);
             } else {
-              handleEdit(new StripePaymentMethod({ type: "card" }))(e);
+              handleEdit(new SavedPaymentMethod({ type: "card" }))(e);
             }
           }}>
             <Icon sx={{ mr: "3px" }}>credit_card</Icon> {Locale.label("donation.paymentMethods.addCard")}
           </MenuItem>
           {canSaveBank && (
-            <MenuItem aria-label="add-bank" onClick={handleEdit(new StripePaymentMethod({ type: "bank" }))}>
+            <MenuItem aria-label="add-bank" onClick={handleEdit(new SavedPaymentMethod({ type: "bank" }))}>
               <Icon sx={{ mr: "3px" }}>account_balance</Icon> {Locale.label("donation.paymentMethods.addBank")}
             </MenuItem>
           )}
@@ -110,7 +105,7 @@ export const PaymentMethods: React.FC<Props> = (props) => {
     return <MenuIcon />;
   };
 
-  const getEditOptions = (pm: StripePaymentMethod) => {
+  const getEditOptions = (pm: SavedPaymentMethod) => {
     if (!UserHelper.checkAccess(Permissions.givingApi.settings.edit) &&
         props.person?.id !== UserHelper.currentUserChurch?.person?.id) return null;
     return <button
@@ -128,7 +123,7 @@ export const PaymentMethods: React.FC<Props> = (props) => {
   const getPaymentRows = () => {
     const rows: React.ReactElement[] = [];
 
-    props.paymentMethods.forEach((method: StripePaymentMethod) => {
+    props.paymentMethods.forEach((method: SavedPaymentMethod) => {
       rows.push(<TableRow key={method.id}>
         <TableCell className="capitalize">{getPMIcon(method.type)} {method.name}{method.last4 ? ` ****${method.last4}` : ""}</TableCell>
         <TableCell>{method?.status === "new" && <button
@@ -161,15 +156,16 @@ export const PaymentMethods: React.FC<Props> = (props) => {
   const provider = gateway ? getPaymentProvider(gateway.provider) : undefined;
   const canSaveCard = !!provider?.capabilities.savedCard;
   const canSaveBank = !!provider?.capabilities.savedBank;
-  // Token-entry providers (KF) use add-card dialog; Stripe (with MemberWrapper) uses CardForm.
-  const usesTokenEntry = canSaveCard && !!provider?.MemberEntry && !provider?.MemberWrapper;
+  // Providers with an in-place edit form use it; token-entry providers use the add-card dialog.
+  const usesTokenEntry = canSaveCard && !!provider?.MemberEntry && !provider?.MethodEditForm;
   const TokenEntry = provider?.MemberEntry;
+  const MethodEditForm = provider?.MethodEditForm;
   const entryRef = useRef<MemberEntryHandle>(null);
   const [saving, setSaving] = useState(false);
   const [addError, setAddError] = useState<string | undefined>();
   const [showAddCardDialog, setShowAddCardDialog] = useState(false);
 
-  const resetKFDialog = () => {
+  const resetAddDialog = () => {
     setShowAddCardDialog(false);
     setAddError(undefined);
   };
@@ -191,6 +187,7 @@ export const PaymentMethods: React.FC<Props> = (props) => {
         email: props.person?.contactInfo?.email || "",
         name: props.person?.name?.display || "",
         provider: provider?.key,
+        gatewayId: gateway?.id,
         id: token.id,
         type: token.type,
         cardBrand: token.brand,
@@ -198,7 +195,7 @@ export const PaymentMethods: React.FC<Props> = (props) => {
         expiry_month: token.expMonth,
         expiry_year: token.expYear
       }, "GivingApi");
-      resetKFDialog();
+      resetAddDialog();
       setMode("display");
       props.dataUpdate("Card saved successfully.");
     } catch (e: any) {
@@ -209,7 +206,7 @@ export const PaymentMethods: React.FC<Props> = (props) => {
   };
 
   const tokenAddCardDialog = (
-    <Dialog open={showAddCardDialog} onClose={resetKFDialog} maxWidth="sm" fullWidth>
+    <Dialog open={showAddCardDialog} onClose={resetAddDialog} maxWidth="sm" fullWidth>
       <DialogTitle>Add Payment Method</DialogTitle>
       <DialogContent>
         {gateway?.publicKey && showAddCardDialog && TokenEntry ? (
@@ -222,7 +219,7 @@ export const PaymentMethods: React.FC<Props> = (props) => {
         )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={resetKFDialog}>Cancel</Button>
+        <Button onClick={resetAddDialog}>Cancel</Button>
         {gateway?.publicKey && TokenEntry && (
           <Button variant="contained" onClick={handleTokenAddCard} disabled={saving}>
             {saving ? <CircularProgress size={20} /> : "Save Card"}
@@ -233,67 +230,47 @@ export const PaymentMethods: React.FC<Props> = (props) => {
   );
 
   const EditForm = () => {
-    // Token-entry providers: delete only (no in-place updates); add via dialog.
-    if (usesTokenEntry) {
-      if (editPaymentMethod.id) {
-        // Editing existing payment method (delete only — KF cards cannot be updated in place)
-        return (
-          <DisplayBox headerIcon="credit_card" headerText={`${editPaymentMethod.name || "Card"} ****${editPaymentMethod.last4 || ""}`}>
-            <div style={{ padding: 16 }}>
-              <p>Type: {editPaymentMethod.type === "card" ? "Credit/Debit Card" : "Bank Account"}</p>
-              <button
-                type="button"
-                onClick={handleDelete}
-                style={{ background: "#dc3545", color: "white", border: "none", padding: "8px 16px", borderRadius: 4, cursor: "pointer", marginRight: 8 }}
-              >
-                Delete
-              </button>
-              <button
-                type="button"
-                onClick={() => setMode("display")}
-                style={{ background: "#6c757d", color: "white", border: "none", padding: "8px 16px", borderRadius: 4, cursor: "pointer" }}
-              >
-                Cancel
-              </button>
-            </div>
-          </DisplayBox>
-        );
-      }
-      // KF "add new" via dialog; unreachable path.
-      return null;
+    if (MethodEditForm) {
+      return (
+        <MethodEditForm
+          method={editPaymentMethod}
+          verify={verify}
+          customerId={props.customerId}
+          person={props.person}
+          gateway={gateway}
+          onCancel={() => setMode("display")}
+          onDelete={handleDelete}
+          onUpdated={(message) => { props.dataUpdate(message); }}
+        />
+      );
     }
 
-    return (
-      <Elements stripe={props.stripePromise}>
-        {editPaymentMethod.type === "card" && (
-          <CardForm
-            card={editPaymentMethod}
-            customerId={props.customerId}
-            person={props.person}
-            setMode={setMode}
-            deletePayment={handleDelete}
-            updateList={(message) => {
-              props.dataUpdate(message);
-            }}
-            gateway={gateway}
-          />
-        )}
-        {editPaymentMethod.type === "bank" && (
-          <BankForm
-            bank={editPaymentMethod}
-            showVerifyForm={verify}
-            customerId={props.customerId}
-            person={props.person}
-            setMode={setMode}
-            deletePayment={handleDelete}
-            updateList={(message) => {
-              props.dataUpdate(message);
-            }}
-            gateway={gateway}
-          />
-        )}
-      </Elements>
-    );
+    // Token-entry providers: delete only (no in-place updates); add via dialog.
+    if (editPaymentMethod.id) {
+      return (
+        <DisplayBox headerIcon="credit_card" headerText={`${editPaymentMethod.name || "Card"} ****${editPaymentMethod.last4 || ""}`}>
+          <div style={{ padding: 16 }}>
+            <p>Type: {editPaymentMethod.type === "card" ? "Credit/Debit Card" : "Bank Account"}</p>
+            <button
+              type="button"
+              onClick={handleDelete}
+              style={{ background: "#dc3545", color: "white", border: "none", padding: "8px 16px", borderRadius: 4, cursor: "pointer", marginRight: 8 }}
+            >
+              Delete
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("display")}
+              style={{ background: "#6c757d", color: "white", border: "none", padding: "8px 16px", borderRadius: 4, cursor: "pointer" }}
+            >
+              Cancel
+            </button>
+          </div>
+        </DisplayBox>
+      );
+    }
+    // "Add new" for token-entry providers goes through the dialog; unreachable path.
+    return null;
   };
 
   const PaymentMethodsComponent = () => {
@@ -306,5 +283,6 @@ export const PaymentMethods: React.FC<Props> = (props) => {
     } else return <EditForm></EditForm>;
   };
 
-  return (props.stripePromise || usesTokenEntry) ? <><PaymentMethodsComponent />{usesTokenEntry && tokenAddCardDialog}</> : null;
+  if (!gateway || (!canSaveCard && !canSaveBank)) return null;
+  return <><PaymentMethodsComponent />{usesTokenEntry && tokenAddCardDialog}</>;
 };

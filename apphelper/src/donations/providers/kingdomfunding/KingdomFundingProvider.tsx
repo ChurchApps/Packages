@@ -2,13 +2,13 @@
 
 import React, { forwardRef, useImperativeHandle, useRef, useState } from "react";
 import { Button, Grid } from "@mui/material";
-import { KingdomFundingTokenForm, KingdomFundingTokenFormHandle } from "../components/KingdomFundingTokenForm";
-import { KingdomFundingNonAuthDonationInner } from "../components/KingdomFundingNonAuthDonationInner";
-import { Locale } from "../helpers";
+import { KingdomFundingTokenForm, KingdomFundingTokenFormHandle } from "./KingdomFundingTokenForm";
+import { KingdomFundingNonAuthDonationInner } from "./KingdomFundingNonAuthDonationInner";
+import { Locale } from "../../helpers";
 import type {
   PaymentProvider, GuestFormProps, PaymentToken, ChargeRequest,
   ChargeContext, MemberEntryHandle, MemberEntryProps
-} from "./types";
+} from "../types";
 
 const KingdomFundingMemberEntry = forwardRef<MemberEntryHandle, MemberEntryProps>(({ gateway }, ref) => {
   const kfRef = useRef<KingdomFundingTokenFormHandle>(null);

@@ -1,8 +1,9 @@
 import { DonationHelper } from "../helpers";
-import { StripeProvider } from "./StripeProvider";
-import { KingdomFundingProvider } from "./KingdomFundingProvider";
-import { PayPalProvider } from "./PayPalProvider";
-import type { PaymentProvider } from "./types";
+import type { PaymentGateway } from "../helpers";
+import { StripeProvider } from "./stripe/StripeProvider";
+import { KingdomFundingProvider } from "./kingdomfunding/KingdomFundingProvider";
+import { PayPalProvider } from "./paypal/PayPalProvider";
+import type { PaymentProvider, ProviderCapabilities } from "./types";
 
 // Built lazily on first access so providers/components import cycle is fully resolved.
 const custom = new Map<string, PaymentProvider>();
@@ -36,4 +37,16 @@ export function hasPaymentProvider(provider: string | undefined | null): boolean
 
 export function listPaymentProviders(): PaymentProvider[] {
   return [...getBuiltins().values(), ...custom.values()];
+}
+
+// Picks the church's primary gateway: registry order over enabled gateways,
+// optionally requiring a capability, falling back to the first enabled entry.
+export function pickDefaultGateway(gateways: PaymentGateway[] | undefined | null, capability?: keyof ProviderCapabilities): PaymentGateway | null {
+  const enabled = (gateways || []).filter(g => g && g.enabled !== false);
+  const eligible = capability ? enabled.filter(g => hasPaymentProvider(g.provider) && !!getPaymentProvider(g.provider).capabilities[capability]) : enabled;
+  for (const p of listPaymentProviders()) {
+    const match = eligible.find(g => DonationHelper.normalizeProvider(g.provider) === p.key);
+    if (match) return match;
+  }
+  return eligible[0] || null;
 }

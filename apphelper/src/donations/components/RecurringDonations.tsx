@@ -63,7 +63,7 @@ export const RecurringDonations: React.FC<Props> = (props) => {
     const confirmed = window.confirm("Are you sure you want to cancel this recurring donation?");
     if (!confirmed) return;
     try {
-      // Pass provider so the API can resolve the right gateway (Stripe vs Kingdom Funding).
+      // Pass provider so the API can resolve the right gateway.
       const providerParam = sub.provider ? `?provider=${encodeURIComponent(sub.provider)}` : "";
       await ApiHelper.delete(`/subscriptions/${sub.id}${providerParam}`, "GivingApi");
       await ApiHelper.delete(`/subscriptionfunds/subscription/${sub.id}`, "GivingApi").catch((err: any) => {

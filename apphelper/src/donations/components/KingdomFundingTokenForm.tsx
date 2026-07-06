@@ -32,7 +32,10 @@ const COLLECT_JS_URL = "https://secure.nmi.com/token/Collect.js";
 const customCss = {
   "font-family": "'Roboto','Helvetica','Arial',sans-serif",
   "font-size": "16px",
-  color: "rgba(0,0,0,0.87)"
+  color: "rgba(0,0,0,0.87)",
+  height: "54px",
+  "line-height": "54px",
+  "box-sizing": "border-box"
 };
 const invalidCss = { color: "#d32f2f" };
 const focusCss = { color: "rgba(0,0,0,0.87)" };
@@ -46,7 +49,8 @@ const fieldBoxSx = {
   display: "flex",
   alignItems: "center",
   background: "#fff",
-  "& iframe": { width: "100%", height: "100%", border: "none" }
+  // Collect.js sets an inline height from measuring the input; !important wins if it measures 0.
+  "& iframe": { width: "100%", height: "100% !important", border: "none" }
 };
 
 export const KingdomFundingTokenForm = forwardRef<KingdomFundingTokenFormHandle, Props>(
@@ -167,6 +171,9 @@ export const KingdomFundingTokenForm = forwardRef<KingdomFundingTokenFormHandle,
 
       return () => {
         clearTimeout(failSafe);
+        // Prevent a stale script's onload from configuring against the wrong field set after a toggle/remount.
+        script.onload = null;
+        script.onerror = null;
         if (pendingRef.current) {
           settlePending("reject", new Error(Locale.label("donation.kingdomFunding.paymentFormNotInitialized")));
         }
@@ -206,7 +213,8 @@ export const KingdomFundingTokenForm = forwardRef<KingdomFundingTokenFormHandle,
           </Box>
         )}
         {paymentMethod === "ach" ? (
-          <Box sx={{ display: loading ? "none" : "flex", flexDirection: "column", gap: 1.5 }}>
+          // visibility (not display:none) — Collect.js measures inputs at init; a display:none iframe measures 0 and collapses.
+          <Box sx={{ display: "flex", visibility: loading ? "hidden" : "visible", flexDirection: "column", gap: 1.5 }}>
             <Box id="kf-checkname" sx={fieldBoxSx} />
             <Box sx={{ display: "flex", gap: 1.5 }}>
               <Box id="kf-checkaba" sx={{ ...fieldBoxSx, flex: 1 }} />
@@ -214,7 +222,7 @@ export const KingdomFundingTokenForm = forwardRef<KingdomFundingTokenFormHandle,
             </Box>
           </Box>
         ) : (
-          <Box sx={{ display: loading ? "none" : "flex", flexDirection: "column", gap: 1.5 }}>
+          <Box sx={{ display: "flex", visibility: loading ? "hidden" : "visible", flexDirection: "column", gap: 1.5 }}>
             <Box id="kf-ccnumber" sx={fieldBoxSx} />
             <Box sx={{ display: "flex", gap: 1.5 }}>
               <Box id="kf-ccexp" sx={{ ...fieldBoxSx, flex: 1 }} />

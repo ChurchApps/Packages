@@ -1,10 +1,13 @@
 import { ApiHelper, ConnectionInterface } from "@churchapps/helpers";
 import { SocketHelper } from "./SocketHelper";
 
+interface RoomState { count: number; personId?: string; displayName?: string; }
+
 /** Tracks conversation room subscriptions via ref-counted WebSocket connections. */
 export class SubscriptionManager {
-  private static counts: Map<string, number> = new Map();
+  private static rooms: Map<string, RoomState> = new Map();
   private static rejoinHandlerRegistered = false;
+  private static lastRejoinSocketId: string | null = null;
 
   static setupRejoin = () => {
     if (SubscriptionManager.rejoinHandlerRegistered) return;
@@ -23,11 +26,14 @@ export class SubscriptionManager {
 
   static joinRoom = async (conversationId: string, churchId: string, personId?: string, displayName?: string) => {
     const key = SubscriptionManager.key(churchId, conversationId);
-    const next = (SubscriptionManager.counts.get(key) ?? 0) + 1;
-    SubscriptionManager.counts.set(key, next);
-    if (next > 1) return; // already joined
+    const room = SubscriptionManager.rooms.get(key) ?? { count: 0 };
+    room.count++;
+    if (personId) room.personId = personId;
+    if (displayName) room.displayName = displayName;
+    SubscriptionManager.rooms.set(key, room);
+    if (room.count > 1) return; // already joined
     SubscriptionManager.setupRejoin();
-    await SubscriptionManager.postConnection(conversationId, churchId, personId, displayName);
+    await SubscriptionManager.postConnection(conversationId, churchId, room.personId, room.displayName);
   };
 
   // Debounce DELETE to avoid race where broadcast lands between DELETE and next POST (React StrictMode).
@@ -36,19 +42,16 @@ export class SubscriptionManager {
 
   static leaveRoom = async (conversationId: string, churchId: string) => {
     const key = SubscriptionManager.key(churchId, conversationId);
-    const current = SubscriptionManager.counts.get(key) ?? 0;
-    if (current <= 0) return;
-    const next = current - 1;
-    if (next > 0) {
-      SubscriptionManager.counts.set(key, next);
-      return;
-    }
-    SubscriptionManager.counts.delete(key);
+    const room = SubscriptionManager.rooms.get(key);
+    if (!room || room.count <= 0) return;
+    room.count--;
+    if (room.count > 0) return;
+    SubscriptionManager.rooms.delete(key);
     const existing = SubscriptionManager.pendingLeaves.get(key);
     if (existing) clearTimeout(existing);
     const timer = setTimeout(async () => {
       SubscriptionManager.pendingLeaves.delete(key);
-      if ((SubscriptionManager.counts.get(key) ?? 0) > 0) return;
+      if ((SubscriptionManager.rooms.get(key)?.count ?? 0) > 0) return;
       if (!SocketHelper.socketId) return;
       try {
         await ApiHelper.delete(`/connections/${churchId}/${conversationId}/${SocketHelper.socketId}`, "MessagingApi");
@@ -60,20 +63,24 @@ export class SubscriptionManager {
   };
 
   static rejoinAll = async () => {
-    if (!SocketHelper.socketId) return;
-    const entries = Array.from(SubscriptionManager.counts.keys());
-    await Promise.all(entries.map((key) => {
+    if (!SocketHelper.socketId || SocketHelper.socketId === SubscriptionManager.lastRejoinSocketId) return;
+    SubscriptionManager.lastRejoinSocketId = SocketHelper.socketId;
+    const entries = Array.from(SubscriptionManager.rooms.entries());
+    await Promise.all(entries.map(([key, room]) => {
       const [churchId, conversationId] = key.split("|");
-      return SubscriptionManager.postConnection(conversationId, churchId);
+      return SubscriptionManager.postConnection(conversationId, churchId, room.personId, room.displayName);
     }));
   };
 
   static reset = () => {
-    SubscriptionManager.counts.clear();
+    SubscriptionManager.rooms.clear();
+    SubscriptionManager.pendingLeaves.forEach(timer => clearTimeout(timer));
+    SubscriptionManager.pendingLeaves.clear();
+    SubscriptionManager.lastRejoinSocketId = null;
   };
 
   static isJoined = (churchId: string, conversationId: string): boolean => {
-    return (SubscriptionManager.counts.get(SubscriptionManager.key(churchId, conversationId)) ?? 0) > 0;
+    return (SubscriptionManager.rooms.get(SubscriptionManager.key(churchId, conversationId))?.count ?? 0) > 0;
   };
 
   private static postConnection = async (conversationId: string, churchId: string, personId?: string, displayName?: string) => {

@@ -9,10 +9,20 @@ export class ConversationStore {
   private static listeners: Map<string, Set<Listener>> = new Map();
   private static handlersRegistered = false;
   private static peopleCache: Map<string, PersonInterface> = new Map();
+  private static churchIds: Map<string, string> = new Map();
 
   static ensureHandlers = () => {
     if (ConversationStore.handlersRegistered) return;
     ConversationStore.handlersRegistered = true;
+
+    SocketHelper.addHandler("reconnect", "ConversationStore-Reconnect", () => {
+      // Refetch open conversations to recover messages missed while disconnected.
+      ConversationStore.listeners.forEach((_set, conversationId) => {
+        const churchId = ConversationStore.churchIds.get(conversationId);
+        if (!ApiHelper.isAuthenticated && !churchId) return; // anonymous catchup requires churchId
+        ConversationStore.loadByConversationId(conversationId, churchId).catch(() => { /* ignore */ });
+      });
+    });
 
     SocketHelper.addHandler("message", "ConversationStore-Message", (data: any) => {
       const message: MessageInterface = data?.message || data;
@@ -37,11 +47,13 @@ export class ConversationStore {
     ConversationStore.conversations.clear();
     ConversationStore.listeners.clear();
     ConversationStore.peopleCache.clear();
+    ConversationStore.churchIds.clear();
   };
 
   static forget = (conversationId: string): void => {
     ConversationStore.conversations.delete(conversationId);
     ConversationStore.listeners.delete(conversationId);
+    ConversationStore.churchIds.delete(conversationId);
   };
 
   static getConversation = (conversationId: string): ConversationInterface | null => {
@@ -70,6 +82,7 @@ export class ConversationStore {
   static loadByConversationId = async (conversationId: string, churchId?: string): Promise<ConversationInterface | null> => {
     if (!conversationId) return null;
     ConversationStore.ensureHandlers();
+    if (churchId) ConversationStore.churchIds.set(conversationId, churchId);
     // Anonymous: unauthenticated /catchup (requires churchId); Authenticated: JWT /conversation/:id
     const messages: MessageInterface[] = ApiHelper.isAuthenticated
       ? await ApiHelper.get(`/messages/conversation/${conversationId}`, "MessagingApi")

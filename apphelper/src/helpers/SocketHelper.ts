@@ -1,11 +1,23 @@
 import { ConnectionInterface, SocketActionHandlerInterface, SocketPayloadInterface, ApiHelper, ArrayHelper, CommonEnvironmentHelper } from "@churchapps/helpers";
 
+const HANDSHAKE_TIMEOUT_MS = 5000;
+const PROBE_TIMEOUT_MS = 3000;
+const MAX_BACKOFF_MS = 30000;
+
 export class SocketHelper {
   static socket: WebSocket;
   static socketId: string;
   static actionHandlers: SocketActionHandlerInterface[] = [];
   private static personIdChurchId: { personId: string, churchId: string } = { personId: "", churchId: "" };
-  private static isCleanedUp: boolean = false;
+  private static deliberateClose = false;
+  private static hadConnection = false;
+  private static reconnectAttempts = 0;
+  private static reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  private static connectInFlight: Promise<void> | null = null;
+  private static resumeListenersRegistered = false;
+  private static socketIdWaiters: Array<() => void> = [];
+  private static lastFrameAt = 0;
+  private static probeInFlight = false;
 
   static setPersonChurch = (pc: { personId: string, churchId: string }) => {
     if (!pc?.personId || !pc?.churchId) return;
@@ -50,68 +62,151 @@ export class SocketHelper {
       const connection: ConnectionInterface = {
         conversationId: "alerts",
         churchId: SocketHelper.personIdChurchId.churchId,
-        displayName: "Test",
+        displayName: "",
         socketId: SocketHelper.socketId,
         personId: SocketHelper.personIdChurchId.personId
       };
 
-      ApiHelper.postAnonymous("/connections", [connection], "MessagingApi");
+      ApiHelper.postAnonymous("/connections", [connection], "MessagingApi")
+        .catch((err: unknown) => console.warn("SocketHelper.createAlertConnection failed:", err));
     }
   };
 
   static init = async () => {
-    // Idempotent: don't tear down an open or connecting socket; wait for socketId instead.
-    if (SocketHelper.socket && (SocketHelper.socket.readyState === SocketHelper.socket.OPEN || SocketHelper.socket.readyState === SocketHelper.socket.CONNECTING)) {
-      if (SocketHelper.socketId) return;
-      await new Promise<void>((resolve) => {
-        const start = Date.now();
-        const tick = () => {
-          if (SocketHelper.socketId) return resolve();
-          if (Date.now() - start > 3000) return resolve();
-          setTimeout(tick, 50);
-        };
-        tick();
-      });
+    SocketHelper.deliberateClose = false;
+    SocketHelper.registerResumeListeners();
+    if (SocketHelper.isConnected() && SocketHelper.socketId) return;
+    if (SocketHelper.connectInFlight) return SocketHelper.connectInFlight;
+    if (SocketHelper.socket && SocketHelper.socket.readyState === SocketHelper.socket.CONNECTING) {
+      await SocketHelper.waitForSocketId(HANDSHAKE_TIMEOUT_MS);
       if (SocketHelper.socketId) return;
     }
+    await SocketHelper.connect();
+  };
 
-    SocketHelper.cleanup();
-    SocketHelper.isCleanedUp = false;
-
-    if (SocketHelper.socket && SocketHelper.socket.readyState !== SocketHelper.socket.CLOSED) {
-      try { SocketHelper.socket.close(); } catch { /* ignore */ }
-    }
-
-    await new Promise((resolve, reject) => {
+  // Resolves once the handshake completes (or the retry loop has taken over); never rejects.
+  private static connect = (): Promise<void> => {
+    if (SocketHelper.connectInFlight) return SocketHelper.connectInFlight;
+    const promise = new Promise<void>((resolve) => {
+      let settled = false;
+      const finish = () => {
+        if (settled) return;
+        settled = true;
+        resolve();
+      };
       try {
-        SocketHelper.socket = new WebSocket(CommonEnvironmentHelper.MessagingApiSocket);
+        SocketHelper.closeSocket();
+        const ws = new WebSocket(CommonEnvironmentHelper.MessagingApiSocket);
+        SocketHelper.socket = ws;
+        SocketHelper.socketId = null;
 
-        SocketHelper.socket.onmessage = (event) => {
-          if (SocketHelper.isCleanedUp) return;
+        ws.onmessage = (event) => {
+          if (ws !== SocketHelper.socket) return;
+          SocketHelper.lastFrameAt = Date.now();
           try {
-            const payload = JSON.parse(event.data);
-            SocketHelper.handleMessage(payload);
+            SocketHelper.handleMessage(JSON.parse(event.data));
           } catch { /* ignore parse errors */ }
         };
 
-        SocketHelper.socket.onopen = async () => {
-          SocketHelper.socket.send("getId");
-
-          setTimeout(() => {
-            resolve(null);
-          }, 3000);
+        ws.onopen = () => {
+          ws.send("getId");
+          SocketHelper.waitForSocketId(HANDSHAKE_TIMEOUT_MS).then(() => {
+            if (!SocketHelper.socketId) SocketHelper.scheduleReconnect();
+            finish();
+          });
         };
 
-        SocketHelper.socket.onclose = async () => { };
-
-        SocketHelper.socket.onerror = (error) => {
-          reject(error);
+        ws.onclose = () => {
+          if (ws !== SocketHelper.socket) return;
+          SocketHelper.socketId = null;
+          if (!SocketHelper.deliberateClose) SocketHelper.scheduleReconnect();
+          finish();
         };
 
+        ws.onerror = () => { /* onclose follows and owns the retry */ };
       } catch (error) {
-        reject(error);
+        console.error("SocketHelper.connect failed:", error);
+        SocketHelper.scheduleReconnect();
+        finish();
       }
     });
+    SocketHelper.connectInFlight = promise.finally(() => { SocketHelper.connectInFlight = null; });
+    return SocketHelper.connectInFlight;
+  };
+
+  private static waitForSocketId = (timeoutMs: number): Promise<void> => new Promise((resolve) => {
+    if (SocketHelper.socketId) return resolve();
+    let done = false;
+    const waiter = () => {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      resolve();
+    };
+    const timer = setTimeout(() => {
+      if (done) return;
+      done = true;
+      SocketHelper.socketIdWaiters = SocketHelper.socketIdWaiters.filter(w => w !== waiter);
+      resolve();
+    }, timeoutMs);
+    SocketHelper.socketIdWaiters.push(waiter);
+  });
+
+  private static scheduleReconnect = () => {
+    if (SocketHelper.deliberateClose || SocketHelper.reconnectTimer) return;
+    const delay = Math.min(MAX_BACKOFF_MS, 1000 * Math.pow(2, SocketHelper.reconnectAttempts));
+    SocketHelper.reconnectAttempts++;
+    SocketHelper.reconnectTimer = setTimeout(() => {
+      SocketHelper.reconnectTimer = null;
+      if (SocketHelper.deliberateClose || SocketHelper.isConnected()) return;
+      SocketHelper.connect();
+    }, delay);
+  };
+
+  private static registerResumeListeners = () => {
+    if (SocketHelper.resumeListenersRegistered || typeof window === "undefined") return;
+    SocketHelper.resumeListenersRegistered = true;
+    const onResume = () => {
+      if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
+      SocketHelper.checkConnection();
+    };
+    window.addEventListener("online", onResume);
+    window.addEventListener("focus", onResume);
+    window.addEventListener("pageshow", onResume);
+    if (typeof document !== "undefined") document.addEventListener("visibilitychange", onResume);
+  };
+
+  static checkConnection = () => {
+    if (SocketHelper.deliberateClose) return;
+    if (!SocketHelper.isConnected()) {
+      if (SocketHelper.reconnectTimer) {
+        clearTimeout(SocketHelper.reconnectTimer);
+        SocketHelper.reconnectTimer = null;
+      }
+      SocketHelper.reconnectAttempts = 0;
+      SocketHelper.connect();
+      return;
+    }
+    SocketHelper.probeConnection();
+  };
+
+  // OS suspend can leave readyState OPEN on a dead TCP link; verify with a getId echo.
+  private static probeConnection = () => {
+    if (SocketHelper.probeInFlight) return;
+    SocketHelper.probeInFlight = true;
+    const before = SocketHelper.lastFrameAt;
+    try {
+      SocketHelper.socket.send("getId");
+    } catch {
+      SocketHelper.probeInFlight = false;
+      SocketHelper.connect();
+      return;
+    }
+    setTimeout(() => {
+      SocketHelper.probeInFlight = false;
+      if (SocketHelper.deliberateClose) return;
+      if (SocketHelper.lastFrameAt === before) SocketHelper.connect();
+    }, PROBE_TIMEOUT_MS);
   };
 
   static addHandler = (action: string, id: string, handleMessage: (data: any) => void) => {
@@ -136,19 +231,21 @@ export class SocketHelper {
   };
 
   static handleMessage = (payload: SocketPayloadInterface) => {
-    if (SocketHelper.isCleanedUp) return;
-
     try {
       if (payload.action === "socketId") {
         const previousId = SocketHelper.socketId;
         SocketHelper.socketId = payload.data;
+        const waiters = SocketHelper.socketIdWaiters;
+        SocketHelper.socketIdWaiters = [];
+        waiters.forEach(w => w());
+        if (payload.data === previousId) return; // liveness probe echo
+        SocketHelper.reconnectAttempts = 0;
         SocketHelper.createAlertConnection();
-        // Notify SubscriptionManager to flush pending joinRoom calls.
-        if (!previousId) {
-          SocketHelper.socketIdListeners.forEach((cb) => {
-            try { cb(payload.data); } catch (err) { console.error("SocketHelper socketId listener error:", err); }
-          });
-        }
+        SocketHelper.socketIdListeners.forEach((cb) => {
+          try { cb(payload.data); } catch (err) { console.error("SocketHelper socketId listener error:", err); }
+        });
+        if (SocketHelper.hadConnection) SocketHelper.dispatchLocal("reconnect");
+        SocketHelper.hadConnection = true;
       } else {
         const matchingHandlers = ArrayHelper.getAll(SocketHelper.actionHandlers, "action", payload.action);
         matchingHandlers.forEach((handler) => {
@@ -164,14 +261,36 @@ export class SocketHelper {
     }
   };
 
-  static cleanup = () => {
-    SocketHelper.isCleanedUp = true;
-
-    if (SocketHelper.socket && SocketHelper.socket.readyState !== SocketHelper.socket.CLOSED) {
+  private static dispatchLocal = (action: string) => {
+    const handlers = ArrayHelper.getAll(SocketHelper.actionHandlers, "action", action);
+    handlers.forEach((handler) => {
       try {
-        SocketHelper.socket.close();
+        handler.handleMessage(null);
+      } catch (error) {
+        console.error(`Error in handler ${handler.id}:`, error);
+      }
+    });
+  };
+
+  private static closeSocket = () => {
+    const ws = SocketHelper.socket;
+    if (ws && ws.readyState !== ws.CLOSED) {
+      try {
+        ws.onclose = null;
+        ws.close();
       } catch { /* ignore */ }
     }
+  };
+
+  static cleanup = () => {
+    SocketHelper.deliberateClose = true;
+    if (SocketHelper.reconnectTimer) {
+      clearTimeout(SocketHelper.reconnectTimer);
+      SocketHelper.reconnectTimer = null;
+    }
+    SocketHelper.reconnectAttempts = 0;
+    SocketHelper.hadConnection = false;
+    SocketHelper.closeSocket();
 
     // Preserve handlers across reconnects.
     SocketHelper.socket = null;

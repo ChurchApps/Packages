@@ -1,8 +1,7 @@
 import { state, elements } from './state';
 import { showModal, closeModal, showStatus } from './ui';
-import { getProvider, B1ChurchProvider, DropboxProvider, ContentProviderAuthData, DeviceAuthorizationResponse } from '../src';
+import { getProvider, ContentProviderAuthData, DeviceAuthorizationResponse } from '../src';
 import { OAuthHelper, DeviceFlowHelper } from '../src/helpers';
-import type { PlanningCenterProvider } from '../src';
 
 const OAUTH_REDIRECT_URI = `${window.location.origin}${window.location.pathname}`;
 const STORAGE_KEY_VERIFIER = 'oauth_code_verifier';
@@ -28,19 +27,10 @@ export function setOnAuthSuccess(callback: () => void): void {
  * Configure providers with their client IDs
  */
 export function configureProviders(): void {
-  const pcoProvider = getProvider('planningcenter') as PlanningCenterProvider | null;
-  if (pcoProvider) {
-    (pcoProvider.config as any).clientId = PCO_CLIENT_ID;
-  }
-
-  const b1Provider = getProvider('b1church') as B1ChurchProvider | null;
-  if (b1Provider) {
-    (b1Provider.config as any).clientId = B1_CLIENT_ID;
-  }
-
-  const dropboxProvider = getProvider('dropbox') as DropboxProvider | null;
-  if (dropboxProvider) {
-    (dropboxProvider.config as any).clientId = DROPBOX_CLIENT_ID;
+  const clientIds: Record<string, string> = { planningcenter: PCO_CLIENT_ID, b1church: B1_CLIENT_ID, dropbox: DROPBOX_CLIENT_ID };
+  for (const [id, clientId] of Object.entries(clientIds)) {
+    const provider = getProvider(id);
+    if (provider) (provider.config as any).clientId = clientId;
   }
 }
 
@@ -132,22 +122,11 @@ export async function startOAuthRedirect(): Promise<void> {
     sessionStorage.setItem(STORAGE_KEY_VERIFIER, codeVerifier);
     sessionStorage.setItem(STORAGE_KEY_PROVIDER, state.currentProvider.id);
 
-    let url: string;
-    // B1Church has its own OAuth URL format
-    if (state.currentProvider.id === 'b1church') {
-      const b1Provider = state.currentProvider as B1ChurchProvider;
-      const result = await b1Provider.buildAuthUrl(codeVerifier, OAUTH_REDIRECT_URI);
-      url = result.url;
-    } else if (state.currentProvider.id === 'dropbox') {
-      const dropboxProvider = state.currentProvider as DropboxProvider;
-      const result = await dropboxProvider.buildAuthUrl(codeVerifier, OAUTH_REDIRECT_URI);
-      url = result.url;
-    } else {
-      const result = await oauthHelper.buildAuthUrl(state.currentProvider.config, codeVerifier, OAUTH_REDIRECT_URI);
-      url = result.url;
-    }
+    const result = state.currentProvider.buildAuthUrl
+      ? await state.currentProvider.buildAuthUrl(codeVerifier, OAUTH_REDIRECT_URI)
+      : await oauthHelper.buildAuthUrl(state.currentProvider.config, codeVerifier, OAUTH_REDIRECT_URI);
 
-    window.location.href = url;
+    window.location.href = result.url;
   } catch (error) {
     showModal('error');
     elements.errorMessage.textContent = `Failed to start OAuth: ${error}`;
@@ -194,18 +173,9 @@ export async function handleOAuthCallback(): Promise<void> {
   showModal('processing');
 
   try {
-    let authData: ContentProviderAuthData | null;
-
-    // B1Church now uses PKCE
-    if (provider.id === 'b1church') {
-      const b1Provider = provider as B1ChurchProvider;
-      authData = await b1Provider.exchangeCodeForTokensWithPKCE(code, OAUTH_REDIRECT_URI, codeVerifier);
-    } else if (provider.id === 'dropbox') {
-      const dropboxProvider = provider as DropboxProvider;
-      authData = await dropboxProvider.exchangeCodeForTokens(code, codeVerifier, OAUTH_REDIRECT_URI);
-    } else {
-      authData = await oauthHelper.exchangeCodeForTokens(provider.config, provider.id, code, codeVerifier, OAUTH_REDIRECT_URI);
-    }
+    const authData: ContentProviderAuthData | null = provider.exchangeCodeForTokens
+      ? await provider.exchangeCodeForTokens(code, codeVerifier, OAUTH_REDIRECT_URI)
+      : await oauthHelper.exchangeCodeForTokens(provider.config, provider.id, code, codeVerifier, OAUTH_REDIRECT_URI);
 
     if (!authData) {
       showModal('error');

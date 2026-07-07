@@ -108,6 +108,10 @@ export class SignPresenterProvider extends BaseProvider {
     return this.oauthHelper.buildAuthUrl(this.config, codeVerifier, redirectUri, state || this.id);
   }
 
+  buildAuthUrlFromChallenge(codeChallenge: string, redirectUri: string, state: string): string {
+    return this.oauthHelper.buildAuthUrlFromChallenge(this.config, codeChallenge, redirectUri, state);
+  }
+
   async exchangeCodeForTokens(code: string, codeVerifier: string, redirectUri: string): Promise<ContentProviderAuthData | null> {
     return this.oauthHelper.exchangeCodeForTokens(this.config, this.id, code, codeVerifier, redirectUri);
   }

@@ -261,6 +261,8 @@ export interface IProvider {
 
   generateCodeVerifier?(): string;
   buildAuthUrl?(codeVerifier: string, redirectUri: string, state?: string): Promise<{ url: string; challengeMethod: string }>;
+  /** For environments without Web Crypto (e.g. React Native): caller computes the S256 challenge. */
+  buildAuthUrlFromChallenge?(codeChallenge: string, redirectUri: string, state: string): string;
   exchangeCodeForTokens?(code: string, codeVerifier: string, redirectUri: string): Promise<ContentProviderAuthData | null>;
   initiateDeviceFlow?(): Promise<DeviceAuthorizationResponse | null>;
   pollDeviceFlowToken?(deviceCode: string): Promise<DeviceFlowPollResult>;

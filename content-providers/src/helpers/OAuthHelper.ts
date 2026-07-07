@@ -38,6 +38,10 @@ export class OAuthHelper {
 
   async buildAuthUrl(config: ContentProviderConfig, codeVerifier: string, redirectUri: string, state?: string): Promise<{ url: string; challengeMethod: string }> {
     const codeChallenge = await generateCodeChallenge(codeVerifier);
+    return { url: this.buildAuthUrlFromChallenge(config, codeChallenge, redirectUri, state || ""), challengeMethod: "S256" };
+  }
+
+  buildAuthUrlFromChallenge(config: ContentProviderConfig, codeChallenge: string, redirectUri: string, state: string): string {
     const params = new URLSearchParams({
       response_type: "code",
       client_id: config.clientId,
@@ -45,9 +49,9 @@ export class OAuthHelper {
       scope: config.scopes.join(" "),
       code_challenge: codeChallenge,
       code_challenge_method: "S256",
-      state: state || ""
+      state
     });
-    return { url: `${config.oauthBase}/authorize?${params.toString()}`, challengeMethod: "S256" };
+    return `${config.oauthBase}/authorize?${params.toString()}`;
   }
 
   async exchangeCodeForTokens(config: ContentProviderConfig, _providerId: string, code: string, codeVerifier: string, redirectUri: string): Promise<ContentProviderAuthData | null> {

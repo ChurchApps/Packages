@@ -2,6 +2,7 @@ import { ContentProviderConfig, ContentProviderAuthData, ContentItem, ContentFil
 import { parsePath } from "../../pathUtils";
 import { navigateToPath } from "../../instructionPathUtils";
 import { DeviceFlowHelper } from "../../helpers";
+import { generateCodeVerifier } from "../../helpers/OAuthHelper";
 import { BaseProvider } from "../BaseProvider";
 import { instructionsToPlaylist } from "../../utils";
 import { getProvider } from "../registry";
@@ -58,11 +59,19 @@ export class B1ChurchProvider extends BaseProvider {
   readonly authTypes: AuthType[] = ["oauth_pkce", "device_flow"];
   readonly capabilities: ProviderCapabilities = { browse: true, playlist: true, instructions: true, mediaLicensing: false };
 
+  generateCodeVerifier(): string {
+    return generateCodeVerifier();
+  }
+
   async buildAuthUrl(codeVerifier: string, redirectUri: string, state?: string): Promise<{ url: string; challengeMethod: string }> {
     return B1ChurchAuth.buildB1AuthUrl(this.config, this.appBase, redirectUri, codeVerifier, state);
   }
 
-  async exchangeCodeForTokensWithPKCE(code: string, redirectUri: string, codeVerifier: string): Promise<ContentProviderAuthData | null> {
+  buildAuthUrlFromChallenge(codeChallenge: string, redirectUri: string, state: string): string {
+    return B1ChurchAuth.buildB1AuthUrlFromChallenge(this.config, this.appBase, redirectUri, codeChallenge, state);
+  }
+
+  async exchangeCodeForTokens(code: string, codeVerifier: string, redirectUri: string): Promise<ContentProviderAuthData | null> {
     return B1ChurchAuth.exchangeCodeForTokensWithPKCE(this.config, code, redirectUri, codeVerifier);
   }
 

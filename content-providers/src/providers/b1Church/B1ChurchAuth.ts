@@ -2,8 +2,7 @@ import { ContentProviderAuthData, ContentProviderConfig } from "../../interfaces
 import { generateCodeChallenge } from "../../helpers/OAuthHelper";
 import { toAuthData } from "../../helpers/TokenHelper";
 
-export async function buildB1AuthUrl(config: ContentProviderConfig, appBase: string, redirectUri: string, codeVerifier: string, state?: string): Promise<{ url: string; challengeMethod: string }> {
-  const codeChallenge = await generateCodeChallenge(codeVerifier);
+export function buildB1AuthUrlFromChallenge(config: ContentProviderConfig, appBase: string, redirectUri: string, codeChallenge: string, state: string): string {
   const oauthParams = new URLSearchParams({
     response_type: "code",
     client_id: config.clientId,
@@ -11,10 +10,14 @@ export async function buildB1AuthUrl(config: ContentProviderConfig, appBase: str
     scope: config.scopes.join(" "),
     code_challenge: codeChallenge,
     code_challenge_method: "S256",
-    state: state || ""
+    state
   });
-  const url = `${appBase}/oauth?${oauthParams.toString()}`;
-  return { url, challengeMethod: "S256" };
+  return `${appBase}/oauth?${oauthParams.toString()}`;
+}
+
+export async function buildB1AuthUrl(config: ContentProviderConfig, appBase: string, redirectUri: string, codeVerifier: string, state?: string): Promise<{ url: string; challengeMethod: string }> {
+  const codeChallenge = await generateCodeChallenge(codeVerifier);
+  return { url: buildB1AuthUrlFromChallenge(config, appBase, redirectUri, codeChallenge, state || ""), challengeMethod: "S256" };
 }
 
 export async function exchangeCodeForTokensWithPKCE(config: ContentProviderConfig, code: string, redirectUri: string, codeVerifier: string): Promise<ContentProviderAuthData | null> {

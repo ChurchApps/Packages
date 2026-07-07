@@ -74,6 +74,35 @@ test("supportsDeviceFlow matches the device-flow providers", () => {
   }
 });
 
+// Consumer contract: declared authTypes/capabilities imply the matching methods exist,
+// because B1Admin/FreePlay feature-detect and dispatch purely on these declarations.
+test("every provider implements the methods its authTypes and capabilities declare", () => {
+  const PKCE_METHODS = ["generateCodeVerifier", "buildAuthUrl", "buildAuthUrlFromChallenge", "exchangeCodeForTokens"];
+  for (const provider of getAllProviders()) {
+    const p = provider as any;
+    const has = (m: string) => typeof p[m] === "function";
+
+    if (provider.authTypes.includes("oauth_pkce")) {
+      for (const method of PKCE_METHODS) assert.ok(has(method), `${provider.id}.${method}`);
+    }
+    if (provider.authTypes.includes("device_flow")) {
+      assert.ok(has("initiateDeviceFlow"), `${provider.id}.initiateDeviceFlow`);
+      assert.ok(has("pollDeviceFlowToken"), `${provider.id}.pollDeviceFlowToken`);
+      assert.equal(provider.supportsDeviceFlow(), true, `${provider.id}.supportsDeviceFlow()`);
+    }
+    if (provider.authTypes.includes("form_login")) {
+      assert.ok(has("performLogin"), `${provider.id}.performLogin`);
+    }
+    if (provider.requiresAuth) {
+      assert.ok(!provider.authTypes.includes("none"), `${provider.id}: requiresAuth but authTypes includes "none"`);
+    }
+
+    if (provider.capabilities.playlist) assert.ok(has("getPlaylist"), `${provider.id}.getPlaylist`);
+    if (provider.capabilities.instructions) assert.ok(has("getInstructions"), `${provider.id}.getInstructions`);
+    if (provider.capabilities.mediaLicensing) assert.ok(has("checkMediaLicense"), `${provider.id}.checkMediaLicense`);
+  }
+});
+
 test("device-flow providers expose initiate/poll methods (B1Admin contract)", () => {
   for (const id of DEVICE_FLOW_IDS) {
     const provider = getProvider(id) as any;
@@ -82,18 +111,26 @@ test("device-flow providers expose initiate/poll methods (B1Admin contract)", ()
   }
 });
 
-test("signpresenter exposes the full PKCE method set (B1Admin contract)", () => {
-  const provider = getProvider("signpresenter") as any;
-  for (const method of ["generateCodeVerifier", "buildAuthUrl", "exchangeCodeForTokens"]) {
-    assert.equal(typeof provider[method], "function", `signpresenter.${method}`);
-  }
+test("dropbox has no device flow (FreePlay routes it to the OAuth QR screen)", () => {
+  const provider = getProvider("dropbox")!;
+  assert.equal(provider.supportsDeviceFlow(), false);
 });
 
-test("dropbox exposes its RN-specific auth methods and no device flow (FreePlay contract)", () => {
-  const provider = getProvider("dropbox") as any;
-  assert.equal(typeof provider.buildAuthUrlFromChallenge, "function");
-  assert.equal(typeof provider.exchangeCodeForTokens, "function");
-  assert.equal(provider.supportsDeviceFlow(), false);
+// FreePlay computes the challenge itself (no Web Crypto in RN) and calls buildAuthUrlFromChallenge;
+// web consumers call buildAuthUrl. Both must produce the same URL.
+test("buildAuthUrl and buildAuthUrlFromChallenge agree for every oauth_pkce provider", async () => {
+  const { generateCodeChallenge } = await import("../src/helpers/OAuthHelper");
+  const verifier = "test-verifier-0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMN";
+  const challenge = await generateCodeChallenge(verifier);
+
+  for (const provider of getAllProviders()) {
+    if (!provider.authTypes.includes("oauth_pkce")) continue;
+    const fromVerifier = await provider.buildAuthUrl!(verifier, "https://cb.example/x", "state123");
+    const fromChallenge = provider.buildAuthUrlFromChallenge!(challenge, "https://cb.example/x", "state123");
+    assert.equal(fromVerifier.url, fromChallenge, provider.id);
+    assert.equal(fromVerifier.challengeMethod, "S256", provider.id);
+    assert.ok(fromChallenge.includes(`code_challenge=${encodeURIComponent(challenge)}`), `${provider.id} embeds challenge`);
+  }
 });
 
 test("generateCodeVerifier returns a 64-char PKCE string", () => {

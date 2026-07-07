@@ -1,6 +1,7 @@
 import { ContentProviderConfig, ContentProviderAuthData, ContentItem, ContentFile, ProviderLogos, ProviderCapabilities, MediaLicenseResult, AuthType, Instructions } from "../../interfaces";
 import { parsePath } from "../../pathUtils";
 import { filesToInstructions } from "../../utils";
+import { OAuthHelper } from "../../helpers";
 import { BaseProvider } from "../BaseProvider";
 import { checkMediaLicense, API_BASE } from "./APlayApi";
 import { extractLibraryId, convertMediaToFiles, convertModulesToFolders, convertLibrariesToFolders, convertProductsToFolders } from "./APlayConverters";
@@ -24,6 +25,8 @@ function extractArray<T = Record<string, unknown>>(
 
 /** APlay Provider: media curriculum library with OAuth 2.0 auth. */
 export class APlayProvider extends BaseProvider {
+  private readonly oauthHelper = new OAuthHelper();
+
   readonly id = "aplay";
   readonly name = "APlay";
 
@@ -111,5 +114,21 @@ export class APlayProvider extends BaseProvider {
 
   async checkMediaLicense(mediaId: string, auth?: ContentProviderAuthData | null): Promise<MediaLicenseResult | null> {
     return checkMediaLicense(mediaId, auth);
+  }
+
+  generateCodeVerifier(): string {
+    return this.oauthHelper.generateCodeVerifier();
+  }
+
+  async buildAuthUrl(codeVerifier: string, redirectUri: string, state?: string): Promise<{ url: string; challengeMethod: string }> {
+    return this.oauthHelper.buildAuthUrl(this.config, codeVerifier, redirectUri, state || this.id);
+  }
+
+  buildAuthUrlFromChallenge(codeChallenge: string, redirectUri: string, state: string): string {
+    return this.oauthHelper.buildAuthUrlFromChallenge(this.config, codeChallenge, redirectUri, state);
+  }
+
+  async exchangeCodeForTokens(code: string, codeVerifier: string, redirectUri: string): Promise<ContentProviderAuthData | null> {
+    return this.oauthHelper.exchangeCodeForTokens(this.config, this.id, code, codeVerifier, redirectUri);
   }
 }

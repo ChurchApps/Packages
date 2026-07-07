@@ -60,8 +60,14 @@ import { BaseProvider, registerProvider } from '@churchapps/content-providers';
 
 class MyProvider extends BaseProvider {
   // Declare id/name/logos/config/requiresAuth/authTypes/capabilities and implement browse().
-  // Optionally implement getPlaylist()/getInstructions(); the protected apiRequest() helper
-  // performs authenticated JSON fetches against config.apiBase.
+  // Every declared authType/capability must be backed by its IProvider methods (enforced by
+  // tests/contentProviders.test.ts):
+  //   oauth_pkce   -> generateCodeVerifier / buildAuthUrl / buildAuthUrlFromChallenge / exchangeCodeForTokens
+  //                   (OAuthHelper implements the standard flow; delegate to it like SignPresenterProvider)
+  //   device_flow  -> initiateDeviceFlow / pollDeviceFlowToken (see DeviceFlowHelper)
+  //   form_login   -> performLogin
+  //   playlist / instructions / mediaLicensing -> getPlaylist / getInstructions / checkMediaLicense
+  // The protected apiRequest() helper performs authenticated JSON fetches against config.apiBase.
 }
 
 registerProvider(new MyProvider());

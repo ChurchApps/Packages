@@ -19,7 +19,8 @@ export class PlanningCenterProvider extends BaseProvider {
   readonly config: ContentProviderConfig = { id: "planningcenter", name: "Planning Center", apiBase: "https://api.planningcenteronline.com", oauthBase: "https://api.planningcenteronline.com/oauth", clientId: "", scopes: ["services"] };
 
   readonly requiresAuth = true;
-  readonly authTypes: AuthType[] = ["oauth_pkce"];
+  // No client-side auth flow: clientId is unset and no PKCE methods exist. Auth tokens must be supplied externally (server-side).
+  readonly authTypes: AuthType[] = [];
   // Plan items come back without media URLs, so playlist/instructions are not actually supported yet.
   readonly capabilities: ProviderCapabilities = { browse: true, playlist: false, instructions: false, mediaLicensing: false };
 

@@ -1,4 +1,5 @@
 import { InstructionItem, Instructions, MessageFileInterface } from "../../interfaces";
+import { instructionItemMediaType } from "../../utils";
 import { B1PlanItem } from "./B1ChurchTypes";
 
 const SECTION_TYPES = new Set(["item", "section", "lessonSection", "providerSection"]);
@@ -11,6 +12,7 @@ function collectFilesFromNode(node: InstructionItem): MessageFileInterface[] {
       id: node.id,
       name: node.label || "",
       url: node.downloadUrl,
+      fileType: instructionItemMediaType(node),
       seconds: node.seconds || 10
     });
   }

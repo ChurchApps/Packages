@@ -238,6 +238,19 @@ test("toAuthData maps a token response with Bearer default and fallbacks", () =>
   assert.equal(fresh.scope, "s");
 });
 
+test("instructionsToPlaylist classifies extension-less URLs via declared type or filename label", () => {
+  const tempLink = "https://uc123.dl.dropboxusercontent.com/cd/0/get/tok/file?c_luid=x";
+  const declared = instructionsToPlaylist({ name: "D", items: [{ id: "v1", itemType: "file", label: "x", mediaType: "video" as const, downloadUrl: tempLink }] });
+  assert.equal(declared[0].mediaType, "video");
+
+  // Production Api payloads omit mediaType — the label still carries the original filename
+  const sniffed = instructionsToPlaylist({ name: "D", items: [{ id: "v2", itemType: "file", label: "02 Countdown.mp4", downloadUrl: tempLink }] });
+  assert.equal(sniffed[0].mediaType, "video");
+
+  const image = instructionsToPlaylist({ name: "D", items: [{ id: "i1", itemType: "file", label: "Slide.png", downloadUrl: tempLink }] });
+  assert.equal(image[0].mediaType, "image");
+});
+
 test("b1church getPlaylist resolves top-level provider items with no section wrapper", async () => {
   const planItem = { id: "pi1", itemType: "providerPresentation", label: "Slide", providerId: "dropbox", providerPath: "/ckids", providerContentPath: "0.0", link: null, children: [] };
   const instructions = { name: "ckids", items: [{ id: "sec", label: "Folder", children: [{ id: "pres1", relatedId: "pres1", label: "Slide" }] }] };

@@ -70,6 +70,11 @@ export function filesToInstructions(name: string, files: ContentFile[], section?
   return { name, items };
 }
 
+/** Declared type first; else sniff the label (usually the original filename) alongside the URL — extension-less URLs (Dropbox temp links) defeat URL sniffing alone. */
+export function instructionItemMediaType(item: InstructionItem): "video" | "image" {
+  return detectMediaType(`${item.downloadUrl || ""} ${item.label || ""}`, item.mediaType);
+}
+
 /** Flatten an Instructions tree into a playlist of downloadable files. */
 export function instructionsToPlaylist(instructions: Instructions): ContentFile[] {
   const files: ContentFile[] = [];
@@ -77,7 +82,7 @@ export function instructionsToPlaylist(instructions: Instructions): ContentFile[
   function extractFiles(items: InstructionItem[]) {
     for (const item of items) {
       if (item.downloadUrl && (item.itemType === "file" || !item.children?.length)) {
-        files.push({ type: "file", id: item.id || item.relatedId || generateId(), title: item.label || "Untitled", mediaType: detectMediaType(item.downloadUrl), url: item.downloadUrl, downloadUrl: item.downloadUrl, seconds: item.seconds, thumbnail: item.thumbnail });
+        files.push({ type: "file", id: item.id || item.relatedId || generateId(), title: item.label || "Untitled", mediaType: instructionItemMediaType(item), url: item.downloadUrl, downloadUrl: item.downloadUrl, seconds: item.seconds, thumbnail: item.thumbnail });
       }
       if (item.children) extractFiles(item.children);
     }

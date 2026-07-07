@@ -7,13 +7,27 @@ export function folderEntryToContentFolder(entry: DropboxFolderEntry, isLeaf?: b
 }
 
 export function fileEntryToContentFile(entry: DropboxFileEntry, url: string, downloadUrl?: string | null): ContentFile {
+  const mediaType = detectMediaType(entry.name);
+
+  // Videos: real duration from media_info (milliseconds). Images: intentionally no
+  // duration — playback apps keep them up until the operator advances.
+  const durationMs = entry.media_info?.metadata?.duration;
+  const seconds = mediaType === "video" && durationMs ? Math.round(durationMs / 1000) : undefined;
+
+  // Images are their own thumbnail (the shared raw link renders in an <img> tag).
+  // Videos get none here — Dropbox video thumbnails need an authed byte fetch;
+  // consumers can paint a first frame from the url instead.
+  const thumbnail = mediaType === "image" ? url : undefined;
+
   return {
     type: "file",
     id: entry.id,
     title: entry.name,
-    mediaType: detectMediaType(entry.name),
+    mediaType,
     url,
-    downloadUrl: downloadUrl || url
+    downloadUrl: downloadUrl || url,
+    seconds,
+    thumbnail
   };
 }
 

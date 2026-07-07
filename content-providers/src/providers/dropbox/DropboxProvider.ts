@@ -57,7 +57,8 @@ export class DropboxProvider extends BaseProvider {
 
     const response = await this.dropboxPost<DropboxListFolderResponse>(
       "/2/files/list_folder",
-      { path: dropboxPath, recursive: false, include_media_info: false },
+      // include_media_info gives us video durations (media_info.metadata.duration)
+      { path: dropboxPath, recursive: false, include_media_info: true },
       auth
     );
     if (!response) return [];

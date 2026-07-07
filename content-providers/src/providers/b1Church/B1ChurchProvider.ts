@@ -21,6 +21,10 @@ function findFirstThumbnail(items: InstructionItem[] | undefined): string | unde
   return undefined;
 }
 
+function isLessonsChurchContent(plan: B1Plan): boolean {
+  return !plan.providerId || plan.providerId === "lessonschurch";
+}
+
 function isExternalProviderItem(item: B1PlanItem): boolean {
   // An item is external if it has a non-b1church providerId and a providerPath
   if (!item.providerId || item.providerId === "b1church") return false;
@@ -237,7 +241,7 @@ export class B1ChurchProvider extends BaseProvider {
     if (!planFolder) return null;
 
     const churchId = planFolder.churchId;
-    const venueId = planFolder.contentId;
+    const venueId = isLessonsChurchContent(planFolder) ? planFolder.contentId : undefined;
     const planTitle = planFolder.name || "Plan";
 
     if (!churchId) {
@@ -389,7 +393,7 @@ export class B1ChurchProvider extends BaseProvider {
     }
 
     const churchId = planFolder.churchId;
-    const venueId = planFolder.contentId;
+    const venueId = isLessonsChurchContent(planFolder) ? planFolder.contentId : undefined;
 
     if (!churchId) {
       console.warn("[B1Church] getPlaylist: planFolder missing churchId:", planFolder.id);
@@ -420,7 +424,8 @@ export class B1ChurchProvider extends BaseProvider {
     const files: ContentFile[] = [];
 
     for (const sectionItem of planItems) {
-      for (const child of sectionItem.children || []) {
+      // Provider items can sit at the top level of the service order (no section wrapper)
+      for (const child of sectionItem.children?.length ? sectionItem.children : [sectionItem]) {
         const childItemType = child.itemType;
 
         // Check if this is a section that can be expanded from the local venue feed

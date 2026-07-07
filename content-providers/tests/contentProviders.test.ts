@@ -238,6 +238,31 @@ test("toAuthData maps a token response with Bearer default and fallbacks", () =>
   assert.equal(fresh.scope, "s");
 });
 
+test("b1church getPlaylist resolves top-level provider items with no section wrapper", async () => {
+  const planItem = { id: "pi1", itemType: "providerPresentation", label: "Slide", providerId: "dropbox", providerPath: "/ckids", providerContentPath: "0.0", link: null, children: [] };
+  const instructions = { name: "ckids", items: [{ id: "sec", label: "Folder", children: [{ id: "pres1", relatedId: "pres1", label: "Slide" }] }] };
+  const presentations = { sections: [{ presentations: [{ id: "pres1", files: [{ type: "file", id: "f1", title: "Slide", mediaType: "image", url: "https://x/s.png" }] }] }] };
+
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = (async (url: any) => {
+    const u = String(url);
+    let body: unknown = null;
+    if (u.includes("/plans/types/")) body = [{ id: "plan1", churchId: "ch1", name: "Plan" }];
+    else if (u.includes("/planFeed/presenter/")) body = [planItem];
+    else if (u.includes("/providerProxy/getPresentations")) body = presentations;
+    else if (u.includes("/providerProxy/getInstructions")) body = instructions;
+    return { ok: true, json: async () => body } as Response;
+  }) as typeof fetch;
+
+  try {
+    const files = await getProvider("b1church")!.getPlaylist!("/ministries/m1/pt1/plan1", null);
+    assert.equal(files?.length, 1);
+    assert.equal(files?.[0].url, "https://x/s.png");
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+});
+
 test("filesToInstructions builds the section → action → file tree", () => {
   const file = { type: "file" as const, id: "f1", title: "Clip", mediaType: "video" as const, url: "https://x/v.mp4", downloadUrl: "https://x/dl.mp4", thumbnail: "https://x/t.jpg", seconds: 12 };
   const wrapped = filesToInstructions("Lesson", [file], { id: "unit1-section", label: "Unit 1" });

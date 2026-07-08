@@ -24,5 +24,10 @@ export function filterMediaEntries(entries: DropboxEntry[]): { folders: DropboxF
     if (entry[".tag"] === "folder") folders.push(entry);
     else if (entry[".tag"] === "file" && isMediaFile(entry.name)) mediaFiles.push(entry);
   }
+  // Dropbox returns entries in arbitrary order; sort by name (numeric-aware, so
+  // "2 Song.png" sorts before "10 Closer.png") to honor 01/02/03-style prefixes.
+  const byName = (a: { name: string }, b: { name: string }) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: "base" });
+  folders.sort(byName);
+  mediaFiles.sort(byName);
   return { folders, mediaFiles };
 }

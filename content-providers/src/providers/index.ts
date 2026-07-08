@@ -3,6 +3,7 @@ import { registerProvider, getProvider, getAllProviders } from "./registry";
 import { APlayProvider } from "./aPlay";
 import { B1ChurchProvider } from "./b1Church";
 import { DropboxProvider } from "./dropbox";
+import { GoCurriculumProvider } from "./goCurriculum";
 import { BibleProjectProvider } from "./bibleProject";
 import { HighVoltageKidsProvider } from "./highVoltage";
 import { LessonsChurchProvider } from "./lessonsChurch";
@@ -17,6 +18,7 @@ export { getProvider, getAllProviders, registerProvider } from "./registry";
 export { APlayProvider } from "./aPlay";
 export { B1ChurchProvider } from "./b1Church";
 export { DropboxProvider } from "./dropbox";
+export { GoCurriculumProvider } from "./goCurriculum";
 export { BibleProjectProvider } from "./bibleProject";
 export { HighVoltageKidsProvider } from "./highVoltage";
 export { JesusFilmProvider } from "./jesusFilm";
@@ -50,14 +52,6 @@ const unimplementedProviders: UnimplementedProvider[] = [
     }
   },
   {
-    id: "gocurriculum",
-    name: "Go Curriculum",
-    logos: {
-      light: "https://gocurriculum.com/wp-content/uploads/go-logo-curriculum-v2.png",
-      dark: "https://gocurriculum.com/wp-content/uploads/go-logo-curriculum-v2.png"
-    }
-  },
-  {
     id: "iteachchurch",
     name: "iTeachChurch",
     logos: {
@@ -80,6 +74,7 @@ function initializeProviders() {
     new APlayProvider(),
     new B1ChurchProvider(),
     new DropboxProvider(),
+    new GoCurriculumProvider(),
     new BibleProjectProvider(),
     new HighVoltageKidsProvider(),
     new JesusFilmProvider(),

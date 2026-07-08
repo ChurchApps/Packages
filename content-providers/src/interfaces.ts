@@ -19,6 +19,8 @@ export interface ContentProviderConfig {
   apiBase: string;
   oauthBase: string;
   clientId: string;
+  /** For confidential OAuth clients (e.g. WP OAuth Server); sent on token exchange and refresh. */
+  clientSecret?: string;
   scopes: string[];
   supportsDeviceFlow?: boolean;
   deviceAuthEndpoint?: string;

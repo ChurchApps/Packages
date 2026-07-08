@@ -33,6 +33,7 @@ export class TokenHelper {
         refresh_token: auth.refresh_token,
         client_id: config.clientId
       });
+      if (config.clientSecret) params.set("client_secret", config.clientSecret);
 
       const response = await fetch(`${config.oauthBase}/token`, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: params.toString() });
       if (!response.ok) {

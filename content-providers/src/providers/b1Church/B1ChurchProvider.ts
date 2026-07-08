@@ -5,7 +5,6 @@ import { DeviceFlowHelper } from "../../helpers";
 import { generateCodeVerifier } from "../../helpers/OAuthHelper";
 import { BaseProvider } from "../BaseProvider";
 import { instructionsToPlaylist } from "../../utils";
-import { getProvider } from "../registry";
 import { B1Plan, B1PlanItem } from "./B1ChurchTypes";
 import * as B1ChurchAuth from "./B1ChurchAuth";
 import { fetchMinistries, fetchPlanTypes, fetchPlans, fetchVenueFeed, fetchVenueActions, fetchVenueImages, fetchFromProviderProxy, fetchCurrentPlanByType, fetchPlanItems, API_BASE } from "./B1ChurchApi";
@@ -210,17 +209,16 @@ export class B1ChurchProvider extends BaseProvider {
     }
   }
 
-  async getCurrentPlan(_authData?: ContentProviderAuthData | null): Promise<CurrentPlan | null> {
+  async getCurrentPlan(authData?: ContentProviderAuthData | null): Promise<CurrentPlan | null> {
     if (!this.planTypeId) return null;
     const plan = await fetchCurrentPlanByType(this.planTypeId);
-    if (!plan?.providerId || !plan.providerPlanId) return null;
+    if (!plan?.providerId || !plan.providerPlanId || !plan.ministryId) return null;
 
     const items = plan.churchId && plan.id ? await fetchPlanItems(plan.churchId, plan.id) : [];
 
-    const innerProvider = getProvider(plan.providerId);
-    if (!innerProvider?.getInstructions) return null;
-
-    const instructions = await innerProvider.getInstructions(plan.providerPlanId, null);
+    // External provider content (Dropbox, etc.) is resolved server-side via the proxy, which
+    // holds the church's provider token — the TV client has none, so route through it with our auth.
+    const instructions = await fetchFromProviderProxy("getInstructions", plan.ministryId, plan.providerId, plan.providerPlanId, authData);
     if (!instructions) return null;
 
     const files = getOrderedFiles(instructions, items);

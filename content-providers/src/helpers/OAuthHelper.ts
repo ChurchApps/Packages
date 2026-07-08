@@ -63,6 +63,7 @@ export class OAuthHelper {
         client_id: config.clientId,
         code_verifier: codeVerifier
       });
+      if (config.clientSecret) params.set("client_secret", config.clientSecret);
 
       const tokenUrl = `${config.oauthBase}/token`;
       const response = await fetch(tokenUrl, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: params.toString() });

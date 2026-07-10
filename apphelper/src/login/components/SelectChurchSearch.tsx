@@ -37,10 +37,10 @@ export const SelectChurchSearch: React.FC<Props> = (props) => {
   };
 
   const getRegisterLink = () => (
-		<div>
-			<button
-				type="button"
-				style={{
+    <div>
+      <button
+        type="button"
+        style={{
 				  display: "block",
 				  textAlign: "center",
 				  background: "none",
@@ -49,12 +49,12 @@ export const SelectChurchSearch: React.FC<Props> = (props) => {
 				  cursor: "pointer",
 				  textDecoration: "underline",
 				  width: "100%"
-				}}
-				onClick={handleRegisterClick}
-			>
-				{Locale.label("selectChurch.register")}
-			</button>
-		</div>
+        }}
+        onClick={handleRegisterClick}
+      >
+        {Locale.label("selectChurch.register")}
+      </button>
+    </div>
   );
 
   const getChurches = () => {
@@ -75,12 +75,12 @@ export const SelectChurchSearch: React.FC<Props> = (props) => {
   if (showRegister) return (<SelectChurchRegister selectChurch={props.selectChurch} registeredChurchCallback={props.registeredChurchCallback} appName={props.appName} initialChurchName={searchText} />);
   else {
     return (
-		<>
-			<TextField fullWidth name="searchText" label="Name" value={searchText} onChange={handleChange} onKeyDown={handleKeyDown}
-				InputProps={{ endAdornment: <Button variant="contained" id="searchButton" data-testid="search-button" onClick={handleSubmit}>{Locale.label("common.search")}</Button> }}
-			/>
-			{getResults()}
-		</>
+      <>
+        <TextField fullWidth name="searchText" label="Name" value={searchText} onChange={handleChange} onKeyDown={handleKeyDown}
+          InputProps={{ endAdornment: <Button variant="contained" id="searchButton" data-testid="search-button" onClick={handleSubmit}>{Locale.label("common.search")}</Button> }}
+        />
+        {getResults()}
+      </>
 
     );
   }

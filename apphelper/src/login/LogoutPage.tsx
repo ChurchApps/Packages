@@ -34,8 +34,8 @@ const LogoutPageContent: React.FC<Props> = (props) => {
 
 export const LogoutPage: React.FC<Props> = (props) => {
   return (
-		<CookiesProvider defaultSetOptions={{ path: "/" }}>
-			<LogoutPageContent {...props} />
-		</CookiesProvider>
+    <CookiesProvider defaultSetOptions={{ path: "/" }}>
+      <LogoutPageContent {...props} />
+    </CookiesProvider>
   );
 };

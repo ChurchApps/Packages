@@ -18,7 +18,8 @@
     "copy-assets": "node scripts/copy-assets.js",
     "tsc": "tsc",
     "build": "npm-run-all clean tsc copy-assets",
-    "lint": "eslint --fix src/"
+    "lint": "eslint --fix src/",
+    "test": "tsx --test tests/*.test.ts"
   },
   "publishConfig": {
     "access": "public"
@@ -63,6 +64,7 @@
     "eslint-plugin-unused-imports": "^4.4.1",
     "npm-run-all2": "^8.0.4",
     "rimraf": "^6.0.1",
-    "typescript": "^5.9.2"
+    "tsx": "^4.0.0",
+    "typescript": "^6.0.3"
   }
 }

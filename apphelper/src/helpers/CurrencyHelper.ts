@@ -20,7 +20,7 @@ export class CurrencyHelper {
     const formatter = new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
-      minimumFractionDigits: 2,
+      minimumFractionDigits: 2
     });
     return formatter.format(amount);
   }
@@ -28,7 +28,7 @@ export class CurrencyHelper {
   static formatCurrencyWithLocale(
     amount: number,
     currency: string = "usd",
-    fractionDigits: number = 2,
+    fractionDigits: number = 2
   ) {
     const symbol = this.getCurrencySymbol(currency);
 
@@ -40,7 +40,7 @@ export class CurrencyHelper {
       currency: normalizedCurrency,
       currencyDisplay: "code",
       minimumFractionDigits: fractionDigits,
-      maximumFractionDigits: fractionDigits,
+      maximumFractionDigits: fractionDigits
     });
 
     // replace the currency code with the symbol
@@ -65,7 +65,7 @@ export class CurrencyHelper {
       dkk: { percent: 2.9, fixed: 1.8, symbol: "DKK" },
       chf: { percent: 2.9, fixed: 0.3, symbol: "CHF" },
       mxn: { percent: 2.9, fixed: 3.0, symbol: "MXN" },
-      brl: { percent: 3.9, fixed: 0.5, symbol: "R$" },
+      brl: { percent: 3.9, fixed: 0.5, symbol: "R$" }
     };
     return stripeCurrencyFees[normalizedCurrency]?.symbol || "$";
   }
@@ -86,14 +86,14 @@ export class CurrencyHelper {
       DKK: "da-DK",
       CHF: "de-CH",
       MXN: "es-MX",
-      BRL: "pt-BR",
+      BRL: "pt-BR"
     };
 
     return currencyLocaleMap[currency] || "en-US";
   }
 
   static async getExchangeRates(
-    baseCurrency: string,
+    baseCurrency: string
   ): Promise<Record<string, number>> {
     const cached = localStorage.getItem(this.CACHE_KEY);
 
@@ -107,14 +107,14 @@ export class CurrencyHelper {
     }
 
     const response = await fetch(
-      `https://api.frankfurter.dev/v1/latest?base=${baseCurrency}`,
+      `https://api.frankfurter.dev/v1/latest?base=${baseCurrency}`
     );
     const data = await response.json();
 
     const cache: RatesCache = {
       base: baseCurrency,
       rates: data.rates,
-      timestamp: Date.now(),
+      timestamp: Date.now()
     };
 
     localStorage.setItem(this.CACHE_KEY, JSON.stringify(cache));
@@ -125,13 +125,13 @@ export class CurrencyHelper {
   static convertDonation(
     donation: { currency: string; amount: number },
     rates: Record<string, number>,
-    targetCurrency: string,
+    targetCurrency: string
   ) {
     const converted = this.convertAmount(
       Number(donation.amount || 0),
       donation.currency?.toUpperCase() || "USD",
       targetCurrency,
-      rates,
+      rates
     );
 
     return this.formatCurrencyWithLocale(converted, targetCurrency);
@@ -140,7 +140,7 @@ export class CurrencyHelper {
   static convertDonationTotals(
     donations: { currency: string; amount: number }[],
     rates: Record<string, number>,
-    targetCurrency: string,
+    targetCurrency: string
   ) {
     const grouped: Record<string, number> = {};
 
@@ -167,7 +167,7 @@ export class CurrencyHelper {
     amount: number,
     fromCurrency: string,
     toCurrency: string,
-    rates: Record<string, number>,
+    rates: Record<string, number>
   ): number {
     const from = fromCurrency.toUpperCase();
     const to = toCurrency.toUpperCase();
@@ -190,13 +190,13 @@ export class CurrencyHelper {
     amount: number,
     donationCurrency: string,
     selectedCurrency: string,
-    rates: Record<string, number>,
+    rates: Record<string, number>
   ) {
     const converted = this.convertAmount(
       amount,
       donationCurrency,
       selectedCurrency,
-      rates,
+      rates
     );
 
     return this.formatCurrencyWithLocale(converted, selectedCurrency);

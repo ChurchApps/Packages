@@ -35,7 +35,7 @@ export function EditCalendarEventModal(props: Props) {
   };
 
   const getGroupEvents = () => {
-    selectedGroupId && ApiHelper.get("/events/public/group/" + props.churchId + "/" + selectedGroupId, "ContentApi").then((data: any) => setGroupEvents(data));
+    if (selectedGroupId) ApiHelper.get("/events/public/group/" + props.churchId + "/" + selectedGroupId, "ContentApi").then((data: any) => setGroupEvents(data));
   };
 
   const handleDone = () => {

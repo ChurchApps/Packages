@@ -14,9 +14,9 @@ export const TextWithPhoto: React.FC<Props> = props => {
   const textComponent = props?.onEdit
     ? <HtmlPreview value={textContent} textAlign={textAlign} element={props.element} showFloatingEditor onEdit={props.onEdit} />
     : <div
-        style={{ textAlign: textAlign as any }}
-        dangerouslySetInnerHTML={{ __html: textContent }}
-      />;
+      style={{ textAlign: textAlign as any }}
+      dangerouslySetInnerHTML={{ __html: textContent }}
+    />;
   let result = textComponent;
   switch (props.element.answers?.photoPosition || "left") {
     case "left":

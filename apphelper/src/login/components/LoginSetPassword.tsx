@@ -66,195 +66,195 @@ export const LoginSetPassword: React.FC<Props> = props => {
   const buttonDisabled = props.isSubmitting || (!user && !props.email);
 
   return (
-      <Card sx={{
-        width: "100%",
-        maxWidth: { xs: "400px", sm: "500px" },
-        backgroundColor: "white",
-        border: "1px solid #e5e7eb",
-        boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)"
-      }}>
-        <CardContent sx={{ textAlign: "center", padding: "32px" }}>
-          <div style={{ marginBottom: "32px" }}>
-            <img
-              src="/images/logo-login.png"
-              alt="Church Logo"
-              style={{
-                maxWidth: "100%",
-                width: "auto",
-                height: "auto",
-                maxHeight: "80px",
-                marginBottom: "16px",
-                objectFit: "contain"
+    <Card sx={{
+      width: "100%",
+      maxWidth: { xs: "400px", sm: "500px" },
+      backgroundColor: "white",
+      border: "1px solid #e5e7eb",
+      boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)"
+    }}>
+      <CardContent sx={{ textAlign: "center", padding: "32px" }}>
+        <div style={{ marginBottom: "32px" }}>
+          <img
+            src="/images/logo-login.png"
+            alt="Church Logo"
+            style={{
+              maxWidth: "100%",
+              width: "auto",
+              height: "auto",
+              maxHeight: "80px",
+              marginBottom: "16px",
+              objectFit: "contain"
+            }}
+          />
+        </div>
+        <Typography
+          component="h1"
+          sx={{
+            fontSize: "24px",
+            fontWeight: "bold",
+            color: "#111827",
+            marginBottom: "8px"
+          }}
+        >
+          {Locale.label("login.setPassword")}
+        </Typography>
+        <Typography
+          sx={{
+            color: "#6b7280",
+            marginBottom: "32px"
+          }}
+        >
+          {linkExpired ? "Your link has expired" : `Welcome back ${user?.firstName || ""}. Please set your password.`}
+        </Typography>
+
+        {linkExpired ? (
+          <div style={{ textAlign: "center", display: "flex", flexDirection: "column", gap: "16px" }}>
+            <Typography sx={{ color: "#dc2626", marginBottom: "16px" }}>
+              {Locale.label("login.expiredLink")}
+            </Typography>
+            <Button
+              variant="contained"
+              fullWidth
+              onClick={submitChangePassword}
+              disabled={props.isSubmitting}
+              sx={{
+                backgroundColor: "hsl(218, 85%, 55%)",
+                color: "white",
+                padding: "12px",
+                textTransform: "none",
+                fontSize: "16px",
+                fontWeight: 500,
+                borderRadius: "6px",
+                "&:hover": { backgroundColor: "hsl(218, 85%, 50%)" },
+                "&:disabled": { backgroundColor: "#9ca3af" }
               }}
-            />
+            >
+              {Locale.label("login.requestLink")}
+            </Button>
           </div>
-          <Typography
-            component="h1"
-            sx={{
-              fontSize: "24px",
-              fontWeight: "bold",
-              color: "#111827",
-              marginBottom: "8px"
-            }}
-          >
-            {Locale.label("login.setPassword")}
-          </Typography>
-          <Typography
-            sx={{
-              color: "#6b7280",
-              marginBottom: "32px"
-            }}
-          >
-            {linkExpired ? "Your link has expired" : `Welcome back ${user?.firstName || ""}. Please set your password.`}
-          </Typography>
-
-          {linkExpired ? (
-            <div style={{ textAlign: "center", display: "flex", flexDirection: "column", gap: "16px" }}>
-              <Typography sx={{ color: "#dc2626", marginBottom: "16px" }}>
-                {Locale.label("login.expiredLink")}
+        ) : (
+          <form onSubmit={(e) => { e.preventDefault(); submitChangePassword(); }} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            {user && (
+              <Typography sx={{ color: "#6b7280", textAlign: "center", marginBottom: "8px" }}>
+                {Locale.label("login.welcomeBack")} {user.firstName}.
               </Typography>
-              <Button
-                variant="contained"
+            )}
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              <label htmlFor="new-password" style={{ fontSize: "14px", fontWeight: 500, color: "#374151", textAlign: "left" }}>
+                {Locale.label("login.setPassword")}
+              </label>
+              <TextField
+                id="new-password"
+                name="new-password"
+                type={showPassword ? "text" : "password"}
+                placeholder={Locale.label("login.setPassword")}
+                value={password}
+                onChange={(e) => { e.preventDefault(); setPassword(e.target.value); }}
+                required
+                autoComplete="new-password"
+                variant="outlined"
                 fullWidth
-                onClick={submitChangePassword}
-                disabled={props.isSubmitting}
-                sx={{
-                  backgroundColor: "hsl(218, 85%, 55%)",
-                  color: "white",
-                  padding: "12px",
-                  textTransform: "none",
-                  fontSize: "16px",
-                  fontWeight: 500,
-                  borderRadius: "6px",
-                  "&:hover": { backgroundColor: "hsl(218, 85%, 50%)" },
-                  "&:disabled": { backgroundColor: "#9ca3af" }
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="toggle password visibility"
+                        onClick={() => setShowPassword(!showPassword)}
+                        edge="end"
+                        sx={{ color: "#6b7280" }}
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  )
                 }}
-              >
-                {Locale.label("login.requestLink")}
-              </Button>
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    backgroundColor: "white",
+                    paddingRight: "10px",
+                    "& fieldset": { borderColor: "#d1d5db" },
+                    "&:hover fieldset": { borderColor: "#d1d5db" },
+                    "&.Mui-focused fieldset": { borderColor: "#3b82f6" },
+                    "& input": {
+                      color: "#111827",
+                      fontSize: "16px"
+                    }
+                  },
+                  "& .MuiInputLabel-root": { display: "none" }
+                }}
+              />
             </div>
-          ) : (
-            <form onSubmit={(e) => { e.preventDefault(); submitChangePassword(); }} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              {user && (
-                <Typography sx={{ color: "#6b7280", textAlign: "center", marginBottom: "8px" }}>
-                  {Locale.label("login.welcomeBack")} {user.firstName}.
-                </Typography>
-              )}
 
-              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                <label htmlFor="new-password" style={{ fontSize: "14px", fontWeight: 500, color: "#374151", textAlign: "left" }}>
-                  {Locale.label("login.setPassword")}
-                </label>
-                <TextField
-                  id="new-password"
-                  name="new-password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder={Locale.label("login.setPassword")}
-                  value={password}
-                  onChange={(e) => { e.preventDefault(); setPassword(e.target.value); }}
-                  required
-                  autoComplete="new-password"
-                  variant="outlined"
-                  fullWidth
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          aria-label="toggle password visibility"
-                          onClick={() => setShowPassword(!showPassword)}
-                          edge="end"
-                          sx={{ color: "#6b7280" }}
-                        >
-                          {showPassword ? <VisibilityOff /> : <Visibility />}
-                        </IconButton>
-                      </InputAdornment>
-                    )
-                  }}
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      backgroundColor: "white",
-                      paddingRight: "10px",
-                      "& fieldset": { borderColor: "#d1d5db" },
-                      "&:hover fieldset": { borderColor: "#d1d5db" },
-                      "&.Mui-focused fieldset": { borderColor: "#3b82f6" },
-                      "& input": {
-                        color: "#111827",
-                        fontSize: "16px"
-                      }
-                    },
-                    "& .MuiInputLabel-root": { display: "none" }
-                  }}
-                />
-              </div>
-
-              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                <label htmlFor="verify-password" style={{ fontSize: "14px", fontWeight: 500, color: "#374151", textAlign: "left" }}>
-                  {Locale.label("login.verifyPassword")}
-                </label>
-                <TextField
-                  id="verify-password"
-                  name="verify-password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder={Locale.label("login.verifyPassword")}
-                  value={verifyPassword}
-                  onChange={(e) => { e.preventDefault(); setVerifyPassword(e.target.value); }}
-                  required
-                  autoComplete="new-password"
-                  variant="outlined"
-                  fullWidth
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position="end">
-                        <IconButton
-                          aria-label="toggle password visibility"
-                          onClick={() => setShowPassword(!showPassword)}
-                          edge="end"
-                          sx={{ color: "#6b7280" }}
-                        >
-                          {showPassword ? <VisibilityOff /> : <Visibility />}
-                        </IconButton>
-                      </InputAdornment>
-                    )
-                  }}
-                  sx={{
-                    "& .MuiOutlinedInput-root": {
-                      backgroundColor: "white",
-                      paddingRight: "10px",
-                      "& fieldset": { borderColor: "#d1d5db" },
-                      "&:hover fieldset": { borderColor: "#d1d5db" },
-                      "&.Mui-focused fieldset": { borderColor: "#3b82f6" },
-                      "& input": {
-                        color: "#111827",
-                        fontSize: "16px"
-                      }
-                    },
-                    "& .MuiInputLabel-root": { display: "none" }
-                  }}
-                />
-              </div>
-
-              <Button
-                type="submit"
-                variant="contained"
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              <label htmlFor="verify-password" style={{ fontSize: "14px", fontWeight: 500, color: "#374151", textAlign: "left" }}>
+                {Locale.label("login.verifyPassword")}
+              </label>
+              <TextField
+                id="verify-password"
+                name="verify-password"
+                type={showPassword ? "text" : "password"}
+                placeholder={Locale.label("login.verifyPassword")}
+                value={verifyPassword}
+                onChange={(e) => { e.preventDefault(); setVerifyPassword(e.target.value); }}
+                required
+                autoComplete="new-password"
+                variant="outlined"
                 fullWidth
-                disabled={buttonDisabled}
-                sx={{
-                  backgroundColor: "hsl(218, 85%, 55%)",
-                  color: "white",
-                  padding: "12px",
-                  textTransform: "none",
-                  fontSize: "16px",
-                  fontWeight: 500,
-                  borderRadius: "6px",
-                  "&:hover": { backgroundColor: "hsl(218, 85%, 50%)" },
-                  "&:disabled": { backgroundColor: "#9ca3af" }
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="toggle password visibility"
+                        onClick={() => setShowPassword(!showPassword)}
+                        edge="end"
+                        sx={{ color: "#6b7280" }}
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  )
                 }}
-              >
-                {buttonDisabled ? Locale.label("common.pleaseWait") : Locale.label("login.signIn")}
-              </Button>
-            </form>
-          )}
-        </CardContent>
-      </Card>
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    backgroundColor: "white",
+                    paddingRight: "10px",
+                    "& fieldset": { borderColor: "#d1d5db" },
+                    "&:hover fieldset": { borderColor: "#d1d5db" },
+                    "&.Mui-focused fieldset": { borderColor: "#3b82f6" },
+                    "& input": {
+                      color: "#111827",
+                      fontSize: "16px"
+                    }
+                  },
+                  "& .MuiInputLabel-root": { display: "none" }
+                }}
+              />
+            </div>
+
+            <Button
+              type="submit"
+              variant="contained"
+              fullWidth
+              disabled={buttonDisabled}
+              sx={{
+                backgroundColor: "hsl(218, 85%, 55%)",
+                color: "white",
+                padding: "12px",
+                textTransform: "none",
+                fontSize: "16px",
+                fontWeight: 500,
+                borderRadius: "6px",
+                "&:hover": { backgroundColor: "hsl(218, 85%, 50%)" },
+                "&:disabled": { backgroundColor: "#9ca3af" }
+              }}
+            >
+              {buttonDisabled ? Locale.label("common.pleaseWait") : Locale.label("login.signIn")}
+            </Button>
+          </form>
+        )}
+      </CardContent>
+    </Card>
   );
 };

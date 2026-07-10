@@ -21,11 +21,12 @@ export function EditEventModal(props: Props) {
 
   const handleRecurringDelete = (editType:string) => {
     switch (editType){
-      case "this":
+      case "this": {
         const exception: EventExceptionInterface = { eventId: event.id, exceptionDate: event.start };
         ApiHelper.post("/eventExceptions", [exception], "ContentApi").then(() => { if (props.onDone) props.onDone(); });
         break;
-      case "future":
+      }
+      case "future": {
         const ev = { ...event };
         const rrule = EventHelper.getFullRRule(ev);
         if (ev.start) rrule.options.until = new Date(ev.start);
@@ -33,6 +34,7 @@ export function EditEventModal(props: Props) {
         event.recurrenceRule = EventHelper.getPartialRRuleString(rrule.options);
         ApiHelper.post("/events", [event], "ContentApi").then(() => { if (props.onDone) props.onDone(); });
         break;
+      }
       case "all":
         ApiHelper.delete("/events/" + event.id, "ContentApi").then(() => { if (props.onDone) props.onDone(); });
         break;
@@ -42,7 +44,7 @@ export function EditEventModal(props: Props) {
 
   const handleRecurringSave = async (editType:string) => {
     switch (editType){
-      case "this":
+      case "this": {
         const exception: EventExceptionInterface = { eventId: event.id, exceptionDate: event.start };
         ApiHelper.post("/eventExceptions", [exception], "ContentApi").then(() => {
           const oneEv = { ...event };
@@ -51,7 +53,8 @@ export function EditEventModal(props: Props) {
           ApiHelper.post("/events", [oneEv], "ContentApi").then(() => { if (props.onDone) props.onDone(); });
         });
         break;
-      case "future":
+      }
+      case "future": {
         const newEvent = { ...event };
         newEvent.id = undefined;
         newEvent.recurrenceRule = rRule;
@@ -63,11 +66,13 @@ export function EditEventModal(props: Props) {
         originalEv.recurrenceRule = EventHelper.getPartialRRuleString(rrule.options);
         ApiHelper.post("/events", [originalEv, newEvent], "ContentApi").then(() => { if (props.onDone) props.onDone(); });
         break;
-      case "all":
+      }
+      case "all": {
         const allEv = { ...event };
         allEv.recurrenceRule = rRule;
         ApiHelper.post("/events", [allEv], "ContentApi").then(() => { if (props.onDone) props.onDone(); });
         break;
+      }
     }
     setRecurrenceModalType("");
   };
@@ -110,22 +115,22 @@ export function EditEventModal(props: Props) {
   const getDates = () => {
     if (event.allDay) {
       return (<>
-      <Grid size={{ xs: 6 }}>
-        <TextField name="start" type="date" value={(event.start) ? DateHelper.formatHtml5Date(DateHelper.toDate(event.start)) : ""} fullWidth label="Start Time" onChange={handleChange} size="small" data-testid="event-start-date-input" aria-label="Event start date" />
-      </Grid>
-      <Grid size={{ xs: 6 }}>
-        <TextField name="end" type="date" value={(event.end) ? DateHelper.formatHtml5Date(DateHelper.toDate(event.end)) : ""} fullWidth label="End Time" onChange={handleChange} size="small" data-testid="event-end-date-input" aria-label="Event end date" />
-      </Grid>
-    </>);
+        <Grid size={{ xs: 6 }}>
+          <TextField name="start" type="date" value={(event.start) ? DateHelper.formatHtml5Date(DateHelper.toDate(event.start)) : ""} fullWidth label="Start Time" onChange={handleChange} size="small" data-testid="event-start-date-input" aria-label="Event start date" />
+        </Grid>
+        <Grid size={{ xs: 6 }}>
+          <TextField name="end" type="date" value={(event.end) ? DateHelper.formatHtml5Date(DateHelper.toDate(event.end)) : ""} fullWidth label="End Time" onChange={handleChange} size="small" data-testid="event-end-date-input" aria-label="Event end date" />
+        </Grid>
+      </>);
     } else {
       return (<>
-      <Grid size={{ xs: 6 }}>
-        <TextField name="start" type="datetime-local" value={(event.start) ? DateHelper.formatHtml5DateTime(event.start) : ""} fullWidth label="Start Time" onChange={handleChange} size="small" data-testid="event-start-datetime-input" aria-label="Event start date and time" />
-      </Grid>
-      <Grid size={{ xs: 6 }}>
-        <TextField name="end" type="datetime-local" value={(event.end) ? DateHelper.formatHtml5DateTime(event.end) : ""} fullWidth label="End Time" onChange={handleChange} size="small" data-testid="event-end-datetime-input" aria-label="Event end date and time" />
-      </Grid>
-    </>);
+        <Grid size={{ xs: 6 }}>
+          <TextField name="start" type="datetime-local" value={(event.start) ? DateHelper.formatHtml5DateTime(event.start) : ""} fullWidth label="Start Time" onChange={handleChange} size="small" data-testid="event-start-datetime-input" aria-label="Event start date and time" />
+        </Grid>
+        <Grid size={{ xs: 6 }}>
+          <TextField name="end" type="datetime-local" value={(event.end) ? DateHelper.formatHtml5DateTime(event.end) : ""} fullWidth label="End Time" onChange={handleChange} size="small" data-testid="event-end-datetime-input" aria-label="Event end date and time" />
+        </Grid>
+      </>);
     }
 
   };
@@ -196,7 +201,7 @@ export function EditEventModal(props: Props) {
 
         </DialogContent>
       </Dialog>
-      {recurrenceModalType && <EditRecurringModal action={recurrenceModalType} onDone={(editType) => { (recurrenceModalType === "delete") ? handleRecurringDelete(editType) : handleRecurringSave(editType); }} /> }
+      {recurrenceModalType && <EditRecurringModal action={recurrenceModalType} onDone={(editType) => { if (recurrenceModalType === "delete") handleRecurringDelete(editType); else handleRecurringSave(editType); }} /> }
     </>
   );
 }

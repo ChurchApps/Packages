@@ -81,12 +81,12 @@ export interface WorkflowTriggerInterface {
   id?: string;
   churchId?: string;
   name?: string;
-  triggerKind?: string; 
-  eventType?: string; 
-  recurs?: string; 
+  triggerKind?: string;
+  eventType?: string;
+  recurs?: string;
   workflowId?: string;
   stepId?: string;
-  conditions?: string; 
+  conditions?: string;
   oncePerSubject?: boolean;
   active?: boolean;
 }

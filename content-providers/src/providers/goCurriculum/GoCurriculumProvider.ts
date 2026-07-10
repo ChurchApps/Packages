@@ -1,6 +1,6 @@
 import { AuthType, ContentFile, ContentItem, ContentProviderAuthData, ContentProviderConfig, Instructions, ProviderCapabilities, ProviderLogos } from "../../interfaces";
 import { parsePath } from "../../pathUtils";
-import { createFolder, createFile, detectMediaType, filesToInstructions } from "../../utils";
+import { createFolder, createFile, detectMediaType, filesToInstructions, slugify } from "../../utils";
 import { OAuthHelper } from "../../helpers";
 import { getProviderSecret } from "../../helpers/ProviderSecrets";
 import { BaseProvider } from "../BaseProvider";
@@ -9,8 +9,8 @@ import { GoCurriculumData, GoCurriculumCollection } from "./GoCurriculumInterfac
 
 /**
  * Path: / → collections, /{collection} → lessons (leaf), /{collection}/{lesson} → files.
- * Content is curated in data.json (media hosted on Dropbox); a valid gocurriculum.com
- * login (WP OAuth Server plugin) gates all of it.
+ * data.json is Go's catalog export dropped in verbatim (media hosted on Dropbox);
+ * a valid gocurriculum.com login (WP OAuth Server plugin) gates all of it.
  */
 export class GoCurriculumProvider extends BaseProvider {
   private readonly oauthHelper = new OAuthHelper();
@@ -61,12 +61,12 @@ export class GoCurriculumProvider extends BaseProvider {
     if (!(await this.verifyAuth(auth))) return [];
     const { segments, depth } = parsePath(path);
 
-    if (depth === 0) return this.data.collections.map(c => createFolder(c.id, c.name, `/${c.id}`, c.image));
+    if (depth === 0) return this.data.catalog.map(c => createFolder(c.id, c.name, `/${c.id}`, c.thumbnail));
 
-    const collection = this.data.collections.find(c => c.id === segments[0]);
+    const collection = this.data.catalog.find(c => c.id === segments[0]);
     if (!collection) return [];
 
-    if (depth === 1) return collection.lessons.map(l => createFolder(l.id, l.name, `/${collection.id}/${l.id}`, l.image || collection.image, true));
+    if (depth === 1) return collection.lessons.map(l => createFolder(l.id, l.name, `/${collection.id}/${l.id}`, l.thumbnail || collection.thumbnail, true));
     if (depth === 2) return this.getLessonFiles(collection, segments[1]);
 
     return [];
@@ -75,8 +75,8 @@ export class GoCurriculumProvider extends BaseProvider {
   private getLessonFiles(collection: GoCurriculumCollection, lessonId: string): ContentFile[] {
     const lesson = collection.lessons.find(l => l.id === lessonId);
     if (!lesson) return [];
-    // Dropbox temp links can be extension-less; the name usually carries the original filename
-    return lesson.files.map(f => createFile(f.id, f.name, f.url, { mediaType: detectMediaType(`${f.url} ${f.name}`, f.fileType), thumbnail: f.thumbnail || lesson.image || collection.image, seconds: f.seconds, loop: f.loop, loopVideo: f.loopVideo }));
+    // ponytail: playlist only — resources are PDFs/docx leader material with nothing to present; wire them into instructions if a consumer grows a downloads section
+    return lesson.playlist.map(f => createFile(slugify(f.file), f.title, f.url, { mediaType: detectMediaType(`${f.url} ${f.file}`, f.mediaType), thumbnail: f.thumbnail || lesson.thumbnail || collection.thumbnail, seconds: f.duration }));
   }
 
   async getPlaylist(path: string, auth?: ContentProviderAuthData | null, _resolution?: number): Promise<ContentFile[] | null> {
@@ -84,7 +84,7 @@ export class GoCurriculumProvider extends BaseProvider {
     const { segments, depth } = parsePath(path);
     if (depth !== 2) return null;
 
-    const collection = this.data.collections.find(c => c.id === segments[0]);
+    const collection = this.data.catalog.find(c => c.id === segments[0]);
     if (!collection) return null;
 
     const files = this.getLessonFiles(collection, segments[1]);
@@ -98,7 +98,7 @@ export class GoCurriculumProvider extends BaseProvider {
     const files = await this.getPlaylist(path, auth);
     if (!files) return null;
 
-    const collection = this.data.collections.find(c => c.id === segments[0]);
+    const collection = this.data.catalog.find(c => c.id === segments[0]);
     const lesson = collection?.lessons.find(l => l.id === segments[1]);
     return filesToInstructions(lesson?.name || "Lesson", files);
   }

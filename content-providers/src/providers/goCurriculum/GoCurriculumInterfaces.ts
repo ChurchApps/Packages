@@ -1,28 +1,40 @@
-export interface GoCurriculumFile {
-  id: string;
-  name: string;
+export interface GoCurriculumPlaylistItem {
+  title: string;
+  file: string;
   url: string;
-  fileType?: string;
-  seconds?: number;
-  loop?: boolean;
-  loopVideo?: boolean;
+  mediaType?: string;
+  duration?: number;
   thumbnail?: string;
+  shareUrl?: string;
+}
+
+export interface GoCurriculumResource {
+  title: string;
+  file: string;
+  url: string;
+  shareUrl?: string;
 }
 
 export interface GoCurriculumLesson {
   id: string;
   name: string;
-  image?: string;
-  files: GoCurriculumFile[];
+  thumbnail?: string;
+  bigIdea?: string;
+  bibleBasis?: string;
+  keyVerse?: string;
+  playlist: GoCurriculumPlaylistItem[];
+  resources?: GoCurriculumResource[];
 }
 
 export interface GoCurriculumCollection {
   id: string;
   name: string;
-  image?: string;
+  thumbnail?: string;
   lessons: GoCurriculumLesson[];
 }
 
 export interface GoCurriculumData {
-  collections: GoCurriculumCollection[];
+  generatedAt?: string;
+  provider?: { name?: string };
+  catalog: GoCurriculumCollection[];
 }

@@ -1,5 +1,16 @@
 # @churchapps/content-providers
 
+## 0.7.0
+
+### Minor Changes
+
+- 86645c1: GoCurriculum: data.json now uses Go Curriculum's own catalog export format verbatim (`catalog`/`thumbnail`/`playlist` with `duration`, file ids slugified from filenames) instead of the hand-rolled `collections`/`files` schema — new exports from Go drop in unmodified. Lesson `resources` (PDF/docx leader material) are carried in the data but not surfaced.
+- 030b4d9: content-providers: remove the hardcoded GoCurriculum OAuth clientSecret from the published bundle; hosts now inject it at startup via the new `setProviderSecret("gocurriculum", secret)` export (FreePlay uses EXPO_PUBLIC_GOCURRICULUM_CLIENT_SECRET, Api uses GOCURRICULUM_CLIENT_SECRET). helpers: UserHelper.selectChurch now propagates context.setUser/setPerson after a church switch, adds a userChurches guard; FileHelper.postPresignedFile drops the duplicate "key" form field (matches the live upload flows; no existing callers). apphelper: delete the 8 shadow-duplicated local helper files and route internal components (GalleryModal, SiteHeader, ChurchList) through @churchapps/helpers — note dist/helpers/\* deep-import paths for those files no longer exist.
+
+### Patch Changes
+
+- 40aa620: Unify TypeScript to 6.0.3 across the workspace (tsconfig TS6 fixes: apihelper rootDir, ignoreDeprecations in tsup packages, texting node types); add unit test suites to helpers and apihelper via tsx --test; fix lint errors in apphelper calendar/markdown components
+
 ## 0.6.1
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @churchapps/integration-sdk
 
+## 0.2.3
+
+### Patch Changes
+
+- 40aa620: Unify TypeScript to 6.0.3 across the workspace (tsconfig TS6 fixes: apihelper rootDir, ignoreDeprecations in tsup packages, texting node types); add unit test suites to helpers and apihelper via tsx --test; fix lint errors in apphelper calendar/markdown components
+
 ## 0.2.2
 
 ### Patch Changes

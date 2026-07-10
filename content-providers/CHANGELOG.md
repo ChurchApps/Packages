@@ -1,5 +1,11 @@
 # @churchapps/content-providers
 
+## 0.7.1
+
+### Patch Changes
+
+- GoCurriculum: ship the real pilot catalog in data.json — GO! Elementary Lessons, 6 lessons (11.2–12.5) with Dropbox-hosted playlists (fixed a stray apostrophe in Go's export that broke JSON parsing). Verified in-app on FreePlay: QR OAuth login, catalog browse, and streaming.
+
 ## 0.7.0
 
 ### Minor Changes

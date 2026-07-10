@@ -12,7 +12,7 @@ export * from "./interfaces";
 export { navigateToPath } from "./instructionPathUtils";
 
 // OAuthHelper/DeviceFlowHelper are part of the public contract (FreePlay uses device flow).
-export { TokenHelper, OAuthHelper, DeviceFlowHelper } from "./helpers";
+export { TokenHelper, OAuthHelper, DeviceFlowHelper, setProviderSecret } from "./helpers";
 export { toAuthData } from "./helpers/TokenHelper";
 
 export { BaseProvider } from "./providers/BaseProvider";

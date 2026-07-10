@@ -11,6 +11,11 @@ export class UserHelper {
   static selectChurch = async (context?: UserContextInterface, churchId?: string, keyName?: string) => {
     let userChurch = null;
 
+    if (!UserHelper.userChurches || !Array.isArray(UserHelper.userChurches)) {
+      if (context?.userChurches && Array.isArray(context.userChurches)) UserHelper.userChurches = context.userChurches;
+      else return;
+    }
+
     if (churchId) {
       UserHelper.userChurches.forEach(uc => {
         if (uc.church.id === churchId) userChurch = uc;
@@ -25,6 +30,8 @@ export class UserHelper {
       if (context) {
         if (context.userChurch !== null) UserHelper.churchChanged = true;
         context.setUserChurch(UserHelper.currentUserChurch);
+        if (UserHelper.user && context.setUser) context.setUser(UserHelper.user);
+        if (UserHelper.person && context.setPerson) context.setPerson(UserHelper.person);
       }
     }
   };

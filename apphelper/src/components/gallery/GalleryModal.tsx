@@ -1,6 +1,6 @@
 "use client";
 
-import { FileHelper } from "../../helpers/FileHelper";
+import { FileHelper } from "@churchapps/helpers";
 import { ApiHelper } from "../../helpers";
 import { Locale } from "../../helpers";
 import { CommonEnvironmentHelper } from "@churchapps/helpers";

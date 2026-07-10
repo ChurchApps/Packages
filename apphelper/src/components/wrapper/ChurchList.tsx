@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { LoginUserChurchInterface, UserContextInterface, ArrayHelper } from "@churchapps/helpers";
 import { ApiHelper } from "@churchapps/helpers";
-import { UserHelper } from "../../helpers/UserHelper";
+import { UserHelper } from "@churchapps/helpers";
 import { NavItem } from "./NavItem";
 import { Locale } from "../../helpers";
 

@@ -2,7 +2,7 @@ import React from "react";
 import { AppBar, Link, Toolbar } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { UserMenu } from "../wrapper/UserMenu";
-import { PersonHelper } from "../../helpers/PersonHelper";
+import { PersonHelper } from "@churchapps/helpers";
 import { PrimaryMenu } from "./PrimaryMenu";
 import { SecondaryMenu } from "./SecondaryMenu";
 import { SecondaryMenuAlt } from "./SecondaryMenuAlt";

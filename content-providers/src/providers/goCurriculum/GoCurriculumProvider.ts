@@ -2,6 +2,7 @@ import { AuthType, ContentFile, ContentItem, ContentProviderAuthData, ContentPro
 import { parsePath } from "../../pathUtils";
 import { createFolder, createFile, detectMediaType, filesToInstructions } from "../../utils";
 import { OAuthHelper } from "../../helpers";
+import { getProviderSecret } from "../../helpers/ProviderSecrets";
 import { BaseProvider } from "../BaseProvider";
 import goCurriculumData from "./data.json";
 import { GoCurriculumData, GoCurriculumCollection } from "./GoCurriculumInterfaces";
@@ -29,7 +30,8 @@ export class GoCurriculumProvider extends BaseProvider {
     apiBase: "https://gocurriculum.com",
     oauthBase: "https://gocurriculum.com/oauth",
     clientId: "Rdrvz9jz9nTNf8rCsbpuAgVLdoWHZmcjdmmrP0Bw",
-    clientSecret: "yfAbd2NERjzwVZP38g1AALdIvPPXwhFayCguiTCS",
+    // supplied at runtime via setProviderSecret("gocurriculum", ...) — never commit the value
+    get clientSecret(): string { return getProviderSecret("gocurriculum"); },
     scopes: ["basic"]
   };
 

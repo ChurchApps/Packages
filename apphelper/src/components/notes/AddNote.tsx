@@ -42,7 +42,7 @@ export function AddNote({ context, onCancel, ...props }: Props) {
     } else {
       setMessage({ conversationId: props.conversationId, content: "" });
     }
-    return () => setMessage(null);
+    return () => setMessage(undefined);
   }, [props.messageId, props.conversationId]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {

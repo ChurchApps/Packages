@@ -48,7 +48,7 @@ export function ImageEditor(props: Props) {
 
     const reader = new FileReader();
     reader.onload = () => {
-      const url = reader.result.toString();
+      const url = reader.result?.toString() || "";
       setPhotoSrc(url);
       setCroppedImageDataUrl("");
     };
@@ -127,7 +127,7 @@ export function ImageEditor(props: Props) {
       saveText={Locale.label("common.update")}
       saveFunction={handleSave}
       cancelFunction={props.onCancel}
-      deleteFunction={(!props.hideDelete) && handleDelete}
+      deleteFunction={(!props.hideDelete) ? handleDelete : undefined}
       headerActionContent={
         <div>
           <input type="file" onChange={handleUpload} id="fileUpload" accept="image/*" style={{ display: "none" }} />
@@ -135,7 +135,7 @@ export function ImageEditor(props: Props) {
             icon="upload"
             text="Upload"
             onClick={() => {
-              document.getElementById("fileUpload").click();
+              document.getElementById("fileUpload")?.click();
             }}
           />
         </div>

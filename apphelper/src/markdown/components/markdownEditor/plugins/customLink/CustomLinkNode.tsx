@@ -105,7 +105,7 @@ export const toggleCustomLinkNode = (
     getNodeByKey: (key: NodeKey) => HTMLElement | null;
   }
 ): void => {
-  const addAttributesToLinkNode = (linkNode: CustomLinkNode, { url, target, classNames }: LinkCustomizationAttributes) => {
+  const addAttributesToLinkNode = (linkNode: CustomLinkNode, { url, target = "_self", classNames = [] }: LinkCustomizationAttributes) => {
     const dom = getNodeByKey(linkNode.getKey());
 
     if (!dom) return;

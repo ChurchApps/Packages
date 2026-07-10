@@ -40,12 +40,12 @@ const COOKIE_MAX_AGE = 180 * 24 * 60 * 60; // 180 days in seconds (matches user 
 const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssProps, ...props }) => {
   const [welcomeBackName, setWelcomeBackName] = React.useState("");
   const [pendingAutoLogin, setPendingAutoLogin] = React.useState(false);
-  const [errors, setErrors] = React.useState([]);
+  const [errors, setErrors] = React.useState<string[]>([]);
   const [cookies, setCookie] = useCookies(["jwt", "name", "email", "lastChurchId"]);
   const [showForgot, setShowForgot] = React.useState(false);
   const [showRegister, setShowRegister] = React.useState(false);
   const [showSelectModal, setShowSelectModal] = React.useState(false);
-  const [loginResponse, setLoginResponse] = React.useState<LoginResponseInterface>(null);
+  const [loginResponse, setLoginResponse] = React.useState<LoginResponseInterface | null>(null);
   const [userJwt, setUserJwt] = React.useState("");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [registrationData, setRegistrationData] = React.useState<{
@@ -55,14 +55,14 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
   const [verifiedAuth, setVerifiedAuth] = React.useState<string>("");
   const [verifiedEmail, setVerifiedEmail] = React.useState<string>("");
 
-  const loginFormRef = React.useRef(null);
-  const location = typeof window !== "undefined" && window.location;
+  const loginFormRef = React.useRef<{ setSubmitting?: (value: boolean) => void } | null>(null);
+  const location = typeof window !== "undefined" ? window.location : undefined;
   let selectedChurchId = "";
-  let registeredChurch: ChurchInterface = null;
+  let registeredChurch: ChurchInterface | null = null;
   let userJwtBackup = ""; //use state copy for storing between page updates.  This copy for instant availability.
 
   const cleanAppUrl = () => {
-    if (!props.appUrl) return null;
+    if (!props.appUrl) return undefined;
     else {
       const index = props.appUrl.indexOf("/", 9);
       if (index === -1) return props.appUrl;
@@ -71,7 +71,7 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
   };
 
   React.useEffect(() => {
-    if (props.callbackErrors?.length > 0) {
+    if (props.callbackErrors && props.callbackErrors.length > 0) {
       setErrors(props.callbackErrors);
     }
   }, [props.callbackErrors]);
@@ -82,10 +82,10 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
     setCookie("email", "", { path: "/", maxAge: 0 });
     setCookie("lastChurchId", "", { path: "/", maxAge: 0 });
     ApiHelper.clearPermissions();
-    props.context.setUser(null);
+    props.context.setUser(null as any);
     props.context.setUserChurches([]);
-    props.context.setUserChurch(null);
-    props.context.setPerson(null);
+    props.context.setUserChurch(null as any);
+    props.context.setPerson(null as any);
     setErrors(["You have been successfully logged out."]);
 
     const search = new URLSearchParams(location?.search);
@@ -125,9 +125,9 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
   };
 
   const handleLoginSuccess = async (resp: LoginResponseInterface) => {
-    userJwtBackup = resp.user.jwt;
+    userJwtBackup = resp.user.jwt || "";
     setUserJwt(userJwtBackup);
-    ApiHelper.setDefaultPermissions(resp.user.jwt);
+    ApiHelper.setDefaultPermissions(resp.user.jwt || "");
     setLoginResponse(resp);
     (resp.userChurches || []).forEach(uc => { if (!uc.apis) uc.apis = []; });
     UserHelper.userChurches = resp.userChurches || [];
@@ -234,11 +234,11 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
         login({ jwt: userJwt || userJwtBackup });
         return;
       }
-      UserHelper.selectChurch(props.context, churchId, null).then(() => { continueLoginProcess(); });
+      UserHelper.selectChurch(props.context, churchId, undefined).then(() => { continueLoginProcess(); });
     } catch (err) {
       console.log("Error in selecting church: ", err);
       setErrors([Locale.label("login.validate.selectingChurch")]);
-      loginFormRef?.current?.setSubmitting(false);
+      loginFormRef?.current?.setSubmitting?.(false);
     }
 
   }
@@ -316,7 +316,7 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
   const handleCodeVerified = (authGuid: string, email?: string) => { setVerifiedAuth(authGuid); if (email) setVerifiedEmail(email); setShowForgot(false); setShowRegister(false); };
 
   const getInputBox = () => {
-    if (verifiedAuth) return (<LoginSetPassword setErrors={setErrors} setShowForgot={setShowForgot} isSubmitting={isSubmitting} auth={verifiedAuth} email={verifiedEmail} login={login} appName={props.appName} appUrl={cleanAppUrl()} />);
+    if (verifiedAuth) return (<LoginSetPassword setErrors={setErrors} setShowForgot={setShowForgot} isSubmitting={isSubmitting} auth={verifiedAuth} email={verifiedEmail} login={login} appName={props.appName || ""} appUrl={cleanAppUrl() || ""} />);
     if (showRegister) {
       return (
 
@@ -324,7 +324,7 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
 
       );
     } else if (showForgot) return (<Forgot registerCallback={handleRegisterCallback} loginCallback={handleLoginCallback} onVerified={handleCodeVerified} />);
-    else if (props.auth) return (<LoginSetPassword setErrors={setErrors} setShowForgot={setShowForgot} isSubmitting={isSubmitting} auth={props.auth} login={login} appName={props.appName} appUrl={cleanAppUrl()} />);
+    else if (props.auth) return (<LoginSetPassword setErrors={setErrors} setShowForgot={setShowForgot} isSubmitting={isSubmitting} auth={props.auth} login={login} appName={props.appName || ""} appUrl={cleanAppUrl() || ""} />);
     else return <Login setShowRegister={setShowRegister} setShowForgot={setShowForgot} setErrors={setErrors} isSubmitting={isSubmitting} login={login} mainContainerCssProps={loginContainerCssProps} defaultEmail={props.defaultEmail} defaultPassword={props.defaultPassword} showFooter={props.showFooter} onRegisterClick={(email) => { setRegistrationData({ email }); }} />;
   };
 
@@ -347,7 +347,7 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
       {getWelcomeBack()}
       {getCheckEmail()}
       {!pendingAutoLogin && getInputBox()}
-      <SelectChurchModal show={showSelectModal} userChurches={loginResponse?.userChurches} selectChurch={selectChurch} registeredChurchCallback={handleChurchRegistered} errors={errors} appName={props.appName} handleRedirect={props.handleRedirect} />
+      <SelectChurchModal show={showSelectModal} userChurches={loginResponse?.userChurches} selectChurch={selectChurch} registeredChurchCallback={handleChurchRegistered} errors={errors} appName={props.appName || ""} handleRedirect={props.handleRedirect} />
       <FloatingSupport appName={props.appName} />
     </div>
   );

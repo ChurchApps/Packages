@@ -36,7 +36,7 @@ export const FloatingDivContainer = styled(Box)({
 });
 
 function TextFormatFloatingToolbar({ editor, anchorElem, isLink, isBold, isItalic, isUnderline, isCode, isStrikethrough, isSubscript, isSuperscript, blockType, setBlockType }: any) {
-  const popupCharStylesEditorRef = useRef(null);
+  const popupCharStylesEditorRef = useRef<HTMLDivElement>(null);
 
   const applyFormatting = (command: string) => {
     editor.dispatchCommand(FORMAT_TEXT_COMMAND, command);

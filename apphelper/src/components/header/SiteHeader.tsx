@@ -145,7 +145,7 @@ export const SiteHeader = React.memo((props:Props) => {
               key="user-menu-stable"
               profilePicture={profilePicture}
               userName={userName}
-              context={stableContext}
+              context={stableContext as UserContextInterface}
               appName={props.appName}
               loadCounts={refresh}
               notificationCounts={{ notificationCount: 0, pmCount: 0 }}

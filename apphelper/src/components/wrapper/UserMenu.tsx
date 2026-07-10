@@ -42,7 +42,7 @@ const modalStateStore = {
 
   subscribe(listener: () => void) {
     this.listeners.add(listener);
-    return () => this.listeners.delete(listener);
+    return () => { this.listeners.delete(listener); };
   }
 };
 
@@ -211,7 +211,7 @@ const UserMenuContent: React.FC<Props> = React.memo((props) => {
       const jwt = ApiHelper.getConfig("MembershipApi").jwt;
       const churchId = props.context?.userChurch?.church?.id;
       const subDomain = props.context?.userChurch?.church?.subDomain;
-      const b1Url = CommonEnvironmentHelper.B1Root.replace("{key}", subDomain);
+      const b1Url = CommonEnvironmentHelper.B1Root.replace("{key}", subDomain || "");
       const returnUrl = encodeURIComponent(`/mobile/community/${personId}`);
       return <NavItem url={`${b1Url}/login?jwt=${jwt}&churchId=${churchId}&returnUrl=${returnUrl}`} external={true} label={getLabel("wrapper.editChurchProfile", "Edit Church Profile")} icon="church" onNavigate={props.onNavigate} />;
     }

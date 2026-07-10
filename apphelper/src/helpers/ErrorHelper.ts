@@ -26,8 +26,8 @@ export class ErrorHelper {
       };
 
 
-      if (log.errorType === "401" && log.message.indexOf("/users/login") > -1) return;
-      if (log.message.indexOf("clientErrors") > -1) return;
+      if (log.errorType === "401" && log.message!.indexOf("/users/login") > -1) return;
+      if (log.message!.indexOf("clientErrors") > -1) return;
       try {
         // Error posting to /errors endpoint disabled
         // ApiHelper.postAnonymous("/clientErrors", [log], "MembershipApi");

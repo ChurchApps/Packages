@@ -91,7 +91,7 @@ export class EmailHelper {
           await transporter.sendMail({ from, to, subject, html: body, replyTo });
         }
       }
-      return null;
+      return;
     } catch (err) {
       throw err;
     }

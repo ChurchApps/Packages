@@ -128,7 +128,7 @@ export const Notifications: React.FC<Props> = (props) => {
     return (
       <List id="notifications-list" sx={{ width: "100%" }}>
         {notifications.map((notification, index) => {
-          const datePosted = new Date(notification.timeSent);
+          const datePosted = new Date(notification.timeSent || NaN);
           const displayDuration = DateHelper.getDisplayDuration(datePosted);
           const isUnread = notification.isNew;
 
@@ -156,7 +156,7 @@ export const Notifications: React.FC<Props> = (props) => {
                       height: 48
                     }}
                   >
-                    {getNotificationIcon(notification.contentType)}
+                    {getNotificationIcon(notification.contentType || "")}
                   </Avatar>
                 </ListItemAvatar>
                 <ListItemText
@@ -205,7 +205,7 @@ export const Notifications: React.FC<Props> = (props) => {
                           size="small"
                           onClick={(e) => {
                             e.stopPropagation();
-                            window.open(notification.link, "_blank");
+                            window.open(notification.link || "", "_blank");
                           }}
                           sx={{ p: 0.5 }}
                         >

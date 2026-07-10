@@ -4,17 +4,18 @@ import WinstonCloudWatch from "winston-cloudwatch";
 import { EnvironmentBase } from "./EnvironmentBase.js";
 
 export class LoggingHelper {
-  private static _current: LoggingHelper = null;
+  private static _current: LoggingHelper | null = null;
   public static getCurrent = () => {
-    if (LoggingHelper._current === null) {
-      LoggingHelper._current = new LoggingHelper();
-      LoggingHelper._current.init("API");
+    if (!LoggingHelper._current) {
+      const current = new LoggingHelper();
+      current.init("API");
+      LoggingHelper._current = current;
     }
     return LoggingHelper._current;
   };
 
-  private _logger: winston.Logger = null;
-  private wc: WinstonCloudWatch;
+  private _logger: winston.Logger | null = null;
+  private wc?: WinstonCloudWatch;
   private pendingMessages = false;
   private logGroupName = EnvironmentBase.appName + "_" + EnvironmentBase.appEnv;
   private logDestination = "console";
@@ -26,14 +27,14 @@ export class LoggingHelper {
   public info(msg: string | object) {
     if (this._logger === null) this.init("API");
     this.pendingMessages = true;
-    this._logger.info(msg);
+    this._logger!.info(msg);
   }
 
   public log(streamName: string, level: string, msg: string | object) {
     if (this._logger === null) this.init(streamName);
     this.pendingMessages = true;
-    if (level === "info") this._logger.info(msg);
-    else this._logger.error(msg);
+    if (level === "info") this._logger!.info(msg);
+    else this._logger!.error(msg);
   }
 
   private init(streamName: string) {

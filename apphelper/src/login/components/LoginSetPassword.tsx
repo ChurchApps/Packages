@@ -21,7 +21,7 @@ interface Props {
 export const LoginSetPassword: React.FC<Props> = props => {
   const [password, setPassword] = React.useState("");
   const [verifyPassword, setVerifyPassword] = React.useState("");
-  const [user, setUser] = React.useState<UserInterface>(null);
+  const [user, setUser] = React.useState<UserInterface | null>(null);
   const [showPassword, setShowPassword] = React.useState(false);
   const [linkExpired, setLinkExpired] = React.useState(false);
 

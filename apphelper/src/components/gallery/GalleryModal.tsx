@@ -28,7 +28,7 @@ export const GalleryModal: React.FC<Props> = (props: Props) => {
 
   const loadData = () => { ApiHelper.get("/gallery/" + aspectRatio.toString(), "ContentApi").then((data: any) => setImages(data.images)); };
 
-  const handleImageUpdated = async (dataUrl: string) => {
+  const handleImageUpdated = async (dataUrl?: string) => {
 
     if (!dataUrl) {
       console.warn("No dataUrl provided to handleImageUpdated");

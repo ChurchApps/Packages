@@ -89,7 +89,7 @@ export class SubscriptionManager {
       conversationId,
       churchId,
       socketId: SocketHelper.socketId,
-      personId: personId ?? null,
+      personId: personId ?? undefined,
       displayName: displayName ?? ""
     };
     try {

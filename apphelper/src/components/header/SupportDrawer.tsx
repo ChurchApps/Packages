@@ -10,12 +10,11 @@ type Props = {
 
 export const SupportDrawer = (props: Props) => {
   const [open, setOpen] = useState<boolean>(false);
-  const [supportContact, setSupportContact] = useState<string>(null);
-  const [churchLogo, setChurchLogo] = useState<string>(null);
+  const [supportContact, setSupportContact] = useState<string | null>(null);
+  const [churchLogo, setChurchLogo] = useState<string | null>(null);
   const supportHref = "https://support.churchapps.org/";
 
-  let currentAppName = "";
-  currentAppName = props.appName.toLowerCase();
+  let currentAppName = props.appName.toLowerCase();
   if (currentAppName === "b1admin") currentAppName = "b1Admin";
 
   const validateEmail = (email: string) => {
@@ -35,10 +34,10 @@ export const SupportDrawer = (props: Props) => {
   };
 
   const handleChurchSupportClick = () => {
-    if (validateEmail(supportContact)) {
+    if (validateEmail(supportContact || "")) {
       window.location.href = `mailto:${supportContact}`;
     } else {
-      window.open(`http://${supportContact}`, "_blank").focus();
+      window.open(`http://${supportContact}`, "_blank")?.focus();
     }
   };
 
@@ -68,7 +67,7 @@ export const SupportDrawer = (props: Props) => {
             {supportContact ? (
               <Box sx={{ display: "flex", justifyContent: "end", alignItems: "center" }}>
                 <Box sx={{ cursor: "pointer", display: "flex", justifyContent: "center", alignItems: "center", marginRight: 2, borderRadius: 2, padding: "7px", backgroundColor: "#e9e9e9" }} component="div" onClick={() => handleChurchSupportClick()}>
-                  <Avatar variant="rounded" src={churchLogo ? churchLogo : null} sx={{ marginRight: 1, bgcolor: "#568bda", width: 25, height: 25 }}>
+                  <Avatar variant="rounded" src={churchLogo || undefined} sx={{ marginRight: 1, bgcolor: "#568bda", width: 25, height: 25 }}>
                     <Icon fontSize="small">church</Icon>
                   </Avatar>
                   <Typography sx={{ color: "#568bda", fontSize: "13px" }}>Support</Typography>
@@ -83,11 +82,11 @@ export const SupportDrawer = (props: Props) => {
                 </ListItemButton>
               </ListItem>
             </List>
-            {props?.relatedArticles?.length > 0 ? (
+            {(props?.relatedArticles?.length ?? 0) > 0 ? (
               <Box sx={{ marginTop: 2 }}>
                 <Typography sx={{ color: "#568bda", textDecoration: "underline", textUnderlineOffset: 10, textDecorationThickness: 2, marginLeft: 2 }}>Features Tour</Typography>
                 <List sx={{ marginTop: 1.5 }}>
-                  {props.relatedArticles.map((a) => {
+                  {props.relatedArticles?.map((a) => {
                     const result = getLabelFromPath(a);
                     return (
                       <ListItem disablePadding>

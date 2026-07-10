@@ -82,7 +82,7 @@ export const SelectChurchModal: React.FC<Props> = (props) => {
 				</IconButton>
 			</Tooltip>
 			<DialogContent id="select-church-content" sx={{ width: 700, maxWidth: "100%", px: 2, py: 2 }}>
-				<ErrorMessages errors={props.errors} />
+				<ErrorMessages errors={props.errors || []} />
 				{getContents()}
 			</DialogContent>
 		</Dialog>

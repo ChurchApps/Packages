@@ -74,8 +74,8 @@ export class ConversationStore {
     if (!conversations || conversations.length === 0) return null;
     const conv = conversations[0];
     await ConversationStore.hydratePeople(conv);
-    ConversationStore.conversations.set(conv.id, conv);
-    ConversationStore.notify(conv.id);
+    ConversationStore.conversations.set(conv.id!, conv);
+    ConversationStore.notify(conv.id!);
     return conv;
   };
 

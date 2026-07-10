@@ -94,7 +94,7 @@ export default function HtmlEditorInner({ value, onChange, style, placeholder = 
       {
         replace: LinkNode,
         with: (node: LinkNode) => (
-          new CustomLinkNode(node.getURL(), node.getTarget(), [])
+          new CustomLinkNode(node.getURL(), node.getTarget() ?? undefined, [])
         )
       }
     ],

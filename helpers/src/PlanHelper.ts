@@ -81,7 +81,7 @@ export class PlanHelper {
     contentMap: Map<string, PlanItemContentInterface>
   ): void {
     for (const item of items) {
-      const content = contentMap.get(item.id);
+      const content = contentMap.get(item.id!);
       if (content) {
         item.content = content;
       }

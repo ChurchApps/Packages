@@ -16,7 +16,7 @@ export class LessonsContentProvider implements ContentProviderInterface {
     const lessonTypes = ["lessonAction", "lessonAddOn", "lessonSection"];
     const hasLessonPlan = plan?.contentType === "venue" || plan?.contentType === "externalVenue";
 
-    if (lessonTypes.includes(planItem.itemType) && planItem.relatedId) return true;
+    if (lessonTypes.includes(planItem.itemType || "") && planItem.relatedId) return true;
     if (planItem.itemType === "item" && planItem.relatedId && hasLessonPlan) return true;
 
     return false;
@@ -38,7 +38,7 @@ export class LessonsContentProvider implements ContentProviderInterface {
 
     // Build embed URLs for each item
     for (const item of actions) {
-      result.set(item.id, {
+      result.set(item.id!, {
         provider: this.providerId,
         embedUrl: externalRef
           ? `${this.lessonsUrl}/embed/external/${externalRef.externalProviderId}/action/${item.relatedId}`
@@ -47,7 +47,7 @@ export class LessonsContentProvider implements ContentProviderInterface {
     }
 
     for (const item of addOns) {
-      result.set(item.id, {
+      result.set(item.id!, {
         provider: this.providerId,
         embedUrl: externalRef
           ? `${this.lessonsUrl}/embed/external/${externalRef.externalProviderId}/addon/${item.relatedId}`
@@ -56,7 +56,7 @@ export class LessonsContentProvider implements ContentProviderInterface {
     }
 
     for (const item of sections) {
-      result.set(item.id, {
+      result.set(item.id!, {
         provider: this.providerId,
         embedUrl: externalRef
           ? `${this.lessonsUrl}/embed/external/${externalRef.externalProviderId}/section/${item.relatedId}`

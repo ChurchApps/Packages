@@ -36,8 +36,8 @@ interface Props {
 export const NewPrivateMessage: React.FC<Props> = (props) => {
 
   const [searchText, setSearchText] = React.useState("");
-  const [searchResults, setSearchResults] = React.useState([]);
-  const [selectedPerson, setSelectedPerson] = React.useState<PersonInterface>(null);
+  const [searchResults, setSearchResults] = React.useState<PersonInterface[]>([]);
+  const [selectedPerson, setSelectedPerson] = React.useState<PersonInterface | null>(null);
 
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -66,7 +66,7 @@ export const NewPrivateMessage: React.FC<Props> = (props) => {
 
 
   const handleNoteAdded = () => {
-    handlePersonSelected(selectedPerson);
+    if (selectedPerson) handlePersonSelected(selectedPerson);
   };
 
   const createConversation = async () => {
@@ -75,11 +75,11 @@ export const NewPrivateMessage: React.FC<Props> = (props) => {
 
     const pm: PrivateMessageInterface = {
       fromPersonId: props.context.person.id,
-      toPersonId: selectedPerson.id,
+      toPersonId: selectedPerson?.id,
       conversationId: result[0].id
     };
     const privateMessages: PrivateMessageInterface[] = await ApiHelper.post("/privateMessages", [pm], "MessagingApi");
-    return privateMessages[0].conversationId;
+    return privateMessages[0].conversationId || "";
   };
 
 
@@ -90,7 +90,7 @@ export const NewPrivateMessage: React.FC<Props> = (props) => {
 
   const [isSearching, setIsSearching] = useState(false);
 
-  const handleSearchSubmit = async (e: React.MouseEvent) => {
+  const handleSearchSubmit = async (e: React.MouseEvent | null) => {
     if (e !== null) e.preventDefault();
     if (!searchText.trim()) return;
 
@@ -239,7 +239,7 @@ export const NewPrivateMessage: React.FC<Props> = (props) => {
           <Divider sx={{ mb: 3 }} />
           <AddNote
             context={props.context}
-            conversationId={null}
+            conversationId={undefined}
             onUpdate={handleNoteAdded}
             createConversation={createConversation}
           />

@@ -16,10 +16,10 @@ export class ErrorController extends CustomBaseController {
             this.logger.log(req.body[0].application, "info", e);
         }*/
     req.body.forEach(error => {
-      let fullMessage = error.message;
+      let fullMessage = error.message || "";
       if (error.additionalDetails !== undefined) fullMessage += "\n" + error.additionalDetails;
       // if (au !== null) fullMessage += "\nUser: " + au.id + " Church: " + au.churchId;
-      this.logger.log(error.application, error.level, fullMessage);
+      this.logger.log(error.application || "unknown", error.level || "error", fullMessage);
     });
     await this.logger.flush();
     return req.body;

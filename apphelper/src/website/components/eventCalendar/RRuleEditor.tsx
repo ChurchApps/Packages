@@ -15,9 +15,9 @@ interface Props {
 export function RRuleEditor(props: Props) {
   const initialOptions = (props.rRule?.length > 0) ? rrulestr(props.rRule).options : new RRule({ dtstart: props.start }).options;
   initialOptions.dtstart = props.start;
-  initialOptions.byhour = undefined;
-  initialOptions.byminute = undefined;
-  initialOptions.bysecond = undefined;
+  initialOptions.byhour = [];
+  initialOptions.byminute = [];
+  initialOptions.bysecond = [];
   const [rRuleOptions, setRRuleOptions] = useState(initialOptions);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<string>) => {
@@ -130,9 +130,9 @@ export function RRuleEditor(props: Props) {
   const handleEndsChange = (e:SelectChangeEvent) => {
     const options = { ...rRuleOptions };
     switch (e.target.value) {
-      case "never": options.count = undefined; options.until = undefined; break;
-      case "count": options.count = 1; options.until = undefined; break;
-      case "until": options.count = undefined; options.until = new Date(); break;
+      case "never": options.count = null; options.until = null; break;
+      case "count": options.count = 1; options.until = null; break;
+      case "until": options.count = null; options.until = new Date(); break;
     }
     setRRuleOptions(options);
   };

@@ -21,7 +21,7 @@ export const SelectChurchRegister: React.FC<Props> = (props) => {
   };
 
   const [church, setChurch] = React.useState<RegisterChurchRequestInterface>({ name: props.initialChurchName, appName: props.appName, subDomain: suggestSubDomain(props.initialChurchName) });
-  const [errors, setErrors] = React.useState([]);
+  const [errors, setErrors] = React.useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -55,7 +55,7 @@ export const SelectChurchRegister: React.FC<Props> = (props) => {
     if (validate()) {
       setIsSubmitting(true);
       const c = { ...church };
-      if (!c.subDomain) c.subDomain = suggestSubDomain(c.name);
+      if (!c.subDomain) c.subDomain = suggestSubDomain(c.name || "");
       ApiHelper.post("/churches/add", church, "MembershipApi")
         .then(async (resp: any) => {
           if (resp.errors !== undefined) setErrors(resp.errors);

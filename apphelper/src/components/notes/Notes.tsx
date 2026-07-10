@@ -18,8 +18,8 @@ interface Props {
 }
 
 export function Notes(props: Props) {
-  const [messages, setMessages] = React.useState<MessageInterface[]>(null);
-  const [editMessageId, setEditMessageId] = React.useState(null);
+  const [messages, setMessages] = React.useState<MessageInterface[] | null>(null);
+  const [editMessageId, setEditMessageId] = React.useState<string | null>(null);
   const [isInitialLoad, setIsInitialLoad] = React.useState(true);
   const [previousMessageCount, setPreviousMessageCount] = React.useState(0);
   const churchId = props.context?.userChurch?.church?.id;
@@ -112,7 +112,7 @@ export function Notes(props: Props) {
     if (!messages) return <Loading />;
     if (visibleMessages.length === 0) return <></>;
     return visibleMessages.map(m => (
-      <Note message={m} key={m.id} showEditNote={setEditMessageId} context={props.context} />
+      <Note message={m} key={m.id} showEditNote={(id) => setEditMessageId(id ?? null)} context={props.context} />
     ));
   };
 
@@ -197,8 +197,8 @@ export function Notes(props: Props) {
             context={props.context}
             conversationId={props.conversationId}
             onUpdate={onLocalUpdate}
-            createConversation={props.createConversation}
-            messageId={editMessageId}
+            createConversation={props.createConversation!}
+            messageId={editMessageId ?? undefined}
             onCancel={() => setEditMessageId(null)}
           />
         </div>
@@ -212,8 +212,8 @@ export function Notes(props: Props) {
           context={props.context}
           conversationId={props.conversationId}
           onUpdate={onLocalUpdate}
-          createConversation={props.createConversation}
-          messageId={editMessageId}
+          createConversation={props.createConversation!}
+          messageId={editMessageId ?? undefined}
           onCancel={() => setEditMessageId(null)}
         />
       )}

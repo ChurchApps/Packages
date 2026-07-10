@@ -3,7 +3,7 @@
 import React, { FormEventHandler } from "react";
 import { ApiHelper } from "@churchapps/helpers";
 import { Locale } from "../helpers";
-import { ResetPasswordRequestInterface, ResetPasswordResponseInterface } from "@churchapps/helpers";
+import { ResetPasswordRequestInterface } from "@churchapps/helpers";
 import { TextField, Typography, Card, CardContent, Button } from "@mui/material";
 import { VerificationCodeInput } from "./VerificationCodeInput";
 
@@ -16,7 +16,7 @@ interface Props {
 const RESEND_COOLDOWN_SECONDS = 30;
 
 export const Forgot: React.FC<Props> = props => {
-  const [errors, setErrors] = React.useState([]);
+  const [errors, setErrors] = React.useState<string[]>([]);
   const [email, setEmail] = React.useState("");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [codeSent, setCodeSent] = React.useState(false);

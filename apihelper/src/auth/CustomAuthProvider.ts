@@ -12,14 +12,14 @@ export class CustomAuthProvider implements interfaces.AuthProvider {
     const authHeader = req.headers.authorization;
     if (authHeader) {
       const token = authHeader.split(" ")[1];
-      if (!token) return null;
+      if (!token) return null as unknown as Principal;
       const decoded = jwt.verify(token, EnvironmentBase.jwtSecret);
 
       const result = decoded ? new Principal(typeof decoded === "object" && decoded !== null ? decoded as Record<string, unknown> : {}) : null;
       if (result) result.details.jwt = token;
-      return result;
+      return result as Principal;
     }
 
-    return null;
+    return null as unknown as Principal;
   }
 }

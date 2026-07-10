@@ -34,7 +34,7 @@ export const SelectableChurch: React.FC<Props> = (props) => {
           transform: "translateY(-2px)"
         }
       }}
-      onClick={() => props.selectChurch(props.church.id)}
+      onClick={() => props.selectChurch(props.church.id || "")}
     >
       <Grid container spacing={2} alignItems="center">
         <Grid size={{ xs: 12, sm: 5, md: 5 }}>

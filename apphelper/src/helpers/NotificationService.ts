@@ -149,7 +149,7 @@ export class NotificationService {
 
       this.updateCounts(newCounts);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("❌ Failed to load notification counts:", error);
       console.error("❌ Error details:", {
         message: error.message,

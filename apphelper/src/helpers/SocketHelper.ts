@@ -5,8 +5,8 @@ const PROBE_TIMEOUT_MS = 3000;
 const MAX_BACKOFF_MS = 30000;
 
 export class SocketHelper {
-  static socket: WebSocket;
-  static socketId: string;
+  static socket: WebSocket | null;
+  static socketId: string | null;
   static actionHandlers: SocketActionHandlerInterface[] = [];
   private static personIdChurchId: { personId: string, churchId: string } = { personId: "", churchId: "" };
   private static deliberateClose = false;
@@ -196,7 +196,7 @@ export class SocketHelper {
     SocketHelper.probeInFlight = true;
     const before = SocketHelper.lastFrameAt;
     try {
-      SocketHelper.socket.send("getId");
+      SocketHelper.socket!.send("getId");
     } catch {
       SocketHelper.probeInFlight = false;
       SocketHelper.connect();
@@ -303,7 +303,7 @@ export class SocketHelper {
   };
 
   static isConnected = (): boolean => {
-    return SocketHelper.socket && SocketHelper.socket.readyState === SocketHelper.socket.OPEN;
+    return !!SocketHelper.socket && SocketHelper.socket.readyState === SocketHelper.socket.OPEN;
   };
 
   static getConnectionState = (): string => {

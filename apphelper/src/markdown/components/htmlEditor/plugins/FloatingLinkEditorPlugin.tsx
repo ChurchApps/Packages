@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { $getSelection, $isRangeSelection, SELECTION_CHANGE_COMMAND, COMMAND_PRIORITY_LOW } from "lexical";
-import { $isLinkNode } from "@lexical/link";
+import { $isLinkNode, LinkNode } from "@lexical/link";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { mergeRegister } from "@lexical/utils";
 import { createPortal } from "react-dom";
@@ -56,7 +56,7 @@ export default function FloatingLinkEditorPlugin({ anchorElem, isLinkEditMode, s
         editor.update(() => {
           // Find the link node from the DOM element
           const linkNodes = editor._editorState._nodeMap;
-          let foundLinkNode = null;
+          let foundLinkNode: LinkNode | null = null;
 
           linkNodes.forEach((node: any) => {
             if ($isLinkNode(node)) {
@@ -67,16 +67,17 @@ export default function FloatingLinkEditorPlugin({ anchorElem, isLinkEditMode, s
             }
           });
 
-          if (foundLinkNode) {
+          const resolvedLinkNode = foundLinkNode as LinkNode | null;
+          if (resolvedLinkNode) {
             // Store the link node key for later use
-            currentLinkNodeKey.current = foundLinkNode.__key;
+            currentLinkNodeKey.current = resolvedLinkNode.__key;
 
             // Select the entire link node
-            foundLinkNode.select();
+            resolvedLinkNode.select();
 
             // Get link attributes
-            const url = foundLinkNode.getURL();
-            const target = foundLinkNode.getTarget();
+            const url = resolvedLinkNode.getURL();
+            const target = resolvedLinkNode.getTarget();
 
             // Extract class names from the DOM element
             const classes = Array.from(linkElement.classList);

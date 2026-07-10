@@ -26,7 +26,7 @@ export class Pool {
         if ((field.type === "BIT") && (field.length === 1)) {
           try {
             const bytes = field.buffer();
-            return (bytes[0] === 1);
+            return (bytes?.[0] === 1);
           } catch { return false; }
         }
         return useDefaultTypeCasting();

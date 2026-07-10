@@ -127,7 +127,7 @@ export class AwsHelper {
         Key: key
       });
       const response = await this.getClient().send(command);
-      return await response.Body?.transformToString();
+      return (await response.Body?.transformToString()) ?? null;
     } catch (error) {
       console.error("Error reading from S3:", error);
       return null;

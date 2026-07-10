@@ -36,7 +36,7 @@ export const Register: React.FC<Props> = (props) => {
   };
 
   const [registered, setRegistered] = React.useState(false);
-  const [user, setUser] = React.useState<RegisterUserInterface>({ firstName: props.defaultFirstName || "", lastName: props.defaultLastName || "", email: props.defaultEmail || "", appName: props.appName, appUrl: cleanAppUrl(), churchId: props.defaultChurchId || undefined });
+  const [user, setUser] = React.useState<RegisterUserInterface>({ firstName: props.defaultFirstName || "", lastName: props.defaultLastName || "", email: props.defaultEmail || "", appName: props.appName || "", appUrl: cleanAppUrl() || "", churchId: props.defaultChurchId || undefined });
   const [errors, setErrors] = React.useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const submissionStartedRef = React.useRef(false);
@@ -118,7 +118,7 @@ export const Register: React.FC<Props> = (props) => {
             // Skip verification if email not configured on server.
             AnalyticsHelper.logEvent("User", "Register");
             if (props.userRegisteredCallback) props.userRegisteredCallback(resp);
-            props.onVerified(resp.authGuid, user.email);
+            props.onVerified(resp.authGuid, user.email || "");
           } else handleRegisterSuccess(resp);
         })
         .catch((e: any) => { props.updateErrors([e.toString()]); throw e; })
@@ -155,7 +155,7 @@ export const Register: React.FC<Props> = (props) => {
       if (resp.errors) {
         setErrors(resp.errors.map((err: any) => typeof err === "string" ? err : err.msg || "Invalid code"));
       } else if (resp.authGuid && props.onVerified) {
-        props.onVerified(resp.authGuid, user.email);
+        props.onVerified(resp.authGuid, user.email || "");
       }
     } catch (err: any) {
       setErrors([err?.toString() || "Invalid code"]);

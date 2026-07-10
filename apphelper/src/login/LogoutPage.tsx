@@ -16,10 +16,10 @@ const LogoutPageContent: React.FC<Props> = (props) => {
     removeCookie("lastChurchId");
 
     ApiHelper.clearPermissions();
-    props.context?.setUser(null);
-    props.context?.setPerson(null);
-    props.context?.setUserChurches(null);
-    props.context?.setUserChurch(null);
+    props.context?.setUser(null as any);
+    props.context?.setPerson(null as any);
+    props.context?.setUserChurches(null as any);
+    props.context?.setUserChurch(null as any);
 
     const t = setTimeout(() => {
       if (typeof window === "undefined") return;

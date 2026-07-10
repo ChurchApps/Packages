@@ -97,7 +97,7 @@ function TextFormatFloatingToolbar({
       updateTextFormatFloatingToolbar();
     });
     return mergeRegister(
-      editor.registerUpdateListener(({ editorState }) => {
+      editor.registerUpdateListener(({ editorState }: { editorState: any }) => {
         editorState.read(() => {
           updateTextFormatFloatingToolbar();
         });

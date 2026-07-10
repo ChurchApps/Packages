@@ -100,14 +100,14 @@ export const ChurchList: React.FC<Props> = props => {
       return label && label !== key ? label : fallback;
     };
 
-    const confirmMessage = getLabel("wrapper.sureRemoveChurch", "Are you sure you wish to delete this church? You will no longer be a member of {}.").replace("{}", uc.church.name?.toUpperCase());
+    const confirmMessage = getLabel("wrapper.sureRemoveChurch", "Are you sure you wish to delete this church? You will no longer be a member of {}.").replace("{}", uc.church.name?.toUpperCase() || "");
     if (window.confirm(confirmMessage)) {
       await ApiHelper.delete(`/userchurch/record/${props.context.user.id}/${uc.church.id}/${uc.person.id}`, "MembershipApi");
       await ApiHelper.delete(`/rolemembers/self/${uc.church.id}/${props.context.user.id}`, "MembershipApi");
       // remove the same from userChurches
       const idx = ArrayHelper.getIndex(UserHelper.userChurches, "church.id", uc.church.id);
       if (idx > -1) UserHelper.userChurches.splice(idx, 1);
-      props?.onDelete();
+      props?.onDelete?.();
     }
   };
 
@@ -126,7 +126,7 @@ export const ChurchList: React.FC<Props> = props => {
       key={userChurch.church.id}
       selected={(uc.church.id === props.currentUserChurch.church.id) && true}
       onClick={async () => {
-			  await UserHelper.selectChurch(props.context, userChurch.church.id, null);
+			  await UserHelper.selectChurch(props.context, userChurch.church.id, undefined);
 
 			  // Call the onChurchChange callback if provided
 			  if (props.onChurchChange) {
@@ -135,7 +135,7 @@ export const ChurchList: React.FC<Props> = props => {
       }}
       label={churchName || "Unknown"}
       icon="church"
-      deleteIcon={uc.church.id !== props.currentUserChurch.church.id ? "delete" : null}
+      deleteIcon={uc.church.id !== props.currentUserChurch.church.id ? "delete" : undefined}
       deleteLabel={getLabel("wrapper.deleteChurch", "Delete")}
       deleteFunction={() => { handleDelete(uc); }}
     />);

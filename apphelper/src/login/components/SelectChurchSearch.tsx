@@ -16,10 +16,10 @@ interface Props {
 
 export const SelectChurchSearch: React.FC<Props> = (props) => {
   const [searchText, setSearchText] = React.useState("");
-  const [churches, setChurches] = React.useState<ChurchInterface[]>(null);
+  const [churches, setChurches] = React.useState<ChurchInterface[] | null>(null);
   const [showRegister, setShowRegister] = React.useState(false);
 
-  const handleSubmit = (e: React.MouseEvent) => {
+  const handleSubmit = (e: React.MouseEvent | null) => {
     if (e !== null) e.preventDefault();
     const term = searchText.trim();
     ApiHelper.post("/churches/search", { name: term }, "MembershipApi").then((data: any) => setChurches(data));
@@ -59,7 +59,7 @@ export const SelectChurchSearch: React.FC<Props> = (props) => {
 
   const getChurches = () => {
     const result: React.ReactElement[] = [];
-    churches.forEach(church => {
+    churches?.forEach(church => {
       result.push(<SelectableChurch church={church} selectChurch={props.selectChurch} />);
     });
     result.push(getRegisterLink());

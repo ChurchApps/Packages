@@ -9,7 +9,7 @@ import {
   IconButton
 } from "@mui/material";
 import { ArrowBack as ArrowBackIcon } from "@mui/icons-material";
-import { PrivateMessageInterface, UserContextInterface } from "@churchapps/helpers";
+import { PersonInterface, PrivateMessageInterface, UserContextInterface } from "@churchapps/helpers";
 import { Notes } from "../notes/Notes";
 import { ApiHelper, Locale, NotificationService } from "../../helpers";
 import { PersonAvatar } from "../PersonAvatar";
@@ -69,10 +69,10 @@ export const PrivateMessageDetails: React.FC<Props> = (props) => {
             <ArrowBackIcon />
           </IconButton>
           <Stack direction="row" spacing={2} alignItems="center" sx={{ flex: 1 }}>
-            <PersonAvatar person={props.privateMessage.person} size="small" />
+            <PersonAvatar person={props.privateMessage.person as PersonInterface} size="small" />
             <Box>
               <Typography variant="h6" component="h2">
-                {props.privateMessage.person.name.display}
+                {props.privateMessage.person?.name?.display}
               </Typography>
               <Typography variant="caption" color="textSecondary">
                 {Locale.label("wrapper.privateConversation", "Private Conversation")}
@@ -93,7 +93,7 @@ export const PrivateMessageDetails: React.FC<Props> = (props) => {
         <Notes
           maxHeight="100%"
           context={props.context}
-          conversationId={props.privateMessage.conversationId}
+          conversationId={props.privateMessage.conversationId || ""}
           noDisplayBox={true}
           refreshKey={props.refreshKey}
         />

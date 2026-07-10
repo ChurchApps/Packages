@@ -7,7 +7,7 @@ export class DB {
   // wraps in promise
   static async getConnection() {
     const promise: Promise<PoolConnection> = new Promise((resolve, reject) => {
-      Pool.current.getConnection((ex: QueryError | null, conn: PoolConnection) => { if (ex) reject(ex); else resolve(conn); });
+      Pool.current.getConnection((ex, conn) => { if (ex) reject(ex); else resolve(conn); });
     });
     const connection: PoolConnection = await promise;
     return connection;

@@ -55,10 +55,10 @@ export class EnvironmentBase {
     EnvironmentBase.jwtSecret = process.env.JWT_SECRET || await AwsHelper.readParameter(`/${appEnv}/jwtSecret`);
     EnvironmentBase.mailSystem = jsonData.mailSystem as string;
     EnvironmentBase.s3Bucket = jsonData.s3Bucket as string;
-    EnvironmentBase.smtpHost = process.env.SMTP_HOST;
-    EnvironmentBase.smtpPass = process.env.SMTP_PASS;
+    EnvironmentBase.smtpHost = process.env.SMTP_HOST ?? "";
+    EnvironmentBase.smtpPass = process.env.SMTP_PASS ?? "";
     EnvironmentBase.smtpSecure = process.env.SMTP_SECURE === "true";
-    EnvironmentBase.smtpUser = process.env.SMTP_USER;
+    EnvironmentBase.smtpUser = process.env.SMTP_USER ?? "";
   }
 
 }

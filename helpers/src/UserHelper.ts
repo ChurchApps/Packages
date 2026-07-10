@@ -31,7 +31,7 @@ export class UserHelper {
 
   static setupApiHelper(userChurch: LoginUserChurchInterface) {
     ApiHelper.setDefaultPermissions(userChurch.jwt);
-    userChurch.apis.forEach(api => { ApiHelper.setPermissions(api.keyName, api.jwt, api.permissions); });
+    userChurch.apis.forEach(api => { ApiHelper.setPermissions(api.keyName || "", api.jwt, api.permissions); });
   }
 
   static setupApiHelperNoChurch(user: LoginUserChurchInterface) {

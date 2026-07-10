@@ -13,11 +13,11 @@ class ApiHelperClass {
 
   apiConfigs: ApiConfig[] = [];
   isAuthenticated = false;
-  onRequest: (url:string, requestOptions:any) => void;
-  onError: (url:string, requestOptions:any, error: any) => void;
+  onRequest?: (url:string, requestOptions:any) => void;
+  onError?: (url:string, requestOptions:any, error: any) => void;
 
   getConfig(keyName: string) {
-    let result: ApiConfig = null;
+    let result: ApiConfig = null as unknown as ApiConfig;
     this.apiConfigs.forEach(config => { if (config.keyName === keyName) result = config; });
     //if (result === null) throw new Error("Unconfigured API: " + keyName);
     return result;

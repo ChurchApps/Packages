@@ -1,28 +1,21 @@
 {
+  "extends": "../helpers/tsconfig.base.json",
   "compilerOptions": {
     "module": "ESNext",
-    "esModuleInterop": true,
     "lib": ["ES2021", "DOM"],
     "types": ["node"],
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "target": "ES2021",
-    "noImplicitAny": false,
     "moduleResolution": "node",
     "ignoreDeprecations": "6.0",
     "sourceMap": true,
     "rootDir": "src",
     "outDir": "dist",
     "baseUrl": ".",
-    "strict": false,
-    "allowSyntheticDefaultImports": true,
     "declaration": true,
     "declarationMap": true,
-    "jsx": "react-jsx",
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": false,
-    "resolveJsonModule": true,
-    "isolatedModules": true
+    "jsx": "react-jsx"
   },
   "include": [
     "src/**/*"

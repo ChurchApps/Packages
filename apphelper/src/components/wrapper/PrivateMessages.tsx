@@ -48,7 +48,7 @@ const privateMessagesStateStore = {
 
   subscribe(listener: () => void) {
     this.listeners.add(listener);
-    return () => this.listeners.delete(listener);
+    return () => { this.listeners.delete(listener); };
   }
 };
 
@@ -80,8 +80,8 @@ export const PrivateMessages: React.FC<Props> = React.memo((props) => {
 
 
     // Group messages by person (conversation)
-    const conversationMap = new Map<string, PrivateMessageInterface>();
-    const peopleIds: string[] = [];
+    const conversationMap = new Map<string | undefined, PrivateMessageInterface>();
+    const peopleIds: (string | undefined)[] = [];
 
     pms.forEach((pm) => {
       const personId = (pm.fromPersonId === props.context.person.id) ? pm.toPersonId : pm.fromPersonId;
@@ -97,8 +97,8 @@ export const PrivateMessages: React.FC<Props> = React.memo((props) => {
         conversationMap.set(personId, pm);
       } else if (currentMessage && existingMessage) {
         // Compare timestamps to keep the most recent
-        const currentTime = new Date(currentMessage.timeUpdated || currentMessage.timeSent);
-        const existingTime = new Date(existingMessage.timeUpdated || existingMessage.timeSent);
+        const currentTime = new Date(currentMessage.timeUpdated || currentMessage.timeSent || NaN);
+        const existingTime = new Date(existingMessage.timeUpdated || existingMessage.timeSent || NaN);
         if (currentTime > existingTime) {
           conversationMap.set(personId, pm);
         }
@@ -141,8 +141,8 @@ export const PrivateMessages: React.FC<Props> = React.memo((props) => {
       if (!aMessage) return 1; // b comes first
       if (!bMessage) return -1; // a comes first
 
-      const aTime = new Date(aMessage.timeUpdated || aMessage.timeSent).getTime();
-      const bTime = new Date(bMessage.timeUpdated || bMessage.timeSent).getTime();
+      const aTime = new Date(aMessage.timeUpdated || aMessage.timeSent || NaN).getTime();
+      const bTime = new Date(bMessage.timeUpdated || bMessage.timeSent || NaN).getTime();
 
       // Most recent first (descending order)
       return bTime - aTime;
@@ -189,7 +189,7 @@ export const PrivateMessages: React.FC<Props> = React.memo((props) => {
       SocketHelper.removeHandler(id + "-pm");
       SocketHelper.removeHandler(id + "-room");
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleDeleteConversation = async (pm: PrivateMessageInterface, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -309,7 +309,7 @@ export const PrivateMessages: React.FC<Props> = React.memo((props) => {
             return null;
           }
           const contents = message.content?.split("\n")[0];
-          const datePosted = new Date(message.timeUpdated || message.timeSent);
+          const datePosted = new Date(message.timeUpdated || message.timeSent || NaN);
           const displayDuration = DateHelper.getDisplayDuration(datePosted);
           // Check if this conversation has unread messages
           const isUnread = pm.notifyPersonId === props.context.person.id;

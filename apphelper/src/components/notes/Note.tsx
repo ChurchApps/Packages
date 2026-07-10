@@ -3,7 +3,7 @@
 import { Icon, IconButton, Stack, Box, Typography } from "@mui/material";
 import React, { useState, useEffect } from "react";
 import { DateHelper, Locale } from "../../helpers";
-import { MessageInterface, UserContextInterface } from "@churchapps/helpers";
+import { MessageInterface, PersonInterface, UserContextInterface } from "@churchapps/helpers";
 import { PersonAvatar } from "../PersonAvatar";
 
 interface Props {
@@ -15,12 +15,12 @@ interface Props {
 }
 
 export const Note: React.FC<Props> = (props) => {
-  const [message, setMessage] = useState<MessageInterface>(null);
+  const [message, setMessage] = useState<MessageInterface | null>(null);
 
   useEffect(() => setMessage(props.message), [props.message]);
 
   if (message === null) return null;
-  const datePosted = new Date(message.timeUpdated || message.timeSent);
+  const datePosted = new Date(message.timeUpdated || message.timeSent || NaN);
   const displayDuration = DateHelper.getDisplayDuration(datePosted);
 
   const isEdited = message.timeUpdated && message.timeUpdated !== message.timeSent;
@@ -30,8 +30,8 @@ export const Note: React.FC<Props> = (props) => {
     const imageRegex = /https?:\/\/\S+\.(jpg|jpeg|png|gif|webp|svg)(\?\S*)?/gi;
     const urlRegex = /https?:\/\/\S+/gi;
 
-    const imageMatches = content.match(imageRegex) || [];
-    const allUrls = content.match(urlRegex) || [];
+    const imageMatches: string[] = content.match(imageRegex) || [];
+    const allUrls: string[] = content.match(urlRegex) || [];
     const fileMatches = allUrls.filter((url) => !imageMatches.includes(url));
 
     const textWithoutUrls = content.replace(urlRegex, "").trim();
@@ -99,7 +99,7 @@ export const Note: React.FC<Props> = (props) => {
         "&:hover": { bgcolor: "action.hover" }
       }}
     >
-      <PersonAvatar person={message.person} size="small" />
+      <PersonAvatar person={message.person as PersonInterface} size="small" />
       <Box sx={{ flex: 1 }}>
         <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
           <Box sx={{ flex: 1 }}>

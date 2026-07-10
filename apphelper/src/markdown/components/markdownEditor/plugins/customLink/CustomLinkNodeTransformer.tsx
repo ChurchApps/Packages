@@ -52,14 +52,14 @@ const replaceCustomLinkNode = (textNode : TextNode, match : any) => {
   if (match[5]) {
     const otherTextNode = $createTextNode(match[5].replace(CUSTOM_LINK_NODE_MARKDOWN_REGEX, ""));
 
-    linkNode.getParent().append(otherTextNode);
+    linkNode.getParent()?.append(otherTextNode);
   }
 
 
   if (CUSTOM_LINK_NODE_MARKDOWN_REGEX.test(match[5])) {
     const blankNode = $createTextNode("");
 
-    linkNode.getParent().append(blankNode);
+    linkNode.getParent()?.append(blankNode);
 
     replaceCustomLinkNode(blankNode, match[5].match(CUSTOM_LINK_NODE_MARKDOWN_REGEX_QUERY));
   }
@@ -67,7 +67,7 @@ const replaceCustomLinkNode = (textNode : TextNode, match : any) => {
   if (emojiText) {
     if (!iconNamesList.includes(emojiText.replaceAll(":", ""))) return;
 
-    linkNode.getParent().append($createEmojiNode(emojiText.replaceAll(":", "")));
+    linkNode.getParent()?.append($createEmojiNode(emojiText.replaceAll(":", "")));
   }
 };
 

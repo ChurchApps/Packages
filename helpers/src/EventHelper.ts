@@ -36,7 +36,7 @@ type ParsedOptions = any;
 export class EventHelper {
 
   static getRange = (event:EventInterface, startDate:Date, endDate:Date) => {
-    const start = new Date(event.start);
+    const start = new Date(event.start!);
     const rrule = EventHelper.getFullRRule(event);
 
     const dates = rrule.between(startDate, endDate);
@@ -44,23 +44,23 @@ export class EventHelper {
     // RRule returns UTC dates. Use UTC components to get the intended calendar date,
     // then construct a local Date with the event's original time.
     return dates.map((d: Date) => new Date(
-      d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(),
-      start.getHours(), start.getMinutes(), start.getSeconds()
+      d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), start.getHours(), start.getMinutes(), start.getSeconds()
     ));
   };
 
   static getFullRRule = (event:EventInterface) => {
     const RR = getRRule();
     const rrule = RR.fromString(event.recurrenceRule);
-    rrule.options.dtstart = new Date(event.start);
+    rrule.options.dtstart = new Date(event.start!);
     return rrule;
   };
 
   static removeExcludeDates = (events:EventInterface[]) => {
     for (let i = events.length - 1; i >= 0; i--) {
-      if (events[i].exceptionDates?.length > 0) {
-        const parsedDates = events[i].exceptionDates.map((d: string | Date)=>new Date(d).toISOString());
-        if (parsedDates.indexOf(events[i].start.toISOString()) > -1) events.splice(i, 1);
+      const exceptionDates = events[i].exceptionDates;
+      if (exceptionDates && exceptionDates.length > 0) {
+        const parsedDates = exceptionDates.map((d: string | Date)=>new Date(d).toISOString());
+        if (parsedDates.indexOf(events[i].start!.toISOString()) > -1) events.splice(i, 1);
       }
     }
   };

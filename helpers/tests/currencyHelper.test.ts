@@ -27,28 +27,61 @@ test("formatCurrencyWithLocale renders amount with the currency's symbol, not it
 });
 
 test("convertAmount returns the input amount unchanged when currencies match or the rate is missing", () => {
-  assert.equal(CurrencyHelper.convertAmount(50, "usd", "USD", {}), 50);
-  assert.equal(CurrencyHelper.convertAmount(50, "usd", "eur", {}), 50);
+  CurrencyHelper.rates = {};
+  assert.equal(CurrencyHelper.convertAmount(50, "usd", "USD"), 50);
+  assert.equal(CurrencyHelper.convertAmount(50, "usd", "eur"), 50);
 });
 
-test("convertAmount divides by the target's rate relative to the base currency", () => {
-  // rates keyed by the *source* currency here, per convertAmount's `rates[from]` lookup
-  const result = CurrencyHelper.convertAmount(100, "usd", "eur", { USD: 2 });
-  assert.equal(result, 50);
+test("convertAmount divides by the source currency's cached rate and rounds to 2 decimals", () => {
+  CurrencyHelper.rates = { USD: 2 };
+  assert.equal(CurrencyHelper.convertAmount(100, "usd", "eur"), 50);
+  // 100 / 3 = 33.333... rounds to 33.33
+  CurrencyHelper.rates = { USD: 3 };
+  assert.equal(CurrencyHelper.convertAmount(100, "usd", "eur"), 33.33);
 });
 
-test("convertDonation converts and formats a single donation using its own currency", () => {
-  const formatted = CurrencyHelper.convertDonation({ currency: "usd", amount: 100 }, { USD: 2 }, "eur");
+test("convertAmount tolerates a null/undefined currency instead of throwing", () => {
+  CurrencyHelper.rates = {};
+  assert.equal(CurrencyHelper.convertAmount(50, undefined as unknown as string, "eur"), 50);
+  assert.equal(CurrencyHelper.convertAmount(50, "eur", null as unknown as string), 50);
+});
+
+test("convertDonation converts and formats a single donation using the cached rates", () => {
+  CurrencyHelper.rates = { USD: 2 };
+  const formatted = CurrencyHelper.convertDonation({ currency: "usd", amount: 100 }, "eur");
   assert.ok(formatted.includes("€"), formatted);
+  assert.ok(formatted.includes("50"), formatted);
+});
+
+test("convertDonation with withCurrencyLabel=false returns a bare 2-decimal amount", () => {
+  CurrencyHelper.rates = { USD: 2 };
+  assert.equal(CurrencyHelper.convertDonation({ currency: "usd", amount: 100 }, "eur", false), "50.00");
 });
 
 test("convertDonationTotals groups by currency before converting and summing", () => {
+  CurrencyHelper.rates = { USD: 2 };
   const donations = [
     { currency: "usd", amount: 100 },
     { currency: "usd", amount: 50 },
     { currency: "eur", amount: 10 }
   ];
   // usd group (150) / rate 2 = 75, plus eur group (10, same-currency passthrough) = 85
-  const formatted = CurrencyHelper.convertDonationTotals(donations, { USD: 2 }, "eur");
+  const formatted = CurrencyHelper.convertDonationTotals(donations, "eur");
   assert.ok(formatted.includes("85"), formatted);
+});
+
+test("initializeExchangeRates caches rates once and no-ops while the base is unchanged", async (t) => {
+  CurrencyHelper.rates = {};
+  CurrencyHelper.currentBase = "";
+  t.mock.method(CurrencyHelper, "loadCurrency", async () => "usd");
+  const getRates = t.mock.method(CurrencyHelper, "getExchangeRates", async () => ({ EUR: 0.9 }));
+
+  await CurrencyHelper.initializeExchangeRates();
+  assert.deepEqual(CurrencyHelper.rates, { EUR: 0.9 });
+  assert.equal(CurrencyHelper.currentBase, "usd");
+  assert.equal(getRates.mock.callCount(), 1);
+
+  // Same base + rates already loaded → should short-circuit without refetching.
+  await CurrencyHelper.initializeExchangeRates();
+  assert.equal(getRates.mock.callCount(), 1);
 });

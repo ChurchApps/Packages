@@ -105,6 +105,17 @@ const UserMenuContent: React.FC<Props> = React.memo((props) => {
     const churchId = UserHelper.currentUserChurch.church.id;
     const result: React.ReactElement[] = [];
 
+    const churchName = props.context?.userChurch?.church?.name;
+    if (churchName) {
+      result.push(
+        <Box key="currentChurch" sx={{ px: 2, py: 1 }}>
+          <Typography variant="caption" sx={{ color: "text.secondary", display: "block" }}>{getLabel("wrapper.currentChurch", "Current church")}</Typography>
+          <Typography variant="body2" sx={{ fontWeight: 600 }}>{churchName}</Typography>
+        </Box>
+      );
+      result.push(<div key="church-divider" style={{ borderTop: "1px solid #CCC", marginBottom: 4 }}></div>);
+    }
+
     result.push(<NavItem onClick={() => { modalStateStore.setShowPM(true); }} label={getLabel("wrapper.messages", "Messages")} icon="mail" key="/messages" onNavigate={props.onNavigate} badgeCount={directNotificationCounts.pmCount} />);
 
     result.push(<NavItem onClick={() => { modalStateStore.setShowNotifications(true); }} label={getLabel("wrapper.notifications", "Notifications")} icon="notifications" key="/notifications" onNavigate={props.onNavigate} badgeCount={directNotificationCounts.notificationCount} />);

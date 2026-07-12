@@ -121,7 +121,7 @@ export const Register: React.FC<Props> = (props) => {
             props.onVerified(resp.authGuid, user.email || "");
           } else handleRegisterSuccess(resp);
         })
-        .catch((e: any) => { props.updateErrors([e.toString()]); throw e; })
+        .catch((e: any) => { props.updateErrors([e.toString()]); })
         .finally(() => {
           setIsSubmitting(false);
         });

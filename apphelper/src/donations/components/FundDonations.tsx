@@ -16,6 +16,7 @@ export const FundDonations: React.FC<Props> = (props) => {
 
   const addRow = (e: React.MouseEvent) => {
     e.preventDefault();
+    if (!props.funds?.[0]) return;
     const fundDonations = [...props.fundDonations];
     const fd = { fundId: props.funds[0].id } as FundDonationInterface;
     fundDonations.push(fd);

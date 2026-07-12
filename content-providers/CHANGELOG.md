@@ -1,5 +1,12 @@
 # @churchapps/content-providers
 
+## 0.7.2
+
+### Patch Changes
+
+- 289b504: Dropbox provider now sorts folder contents by name numeric-aware, so lesson media with 01/02/03-style prefixes list and import in order ("2 Song" before "10 Closer") instead of Dropbox's arbitrary order.
+- 3888a0a: GoCurriculum provider now fetches its catalog from Go's hosted data.json (Dropbox) at runtime with a 1-hour cache, so catalog updates appear without republishing the package. The bundled data.json remains as the fallback when the fetch fails.
+
 ## 0.7.1
 
 ### Patch Changes

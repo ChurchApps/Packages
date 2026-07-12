@@ -1,5 +1,12 @@
 # @churchapps/apphelper
 
+## 1.0.0
+
+### Patch Changes
+
+- Updated dependencies [289b504]
+  - @churchapps/helpers@2.0.0
+
 ## 0.22.2
 
 ### Patch Changes

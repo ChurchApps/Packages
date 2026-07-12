@@ -9,9 +9,13 @@ import { GoCurriculumData, GoCurriculumCollection } from "./GoCurriculumInterfac
 
 /**
  * Path: / → collections, /{collection} → lessons (leaf), /{collection}/{lesson} → files.
- * data.json is Go's catalog export dropped in verbatim (media hosted on Dropbox);
- * a valid gocurriculum.com login (WP OAuth Server plugin) gates all of it.
+ * Catalog is Go's export hosted on Dropbox (fetched at runtime so it auto-updates);
+ * bundled data.json is the fallback when the fetch fails.
+ * A valid gocurriculum.com login (WP OAuth Server plugin) gates all of it.
  */
+const CATALOG_URL = "https://dl.dropboxusercontent.com/scl/fi/kb3qlgspv92x8m3mk5s8d/data.json?rlkey=z13qq7aghyszv2w1yud2obtqm";
+const CATALOG_TTL_MS = 60 * 60 * 1000;
+
 export class GoCurriculumProvider extends BaseProvider {
   private readonly oauthHelper = new OAuthHelper();
   private readonly verifiedTokens = new Set<string>();
@@ -36,6 +40,17 @@ export class GoCurriculumProvider extends BaseProvider {
   };
 
   private data: GoCurriculumData = goCurriculumData;
+  private dataFetchedAt = 0;
+
+  private async getData(): Promise<GoCurriculumData> {
+    if (Date.now() - this.dataFetchedAt < CATALOG_TTL_MS) return this.data;
+    try {
+      const response = await fetch(CATALOG_URL);
+      if (response.ok) this.data = await response.json() as GoCurriculumData;
+    } catch { /* keep last good catalog (bundled data.json at worst) */ }
+    this.dataFetchedAt = Date.now();
+    return this.data;
+  }
 
   readonly requiresAuth = true;
   readonly authTypes: AuthType[] = ["oauth_pkce"];
@@ -60,10 +75,11 @@ export class GoCurriculumProvider extends BaseProvider {
   async browse(path?: string | null, auth?: ContentProviderAuthData | null): Promise<ContentItem[]> {
     if (!(await this.verifyAuth(auth))) return [];
     const { segments, depth } = parsePath(path);
+    const data = await this.getData();
 
-    if (depth === 0) return this.data.catalog.map(c => createFolder(c.id, c.name, `/${c.id}`, c.thumbnail));
+    if (depth === 0) return data.catalog.map(c => createFolder(c.id, c.name, `/${c.id}`, c.thumbnail));
 
-    const collection = this.data.catalog.find(c => c.id === segments[0]);
+    const collection = data.catalog.find(c => c.id === segments[0]);
     if (!collection) return [];
 
     if (depth === 1) return collection.lessons.map(l => createFolder(l.id, l.name, `/${collection.id}/${l.id}`, l.thumbnail || collection.thumbnail, true));
@@ -84,7 +100,7 @@ export class GoCurriculumProvider extends BaseProvider {
     const { segments, depth } = parsePath(path);
     if (depth !== 2) return null;
 
-    const collection = this.data.catalog.find(c => c.id === segments[0]);
+    const collection = (await this.getData()).catalog.find(c => c.id === segments[0]);
     if (!collection) return null;
 
     const files = this.getLessonFiles(collection, segments[1]);
@@ -98,7 +114,7 @@ export class GoCurriculumProvider extends BaseProvider {
     const files = await this.getPlaylist(path, auth);
     if (!files) return null;
 
-    const collection = this.data.catalog.find(c => c.id === segments[0]);
+    const collection = (await this.getData()).catalog.find(c => c.id === segments[0]);
     const lesson = collection?.lessons.find(l => l.id === segments[1]);
     return filesToInstructions(lesson?.name || "Lesson", files);
   }

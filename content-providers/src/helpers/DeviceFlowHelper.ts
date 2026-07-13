@@ -24,7 +24,8 @@ export class DeviceFlowHelper {
 
       if (response.ok) {
         const data = await response.json();
-        return toAuthData(data, { scope: config.scopes.join(" ") });
+        const auth = toAuthData(data, { scope: config.scopes.join(" ") });
+        return data.plan_type_id ? { ...auth, planTypeId: data.plan_type_id as string } : auth;
       }
 
       const errorData = await response.json();

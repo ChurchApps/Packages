@@ -101,7 +101,7 @@ export function isContentFile(item: ContentItem): item is ContentFile {
 }
 
 export type DeviceFlowPollResult =
-  | ContentProviderAuthData
+  | (ContentProviderAuthData & { planTypeId?: string })
   | { error: string; shouldSlowDown?: boolean }
   | null;
 

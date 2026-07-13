@@ -132,11 +132,13 @@ export class B1ChurchProvider extends BaseProvider {
       const planTypeId = segments[2];
       const allPlans = await fetchPlans(planTypeId, authData);
 
-      // Filter to plans with serviceDate >= start of yesterday
+      // Filter to plans with serviceDate >= yesterday.
+      // serviceDate is a date-only value serialized as UTC midnight; parsing it into a local
+      // timestamp shifts it a day early in western timezones, so compare calendar dates as strings.
       const yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);
-      yesterday.setHours(0, 0, 0, 0);
-      const plans = allPlans.filter(p => new Date(p.serviceDate).getTime() >= yesterday.getTime());
+      const cutoff = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, "0")}-${String(yesterday.getDate()).padStart(2, "0")}`;
+      const plans = allPlans.filter(p => String(p.serviceDate).slice(0, 10) >= cutoff);
 
       // Sort ascending so the nearest upcoming plan appears first
       plans.sort((a, b) => new Date(a.serviceDate).getTime() - new Date(b.serviceDate).getTime());

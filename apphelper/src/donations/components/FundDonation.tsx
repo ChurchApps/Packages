@@ -2,7 +2,7 @@
 
 import React from "react";
 import { FundDonationInterface, FundInterface, CurrencyHelper } from "@churchapps/helpers";
-import { FormControl, Grid, Icon, InputLabel, MenuItem, Select, TextField, Typography } from "@mui/material";
+import { FormControl, Grid, Icon, InputLabel, MenuItem, Select, TextField, Typography, IconButton } from "@mui/material";
 import type { SelectChangeEvent } from "@mui/material";
 import { Locale } from "../helpers";
 
@@ -11,6 +11,7 @@ interface Props {
   funds: FundInterface[],
   index: number,
   updatedFunction: (fundDonation: FundDonationInterface, index: number) => void,
+  removeFunction?: (index: number) => void,
   params?: any,
   currency?: string,
   hideFundSelect?: boolean,
@@ -42,8 +43,8 @@ export const FundDonation: React.FC<Props> = (props) => {
 
   return (
     <>
-      <Grid container spacing={3}>
-        <Grid size={{ xs: 12, md: props.hideFundSelect ? 12 : 6 }}>
+      <Grid container spacing={1} alignItems="center" sx={{ mb: 2 }}>
+        <Grid size={{ xs: props.removeFunction ? 10 : 12, md: props.hideFundSelect ? (props.removeFunction ? 11 : 12) : 5 }}>
           <TextField fullWidth name="amount" label={Locale.label("donation.fundDonations.amount")} type="number" disabled={props.params?.amount && props.params.amount !== ""} aria-label="amount" lang="en-150" value={props.fundDonation.amount || ""} onChange={handleChange} InputProps={{ startAdornment: <Icon><Typography>{props.currency ? CurrencyHelper.getCurrencySymbol(props.currency) : "$"}</Typography></Icon> }} />
         </Grid>
         {!props.hideFundSelect && (
@@ -54,6 +55,13 @@ export const FundDonation: React.FC<Props> = (props) => {
                 {getOptions()}
               </Select>
             </FormControl>
+          </Grid>
+        )}
+        {props.removeFunction && (
+          <Grid size={{ xs: 2, md: 1 }} sx={{ display: "flex", justifyContent: "flex-end" }}>
+            <IconButton onClick={() => props.removeFunction?.(props.index)} color="error" aria-label="remove">
+              <Icon>delete</Icon>
+            </IconButton>
           </Grid>
         )}
       </Grid>

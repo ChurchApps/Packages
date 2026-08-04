@@ -7,7 +7,7 @@ const ACTION_TYPES = new Set(["action", "lessonAction", "providerPresentation", 
 
 function collectFilesFromNode(node: InstructionItem): MessageFileInterface[] {
   const files: MessageFileInterface[] = [];
-  if (node.downloadUrl) {
+  if (node.downloadUrl && (node.itemType === "file" || !node.children?.length)) {
     files.push({
       id: node.id,
       name: node.label || "",

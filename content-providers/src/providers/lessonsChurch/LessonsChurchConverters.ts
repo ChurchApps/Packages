@@ -71,7 +71,7 @@ export async function convertAddOnToFile(addOn: Record<string, unknown>): Promis
     return null;
   }
 
-  return { type: "file", id: addOn.id as string, title: addOn.name as string, mediaType, thumbnail: addOn.image as string | undefined, url, downloadUrl: url, seconds, loopVideo: ((video as Record<string, unknown> | undefined)?.loopVideo as boolean) || false };
+  return { type: "file", id: addOn.id as string, title: (addOn.name ?? detail.name) as string, mediaType, thumbnail: (addOn.image ?? detail.image) as string | undefined, url, downloadUrl: url, seconds, loopVideo: ((video as Record<string, unknown> | undefined)?.loopVideo as boolean) || false };
 }
 
 export function buildSectionActionsMap(actionsResponse: VenueActionsResponseInterface | null, lessonImage?: string, feedResponse?: FeedVenueInterface | null): Map<string, InstructionItem[]> {

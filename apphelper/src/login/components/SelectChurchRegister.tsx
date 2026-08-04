@@ -10,7 +10,7 @@ import { Grid, TextField } from "@mui/material";
 interface Props {
   initialChurchName: string,
   registeredChurchCallback?: (church: ChurchInterface) => void,
-  selectChurch: (churchId: string) => void,
+  selectChurch: (churchId: string) => void | Promise<void>,
   appName: string
 }
 
@@ -58,16 +58,17 @@ export const SelectChurchRegister: React.FC<Props> = (props) => {
       if (!c.subDomain) c.subDomain = suggestSubDomain(c.name || "");
       ApiHelper.post("/churches/add", church, "MembershipApi")
         .then(async (resp: any) => {
-          if (resp.errors !== undefined) setErrors(resp.errors);
-          else {
+          if (resp.errors !== undefined) {
+            setErrors(resp.errors);
+            setIsSubmitting(false);
+          } else {
             if (props.registeredChurchCallback) props.registeredChurchCallback(resp);
-            props.selectChurch(resp.id);
+            // Stay disabled until navigation; re-enabling mid-selectChurch invites duplicate submissions (issue #957)
+            await props.selectChurch(resp.id);
           }
         })
         .catch((e: any) => {
           setErrors([e.toString()]);
-        })
-        .finally(() => {
           setIsSubmitting(false);
         });
     }

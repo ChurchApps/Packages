@@ -234,7 +234,8 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
         login({ jwt: userJwt || userJwtBackup });
         return;
       }
-      UserHelper.selectChurch(props.context, churchId, undefined).then(() => { continueLoginProcess(); });
+      await UserHelper.selectChurch(props.context, churchId, undefined);
+      await continueLoginProcess();
     } catch (err) {
       console.log("Error in selecting church: ", err);
       setErrors([Locale.label("login.validate.selectingChurch")]);

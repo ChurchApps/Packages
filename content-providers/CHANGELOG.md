@@ -1,5 +1,17 @@
 # @churchapps/content-providers
 
+## 0.8.0
+
+### Minor Changes
+
+- 6b080bb: Pass the approver's plan-type binding through the OAuth device flow. When the B1Admin approval page binds a screen to a plan type, the token endpoint returns `plan_type_id`; `DeviceFlowHelper.pollDeviceFlowToken` now surfaces it as `planTypeId` on the success result so TV apps can enable their "Today's Plan" view immediately after connecting.
+
+### Patch Changes
+
+- 14638b6: content-providers: two Lessons.church playback/labeling fixes. `collectFilesFromNode` now only emits leaf nodes (itemType `"file"` or childless), so B1 plan lessons no longer play each video/slide 2-4 times on FreePlay — the same `downloadUrl` legitimately appears on section, action, and file levels of the plan tree (#963). `convertAddOnToFile` falls back to the fetched add-on detail for `title` and `thumbnail`, so add-ons resolved by bare id (`getPlaylist`, `getInstructions`, `getAddOnFiles`) keep their real name instead of showing "Action" (#974).
+
+  apphelper: registering a new church no longer re-enables the Save button while church selection is still in flight — the button stays disabled until navigation, closing the window where a second click created a duplicate church (#957). `LoginPage.selectChurch` now awaits `continueLoginProcess`, and `SelectChurchRegister`'s `selectChurch` prop accepts an async handler.
+
 ## 0.7.3
 
 ### Patch Changes

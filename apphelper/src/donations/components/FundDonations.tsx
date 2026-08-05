@@ -23,11 +23,18 @@ export const FundDonations: React.FC<Props> = (props) => {
     props.updatedFunction(fundDonations);
   };
 
+  const removeRow = (index: number) => {
+    const fundDonations = [...props.fundDonations];
+    fundDonations.splice(index, 1);
+    props.updatedFunction(fundDonations);
+  };
+
   const getRows = () => {
     const result = [];
     for (let i = 0; i < props.fundDonations.length; i++) {
       const fd = props.fundDonations[i];
-      result.push(<FundDonation fundDonation={fd} funds={props.funds} updatedFunction={handleUpdated} params={props?.params} key={fd.fundId || i} index={i} currency={props?.currency} hideFundSelect={props?.hideFundSelect} />);
+      const canRemove = props.fundDonations.length > 1;
+      result.push(<FundDonation fundDonation={fd} funds={props.funds} updatedFunction={handleUpdated} removeFunction={canRemove ? removeRow : undefined} params={props?.params} key={fd.fundId || i} index={i} currency={props?.currency} hideFundSelect={props?.hideFundSelect} />);
     }
 
     return result;

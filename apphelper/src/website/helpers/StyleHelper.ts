@@ -1,5 +1,5 @@
 
-import { ElementInterface, SectionInterface } from "./index";
+import { ElementInterface, SectionInterface, StyleSet } from "./index";
 
 export class StyleHelper {
 
@@ -65,13 +65,13 @@ export class StyleHelper {
 
   private static getStyle = (id:string, styles:Record<string, string>) => {
     const result:string[] = [];
-    Object.keys(styles).forEach((key:string) => {
-      const val = styles[key];
-      const noQuote = val.endsWith("px") || val.endsWith("em") || val.endsWith("pt") || val.startsWith("#") || val.startsWith("--");
-      if (noQuote) result.push(`${key}: ${styles[key]};`);
-      else result.push(`${key}: ${styles[key]};`);
-    });
-    if (result.length > 0) return `#${id} { ${result.join(" ")} }`;
+    Object.keys(styles).forEach((key:string) => { result.push(`${key}: ${styles[key]};`); });
+    if (result.length === 0) return undefined;
+    let css = `#${id} { ${result.join(" ")} }`;
+    // pages.css targets .page h1-h6 directly, so an inherited font-family never reaches headings inside the element.
+    const font = styles["font-family"];
+    if (font) css += ` #${id} h1, #${id} h2, #${id} h3, #${id} h4, #${id} h5, #${id} h6 { font-family: ${font}; }`;
+    return css;
   };
 
   private static getSectionCss = (section:SectionInterface, all:string[], desktop:string[], mobile:string[]) => {
@@ -117,6 +117,34 @@ export class StyleHelper {
 
     return { all, desktop, mobile };
   };
+
+  private static systemFonts = [
+    "arial", "helvetica", "times new roman", "times", "georgia", "verdana", "tahoma", "trebuchet ms", "courier new", "courier", "impact", "serif", "sans-serif", "monospace", "cursive", "fantasy", "system-ui", "inherit", "initial", "unset"
+  ];
+
+  private static collectFonts = (styles:StyleSet | undefined, result:Set<string>) => {
+    ["all", "desktop", "mobile"].forEach((platform:string) => {
+      const font = styles?.[platform as keyof StyleSet]?.["font-family"];
+      if (font) result.add(String(font).trim());
+    });
+  };
+
+  static getFontFamilies = (sections: SectionInterface[]) => {
+    const found = new Set<string>();
+    const walkElement = (element:ElementInterface) => {
+      this.collectFonts(element.styles, found);
+      element.elements?.forEach(walkElement);
+    };
+    sections?.forEach((section:SectionInterface) => {
+      this.collectFonts(section.styles, found);
+      section.elements?.forEach(walkElement);
+    });
+    return [...found].filter((f:string) => !f.startsWith("var(") && this.systemFonts.indexOf(f.toLowerCase()) === -1);
+  };
+
+  // One url per family: an unrecognized name (typo) then 400s only its own request instead of every font on the page.
+  static getFontUrls = (sections: SectionInterface[]) => this.getFontFamilies(sections)
+    .map((f:string) => "https://fonts.googleapis.com/css2?family=" + f.replace(/ /g, "+") + ":wght@400;700&display=swap");
 
   // Class-based to hide when element types render no el-{id} or sections lose ids.
   private static getVisibilityCss = (forceDevice?:string) => {

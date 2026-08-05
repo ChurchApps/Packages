@@ -63,6 +63,7 @@ const MultiGatewayDonationInner: React.FC<Props> = (props) => {
   const [transactionFee, setTransactionFee] = useState<number>(0);
   const [payFee, setPayFee] = useState<number>(0);
   const [total, setTotal] = useState<number>(0);
+  const [coverFee, setCoverFee] = useState<boolean>(false);
   const [paymentMethodName, setPaymentMethodName] = useState<string>(
     props?.paymentMethods?.length > 0 ? `${props.paymentMethods[0].name} ${props.paymentMethods[0].last4 ? `****${props.paymentMethods[0].last4}` : props.paymentMethods[0].email || ""}` : ""
   );
@@ -146,6 +147,7 @@ const MultiGatewayDonationInner: React.FC<Props> = (props) => {
     const d = { ...donation } as MultiGatewayDonationInterface;
     d.amount = checked ? fundsTotal + transactionFee : fundsTotal;
     const showFee = checked ? transactionFee : 0;
+    setCoverFee(checked);
     setTotal(d.amount);
     setPayFee(showFee);
     setDonation(d);
@@ -352,9 +354,15 @@ const MultiGatewayDonationInner: React.FC<Props> = (props) => {
         setTotal(updatedAmount);
         setPayFee(fee);
         setDonation(prev => ({ ...prev, amount: updatedAmount }));
+      } else if (coverFee) {
+        // User has opted in to cover fees — recalculate total with the updated fee
+        const updatedAmount = totalAmount + fee;
+        setTotal(updatedAmount);
+        setPayFee(fee);
+        setDonation(prev => ({ ...prev, amount: updatedAmount }));
       }
     }, 500);
-  }, [donation, funds, gateway, selectedGatewayObj?.id, selectedGateway, getTransactionFee]);
+  }, [donation, funds, gateway, selectedGatewayObj?.id, selectedGateway, getTransactionFee, coverFee]);
 
   useEffect(() => {
     loadFunds();
@@ -593,7 +601,7 @@ const MultiGatewayDonationInner: React.FC<Props> = (props) => {
                     ) : (
                       <FormGroup>
                         <FormControlLabel
-                          control={<Checkbox />}
+                          control={<Checkbox checked={coverFee} />}
                           name="transaction-fee"
                           label={Locale.label("donation.donationForm.cover").replace("{}", CurrencyHelper.formatCurrencyWithLocale(transactionFee, gateway?.currency || "USD"))}
                           onChange={handleCheckChange}

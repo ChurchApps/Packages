@@ -4,6 +4,7 @@ import { APlayProvider } from "./aPlay";
 import { B1ChurchProvider } from "./b1Church";
 import { DropboxProvider } from "./dropbox";
 import { GoCurriculumProvider } from "./goCurriculum";
+import { GoogleDriveProvider } from "./googledrive";
 import { BibleProjectProvider } from "./bibleProject";
 import { HighVoltageKidsProvider } from "./highVoltage";
 import { LessonsChurchProvider } from "./lessonsChurch";
@@ -19,6 +20,7 @@ export { APlayProvider } from "./aPlay";
 export { B1ChurchProvider } from "./b1Church";
 export { DropboxProvider } from "./dropbox";
 export { GoCurriculumProvider } from "./goCurriculum";
+export { GoogleDriveProvider } from "./googledrive";
 export { BibleProjectProvider } from "./bibleProject";
 export { HighVoltageKidsProvider } from "./highVoltage";
 export { JesusFilmProvider } from "./jesusFilm";
@@ -75,6 +77,7 @@ function initializeProviders() {
     new B1ChurchProvider(),
     new DropboxProvider(),
     new GoCurriculumProvider(),
+    new GoogleDriveProvider(),
     new BibleProjectProvider(),
     new HighVoltageKidsProvider(),
     new JesusFilmProvider(),

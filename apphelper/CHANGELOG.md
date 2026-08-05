@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 1.0.2
+
+### Patch Changes
+
+- fbb69cc: Fix cover-fee debounce race (stale checkbox state could drop the recalculated fee from the total), fund row mobile layout, and duplicate React keys on fund rows
+
 ## 1.0.1
 
 ### Patch Changes

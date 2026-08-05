@@ -67,7 +67,9 @@ body {
 .page h1,
 .page h2,
 .page h3,
-.page h4 {
+.page h4,
+.page h5,
+.page h6 {
   font-family: var(--headingFont), "Roboto", sans-serif;
 }
 

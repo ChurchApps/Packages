@@ -97,7 +97,7 @@ export const Theme: React.FC<Props> = (props) => {
     if (googleFontsToLoad.length > 0) {
       const uniqueFonts = [...new Set(googleFontsToLoad)];
       const fontList: string[] = [];
-      uniqueFonts.forEach(f => fontList.push(f.replace(" ", "+") + ":wght@400"));
+      uniqueFonts.forEach(f => fontList.push(f.replace(/ /g, "+") + ":wght@400;700"));
       const googleFontsUrl = "https://fonts.googleapis.com/css2?family=" + fontList.join("&family=") + "&display=swap";
 
       const existingLink = document.querySelector(`link[href="${googleFontsUrl}"]`);

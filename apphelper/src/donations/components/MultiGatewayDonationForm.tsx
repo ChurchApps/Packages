@@ -83,6 +83,7 @@ const MultiGatewayDonationInner: React.FC<Props> = (props) => {
   const [gateway, setGateway] = useState<PaymentGateway | null>(selectedGatewayObj);
   const entryRef = useRef<MemberEntryHandle>(null);
   const feeTimeoutRef = useRef<number | null>(null);
+  const coverFeeRef = useRef(false);
   const [donation, setDonation] = useState<MultiGatewayDonationInterface>({
     id: props?.paymentMethods?.length > 0 ? props.paymentMethods[0].id : "",
     type: props?.paymentMethods?.length > 0 ? (props.paymentMethods[0].type as "card" | "bank" | "paypal") : "card",
@@ -147,6 +148,7 @@ const MultiGatewayDonationInner: React.FC<Props> = (props) => {
     const d = { ...donation } as MultiGatewayDonationInterface;
     d.amount = checked ? fundsTotal + transactionFee : fundsTotal;
     const showFee = checked ? transactionFee : 0;
+    coverFeeRef.current = checked;
     setCoverFee(checked);
     setTotal(d.amount);
     setPayFee(showFee);
@@ -349,20 +351,15 @@ const MultiGatewayDonationInner: React.FC<Props> = (props) => {
       const fee = await getTransactionFee(totalAmount, d.gatewayId || gateway?.id || selectedGatewayObj?.id, d.provider || selectedGateway, d.type);
       setTransactionFee(fee);
 
-      if (gateway && gateway.payFees === true) {
-        const updatedAmount = totalAmount + fee;
-        setTotal(updatedAmount);
-        setPayFee(fee);
-        setDonation(prev => ({ ...prev, amount: updatedAmount }));
-      } else if (coverFee) {
-        // User has opted in to cover fees — recalculate total with the updated fee
+      // coverFeeRef, not coverFee: the closed-over value goes stale if the checkbox is toggled while this debounce is pending
+      if ((gateway && gateway.payFees === true) || coverFeeRef.current) {
         const updatedAmount = totalAmount + fee;
         setTotal(updatedAmount);
         setPayFee(fee);
         setDonation(prev => ({ ...prev, amount: updatedAmount }));
       }
     }, 500);
-  }, [donation, funds, gateway, selectedGatewayObj?.id, selectedGateway, getTransactionFee, coverFee]);
+  }, [donation, funds, gateway, selectedGatewayObj?.id, selectedGateway, getTransactionFee]);
 
   useEffect(() => {
     loadFunds();

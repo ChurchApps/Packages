@@ -44,11 +44,11 @@ export const FundDonation: React.FC<Props> = (props) => {
   return (
     <>
       <Grid container spacing={1} alignItems="center" sx={{ mb: 2 }}>
-        <Grid size={{ xs: props.removeFunction ? 10 : 12, md: props.hideFundSelect ? (props.removeFunction ? 11 : 12) : 5 }}>
+        <Grid size={{ xs: (props.removeFunction && props.hideFundSelect) ? 10 : 12, md: props.hideFundSelect ? (props.removeFunction ? 11 : 12) : 5 }}>
           <TextField fullWidth name="amount" label={Locale.label("donation.fundDonations.amount")} type="number" disabled={props.params?.amount && props.params.amount !== ""} aria-label="amount" lang="en-150" value={props.fundDonation.amount || ""} onChange={handleChange} InputProps={{ startAdornment: <Icon><Typography>{props.currency ? CurrencyHelper.getCurrencySymbol(props.currency) : "$"}</Typography></Icon> }} />
         </Grid>
         {!props.hideFundSelect && (
-          <Grid size={{ xs: 12, md: 6 }}>
+          <Grid size={{ xs: props.removeFunction ? 10 : 12, md: 6 }}>
             <FormControl fullWidth>
               <InputLabel>{Locale.label("donation.fundDonations.fund")}</InputLabel>
               <Select fullWidth label={Locale.label("donation.fundDonations.fund")} name="fund" aria-label="fund" value={props.fundDonation.fundId} onChange={handleChange}>

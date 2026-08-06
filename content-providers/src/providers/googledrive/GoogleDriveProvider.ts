@@ -31,8 +31,7 @@ export class GoogleDriveProvider extends BaseProvider {
     apiBase: "https://www.googleapis.com/drive/v3",
     // Token endpoint host; the user-facing consent screen is accounts.google.com (see buildAuthUrlFromChallenge)
     oauthBase: "https://oauth2.googleapis.com",
-    // TODO owner action: Google Cloud OAuth web client id (drive.readonly scope) — fill before publishing
-    clientId: "",
+    clientId: "214868247432-hao323qmsfu96h345udaifs8f1nc7i71.apps.googleusercontent.com",
     // Google requires client_secret even for PKCE public clients; injected server-side via setProviderSecret("googledrive", ...)
     get clientSecret(): string { return getProviderSecret("googledrive"); },
     scopes: ["https://www.googleapis.com/auth/drive.readonly"]

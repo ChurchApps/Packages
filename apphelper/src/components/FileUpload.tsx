@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import axios, { type AxiosProgressEvent } from "axios";
+import { FileHelper } from "@churchapps/helpers";
 import { LinearProgress } from "@mui/material";
 import { ApiHelper, Locale, FileInterface } from "../helpers";
 
@@ -15,6 +15,7 @@ export function FileUpload(props: Props) {
   const [file, setFile] = useState<FileInterface>({} as FileInterface);
   const [uploadedFile, setUploadedFile] = useState<File>({} as File);
   const [uploadProgress, setUploadProgress] = useState(-1);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.preventDefault();
@@ -31,23 +32,32 @@ export function FileUpload(props: Props) {
   });
 
   const handleSave = async () => {
+    setUploadError(null);
     const f = { ...file };
     f.size = uploadedFile.size;
     f.fileType = uploadedFile.type;
     f.fileName = uploadedFile.name;
     f.contentType = props.contentType;
     f.contentId = props.contentId;
-    const preUploaded: boolean = await preUpload();
-    if (!preUploaded) {
-      const base64 = await convertBase64();
-      f.fileContents = base64 as string;
+    try {
+      const preUploaded = await preUpload();
+      if (!preUploaded) {
+        const base64 = await convertBase64();
+        f.fileContents = base64 as string;
+      } else if (preUploaded.externalId) f.externalId = preUploaded.externalId;
+      const data: FileInterface[] = await ApiHelper.post("/files", [f], "ContentApi");
+      setFile({});
+      setUploadedFile({} as File);
+      const el = document.getElementById("fileUpload") as HTMLInputElement | null;
+      if (el) el.value = "";
+      props.saveCallback(data[0]);
+    } catch (error) {
+      const isQuota = String((error as Error)?.message || error).includes("storage_quota_exceeded");
+      setUploadError(isQuota
+        ? Locale.label("fileUpload.quotaExceeded", "Storage quota exceeded. Delete unused files or upgrade your storage plan.")
+        : Locale.label("fileUpload.uploadFailed", "Upload failed. Please try again."));
+      setUploadProgress(-1);
     }
-    const data: FileInterface[] = await ApiHelper.post("/files", [f], "ContentApi");
-    setFile({});
-    setUploadedFile({} as File);
-    const el = document.getElementById("fileUpload") as HTMLInputElement | null;
-    if (el) el.value = "";
-    props.saveCallback(data[0]);
   };
 
   const checkSave = () => {
@@ -57,38 +67,12 @@ export function FileUpload(props: Props) {
     }
   };
 
-  const preUpload = async () => {
-    const params = { fileName: uploadedFile.name, contentType: props.contentType, contentId: props.contentId };
+  const preUpload = async (): Promise<{ externalId?: string } | false> => {
+    const params = { fileName: uploadedFile.name, contentType: props.contentType, contentId: props.contentId, size: uploadedFile.size, mimeType: uploadedFile.type };
     const presigned = await ApiHelper.post("/files/postUrl", params, "ContentApi");
-    const doUpload = presigned.key !== undefined;
-    if (doUpload) await postPresignedFile(presigned);
-    return doUpload;
-  };
-
-  interface PresignedResponse {
-    url: string;
-    key?: string;
-    fields: Record<string, string>;
-  }
-
-  const postPresignedFile = (presigned: PresignedResponse) => {
-    const formData = new FormData();
-    formData.append("acl", "public-read");
-    formData.append("Content-Type", uploadedFile.type);
-    for (const property in presigned.fields) formData.append(property, presigned.fields[property]);
-    const f = document.getElementById("fileUpload") as HTMLInputElement | null;
-    if (f?.files?.[0]) formData.append("file", f.files[0]);
-
-    const axiosConfig = {
-      headers: { "Content-Type": "multipart/form-data" },
-      onUploadProgress: (progressEvent: AxiosProgressEvent) => {
-        if (progressEvent.total) {
-          setUploadProgress(Math.round((100 * progressEvent.loaded) / progressEvent.total));
-        }
-      }
-    };
-
-    return axios.post(presigned.url, formData, axiosConfig);
+    if (presigned.error) throw new Error(presigned.error);
+    if (presigned.key === undefined) return false;
+    return FileHelper.uploadPresignedFile(presigned, uploadedFile, setUploadProgress);
   };
 
   useEffect(checkSave, [props.pendingSave]);
@@ -101,6 +85,7 @@ export function FileUpload(props: Props) {
   return (
     <>
       <label>{Locale.label("fileUpload.file")}</label>
+      {uploadError && <div style={{ color: "#d32f2f", fontSize: 13, marginBottom: 4 }}>{uploadError}</div>}
       {getFileLink()}
       <input id="fileUpload" type="file" onChange={handleChange} data-testid="file-upload-input" />
     </>

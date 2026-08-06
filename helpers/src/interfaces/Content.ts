@@ -20,6 +20,8 @@ export interface FileInterface {
   fileType?: string;
   size?: number;
   dateModified?: Date;
+  provider?: string;
+  externalId?: string;
   fileContents?: string;
 }
 export interface SermonInterface {

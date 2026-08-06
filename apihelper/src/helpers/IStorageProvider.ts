@@ -2,6 +2,11 @@ export interface PresignedPostData {
   url: string;
   fields: Record<string, string>;
   key: string;
+  method?: "POST" | "PUT";
+  headers?: Record<string, string>;
+  rawBody?: boolean;
+  chunkSize?: number;
+  externalIdField?: string;
 }
 
 export interface StorageQuota {
@@ -19,4 +24,6 @@ export interface IStorageProvider {
   list(prefix: string): Promise<string[]>;
   move(oldKey: string, newKey: string): Promise<void>;
   getQuota?(churchId: string): Promise<StorageQuota | null>;
+  // BYOS providers: key is the provider-native locator (files.externalId); mints a short-lived direct link
+  getDownloadUrl?(key: string): Promise<string | null>;
 }

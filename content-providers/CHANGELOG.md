@@ -1,5 +1,11 @@
 # @churchapps/content-providers
 
+## 0.9.1
+
+### Patch Changes
+
+- 1ed7b84: Fill in the Google Drive OAuth client id (was shipped empty in 0.9.0 pending creation of the Google Cloud client).
+
 ## 0.9.0
 
 ### Minor Changes

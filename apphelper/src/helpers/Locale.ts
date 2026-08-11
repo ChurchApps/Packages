@@ -25,9 +25,13 @@ export class Locale {
     "pt",
     "ru",
     "tl",
-    "zh"
+    "zh",
+    "zh-TW"
   ];
   private static readonly extraCodes: ExtraLanguageCodes = { no: ["nb", "nn"] };
+  // Region/script subtags that indicate Traditional Chinese. Any other "zh-*" (including
+  // bare "zh") is treated as Simplified, matching the existing "zh" locale file.
+  private static readonly traditionalChineseTags: string[] = ["TW", "HK", "MO", "Hant"];
 
   // Hard-coded English fallbacks for when locale files are not available
   private static readonly englishFallbacks: Record<string, any> = {
@@ -369,10 +373,9 @@ export class Locale {
     let langs = ["en"];
 
     if (typeof navigator !== "undefined") {
-      const browserLang = navigator.language.split("-")[0];
-      const mappedLang
-				= Object.keys(this.extraCodes).find((code) =>
-				  this.extraCodes[code].includes(browserLang)) || browserLang;
+      const fullLang = navigator.language;
+      const browserLang = fullLang.split("-")[0];
+      const mappedLang = this.mapBrowserLanguage(fullLang, browserLang);
       const notSupported = this.supportedLanguages.indexOf(mappedLang) === -1;
       langs = mappedLang === "en" || notSupported ? ["en"] : ["en", mappedLang];
     }
@@ -410,6 +413,20 @@ export class Locale {
         }
       });
   };
+
+  // "zh" alone is ambiguous between Simplified and Traditional. Use the region/script
+  // subtag from the full BCP 47 tag (e.g. "zh-TW", "zh-Hant", "zh-HK") to disambiguate;
+  // every other language keeps the original behavior of collapsing to its primary subtag.
+  private static mapBrowserLanguage(fullLang: string, browserLang: string): string {
+    if (browserLang === "zh") {
+      const subtag = fullLang.split("-")[1];
+      return subtag && this.traditionalChineseTags.includes(subtag) ? "zh-TW" : "zh";
+    }
+    return (
+      Object.keys(this.extraCodes).find((code) =>
+        this.extraCodes[code].includes(browserLang)) || browserLang
+    );
+  }
 
   private static deepMerge(
     target: Record<string, unknown>,

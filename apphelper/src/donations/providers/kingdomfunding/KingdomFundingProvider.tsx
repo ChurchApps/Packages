@@ -105,7 +105,6 @@ export const KingdomFundingProvider: PaymentProvider = {
     feeFields: ["kf"],
     currencies: [],
     selectableInAdmin: true,
-    betaOnly: true,
     setupInstructionsKey: "settings.givingSettingsEdit.kfSetup",
     signupUrl: (church, user) => {
       const fullName = ((user?.firstName || "") + " " + (user?.lastName || "")).trim();

@@ -1,5 +1,14 @@
 # @churchapps/apphelper
 
+## 1.1.1
+
+### Patch Changes
+
+- ad6b276: apphelper: take Kingdom Funding out of beta — removed `betaOnly: true` from the KingdomFunding provider descriptor, so KF now appears in the production admin gateway dropdown (`GivingSettingsEdit`) for all churches, not just those that already had it configured. No behavior change to the donation flows themselves; the NMI-backed provider (charges, vaulting, recurring, webhooks) has been live-path code since the July provider refactor.
+- 53fc9ee: apphelper: make the new zh-TW locale rollout-safe and fix locale resolution generally (#14). `Locale.init()` now loads `zh.json` alongside `zh-TW.json` and configures i18next with `fallbackLng: { "zh-TW": ["zh", "en"], default: ["en"] }`, so a consuming app that has not shipped a `zh-TW.json` yet — or has shipped a partial one — degrades to Simplified Chinese instead of English. Without this, adding `zh-TW` to `supportedLanguages` would have flipped every zh-TW/zh-HK/zh-MO/zh-Hant browser from a full Chinese UI to a full English one the moment the app picked up the new version. Traditional Chinese subtag matching is also now case-insensitive, so a non-canonical `zh-tw` or `ZH-HANT` still resolves correctly.
+
+  The mapping was previously inert for everything except a literal `zh-TW` browser tag: i18next detected the raw `navigator.language`, so a `zh-HK` browser resolved to `zh-HK` → `zh` → English and never touched the `zh-TW` resource that had just been fetched. The same mismatch meant `nb-NO` never reached the `no` locale file despite the `extraCodes` mapping. `init()` now passes the mapped locale to i18next as `lng` directly, and the `i18next-browser-languagedetector` plugin is dropped — detection order was `navigator`-only and its localStorage cache was never read.
+
 ## 1.1.0
 
 ### Minor Changes

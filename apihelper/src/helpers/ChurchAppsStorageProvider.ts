@@ -6,7 +6,20 @@ import { IStorageProvider, PresignedPostData, StorageQuota } from "./IStoragePro
 
 export class ChurchAppsStorageProvider implements IStorageProvider {
   readonly name = "churchapps";
-  private rootPath = path.resolve("./content") + "/";
+  private rootPath = path.resolve("./content") + path.sep;
+
+  private safePath(key: string): string {
+    if (key.split(/[/\\]/).includes("..") || /^[a-zA-Z]:[\\/]/.test(key) || key.startsWith("//") || key.startsWith("\\\\")) throw new Error("Invalid storage key");
+    if (path.isAbsolute(key)) {
+      const abs = path.resolve(key);
+      if (abs !== this.rootPath.slice(0, -1) && !abs.startsWith(this.rootPath) && fs.existsSync(abs)) throw new Error("Invalid storage key");
+    }
+    if (key.startsWith("/")) key = key.substring(1);
+    if (path.isAbsolute(key) || path.win32.isAbsolute(key)) throw new Error("Invalid storage key");
+    const resolved = path.resolve(this.rootPath, key);
+    if (resolved !== this.rootPath.slice(0, -1) && !resolved.startsWith(this.rootPath)) throw new Error("Invalid storage key");
+    return resolved;
+  }
 
   async store(key: string, contentType: string, contents: Buffer): Promise<string> {
     switch (EnvironmentBase.fileStore) {
@@ -25,14 +38,14 @@ export class ChurchAppsStorageProvider implements IStorageProvider {
   async remove(key: string): Promise<void> {
     switch (EnvironmentBase.fileStore) {
       case "S3": await AwsHelper.S3Remove(key); break;
-      default: fs.unlinkSync(this.rootPath + key); break;
+      default: fs.unlinkSync(this.safePath(key)); break;
     }
   }
 
   async removeFolder(key: string): Promise<void> {
     switch (EnvironmentBase.fileStore) {
       case "S3": break;
-      default: fs.rmdirSync(this.rootPath + key); break;
+      default: fs.rmdirSync(this.safePath(key)); break;
     }
   }
 
@@ -40,7 +53,7 @@ export class ChurchAppsStorageProvider implements IStorageProvider {
     switch (EnvironmentBase.fileStore) {
       case "S3": return await AwsHelper.S3List(prefix);
       default: {
-        const fullPath = this.rootPath + prefix;
+        const fullPath = this.safePath(prefix);
         if (!fs.existsSync(fullPath)) return [];
         return fs.readdirSync(fullPath);
       }
@@ -50,7 +63,7 @@ export class ChurchAppsStorageProvider implements IStorageProvider {
   async move(oldKey: string, newKey: string): Promise<void> {
     switch (EnvironmentBase.fileStore) {
       case "S3": await AwsHelper.S3Move(oldKey, newKey); break;
-      default: fs.rename(oldKey, newKey, err => { throw err; }); break; // pre-existing behavior, unused in disk mode
+      default: fs.renameSync(this.safePath(oldKey), this.safePath(newKey)); break;
     }
   }
 
@@ -59,7 +72,7 @@ export class ChurchAppsStorageProvider implements IStorageProvider {
   }
 
   private storeLocal(key: string, contents: Buffer) {
-    const fileName = this.rootPath + key;
+    const fileName = this.safePath(key);
     const dirName = path.dirname(fileName);
     if (!fs.existsSync(dirName)) fs.mkdirSync(dirName, { recursive: true });
     fs.writeFileSync(fileName, contents);

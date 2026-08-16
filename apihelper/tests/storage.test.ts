@@ -40,6 +40,27 @@ test("ChurchAppsStorageProvider disk mode: remove deletes the file, removeFolder
   assert.equal(fs.existsSync(path.join(tmp, "content", "church1", "files")), false);
 });
 
+test("ChurchAppsStorageProvider disk mode: rejects .. and absolute keys", async () => {
+  const provider = new ChurchAppsStorageProvider();
+  const buf = Buffer.from("x");
+  await assert.rejects(() => provider.store("../etc/passwd", "text/plain", buf), /Invalid storage key/);
+  await assert.rejects(() => provider.store("/etc/passwd", "text/plain", buf), /Invalid storage key/);
+  await assert.rejects(() => provider.store("//etc/passwd", "text/plain", buf), /Invalid storage key/);
+  await assert.rejects(() => provider.store("C:\\Windows\\System32\\config", "text/plain", buf), /Invalid storage key/);
+  await assert.rejects(() => provider.remove("../etc/passwd"), /Invalid storage key/);
+  await assert.rejects(() => provider.remove("/etc/passwd"), /Invalid storage key/);
+  await assert.rejects(() => provider.removeFolder("../etc"), /Invalid storage key/);
+  await assert.rejects(() => provider.list("../etc"), /Invalid storage key/);
+  await assert.rejects(() => provider.list("/etc"), /Invalid storage key/);
+  await assert.rejects(() => provider.move("../etc/passwd", "church1/x.txt"), /Invalid storage key/);
+  await assert.rejects(() => provider.move("church1/x.txt", "/etc/passwd"), /Invalid storage key/);
+  await assert.rejects(() => provider.move("church1/x.txt", "C:\\Windows\\System32\\config"), /Invalid storage key/);
+  assert.equal(fs.existsSync(path.join(tmp, "etc")), false);
+  const url = await provider.store("/church1/safe.txt", "text/plain", buf);
+  assert.equal(url, "http://localhost:8084/content/church1/safe.txt");
+  assert.equal(fs.readFileSync(path.join(tmp, "content", "church1", "safe.txt"), "utf8"), "x");
+});
+
 test("ChurchAppsStorageProvider getQuota returns null (free tier, no quota)", async () => {
   const provider = new ChurchAppsStorageProvider();
   assert.equal(await provider.getQuota("church1"), null);

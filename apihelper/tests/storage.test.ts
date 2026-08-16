@@ -32,6 +32,27 @@ test("ChurchAppsStorageProvider disk mode: getUploadUrl returns null (base64 fal
   assert.equal(await provider.getUploadUrl("/x", "text/plain", 10), null);
 });
 
+test("ChurchAppsStorageProvider S3 mode: getUploadUrl forwards contentType and size", async () => {
+  const { AwsHelper } = await import("../src/helpers/AwsHelper");
+  const calls: unknown[] = [];
+  const original = AwsHelper.S3PresignedUrl;
+  AwsHelper.S3PresignedUrl = (async (key: string, contentType?: string, size?: number) => {
+    calls.push({ key, contentType, size });
+    return { url: "https://s3.example/post", fields: { "Content-Type": contentType || "", acl: "public-read" }, key };
+  }) as typeof AwsHelper.S3PresignedUrl;
+  EnvironmentBase.fileStore = "S3";
+  try {
+    const provider = new ChurchAppsStorageProvider();
+    const result = await provider.getUploadUrl("/church1/photo.jpg", "image/jpeg", 4096);
+    assert.deepEqual(calls, [{ key: "/church1/photo.jpg", contentType: "image/jpeg", size: 4096 }]);
+    assert.equal(result?.fields.acl, "public-read");
+    assert.notEqual(result?.fields.acl, undefined);
+  } finally {
+    AwsHelper.S3PresignedUrl = original;
+    EnvironmentBase.fileStore = "";
+  }
+});
+
 test("ChurchAppsStorageProvider disk mode: remove deletes the file, removeFolder the dir", async () => {
   const provider = new ChurchAppsStorageProvider();
   await provider.remove("/church1/files/hello.txt");

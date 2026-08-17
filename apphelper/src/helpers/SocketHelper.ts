@@ -67,8 +67,11 @@ export class SocketHelper {
         personId: SocketHelper.personIdChurchId.personId
       };
 
-      ApiHelper.postAnonymous("/connections", [connection], "MessagingApi")
-        .catch((err: unknown) => console.warn("SocketHelper.createAlertConnection failed:", err));
+      // The alerts room join must be authenticated — the API only lets a user join their own alerts room.
+      const post = ApiHelper.getConfig("MessagingApi")?.jwt
+        ? ApiHelper.post("/connections", [connection], "MessagingApi")
+        : ApiHelper.postAnonymous("/connections", [connection], "MessagingApi");
+      post.catch((err: unknown) => console.warn("SocketHelper.createAlertConnection failed:", err));
     }
   };
 

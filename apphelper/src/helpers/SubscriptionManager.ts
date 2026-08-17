@@ -93,7 +93,10 @@ export class SubscriptionManager {
       displayName: displayName ?? ""
     };
     try {
-      await ApiHelper.postAnonymous("/connections", [connection], "MessagingApi");
+      // Authenticated joins are required for non-public rooms (person notes, group chat);
+      // anonymous joins are only accepted for public livestream rooms.
+      if (ApiHelper.getConfig("MessagingApi")?.jwt) await ApiHelper.post("/connections", [connection], "MessagingApi");
+      else await ApiHelper.postAnonymous("/connections", [connection], "MessagingApi");
     } catch (err) {
       console.warn(`SubscriptionManager.postConnection(${conversationId}) failed:`, err);
     }

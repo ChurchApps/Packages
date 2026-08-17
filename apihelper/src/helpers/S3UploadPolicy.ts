@@ -1,4 +1,13 @@
-export const PUBLIC_CONTENT_TYPE_PREFIXES = ["image/", "video/", "audio/", "application/pdf", "font/", "application/font-", "application/vnd.ms-fontobject", "text/css"] as const;
+export const PUBLIC_CONTENT_TYPE_PREFIXES = [
+  "image/",
+  "video/",
+  "audio/",
+  "application/pdf",
+  "font/",
+  "application/font-",
+  "application/vnd.ms-fontobject",
+  "text/css"
+] as const;
 export const MAX_UPLOAD_BYTES = 512 * 1024 * 1024;
 export const DEFAULT_CONTENT_TYPE = "application/octet-stream";
 

@@ -38,7 +38,7 @@ export const GalleryModal: React.FC<Props> = (props: Props) => {
     try {
       const fileName = Math.floor(Date.now() / 1000).toString() + ".jpg";
       const blob = FileHelper.dataURLtoBlob(dataUrl);
-      const file = new File([blob], "file_name");
+      const file = new File([blob], fileName, { type: blob.type || "image/jpeg" });
 
       const params = { folder: aspectRatio.toString(), fileName };
 

@@ -6,7 +6,24 @@ import { IStorageProvider, PresignedPostData, StorageQuota } from "./IStoragePro
 
 export class ChurchAppsStorageProvider implements IStorageProvider {
   readonly name = "churchapps";
-  private rootPath = path.resolve("./content") + "/";
+  private rootPath = path.resolve("./content") + path.sep;
+
+  // Keys name a location inside ./content, never on the wider filesystem. Anything that could
+  // escape is rejected up front, then whatever survives is resolved and must still sit under
+  // rootPath (which keeps its trailing separator, so a sibling like ./content-evil never matches).
+  private safePath(key: string): string {
+    const invalid =
+      !key ||
+      key.includes("\0") ||
+      /^[a-zA-Z]:/.test(key) || // C:\x, C:/x, and drive-relative C:x
+      /^[/\\]{2}/.test(key) || // //host/share, \\host\share, \\?\C:\x, ///x
+      key.split(/[/\\]+/).includes("..");
+    if (invalid) throw new Error("Invalid storage key");
+    // A leading slash is the shape callers already use ("/churchId/..."); it is root-relative here.
+    const resolved = path.resolve(this.rootPath, key.replace(/^[/\\]+/, ""));
+    if (!resolved.startsWith(this.rootPath)) throw new Error("Invalid storage key");
+    return resolved;
+  }
 
   async store(key: string, contentType: string, contents: Buffer): Promise<string> {
     switch (EnvironmentBase.fileStore) {
@@ -16,23 +33,22 @@ export class ChurchAppsStorageProvider implements IStorageProvider {
     return (EnvironmentBase.contentRoot || "") + key;
   }
 
-  async getUploadUrl(key: string, _contentType: string, _size: number): Promise<PresignedPostData | null> {
-    // S3PresignedUrl doesn't constrain contentType/size; params exist for providers that do
-    if (EnvironmentBase.fileStore === "S3") return await AwsHelper.S3PresignedUrl(key);
+  async getUploadUrl(key: string, contentType: string, size: number): Promise<PresignedPostData | null> {
+    if (EnvironmentBase.fileStore === "S3") return await AwsHelper.S3PresignedUrl(key, contentType, size);
     return null;
   }
 
   async remove(key: string): Promise<void> {
     switch (EnvironmentBase.fileStore) {
       case "S3": await AwsHelper.S3Remove(key); break;
-      default: fs.unlinkSync(this.rootPath + key); break;
+      default: fs.unlinkSync(this.safePath(key)); break;
     }
   }
 
   async removeFolder(key: string): Promise<void> {
     switch (EnvironmentBase.fileStore) {
       case "S3": break;
-      default: fs.rmdirSync(this.rootPath + key); break;
+      default: fs.rmdirSync(this.safePath(key)); break;
     }
   }
 
@@ -40,7 +56,7 @@ export class ChurchAppsStorageProvider implements IStorageProvider {
     switch (EnvironmentBase.fileStore) {
       case "S3": return await AwsHelper.S3List(prefix);
       default: {
-        const fullPath = this.rootPath + prefix;
+        const fullPath = this.safePath(prefix);
         if (!fs.existsSync(fullPath)) return [];
         return fs.readdirSync(fullPath);
       }
@@ -50,7 +66,7 @@ export class ChurchAppsStorageProvider implements IStorageProvider {
   async move(oldKey: string, newKey: string): Promise<void> {
     switch (EnvironmentBase.fileStore) {
       case "S3": await AwsHelper.S3Move(oldKey, newKey); break;
-      default: fs.rename(oldKey, newKey, err => { throw err; }); break; // pre-existing behavior, unused in disk mode
+      default: fs.renameSync(this.safePath(oldKey), this.safePath(newKey)); break;
     }
   }
 
@@ -59,7 +75,7 @@ export class ChurchAppsStorageProvider implements IStorageProvider {
   }
 
   private storeLocal(key: string, contents: Buffer) {
-    const fileName = this.rootPath + key;
+    const fileName = this.safePath(key);
     const dirName = path.dirname(fileName);
     if (!fs.existsSync(dirName)) fs.mkdirSync(dirName, { recursive: true });
     fs.writeFileSync(fileName, contents);

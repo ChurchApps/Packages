@@ -13,7 +13,7 @@
   ],
   "scripts": {
     "preinstall": "node -e \"if(!(process.env.npm_config_user_agent||'').startsWith('yarn')){console.error('\\n[Packages] This repo uses Yarn (Berry). Run \\'yarn install\\' instead of npm/pnpm.\\n');process.exit(1)}\"",
-    "build": "yarn workspaces foreach --all --topological run build",
+    "build": "yarn workspaces foreach --all --topological-dev run build",
     "test": "yarn workspaces foreach --all run test",
     "lint": "yarn workspaces foreach --all run lint:check",
     "changeset": "changeset",

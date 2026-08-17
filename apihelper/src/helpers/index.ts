@@ -18,3 +18,4 @@ export * from "./EmailHelper.js";
 export * from "./MySqlHelper.js";
 export * from "./Pool.js";
 export * from "./SlugHelper.js";
+export * from "./S3UploadPolicy.js";

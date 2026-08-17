@@ -117,6 +117,7 @@
     "i18next-browser-languagedetector": "^8.2.1",
     "i18next-chained-backend": "^5.0.3",
     "i18next-http-backend": "^4.0.0",
+    "isomorphic-dompurify": "^3.22.0",
     "jwt-decode": "^4.0.0",
     "lexical": "^0.33.1",
     "marked": "^18.0.3",

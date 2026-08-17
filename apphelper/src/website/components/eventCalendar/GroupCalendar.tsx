@@ -10,6 +10,7 @@ interface Props {
   churchId: string;
   groupId: string;
   canEdit: boolean;
+  firstDayOfWeek?: number;
 }
 
 export function GroupCalendar(props: Props) {
@@ -28,6 +29,6 @@ export function GroupCalendar(props: Props) {
   useEffect(loadData, [props.groupId]);
 
   return (
-    <EventCalendar events={events} editGroupId={props.canEdit ? props.groupId : ""} churchId={props.churchId} onRequestRefresh={loadData} />
+    <EventCalendar events={events} editGroupId={props.canEdit ? props.groupId : ""} churchId={props.churchId} firstDayOfWeek={props.firstDayOfWeek} onRequestRefresh={loadData} />
   );
 }

@@ -76,7 +76,7 @@ registerDefaultElementRenderer("form", (p) => p.church ? <FormElement key={p.ele
 registerDefaultElementRenderer("groupList", (p) => <GroupListElement key={p.element.id} churchId={p.church?.id || ""} element={p.element} />);
 registerDefaultElementRenderer("groups", (p) => <GroupsElement key={p.element.id} churchId={p.church?.id || p.element.churchId || ""} element={p.element} />);
 registerDefaultElementRenderer("table", (p) => <TableElement key={p.element.id} element={p.element} />);
-registerDefaultElementRenderer("calendar", (p) => <CalendarElement key={p.element.id} element={p.element} churchId={p.church?.id || p.element.churchId || ""} />);
+registerDefaultElementRenderer("calendar", (p) => <CalendarElement key={p.element.id} element={p.element} churchId={p.church?.id || p.element.churchId || ""} firstDayOfWeek={(p.church as any)?.firstDayOfWeek ?? 0} />);
 registerDefaultElementRenderer("iconFeature", (p) => <IconFeatureElement key={p.element.id} element={p.element} />);
 registerDefaultElementRenderer("gallery", (p) => <GalleryElement key={p.element.id} element={p.element} onEdit={p.onEdit} />);
 registerDefaultElementRenderer("testimonial", (p) => <TestimonialElement key={p.element.id} element={p.element} onEdit={p.onEdit} />);

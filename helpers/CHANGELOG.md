@@ -1,5 +1,11 @@
 # @churchapps/helpers
 
+## 2.1.1
+
+### Patch Changes
+
+- 4393391: Constrain S3 uploads: the server pins Content-Type and a content-length-range on presigned POSTs and chooses the ACL itself (a client-supplied ACL is ignored). Only allowlisted media types get `public-read`; every other type uploads to a private object rather than being rejected.
+
 ## 2.1.0
 
 ### Minor Changes

@@ -63,11 +63,16 @@ export class FileHelper {
     }
   }
 
+  static presignedFormFields(presigned: { fields?: Record<string, string> }, uploadedFile: { type: string }): Record<string, string> {
+    const fields = { ...(presigned.fields || {}) };
+    if (!fields["Content-Type"] && uploadedFile.type) fields["Content-Type"] = uploadedFile.type;
+    return fields;
+  }
+
   static postPresignedFile = (presigned: any, uploadedFile: File, progressCallback: (percent: number) => void) => {
     const formData = new FormData();
-    formData.append("acl", "public-read");
-    formData.append("Content-Type", uploadedFile.type);
-    for (const property in presigned.fields) formData.append(property, presigned.fields[property]);
+    const fields = FileHelper.presignedFormFields(presigned, uploadedFile);
+    for (const property in fields) formData.append(property, fields[property]);
     formData.append("file", uploadedFile);
 
     // Use XMLHttpRequest for upload progress tracking since fetch doesn't support it natively

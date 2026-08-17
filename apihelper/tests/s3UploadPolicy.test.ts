@@ -1,12 +1,35 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { buildS3UploadPolicy, isAllowedContentType, MAX_UPLOAD_BYTES, s3ObjectAcl } from "../src/helpers/S3UploadPolicy";
+import { buildS3UploadPolicy, DEFAULT_CONTENT_TYPE, isAllowedContentType, MAX_UPLOAD_BYTES, s3ObjectAcl } from "../src/helpers/S3UploadPolicy";
 
-test("buildS3UploadPolicy rejects empty Content-Type when the key is not an allowlisted type", () => {
-  assert.throws(() => buildS3UploadPolicy({ key: "church1/files/payload.bin", contentType: "" }), /Content-Type is required/);
-  assert.throws(() => buildS3UploadPolicy({ key: "church1/files/payload.bin" }), /Content-Type is required/);
-  assert.throws(() => buildS3UploadPolicy({ key: "church1/files/page.html", contentType: "" }), /Content-Type is required/);
+test("buildS3UploadPolicy makes an unlisted type private instead of throwing", () => {
+  const doc = buildS3UploadPolicy({ key: "church1/files/notes.docx", contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
+  assert.equal(doc.acl, undefined);
+  assert.equal(doc.contentType, "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+  assert.deepEqual(doc.conditions[0], ["eq", "$Content-Type", doc.contentType]);
+  assert.ok(!doc.conditions.some((c) => !Array.isArray(c) && c.acl));
+
+  const html = buildS3UploadPolicy({ key: "x.html", contentType: "text/html" });
+  assert.equal(html.acl, undefined);
+  assert.equal(html.contentType, "text/html");
+});
+
+test("buildS3UploadPolicy falls back to a private default when no type can be resolved", () => {
+  for (const policy of [buildS3UploadPolicy({ key: "church1/files/payload.bin", contentType: "" }), buildS3UploadPolicy({ key: "church1/files/payload" })]) {
+    assert.equal(policy.contentType, DEFAULT_CONTENT_TYPE);
+    assert.equal(policy.acl, undefined);
+    assert.deepEqual(policy.conditions[0], ["eq", "$Content-Type", DEFAULT_CONTENT_TYPE]);
+  }
+
+  const html = buildS3UploadPolicy({ key: "church1/files/page.html", contentType: "" });
+  assert.equal(html.contentType, DEFAULT_CONTENT_TYPE);
+  assert.equal(html.acl, undefined);
+
+  // A malformed type is not echoed back into the policy.
+  const junk = buildS3UploadPolicy({ key: "church1/files/payload.bin", contentType: "not a mime type" });
+  assert.equal(junk.contentType, DEFAULT_CONTENT_TYPE);
+  assert.equal(junk.acl, undefined);
 });
 
 test("buildS3UploadPolicy does not accept empty Content-Type as-is even when the key can be inferred", () => {
@@ -22,8 +45,9 @@ test("buildS3UploadPolicy ignores a client-supplied ACL", () => {
   assert.ok(!JSON.stringify(fromClient.conditions).includes("authenticated-read"));
   assert.ok(fromClient.conditions.some((c) => !Array.isArray(c) && c.acl === "public-read"));
 
-  const html = () => buildS3UploadPolicy({ key: "x.html", contentType: "text/html", acl: "public-read" });
-  assert.throws(html, /Unsupported Content-Type/);
+  const html = buildS3UploadPolicy({ key: "x.html", contentType: "text/html", acl: "public-read" });
+  assert.equal(html.acl, undefined);
+  assert.ok(!JSON.stringify(html.conditions).includes("public-read"));
   assert.equal(s3ObjectAcl("text/html"), undefined);
 });
 

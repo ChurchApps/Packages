@@ -1,5 +1,9 @@
 export const PUBLIC_CONTENT_TYPE_PREFIXES = ["image/", "video/", "audio/", "application/pdf", "font/", "application/font-", "application/vnd.ms-fontobject", "text/css"] as const;
 export const MAX_UPLOAD_BYTES = 512 * 1024 * 1024;
+export const DEFAULT_CONTENT_TYPE = "application/octet-stream";
+
+// RFC 7231 type/subtype using RFC 7230 token characters, after parameters are stripped.
+const CONTENT_TYPE_PATTERN = /^[a-z0-9!#$%&'*+.^_`|~-]+\/[a-z0-9!#$%&'*+.^_`|~-]+$/;
 
 const EXT_TO_CONTENT_TYPE: Record<string, string> = {
   jpg: "image/jpeg",
@@ -45,15 +49,17 @@ export function inferContentTypeFromKey(key: string): string {
   return EXT_TO_CONTENT_TYPE[ext] || "";
 }
 
+export function isValidContentType(contentType: string | undefined): boolean {
+  return CONTENT_TYPE_PATTERN.test(normalizeContentType(contentType));
+}
+
+// Never throws: a type outside the public allowlist is still uploadable, it just lands
+// on a private object (see s3ObjectAcl). This mirrors the S3Upload buffer path so
+// generic file attachments keep working.
 export function resolveUploadContentType(contentType: string | undefined, key: string): string {
   const provided = normalizeContentType(contentType);
-  if (provided) {
-    if (!isAllowedContentType(provided)) throw new Error("Unsupported Content-Type");
-    return provided;
-  }
-  const inferred = inferContentTypeFromKey(key);
-  if (!inferred || !isAllowedContentType(inferred)) throw new Error("Content-Type is required");
-  return inferred;
+  if (isValidContentType(provided)) return provided;
+  return inferContentTypeFromKey(key) || DEFAULT_CONTENT_TYPE;
 }
 
 export function resolveMaxUploadBytes(size?: number): number {
@@ -75,6 +81,7 @@ export function buildPresignedPostConditions(contentType: string, size?: number)
   return conditions;
 }
 
+// input.acl is accepted and ignored on purpose - the ACL is decided from the resolved type.
 export function buildS3UploadPolicy(input: { key: string; contentType?: string; size?: number; acl?: string }) {
   const contentType = resolveUploadContentType(input.contentType, input.key);
   return { contentType, conditions: buildPresignedPostConditions(contentType, input.size), acl: s3ObjectAcl(contentType) };

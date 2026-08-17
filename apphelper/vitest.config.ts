@@ -10,5 +10,12 @@ export default defineConfig({
     include: ["src/**/*.{test,spec}.{ts,tsx}"],
     exclude: ["node_modules", "dist", "playground"]
   },
-  resolve: { alias: { "@churchapps/helpers": resolve(__dirname, "../node_modules/@churchapps/helpers/dist/index.js") } }
+  resolve: {
+    alias: {
+      "@churchapps/helpers": resolve(__dirname, "../node_modules/@churchapps/helpers/dist/index.js"),
+      // jsdom is already the test environment, so point at the browser build
+      // instead of letting the node entry spin up a second, bundled jsdom.
+      "isomorphic-dompurify": resolve(__dirname, "../node_modules/isomorphic-dompurify/dist/browser.mjs")
+    }
+  }
 });

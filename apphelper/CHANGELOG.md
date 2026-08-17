@@ -1,5 +1,13 @@
 # @churchapps/apphelper
 
+## 1.1.2
+
+### Patch Changes
+
+- e41219a: Send the MessagingApi JWT on realtime room joins when one is configured. `SubscriptionManager.postConnection` and `SocketHelper.createAlertConnection` previously always used `postAnonymous`, which the API now rejects for non-public rooms (person notes, group chat, the per-person "alerts" room) — silently killing all realtime delivery for logged-in users. Anonymous POST remains the fallback for logged-out livestream viewers, the only audience the API still accepts anonymously.
+- 4393391: Constrain S3 uploads: the server pins Content-Type and a content-length-range on presigned POSTs and chooses the ACL itself (a client-supplied ACL is ignored). Only allowlisted media types get `public-read`; every other type uploads to a private object rather than being rejected.
+- b1b0829: Sanitize MarkdownPreviewLight HTML to block stored XSS. Link and image URLs are now checked against a scheme allowlist (http, https, mailto, tel, relative, plus raster `data:` image sources) at every point they can enter the preview - the `{...}` special-link syntax, marked's own link/image renderer, and raw HTML - so `javascript:` and `data:` URLs are dropped rather than relying on DOMPurify alone.
+
 ## 1.1.1
 
 ### Patch Changes

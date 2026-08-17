@@ -899,7 +899,7 @@ __metadata:
     "@aws-sdk/client-ses": "npm:^3.862.0"
     "@aws-sdk/client-ssm": "npm:^3.862.0"
     "@aws-sdk/s3-presigned-post": "npm:^3.862.0"
-    "@churchapps/helpers": "npm:^2.1.0"
+    "@churchapps/helpers": "npm:^2.1.1"
     "@types/express": "npm:^4.17.21"
     "@types/jsonwebtoken": "npm:^9.0.10"
     "@types/node": "npm:^24.2.0"
@@ -930,7 +930,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@churchapps/apphelper@workspace:apphelper"
   dependencies:
-    "@churchapps/helpers": "npm:^2.1.0"
+    "@churchapps/helpers": "npm:^2.1.1"
     "@emotion/cache": "npm:^11.14.0"
     "@emotion/react": "npm:^11.14.0"
     "@emotion/styled": "npm:^11.14.1"
@@ -1040,7 +1040,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@churchapps/helpers@npm:^2.1.0, @churchapps/helpers@workspace:helpers":
+"@churchapps/helpers@npm:^2.1.1, @churchapps/helpers@workspace:helpers":
   version: 0.0.0-use.local
   resolution: "@churchapps/helpers@workspace:helpers"
   dependencies:

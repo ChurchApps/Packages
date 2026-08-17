@@ -8,16 +8,20 @@ export class ChurchAppsStorageProvider implements IStorageProvider {
   readonly name = "churchapps";
   private rootPath = path.resolve("./content") + path.sep;
 
+  // Keys name a location inside ./content, never on the wider filesystem. Anything that could
+  // escape is rejected up front, then whatever survives is resolved and must still sit under
+  // rootPath (which keeps its trailing separator, so a sibling like ./content-evil never matches).
   private safePath(key: string): string {
-    if (key.split(/[/\\]/).includes("..") || /^[a-zA-Z]:[\\/]/.test(key) || key.startsWith("//") || key.startsWith("\\\\")) throw new Error("Invalid storage key");
-    if (path.isAbsolute(key)) {
-      const abs = path.resolve(key);
-      if (abs !== this.rootPath.slice(0, -1) && !abs.startsWith(this.rootPath) && fs.existsSync(abs)) throw new Error("Invalid storage key");
-    }
-    if (key.startsWith("/")) key = key.substring(1);
-    if (path.isAbsolute(key) || path.win32.isAbsolute(key)) throw new Error("Invalid storage key");
-    const resolved = path.resolve(this.rootPath, key);
-    if (resolved !== this.rootPath.slice(0, -1) && !resolved.startsWith(this.rootPath)) throw new Error("Invalid storage key");
+    const invalid =
+      !key ||
+      key.includes("\0") ||
+      /^[a-zA-Z]:/.test(key) || // C:\x, C:/x, and drive-relative C:x
+      /^[/\\]{2}/.test(key) || // //host/share, \\host\share, \\?\C:\x, ///x
+      key.split(/[/\\]+/).includes("..");
+    if (invalid) throw new Error("Invalid storage key");
+    // A leading slash is the shape callers already use ("/churchId/..."); it is root-relative here.
+    const resolved = path.resolve(this.rootPath, key.replace(/^[/\\]+/, ""));
+    if (!resolved.startsWith(this.rootPath)) throw new Error("Invalid storage key");
     return resolved;
   }
 

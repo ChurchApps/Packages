@@ -40,25 +40,70 @@ test("ChurchAppsStorageProvider disk mode: remove deletes the file, removeFolder
   assert.equal(fs.existsSync(path.join(tmp, "content", "church1", "files")), false);
 });
 
-test("ChurchAppsStorageProvider disk mode: rejects .. and absolute keys", async () => {
+const traversalKeys = [
+  "", // no key at all
+  "/", // separators only, resolves to the content root itself
+  ".", // the content root itself
+  "..",
+  "../etc/passwd",
+  "../../etc/passwd",
+  "church1/../../escape.txt",
+  "church1/files/../../../escape.txt",
+  "../content-evil/x.txt", // sibling dir sharing the "content" prefix
+  "..\\..\\escape.txt", // backslash traversal, meaningful on win32
+  "church1\\..\\..\\escape.txt",
+  "//etc/passwd", // UNC-shaped
+  "///etc/passwd", // extra slashes
+  "\\\\server\\share\\x.txt",
+  "\\\\?\\C:\\Windows\\x.txt", // win32 device path
+  "//server/share/x.txt",
+  "C:\\Windows\\System32\\config",
+  "c:/Windows/x.txt",
+  "C:evil.txt", // drive-relative, no separator
+  "church1/\0/x.txt" // NUL byte
+];
+
+test("ChurchAppsStorageProvider disk mode: every disk method rejects traversal keys", async () => {
   const provider = new ChurchAppsStorageProvider();
   const buf = Buffer.from("x");
-  await assert.rejects(() => provider.store("../etc/passwd", "text/plain", buf), /Invalid storage key/);
-  await assert.rejects(() => provider.store("/etc/passwd", "text/plain", buf), /Invalid storage key/);
-  await assert.rejects(() => provider.store("//etc/passwd", "text/plain", buf), /Invalid storage key/);
-  await assert.rejects(() => provider.store("C:\\Windows\\System32\\config", "text/plain", buf), /Invalid storage key/);
-  await assert.rejects(() => provider.remove("../etc/passwd"), /Invalid storage key/);
-  await assert.rejects(() => provider.remove("/etc/passwd"), /Invalid storage key/);
-  await assert.rejects(() => provider.removeFolder("../etc"), /Invalid storage key/);
-  await assert.rejects(() => provider.list("../etc"), /Invalid storage key/);
-  await assert.rejects(() => provider.list("/etc"), /Invalid storage key/);
-  await assert.rejects(() => provider.move("../etc/passwd", "church1/x.txt"), /Invalid storage key/);
-  await assert.rejects(() => provider.move("church1/x.txt", "/etc/passwd"), /Invalid storage key/);
-  await assert.rejects(() => provider.move("church1/x.txt", "C:\\Windows\\System32\\config"), /Invalid storage key/);
+  for (const key of traversalKeys) {
+    const label = JSON.stringify(key);
+    await assert.rejects(() => provider.store(key, "text/plain", buf), /Invalid storage key/, `store ${label}`);
+    await assert.rejects(() => provider.remove(key), /Invalid storage key/, `remove ${label}`);
+    await assert.rejects(() => provider.removeFolder(key), /Invalid storage key/, `removeFolder ${label}`);
+    await assert.rejects(() => provider.list(key), /Invalid storage key/, `list ${label}`);
+    await assert.rejects(() => provider.move(key, "church1/ok.txt"), /Invalid storage key/, `move from ${label}`);
+    await assert.rejects(() => provider.move("church1/ok.txt", key), /Invalid storage key/, `move to ${label}`);
+  }
   assert.equal(fs.existsSync(path.join(tmp, "etc")), false);
+  assert.equal(fs.existsSync(path.join(tmp, "escape.txt")), false);
+  assert.equal(fs.existsSync(path.join(tmp, "content-evil")), false);
+});
+
+test("ChurchAppsStorageProvider disk mode: leading and duplicate slashes stay inside content", async () => {
+  const provider = new ChurchAppsStorageProvider();
+  const buf = Buffer.from("x");
   const url = await provider.store("/church1/safe.txt", "text/plain", buf);
   assert.equal(url, "http://localhost:8084/content/church1/safe.txt");
   assert.equal(fs.readFileSync(path.join(tmp, "content", "church1", "safe.txt"), "utf8"), "x");
+
+  await provider.store("church1//dupes.txt", "text/plain", buf);
+  assert.equal(fs.readFileSync(path.join(tmp, "content", "church1", "dupes.txt"), "utf8"), "x");
+
+  // A filesystem-looking key is contained, not honored: it lands under ./content, never at /etc.
+  await provider.store("/etc/passwd", "text/plain", buf);
+  assert.equal(fs.readFileSync(path.join(tmp, "content", "etc", "passwd"), "utf8"), "x");
+  assert.equal(fs.existsSync(path.join(tmp, "etc")), false);
+  await provider.remove("/etc/passwd");
+  await provider.removeFolder("/etc");
+  assert.equal(fs.existsSync(path.join(tmp, "content", "etc")), false);
+});
+
+test("ChurchAppsStorageProvider disk mode: move stays inside content", async () => {
+  const provider = new ChurchAppsStorageProvider();
+  await provider.move("/church1/dupes.txt", "/church1/moved.txt");
+  assert.equal(fs.existsSync(path.join(tmp, "content", "church1", "dupes.txt")), false);
+  assert.equal(fs.readFileSync(path.join(tmp, "content", "church1", "moved.txt"), "utf8"), "x");
 });
 
 test("ChurchAppsStorageProvider getQuota returns null (free tier, no quota)", async () => {

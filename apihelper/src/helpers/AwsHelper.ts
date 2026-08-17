@@ -1,7 +1,8 @@
-import { S3Client, S3ClientConfig, GetObjectCommand, PutObjectCommand, DeleteObjectCommand, CopyObjectCommand, ListObjectsV2Command, ListObjectsV2Output } from "@aws-sdk/client-s3";
+import { S3Client, S3ClientConfig, GetObjectCommand, PutObjectCommand, DeleteObjectCommand, CopyObjectCommand, ListObjectsV2Command, ListObjectsV2Output, ObjectCannedACL } from "@aws-sdk/client-s3";
 import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
 import { EnvironmentBase } from "./EnvironmentBase.js";
 import { SSMClient, GetParameterCommand } from "@aws-sdk/client-ssm";
+import { buildS3UploadPolicy, inferContentTypeFromKey, s3ObjectAcl } from "./S3UploadPolicy.js";
 
 export class AwsHelper {
 
@@ -38,28 +39,29 @@ export class AwsHelper {
     return this._client;
   }
 
-  static async S3PresignedUrl(key: string): Promise<{url: string, fields: Record<string, string>, key: string}> {
+  static async S3PresignedUrl(key: string, contentType?: string, size?: number): Promise<{url: string, fields: Record<string, string>, key: string}> {
     if (key.startsWith("/")) key = key.substring(1);
+    const policy = buildS3UploadPolicy({ key, contentType, size });
     const { url, fields } = await createPresignedPost(this.getClient(), {
       Bucket: EnvironmentBase.s3Bucket,
       Key: key,
-      Conditions: [
-        ["starts-with", "$Content-Type", ""],
-        { acl: "public-read" }
-      ],
-      Expires: 3600 // 1 hour
+      Conditions: policy.conditions as any,
+      Fields: { "Content-Type": policy.contentType, ...(policy.acl ? { acl: policy.acl } : {}) },
+      Expires: 3600
     });
     return { url, fields, key };
   }
 
   static async S3Upload(key: string, contentType: string, contents: Buffer): Promise<void> {
     if (key.startsWith("/")) key = key.substring(1);
+    const resolvedType = contentType || inferContentTypeFromKey(key);
+    const acl = s3ObjectAcl(resolvedType);
     const command = new PutObjectCommand({
       Bucket: EnvironmentBase.s3Bucket,
       Key: key,
       Body: contents,
-      ACL: "public-read",
-      ContentType: contentType
+      ContentType: resolvedType || undefined,
+      ...(acl ? { ACL: acl as ObjectCannedACL } : {})
     });
     await this.getClient().send(command);
   }
@@ -84,11 +86,12 @@ export class AwsHelper {
   }
 
   static async S3Copy(oldKey: string, newKey: string): Promise<void> {
+    const acl = s3ObjectAcl(inferContentTypeFromKey(newKey));
     const command = new CopyObjectCommand({
       Bucket: EnvironmentBase.s3Bucket,
       CopySource: `/${EnvironmentBase.s3Bucket}/${oldKey}`,
       Key: newKey,
-      ACL: "public-read"
+      ...(acl ? { ACL: acl as ObjectCannedACL } : {})
     });
     await this.getClient().send(command);
   }

@@ -16,9 +16,8 @@ export class ChurchAppsStorageProvider implements IStorageProvider {
     return (EnvironmentBase.contentRoot || "") + key;
   }
 
-  async getUploadUrl(key: string, _contentType: string, _size: number): Promise<PresignedPostData | null> {
-    // S3PresignedUrl doesn't constrain contentType/size; params exist for providers that do
-    if (EnvironmentBase.fileStore === "S3") return await AwsHelper.S3PresignedUrl(key);
+  async getUploadUrl(key: string, contentType: string, size: number): Promise<PresignedPostData | null> {
+    if (EnvironmentBase.fileStore === "S3") return await AwsHelper.S3PresignedUrl(key, contentType, size);
     return null;
   }
 

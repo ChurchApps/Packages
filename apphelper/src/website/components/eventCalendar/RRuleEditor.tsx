@@ -166,6 +166,25 @@ export function RRuleEditor(props: Props) {
     props.onChange(result);
   }, [rRuleOptions, props.onChange]);
 
+  const startDateKey = `${props.start.getFullYear()}-${props.start.getMonth()}-${props.start.getDate()}`;
+  const prevStartDateKey = React.useRef(startDateKey);
+  useEffect(() => {
+    if (prevStartDateKey.current === startDateKey) return;
+    prevStartDateKey.current = startDateKey;
+    setRRuleOptions((prev) => {
+      const options = { ...prev, dtstart: props.start };
+      // Only weekly rules are pinned to the start date's weekday; daily rules must stay every-day.
+      if (options.freq === RRule.WEEKLY) {
+        let startDay = props.start.getDay() - 1;
+        if (startDay === -1) startDay = 6;
+        options.byweekday = [startDay];
+      } else if (options.freq === RRule.MONTHLY && options.bymonthday?.length > 0) {
+        options.bymonthday = [props.start.getDate() || 1];
+      }
+      return options;
+    });
+  }, [startDateKey, props.start]);
+
   return (
     <>
       <Grid size={{ xs: 2 }}>

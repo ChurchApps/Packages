@@ -1,5 +1,5 @@
 import { ContentProviderConfig, ContentProviderAuthData, ContentItem, ContentFile, ProviderLogos, ProviderCapabilities, AuthType, Instructions, DeviceAuthorizationResponse, DeviceFlowPollResult } from "../../interfaces";
-import { detectMediaType, createFile, filesToInstructions } from "../../utils";
+import { detectMediaType, isMediaFile, createFile, filesToInstructions } from "../../utils";
 import { parsePath } from "../../pathUtils";
 import { OAuthHelper, DeviceFlowHelper } from "../../helpers";
 import { BaseProvider } from "../BaseProvider";
@@ -55,15 +55,52 @@ export class SignPresenterProvider extends BaseProvider {
     }));
   }
 
+  /** image and video/stream slides play directly; web slides only when the url is itself a media file. html/pdf/multi_zone and generic web pages aren't playable in ChurchApps. */
+  private slideMediaType(slideType: string | undefined, url: string): "video" | "image" | "audio" | null {
+    if (slideType === "image") return "image";
+    if (slideType === "video" || slideType === "stream") return "video";
+    if (slideType === "web" && isMediaFile(url)) return detectMediaType(url);
+    return null;
+  }
+
+  /** The documented player contract; /content/playlists/:id/messages only covers templates 1 and 3 so most playlists come back empty there. */
   private async getMessages(playlistId: string, auth?: ContentProviderAuthData | null): Promise<ContentFile[]> {
+    const response = await this.apiRequest<unknown>(`/v2/playlists/${playlistId}`, auth);
+    const messages = this.extractList(response, "messages");
+    if (messages.length === 0) return this.getLegacyMessages(playlistId, auth);
+
+    const files: ContentFile[] = [];
+    messages.forEach((msg, messageIndex) => {
+      const slides = Array.isArray(msg.slides) ? (msg.slides as Record<string, unknown>[]) : [];
+      slides.forEach((slide, slideIndex) => {
+        const data = (slide.data || {}) as Record<string, unknown>;
+        const url = typeof data.url === "string" ? data.url.trim() : "";
+        const mediaType = url ? this.slideMediaType(slide.type as string | undefined, url) : null;
+        if (!mediaType) return;
+
+        const file = createFile(`${playlistId}-${messageIndex}-${slideIndex}`, msg.name as string, url, {
+          mediaType,
+          thumbnail: msg.thumbnail as string | undefined,
+          seconds: slide.seconds as number | undefined,
+          loop: data.loop as boolean | undefined
+        });
+        file.downloadUrl = url;
+        files.push(file);
+      });
+    });
+
+    return files;
+  }
+
+  private async getLegacyMessages(playlistId: string, auth?: ContentProviderAuthData | null): Promise<ContentFile[]> {
     const response = await this.apiRequest<unknown>(`/content/playlists/${playlistId}/messages`, auth);
     if (!response) return [];
 
     const files: ContentFile[] = [];
     for (const msg of this.extractList(response, "messages")) {
-      if (!msg.url) continue;
+      const url = [msg.url, msg.thumbnail, msg.image].map(v => (typeof v === "string" ? v.trim() : "")).find(Boolean) || "";
+      if (!url) continue;
 
-      const url = msg.url as string;
       const file = createFile(msg.id as string, msg.name as string, url, {
         mediaType: detectMediaType(url, msg.mediaType as string | undefined),
         thumbnail: (msg.thumbnail || msg.image) as string | undefined,

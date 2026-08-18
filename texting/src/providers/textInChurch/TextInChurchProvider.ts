@@ -76,19 +76,21 @@ export class TextInChurchProvider implements ITextingProvider {
     return { success: false, error: "TextInChurch does not support listing via API" };
   }
 
+  // Errors propagate so an auth/network failure surfaces as the send error instead of "no contact found".
   private async lookupContactByPhone(config: TextingProviderConfig, phone: string): Promise<string | null> {
-    try {
+    const digits = phone.replace(/\D/g, "");
+    const candidates = [...new Set([phone, digits, digits.length === 11 && digits.startsWith("1") ? digits.slice(1) : "1" + digits])];
+    for (const candidate of candidates) {
       const response = await axios.get(`${this.getBaseUrl(config)}/contact.php`, {
         headers: this.getHeaders(config),
-        params: { primary_phone: phone }
+        params: { primary_phone: candidate }
       });
       const contacts = response.data;
       if (Array.isArray(contacts) && contacts.length > 0) {
-        return contacts[0].contact_id?.toString() || null;
+        const id = contacts[0].contact_id?.toString();
+        if (id) return id;
       }
-      return null;
-    } catch {
-      return null;
     }
+    return null;
   }
 }

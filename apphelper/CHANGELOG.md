@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 1.1.3
+
+### Patch Changes
+
+- 2a8dab3: Rebuild weekly RRules from the event start date and match exception dates by calendar day.
+
 ## 1.1.2
 
 ### Patch Changes

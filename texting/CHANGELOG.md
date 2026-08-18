@@ -1,5 +1,11 @@
 # @churchapps/texting
 
+## 0.4.0
+
+### Minor Changes
+
+- ef7025e: TextInChurch: implement addSubscriber via POST contact.php (lookup-first so existing contacts are never duplicated), and normalize phones to TIC's documented 10-digit format for lookups
+
 ## 0.3.1
 
 ### Patch Changes

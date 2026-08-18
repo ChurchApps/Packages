@@ -173,7 +173,8 @@ export function RRuleEditor(props: Props) {
     prevStartDateKey.current = startDateKey;
     setRRuleOptions((prev) => {
       const options = { ...prev, dtstart: props.start };
-      if (options.freq === RRule.WEEKLY || options.freq === RRule.DAILY) {
+      // Only weekly rules are pinned to the start date's weekday; daily rules must stay every-day.
+      if (options.freq === RRule.WEEKLY) {
         let startDay = props.start.getDay() - 1;
         if (startDay === -1) startDay = 6;
         options.byweekday = [startDay];

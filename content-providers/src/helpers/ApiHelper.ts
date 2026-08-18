@@ -17,7 +17,9 @@ export class ApiHelper {
       const response = await fetch(url, options);
 
       if (!response.ok) {
-        console.warn(`[${providerId}] apiRequest failed: ${method} ${url} → HTTP ${response.status} ${response.statusText}`);
+        // Body carries the provider's actual reason (bad param, expired token); truncate so a long HTML error page doesn't flood the log
+        const detail = await response.text().catch(() => "");
+        console.warn(`[${providerId}] apiRequest failed: ${method} ${url} → HTTP ${response.status} ${response.statusText}${detail ? ` ${detail.slice(0, 500)}` : ""}`);
         return null;
       }
       return await response.json();

@@ -5,7 +5,7 @@ const DEFAULT_BASE_URL = "https://api.textinchurch.com/API/1_0";
 
 export class TextInChurchProvider implements ITextingProvider {
   readonly name = "TextInChurch";
-  readonly capabilities: ProviderCapabilities = { addSubscriber: false, getLists: false };
+  readonly capabilities: ProviderCapabilities = { addSubscriber: true, getLists: false };
 
   private getBaseUrl(config: TextingProviderConfig) {
     return config.baseUrl || DEFAULT_BASE_URL;
@@ -68,29 +68,48 @@ export class TextInChurchProvider implements ITextingProvider {
     }
   }
 
-  async addSubscriber(_config: TextingProviderConfig, _mobileNumber: string, _options?: AddSubscriberOptions): Promise<SubscriberResult> {
-    return { success: false, error: "TextInChurch does not support adding subscribers via API" };
+  async addSubscriber(config: TextingProviderConfig, mobileNumber: string, options?: AddSubscriberOptions): Promise<SubscriberResult> {
+    try {
+      const existing = await this.lookupContactByPhone(config, mobileNumber);
+      if (existing) return { success: true, data: { contact_id: existing } };
+
+      const meResponse = await axios.get(`${this.getBaseUrl(config)}/getMe.php`, { headers: this.getHeaders(config) });
+      const me = Array.isArray(meResponse.data) ? meResponse.data[0] : meResponse.data;
+      const accountId = me?.account_id;
+      if (!accountId) return { success: false, error: "Could not determine TextInChurch account_id" };
+
+      const params = new URLSearchParams();
+      params.append("contact_first_name", options?.firstName || "Unknown");
+      params.append("contact_last_name", options?.lastName || "Unknown");
+      params.append("primary_phone", this.normalizePhone(mobileNumber));
+      params.append("primary_country", "US");
+      params.append("account_id", accountId.toString());
+
+      const response = await axios.post(`${this.getBaseUrl(config)}/contact.php`, params, { headers: this.getHeaders(config) });
+      return { success: true, data: { contact_id: response.data?.contact_id?.toString() } };
+    } catch (error: any) {
+      return { success: false, error: error.response?.data?.message || error.response?.data?.error || error.message };
+    }
   }
 
   async getLists(_config: TextingProviderConfig): Promise<ListsResult> {
     return { success: false, error: "TextInChurch does not support listing via API" };
   }
 
+  // TIC expects "numbers only excluding country code" (e.g. 5557453298).
+  private normalizePhone(phone: string): string {
+    const digits = phone.replace(/\D/g, "");
+    return digits.length === 11 && digits.startsWith("1") ? digits.slice(1) : digits;
+  }
+
   // Errors propagate so an auth/network failure surfaces as the send error instead of "no contact found".
   private async lookupContactByPhone(config: TextingProviderConfig, phone: string): Promise<string | null> {
-    const digits = phone.replace(/\D/g, "");
-    const candidates = [...new Set([phone, digits, digits.length === 11 && digits.startsWith("1") ? digits.slice(1) : "1" + digits])];
-    for (const candidate of candidates) {
-      const response = await axios.get(`${this.getBaseUrl(config)}/contact.php`, {
-        headers: this.getHeaders(config),
-        params: { primary_phone: candidate }
-      });
-      const contacts = response.data;
-      if (Array.isArray(contacts) && contacts.length > 0) {
-        const id = contacts[0].contact_id?.toString();
-        if (id) return id;
-      }
-    }
+    const response = await axios.get(`${this.getBaseUrl(config)}/contact.php`, {
+      headers: this.getHeaders(config),
+      params: { primary_phone: this.normalizePhone(phone) }
+    });
+    const contacts = response.data;
+    if (Array.isArray(contacts) && contacts.length > 0) return contacts[0].contact_id?.toString() || null;
     return null;
   }
 }

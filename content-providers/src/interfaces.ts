@@ -74,7 +74,7 @@ export interface ContentFile {
   type: "file";
   id: string;
   title: string;
-  mediaType: "video" | "image";
+  mediaType: "video" | "image" | "audio";
   thumbnail?: string;
   url: string;
   downloadUrl?: string;
@@ -172,7 +172,7 @@ export interface InstructionItem {
   children?: InstructionItem[];
   downloadUrl?: string;
   thumbnail?: string;
-  mediaType?: "video" | "image";
+  mediaType?: "video" | "image" | "audio";
 }
 
 export interface Instructions {

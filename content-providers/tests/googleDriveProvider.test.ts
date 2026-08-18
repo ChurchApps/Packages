@@ -12,7 +12,9 @@ const listing = {
     { id: "folderB", name: "Week 10", mimeType: "application/vnd.google-apps.folder" },
     { id: "vid1", name: "Opener.mp4", mimeType: "video/mp4", thumbnailLink: "https://x/t.jpg", webContentLink: "https://drive.example/dl?id=vid1" },
     { id: "img1", name: "Slide", mimeType: "image/png" },
-    { id: "doc1", name: "Notes", mimeType: "application/vnd.google-apps.document" }
+    { id: "aud1", name: "Worship Set.mp3", mimeType: "audio/mpeg" },
+    { id: "octet1", name: "Recap.mp4", mimeType: "application/octet-stream" },
+    { id: "pdf1", name: "Notes.pdf", mimeType: "application/pdf" }
   ]
 };
 const subfolderListing = { files: [{ id: "sub1", name: "Inner", mimeType: "application/vnd.google-apps.folder", parents: ["folderA"] }] };
@@ -36,7 +38,7 @@ test("browse maps folders (with leaf detection) and media files, dropping non-me
     const items = await new GoogleDriveProvider().browse("/parent1", auth);
 
     assert.equal(new URL(requests[0]).searchParams.get("q"), "'parent1' in parents and trashed=false");
-    assert.deepEqual(items.map(i => [i.type, i.id]), [["folder", "folderA"], ["folder", "folderB"], ["file", "vid1"], ["file", "img1"]]);
+    assert.deepEqual(items.map(i => [i.type, i.id]), [["folder", "folderA"], ["folder", "folderB"], ["file", "vid1"], ["file", "img1"], ["file", "aud1"], ["file", "octet1"]]);
 
     const [folderA, folderB] = items as any[];
     assert.equal(folderA.path, "/folderA");
@@ -51,6 +53,13 @@ test("browse maps folders (with leaf detection) and media files, dropping non-me
     const image = items[3] as any;
     assert.equal(image.mediaType, "image");
     assert.equal(image.url, "https://drive.google.com/uc?id=img1&export=download");
+
+    const audio = items[4] as any;
+    assert.equal(audio.mediaType, "audio");
+
+    // Extension rescues files Drive reports as octet-stream; the .mp4 name types it as video
+    const octet = items[5] as any;
+    assert.equal(octet.mediaType, "video");
   } finally {
     restore();
   }
@@ -77,7 +86,7 @@ test("getPlaylist returns media files for a folder and null at root or when empt
   try {
     const provider = new GoogleDriveProvider();
     const files = await provider.getPlaylist("/parent1", auth);
-    assert.deepEqual(files?.map(f => f.id), ["vid1", "img1"]);
+    assert.deepEqual(files?.map(f => f.id), ["vid1", "img1", "aud1", "octet1"]);
     assert.equal(await provider.getPlaylist("/", auth), null);
   } finally {
     restore();

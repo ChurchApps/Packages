@@ -70,7 +70,13 @@ test("browse treats empty path as root and rejects malformed folder ids without 
   const restore = mockFetch((url) => { requests.push(url); return { files: [] }; });
   try {
     await new GoogleDriveProvider().browse(null, auth);
-    assert.ok(new URL(requests[0]).searchParams.get("q")?.includes("'root' in parents"));
+    const params = new URL(requests[0]).searchParams;
+    assert.ok(params.get("q")?.includes("'root' in parents"));
+    // "root" only resolves within the user's own corpus; includeItemsFromAllDrives makes Google reject the query
+    assert.equal(params.get("supportsAllDrives"), "true");
+    assert.equal(params.get("corpora"), "user");
+    assert.equal(params.get("includeItemsFromAllDrives"), null);
+    assert.equal(params.get("orderBy"), "folder,name_natural");
 
     requests.length = 0;
     const items = await new GoogleDriveProvider().browse("/x' or 'a", auth);
@@ -78,6 +84,21 @@ test("browse treats empty path as root and rejects malformed folder ids without 
     assert.equal(requests.length, 0);
   } finally {
     restore();
+  }
+});
+
+test("browse returns an empty list when Drive rejects the request", async () => {
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = (async () => ({
+    ok: false,
+    status: 400,
+    statusText: "Bad Request",
+    text: async () => "{\"error\":{\"message\":\"Invalid Value\"}}"
+  }) as Response) as typeof fetch;
+  try {
+    assert.deepEqual(await new GoogleDriveProvider().browse("/parent1", auth), []);
+  } finally {
+    globalThis.fetch = realFetch;
   }
 });
 

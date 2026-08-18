@@ -67,7 +67,9 @@ export class GoogleDriveProvider extends BaseProvider {
         orderBy: "folder,name_natural",
         pageSize: "1000",
         supportsAllDrives: "true",
-        includeItemsFromAllDrives: "true"
+        // corpora=user (not includeItemsFromAllDrives) — "root" is only meaningful in the user's own corpus, and
+        // combining it with an all-drives search makes Google reject the query, which browse saw as an empty folder.
+        corpora: "user"
       });
       if (pageToken) params.set("pageToken", pageToken);
       const response = await this.apiRequest<DriveFileListResponse>(`/files?${params.toString()}`, auth);

@@ -1,5 +1,11 @@
 # @churchapps/texting
 
+## 0.3.1
+
+### Patch Changes
+
+- 191a850: TextInChurch: surface lookup HTTP errors instead of reporting "no contact found", and match contacts across phone formats (as stored, digits-only, with/without leading 1)
+
 ## 0.3.0
 
 ### Minor Changes

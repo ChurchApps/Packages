@@ -50,17 +50,24 @@ export class EventHelper {
 
   static getFullRRule = (event:EventInterface) => {
     const RR = getRRule();
-    const rrule = RR.fromString(event.recurrenceRule);
-    rrule.options.dtstart = new Date(event.start!);
-    return rrule;
+    // Reconstruct so implicit BYDAY/BYMONTHDAY derive from event.start, not parse-time "now".
+    const options = { ...RR.parseString(event.recurrenceRule || "") };
+    options.dtstart = new Date(event.start!);
+    return new RR(options);
+  };
+
+  static calendarDateKey = (d: string | Date) => {
+    const dt = new Date(d);
+    if (isNaN(dt.getTime())) return "";
+    return `${dt.getFullYear()}-${dt.getMonth()}-${dt.getDate()}`;
   };
 
   static removeExcludeDates = (events:EventInterface[]) => {
     for (let i = events.length - 1; i >= 0; i--) {
       const exceptionDates = events[i].exceptionDates;
       if (exceptionDates && exceptionDates.length > 0) {
-        const parsedDates = exceptionDates.map((d: string | Date)=>new Date(d).toISOString());
-        if (parsedDates.indexOf(events[i].start!.toISOString()) > -1) events.splice(i, 1);
+        const keys = exceptionDates.map((d: string | Date) => EventHelper.calendarDateKey(d));
+        if (keys.indexOf(EventHelper.calendarDateKey(events[i].start!)) > -1) events.splice(i, 1);
       }
     }
   };

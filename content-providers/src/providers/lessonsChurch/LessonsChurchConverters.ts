@@ -81,7 +81,7 @@ export function buildSectionActionsMap(actionsResponse: VenueActionsResponseInte
   const actionThumbnailMap = new Map<string, string>();
   const actionUrlMap = new Map<string, string>();
   const actionContentMap = new Map<string, string>();
-  const actionMediaTypeMap = new Map<string, "video" | "image">();
+  const actionMediaTypeMap = new Map<string, "video" | "image" | "audio">();
   if (feedResponse?.sections) {
     for (const section of feedResponse.sections) {
       for (const action of section.actions || []) {

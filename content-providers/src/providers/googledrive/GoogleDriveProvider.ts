@@ -5,7 +5,7 @@ import {
 } from "../../interfaces";
 import { OAuthHelper } from "../../helpers";
 import { getProviderSecret } from "../../helpers/ProviderSecrets";
-import { detectMediaType, filesToInstructions } from "../../utils";
+import { detectMediaType, filesToInstructions, isMediaFile } from "../../utils";
 import { BaseProvider } from "../BaseProvider";
 import { DriveFile, DriveFileListResponse } from "./GoogleDriveInterfaces";
 
@@ -82,7 +82,10 @@ export class GoogleDriveProvider extends BaseProvider {
   private async childItems(folderId: string, auth?: ContentProviderAuthData | null): Promise<{ folders: DriveFile[]; mediaFiles: DriveFile[] }> {
     const entries = await this.listFiles(`'${folderId}' in parents and trashed=false`, auth);
     const folders = entries.filter(e => e.mimeType === FOLDER_MIME);
-    const mediaFiles = entries.filter(e => e.mimeType.startsWith("video/") || e.mimeType.startsWith("image/"));
+    // Drive reports uploads like .mp3/.mp4 as application/octet-stream at times; fall back to the filename. Google-apps docs (Docs/Sheets/Slides) are never playable.
+    const mediaFiles = entries.filter(e => e.mimeType !== FOLDER_MIME
+      && !e.mimeType.startsWith("application/vnd.google-apps")
+      && (["video/", "image/", "audio/"].some(prefix => e.mimeType.startsWith(prefix)) || isMediaFile(e.name)));
     return { folders, mediaFiles };
   }
 

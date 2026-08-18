@@ -13,25 +13,29 @@ const VIDEO_EXTENSIONS = [".mp4", ".webm", ".m3u8", ".mov", ".avi", ".mkv", ".m4
 const IMAGE_EXTENSIONS = [
   ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".svg", ".webp", ".tiff", ".tif"
 ];
+// Matches the formats the serving player already handles
+const AUDIO_EXTENSIONS = [".mp3", ".m4a", ".aac", ".wav", ".flac", ".oga"];
 
-export function detectMediaType(url: string, explicitType?: string): "video" | "image" {
+export function detectMediaType(url: string, explicitType?: string): "video" | "image" | "audio" {
   if (explicitType === "video" || explicitType?.startsWith("video/")) return "video";
   if (explicitType === "image" || explicitType?.startsWith("image/")) return "image";
+  if (explicitType === "audio" || explicitType?.startsWith("audio/")) return "audio";
   const lower = url.toLowerCase();
   if (VIDEO_EXTENSIONS.some(p => lower.includes(p)) || lower.includes("stream.mux.com")) return "video";
+  if (AUDIO_EXTENSIONS.some(p => lower.includes(p))) return "audio";
   return "image";
 }
 
 export function isMediaFile(filename: string): boolean {
   const lower = filename.toLowerCase();
-  return [...VIDEO_EXTENSIONS, ...IMAGE_EXTENSIONS].some(ext => lower.endsWith(ext));
+  return [...VIDEO_EXTENSIONS, ...IMAGE_EXTENSIONS, ...AUDIO_EXTENSIONS].some(ext => lower.endsWith(ext));
 }
 
 export function createFolder(id: string, title: string, path: string, thumbnail?: string, isLeaf?: boolean): ContentFolder {
   return { type: "folder", id, title, path, thumbnail, isLeaf };
 }
 
-export function createFile(id: string, title: string, url: string, options?: { mediaType?: "video" | "image"; thumbnail?: string; muxPlaybackId?: string; seconds?: number; loop?: boolean; loopVideo?: boolean; streamUrl?: string; }): ContentFile {
+export function createFile(id: string, title: string, url: string, options?: { mediaType?: "video" | "image" | "audio"; thumbnail?: string; muxPlaybackId?: string; seconds?: number; loop?: boolean; loopVideo?: boolean; streamUrl?: string; }): ContentFile {
   return { type: "file", id, title, url, mediaType: options?.mediaType ?? detectMediaType(url), thumbnail: options?.thumbnail, muxPlaybackId: options?.muxPlaybackId, seconds: options?.seconds, loop: options?.loop, loopVideo: options?.loopVideo, streamUrl: options?.streamUrl };
 }
 
@@ -71,7 +75,7 @@ export function filesToInstructions(name: string, files: ContentFile[], section?
 }
 
 /** Declared type first; else sniff the label (usually the original filename) alongside the URL — extension-less URLs (Dropbox temp links) defeat URL sniffing alone. */
-export function instructionItemMediaType(item: InstructionItem): "video" | "image" {
+export function instructionItemMediaType(item: InstructionItem): "video" | "image" | "audio" {
   return detectMediaType(`${item.downloadUrl || ""} ${item.label || ""}`, item.mediaType);
 }
 

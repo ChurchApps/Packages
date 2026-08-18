@@ -9,6 +9,7 @@ interface Props {
   curatedCalendarId: string;
   churchId: string;
   mode: "view" | "edit";
+  firstDayOfWeek?: number;
   updatedCallback?: () => void;
   refresh?: any;
 }
@@ -29,6 +30,6 @@ export function CuratedCalendar(props: Props) {
   useEffect(loadData, [props.curatedCalendarId, props?.refresh]);
 
   return (
-    <CuratedEventCalendar events={events} curatedCalendarId={props.curatedCalendarId} churchId={props.churchId} onRequestRefresh={loadData} mode={props.mode} />
+    <CuratedEventCalendar events={events} curatedCalendarId={props.curatedCalendarId} churchId={props.churchId} firstDayOfWeek={props.firstDayOfWeek} onRequestRefresh={loadData} mode={props.mode} />
   );
 }

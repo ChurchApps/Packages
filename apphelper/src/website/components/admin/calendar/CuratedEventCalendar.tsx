@@ -17,6 +17,7 @@ interface Props {
   mode: "view" | "edit";
   curatedCalendarId?: string;
   churchId?: string;
+  firstDayOfWeek?: number;
   onRequestRefresh?: () => void;
 }
 
@@ -33,6 +34,8 @@ export function CuratedEventCalendar(props: Props) {
     Promise.resolve(ensure()).then(() => setRruleReady(true)).catch(() => setRruleReady(true));
   }, []);
 
+  const dow = props.firstDayOfWeek ?? 0;
+  moment.updateLocale(moment.locale(), { week: { dow: Number.isInteger(dow) && dow >= 0 && dow <= 6 ? dow : 0 } });
   const localizer = momentLocalizer(moment);
 
   const getIcsUrl = () => `${CommonEnvironmentHelper.ContentApi}/events/subscribe?curatedCalendarId=${props.curatedCalendarId}&churchId=${props.churchId}`;
@@ -128,7 +131,7 @@ export function CuratedEventCalendar(props: Props) {
         {props.mode === "edit" && <Button endIcon={<EventNoteIcon />} size="small" variant="contained" onClick={() => { setOpen(true); }} data-testid="calendar-add-event-button">Add</Button>}
       </Stack>
       <Calendar localizer={localizer} events={expandedEvents} startAccessor="start" endAccessor="end" style={{ height: 500 }} onSelectEvent={handleEventClick} />
-      {open && props.mode === "edit" && <EditCalendarEventModal onDone={handleDone} churchId={props.churchId || ""} curatedCalendarId={props.curatedCalendarId || ""} />}
+      {open && props.mode === "edit" && <EditCalendarEventModal onDone={handleDone} churchId={props.churchId || ""} curatedCalendarId={props.curatedCalendarId || ""} firstDayOfWeek={props.firstDayOfWeek} />}
       {displayCalendarEvent && <DisplayCalendarEventModal event={displayCalendarEvent} curatedCalendarId={props.curatedCalendarId} mode={props.mode} onDone={handleDone} />}
       <Snackbar open={ShowCopy} onClose={() => setShowCopy(false)} autoHideDuration={2000} message={"Copied to clipboard!"} anchorOrigin={{ vertical: "bottom", horizontal: "center" }} ContentProps={{ sx: { background: "green" } }} />
     </div>

@@ -7,9 +7,11 @@ interface Props {
   churchId: string;
   /** Enable calendar editing (admin mode only). */
   canEdit?: boolean;
+  /** Church's first day of week (0=Sunday ... 6=Saturday). */
+  firstDayOfWeek?: number;
 }
 
-export const CalendarElement = ({ element, churchId, canEdit = false }: Props) => {
+export const CalendarElement = ({ element, churchId, canEdit = false, firstDayOfWeek = 0 }: Props) => {
   const calendarType = element.answers?.calendarType;
   const calendarId = element.answers?.calendarId;
 
@@ -23,9 +25,9 @@ export const CalendarElement = ({ element, churchId, canEdit = false }: Props) =
     }
 
     if (calendarType === "group") {
-      return <GroupCalendar churchId={churchId} groupId={calendarId} canEdit={canEdit} />;
+      return <GroupCalendar churchId={churchId} groupId={calendarId} canEdit={canEdit} firstDayOfWeek={firstDayOfWeek} />;
     } else if (calendarType === "curated") {
-      return <CuratedCalendar churchId={churchId} curatedCalendarId={calendarId} mode={canEdit ? "edit" : "view"} />;
+      return <CuratedCalendar churchId={churchId} curatedCalendarId={calendarId} mode={canEdit ? "edit" : "view"} firstDayOfWeek={firstDayOfWeek} />;
     }
 
     return (

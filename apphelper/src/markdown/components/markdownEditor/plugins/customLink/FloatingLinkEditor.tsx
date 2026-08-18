@@ -39,6 +39,11 @@ const positionEditorElement = (editor: HTMLElement, rect: DOMRect | null) => {
 
 const LowPriority = 1;
 
+// .link-editor sits at z-index 1301 to clear a hosting MUI Dialog (theme.zIndex.modal
+// is 1300). Select menus are portaled Modals that default to that same 1300, so without
+// this they render behind the popup that contains them.
+const menuProps = { sx: { zIndex: 1400 } };
+
 const FloatingLinkEditor: FC<FloatingLinkEditorProps> = ({
   linkUrl,
   setLinkUrl,
@@ -213,7 +218,7 @@ const FloatingLinkEditor: FC<FloatingLinkEditorProps> = ({
 
       <FormControl fullWidth>
         <InputLabel>Appearance</InputLabel>
-        <Select name="classNames" fullWidth label="Appearance" size="small" value={appearance} onChange={(e) => {
+        <Select name="classNames" fullWidth label="Appearance" size="small" value={appearance} MenuProps={menuProps} onChange={(e) => {
           let className = "";
           if (e.target.value.toString() !== "link") className = e.target.value.toString();
           setClassNamesList([className, "btn-primary", "btn-medium"]);
@@ -228,13 +233,13 @@ const FloatingLinkEditor: FC<FloatingLinkEditorProps> = ({
       && <div>
         <FormControl fullWidth>
           <InputLabel>Variant</InputLabel>
-          <Select name="classNames" fullWidth label="Variant" size="small" value={ classNamesList[1] } onChange={handleVariantChange}>
+          <Select name="classNames" fullWidth label="Variant" size="small" value={ classNamesList[1] } MenuProps={menuProps} onChange={handleVariantChange}>
             {getVariantItems()}
           </Select>
         </FormControl>
         <FormControl fullWidth>
           <InputLabel>Size</InputLabel>
-          <Select name="classNames" fullWidth label="Size" size="small" value={ classNamesList[2] } onChange={(e) => {
+          <Select name="classNames" fullWidth label="Size" size="small" value={ classNamesList[2] } MenuProps={menuProps} onChange={(e) => {
             const newArray = [...classNamesList];
             let index = 0;
             newArray.forEach((item, i) => {

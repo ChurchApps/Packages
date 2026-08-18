@@ -14,10 +14,13 @@ interface Props {
   events: EventInterface[];
   editGroupId?: string;
   churchId?: string;
+  firstDayOfWeek?: number;
   onRequestRefresh?: () => void;
 }
 
 export function EventCalendar(props: Props) {
+  const dow = props.firstDayOfWeek ?? 0;
+  moment.updateLocale(moment.locale(), { week: { dow: Number.isInteger(dow) && dow >= 0 && dow <= 6 ? dow : 0 } });
   const localizer = momentLocalizer(moment);
   const [editEvent, setEditEvent] = useState<EventInterface | null>(null);
   const [displayEvent, setDisplayEvent] = useState<EventInterface | null>(null);

@@ -13,6 +13,7 @@ import type { GroupInterface, EventInterface } from "@churchapps/helpers";
 interface Props {
   churchId: string;
   curatedCalendarId: string;
+  firstDayOfWeek?: number;
   onDone?: () => void;
 }
 
@@ -24,6 +25,8 @@ export function EditCalendarEventModal(props: Props) {
   const [groupEvents, setGroupEvents] = useState<EventInterface[]>([]);
   const [eventIdsList, setEventIdsList] = useState<string[]>([]);
 
+  const dow = props.firstDayOfWeek ?? 0;
+  moment.updateLocale(moment.locale(), { week: { dow: Number.isInteger(dow) && dow >= 0 && dow <= 6 ? dow : 0 } });
   const localizer = momentLocalizer(moment);
 
   const theme = useTheme();

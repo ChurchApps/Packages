@@ -35,7 +35,7 @@ interface Props {
 	handleRedirect?: (url: string, user?: UserInterface, person?: PersonInterface, userChurch?: LoginUserChurchInterface, userChurches?: LoginUserChurchInterface[]) => void; // Function to handle redirects from parent component
 }
 
-const COOKIE_MAX_AGE = 180 * 24 * 60 * 60; // 180 days in seconds (matches user JWT expiry)
+const COOKIE_MAX_AGE = 2 * 24 * 60 * 60;
 
 const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssProps, ...props }) => {
   const [welcomeBackName, setWelcomeBackName] = React.useState("");
@@ -188,7 +188,7 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
   async function continueLoginProcess() {
     if (UserHelper.currentUserChurch) {
       // Store the user JWT (180-day) for session persistence, not the API JWT (2-day)
-      setCookie("jwt", userJwt || userJwtBackup, { path: "/", maxAge: COOKIE_MAX_AGE });
+      setCookie("jwt", userJwt || userJwtBackup, { path: "/", maxAge: COOKIE_MAX_AGE, secure: window.location.protocol === "https:", sameSite: "lax" });
       try {
         if (UserHelper.currentUserChurch.church.id) ApiHelper.patch(`/userChurch/${UserHelper.user.id}`, { churchId: UserHelper.currentUserChurch.church.id, appName: props.appName, lastAccessed: new Date() }, "MembershipApi");
       } catch (e) {

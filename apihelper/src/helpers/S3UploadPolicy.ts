@@ -49,6 +49,7 @@ export function normalizeContentType(contentType: string | undefined): string {
 export function isAllowedContentType(contentType: string | undefined): boolean {
   const ct = normalizeContentType(contentType);
   if (!ct) return false;
+  if (ct === "image/svg+xml" || ct === "image/svg") return false;
   return PUBLIC_CONTENT_TYPE_PREFIXES.some((prefix) => ct === prefix || ct.startsWith(prefix));
 }
 

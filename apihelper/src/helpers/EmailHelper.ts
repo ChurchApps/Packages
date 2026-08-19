@@ -12,6 +12,21 @@ const __dirname = path.dirname(__filename);
 
 export class EmailHelper {
 
+  private static escapeHtml(value: string) {
+    return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+
+  private static safeHttpUrl(value: string) {
+    try {
+      const url = new URL(value);
+      if (url.protocol !== "https:" && url.protocol !== "http:") return "https://b1.church";
+      return url.origin;
+    } catch {
+      return "https://b1.church";
+    }
+  }
+
+
   private static getSESClient(): SESClient {
     return new SESClient({ region: "us-east-2" });
   }
@@ -19,6 +34,8 @@ export class EmailHelper {
   public static async sendTemplatedEmail(from: string, to: string, appName: string, appUrl: string, subject: string, contents: string, emailTemplate: "EmailTemplate.html" | "ChurchEmailTemplate.html" = "EmailTemplate.html", replyTo?: string) {
     if (!appName) appName = "B1";
     if (!appUrl) appUrl = "https://b1.church";
+    appName = EmailHelper.escapeHtml(appName);
+    appUrl = EmailHelper.safeHttpUrl(appUrl);
 
     const template = EmailHelper.readTemplate(emailTemplate);
     const emailBody = template

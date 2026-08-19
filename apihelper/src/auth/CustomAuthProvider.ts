@@ -13,7 +13,7 @@ export class CustomAuthProvider implements interfaces.AuthProvider {
     if (authHeader) {
       const token = authHeader.split(" ")[1];
       if (!token) return null as unknown as Principal;
-      const decoded = jwt.verify(token, EnvironmentBase.jwtSecret);
+      const decoded = jwt.verify(token, EnvironmentBase.jwtSecret, { algorithms: ["HS256"] });
 
       const result = decoded ? new Principal(typeof decoded === "object" && decoded !== null ? decoded as Record<string, unknown> : {}) : null;
       if (result) result.details.jwt = token;

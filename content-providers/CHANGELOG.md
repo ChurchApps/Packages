@@ -1,5 +1,13 @@
 # @churchapps/content-providers
 
+## 0.9.2
+
+### Patch Changes
+
+- 6518399: List Google Drive audio files and extension-matched media (e.g. octet-stream .mp4 uploads) when browsing plans content, and add "audio" as a media type (ChurchAppsSupport #944).
+- fb9920b: Fix Google Drive browsing returning an empty list: the file query no longer combines `includeItemsFromAllDrives` with a `root` parent lookup, which Google rejected, and failed API requests now log the response body (ChurchAppsSupport #944).
+- 7ff86a8: Fix SignPresenter playlists showing no media: playlist contents now come from the documented `/v2/playlists/:id` player endpoint, mapping image, video, stream, and media-file web slides to playable files (with message thumbnail, slide seconds, and loop), instead of `/content/playlists/:id/messages`, which only covers templates 1 and 3 and usually returned empty urls. The content-messages endpoint remains as a fallback, now also accepting a message's thumbnail or image when the url is empty.
+
 ## 0.9.1
 
 ### Patch Changes

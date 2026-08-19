@@ -1,5 +1,11 @@
 # @churchapps/apihelper
 
+## 1.1.2
+
+### Patch Changes
+
+- 4f75024: Fail closed on JWT algorithm, escape email app name/url, treat SVG as private S3 content, and set Secure + 2-day JWT cookies.
+
 ## 1.1.1
 
 ### Patch Changes

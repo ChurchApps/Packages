@@ -1,5 +1,12 @@
 # @churchapps/apphelper
 
+## 1.1.4
+
+### Patch Changes
+
+- 19bb08e: Raise the markdown link editor Appearance/Variant/Size dropdowns above the floating popup so they are clickable (ChurchAppsSupport #993).
+- 4f75024: Fail closed on JWT algorithm, escape email app name/url, treat SVG as private S3 content, and set Secure + 2-day JWT cookies.
+
 ## 1.1.3
 
 ### Patch Changes

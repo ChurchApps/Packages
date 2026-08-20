@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, Suspense, lazy } from "react";
 import { InputBox, SmallButton, Loading } from ".";
 import { Locale } from "../helpers";
+import { selectDefaultCropBox } from "./selectDefaultCropBox";
 import "cropperjs/dist/cropper.css";
 
 const Cropper = lazy(() => import("react-cropper").then(module => ({ default: module.default })));
@@ -69,21 +70,8 @@ export function ImageEditor(props: Props) {
       const effectiveHeight = (containerData.height > imgHeight) ? imgHeight : containerData.height;
       cropper.setCropBoxData({ width: effectiveWidth, height: effectiveHeight, left: (containerData.width - effectiveWidth) / 2.0, top: (containerData.height - effectiveHeight) / 2.0 });
     } else {
-      const desiredAspect = props.aspectRatio;
-      const containerData = cropper.getContainerData();
-      const imgAspect = cropper.getImageData().aspectRatio;
-      const scale = imgAspect / desiredAspect;
-      if (scale < 1) {
-        const imgWidth = cropper.getImageData().width;
-        const l = (containerData.width - imgWidth) / 2.0;
-        const t = (containerData.height - (containerData.height * scale)) / 2.0;
-        cropper.setCropBoxData({ width: imgWidth, height: imgWidth / desiredAspect, left: l, top: t });
-      } else {
-        const imgHeight = cropper.getImageData().height;
-        const l = (containerData.width - (imgHeight * desiredAspect)) / 2.0;
-        const t = cropper.canvasData.top;
-        cropper.setCropBoxData({ width: imgHeight * desiredAspect, height: imgHeight, left: l, top: t });
-      }
+      const canvasData = cropper.getCanvasData();
+      cropper.setCropBoxData(selectDefaultCropBox(canvasData, props.aspectRatio));
     }
 
   };

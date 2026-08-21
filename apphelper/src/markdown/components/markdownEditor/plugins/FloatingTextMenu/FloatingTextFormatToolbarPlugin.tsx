@@ -1,4 +1,4 @@
-﻿import { $isCodeHighlightNode } from "@lexical/code";
+import { $isCodeHighlightNode } from "@lexical/code";
 import { $isLinkNode } from "@lexical/link";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { mergeRegister } from "@lexical/utils";
@@ -363,7 +363,7 @@ function useFloatingTextFormatToolbar(editor: any, anchorElem: any) {
 
       if ($isRangeSelection(selection)) {
         const text = selection.getTextContent().trim();
-        if (text && JSON.stringify(lastFormattingState === "{}")) {
+        if (text && JSON.stringify(lastFormattingState) === "{}") {
           updateFormattingState(editor);
         }
       }

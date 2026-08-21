@@ -18,10 +18,7 @@ export const MarkdownModal: React.FC<Props> = ({ value, onChange, hideModal }) =
   const [inputVal, setInputVal] = useState(value || "");
 
 
-  useEffect(() => {
-    if ((value || "").trim() === inputVal.trim()) return;
-    setInputVal(value || "");
-  }, [value, inputVal]);
+  // Removed useEffect syncing value to inputVal to prevent loops
 
   useEffect(() => { onChange(inputVal); }, [inputVal, onChange]);
 

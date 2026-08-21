@@ -363,7 +363,7 @@ function useFloatingTextFormatToolbar(editor: any, anchorElem: any) {
 
       if ($isRangeSelection(selection)) {
         const text = selection.getTextContent().trim();
-        if (text && JSON.stringify(lastFormattingState === "{}")) {
+        if (text && JSON.stringify(lastFormattingState) === "{}") {
           updateFormattingState(editor);
         }
       }

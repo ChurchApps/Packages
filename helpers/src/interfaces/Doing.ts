@@ -203,6 +203,7 @@ export interface PlanItemInterface {
   sort?: number;
   itemType?: string;
   relatedId?: string;
+  positionId?: string;
   label?: string;
   description?: string;
   seconds?: number;

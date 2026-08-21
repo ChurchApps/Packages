@@ -23,8 +23,6 @@ export const MarkdownModal: React.FC<Props> = ({ value, onChange, hideModal }) =
     setInputVal(value || "");
   }, [value, inputVal]);
 
-  useEffect(() => { onChange(inputVal); }, [inputVal, onChange]);
-
   return (<Dialog open={true} onClose={() => { hideModal(); }} fullScreen={true}>
     <DialogTitle>{Locale.label("markdownEditor.markdownGuide")}</DialogTitle>
     <DialogContent>
@@ -32,6 +30,7 @@ export const MarkdownModal: React.FC<Props> = ({ value, onChange, hideModal }) =
         <Grid size={6}>
           <TextField fullWidth multiline label={<>{Locale.label("markdownEditor.content")} &nbsp; {guideLink}</>} name="modalMarkdown" className="modalMarkdown" InputProps={{ style: { height: "80vh" } }} value={inputVal} onChange={(e) => {
             setInputVal(e.target.value);
+            onChange(e.target.value);
           }} placeholder="" />
         </Grid>
         <Grid size={6}>

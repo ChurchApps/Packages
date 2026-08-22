@@ -1,5 +1,11 @@
 # @churchapps/helpers
 
+## 2.1.3
+
+### Patch Changes
+
+- ca94ba1: Add optional positionId to PlanItemInterface so order-of-service items can link to a plan position.
+
 ## 2.1.2
 
 ### Patch Changes

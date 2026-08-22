@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 1.1.5
+
+### Patch Changes
+
+- f003d00: Fix fullscreen markdown editor bugs: TRANSFORMERS.splice mutated the shared Lexical export, a formatting-state check was comparing a boolean to a string, and MarkdownModal called onChange on every render instead of only on user edits.
+
 ## 1.1.4
 
 ### Patch Changes

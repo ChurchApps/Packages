@@ -7,6 +7,7 @@ import { ConversationStore } from "../../helpers/ConversationStore";
 import { SubscriptionManager } from "../../helpers/SubscriptionManager";
 import { ConversationInterface, MessageInterface, UserContextInterface } from "@churchapps/helpers";
 import { SubscriptionToggle, filterVisibleMessages } from "./SubscriptionToggle";
+import { Box } from "@mui/material";
 
 interface Props {
   conversationId: string;
@@ -185,14 +186,15 @@ export function Notes(props: Props) {
         {getNotesWrapper()}
       </div>
       {messages && (
-        <div style={{
+        <Box sx={(theme) => ({
           flexShrink: 0,
-          borderTop: "1px solid #e0e0e0",
-          backgroundColor: "#fafafa",
+          borderTop: 1,
+          borderColor: "divider",
+          backgroundColor: theme.palette.mode === "dark" ? "background.default" : "#fafafa",
           padding: "12px",
           minHeight: "auto",
           maxHeight: "200px"
-        }}>
+        })}>
           <AddNote
             context={props.context}
             conversationId={props.conversationId}
@@ -201,7 +203,7 @@ export function Notes(props: Props) {
             messageId={editMessageId ?? undefined}
             onCancel={() => setEditMessageId(null)}
           />
-        </div>
+        </Box>
       )}
     </div>
   ) : (

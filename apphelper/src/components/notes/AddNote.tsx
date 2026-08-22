@@ -103,7 +103,7 @@ export function AddNote({ context, onCancel, ...props }: Props) {
     <Box sx={{ width: "100%" }}>
       <ErrorMessages errors={errors} />
 
-      <Paper variant="outlined" sx={{ p: 2, bgcolor: "grey.50", borderColor: "grey.300" }}>
+      <Paper variant="outlined" sx={(theme) => ({ p: 2, bgcolor: theme.palette.mode === "dark" ? "background.default" : "grey.50", borderColor: theme.palette.mode === "dark" ? "grey.800" : "grey.300" })}>
         <Stack direction="row" spacing={2} alignItems="flex-start">
           <Avatar
             src={image}
@@ -130,15 +130,15 @@ export function AddNote({ context, onCancel, ...props }: Props) {
                   "& textarea": { resize: "vertical", minHeight: "40px" }
                 }
               }}
-              sx={{
-                bgcolor: "white",
+              sx={(theme) => ({
+                bgcolor: theme.palette.mode === "dark" ? "background.paper" : "white",
                 borderRadius: 1,
                 p: 1,
                 border: "1px solid",
-                borderColor: "grey.300",
-                "&:hover": { borderColor: "grey.400" },
+                borderColor: theme.palette.mode === "dark" ? "grey.700" : "grey.300",
+                "&:hover": { borderColor: theme.palette.mode === "dark" ? "grey.600" : "grey.400" },
                 "&.Mui-focused": { borderColor: "primary.main" }
-              }}
+              })}
             />
 
             <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>

@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 1.1.6
+
+### Patch Changes
+
+- fa15e27: Use theme-aware colors for notes and message reply in dark mode.
+
 ## 1.1.5
 
 ### Patch Changes

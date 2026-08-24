@@ -1,5 +1,11 @@
 # @churchapps/apihelper
 
+## 1.1.3
+
+### Patch Changes
+
+- 373b170: Allow application/zip as a public upload type and infer it from .zip keys, restoring FreeShow group-file sync against the constrained presign policy.
+
 ## 1.1.2
 
 ### Patch Changes

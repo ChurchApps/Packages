@@ -1,5 +1,11 @@
 # @churchapps/content-providers
 
+## 0.9.3
+
+### Patch Changes
+
+- ed08fe9: Preserve planTypeId across token refresh so FreePlay pairing survives weekly OAuth expiry.
+
 ## 0.9.2
 
 ### Patch Changes

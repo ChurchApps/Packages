@@ -6,7 +6,8 @@ export const PUBLIC_CONTENT_TYPE_PREFIXES = [
   "font/",
   "application/font-",
   "application/vnd.ms-fontobject",
-  "text/css"
+  "text/css",
+  "application/zip"
 ] as const;
 export const MAX_UPLOAD_BYTES = 512 * 1024 * 1024;
 export const DEFAULT_CONTENT_TYPE = "application/octet-stream";
@@ -39,7 +40,8 @@ const EXT_TO_CONTENT_TYPE: Record<string, string> = {
   ttf: "font/ttf",
   otf: "font/otf",
   eot: "application/vnd.ms-fontobject",
-  css: "text/css"
+  css: "text/css",
+  zip: "application/zip"
 };
 
 export function normalizeContentType(contentType: string | undefined): string {

@@ -65,6 +65,14 @@ test("buildS3UploadPolicy allowlists image/pdf/video and adds content-length-ran
   assert.deepEqual(video.conditions[1], ["content-length-range", 1, MAX_UPLOAD_BYTES]);
 });
 
+test("buildS3UploadPolicy infers public zip from the key when no type is provided", () => {
+  const zip = buildS3UploadPolicy({ key: "church1/files/group/team1/current.zip" });
+  assert.equal(zip.contentType, "application/zip");
+  assert.equal(zip.acl, "public-read");
+  assert.deepEqual(zip.conditions[0], ["eq", "$Content-Type", "application/zip"]);
+  assert.ok(zip.conditions.some((c) => !Array.isArray(c) && c.acl === "public-read"));
+});
+
 test("isAllowedContentType rejects html/js/empty and accepts first-party prefixes", () => {
   assert.equal(isAllowedContentType(""), false);
   assert.equal(isAllowedContentType("text/html"), false);

@@ -203,11 +203,12 @@ export class B1ChurchProvider extends BaseProvider {
   private planTypeId: string | null = null;
 
   setPairingData(data: unknown) {
+    // Leave the existing binding intact when the incoming data has no planTypeId — a token
+    // refresh from an older Api (or any caller that doesn't know about plan types) must not
+    // silently wipe the ministry/lesson selection.
     if (data && typeof data === "object" && "planTypeId" in data) {
       const planTypeId = (data as { planTypeId: unknown }).planTypeId;
-      this.planTypeId = typeof planTypeId === "string" ? planTypeId : null;
-    } else {
-      this.planTypeId = null;
+      if (typeof planTypeId === "string") this.planTypeId = planTypeId;
     }
   }
 

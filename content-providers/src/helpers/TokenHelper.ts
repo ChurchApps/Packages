@@ -1,14 +1,16 @@
 import { ContentProviderAuthData, ContentProviderConfig } from "../interfaces";
 
 /** Map a raw OAuth token response to ContentProviderAuthData, stamping created_at. */
-export function toAuthData(data: Record<string, unknown>, fallbacks?: { refreshToken?: string; scope?: string }): ContentProviderAuthData {
+export function toAuthData(data: Record<string, unknown>, fallbacks?: { refreshToken?: string; scope?: string; planTypeId?: string }): ContentProviderAuthData & { planTypeId?: string } {
+  const planTypeId = (data.plan_type_id as string) || fallbacks?.planTypeId;
   return {
     access_token: data.access_token as string,
     refresh_token: (data.refresh_token as string) || fallbacks?.refreshToken || "",
     token_type: (data.token_type as string) || "Bearer",
     created_at: Math.floor(Date.now() / 1000),
     expires_in: data.expires_in as number,
-    scope: (data.scope as string) || fallbacks?.scope || ""
+    scope: (data.scope as string) || fallbacks?.scope || "",
+    ...(planTypeId ? { planTypeId } : {})
   };
 }
 
@@ -42,7 +44,10 @@ export class TokenHelper {
       }
 
       const data = await response.json();
-      return toAuthData(data, { refreshToken: auth.refresh_token, scope: auth.scope });
+      // Preserve the ministry/lesson binding across refresh — the server only returns plan_type_id
+      // when it changes, so fall back to whatever was already on the incoming auth object.
+      const planTypeId = (auth as ContentProviderAuthData & { planTypeId?: string }).planTypeId;
+      return toAuthData(data, { refreshToken: auth.refresh_token, scope: auth.scope, planTypeId });
     } catch {
       return null;
     }

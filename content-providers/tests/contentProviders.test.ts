@@ -275,6 +275,17 @@ test("toAuthData maps a token response with Bearer default and fallbacks", () =>
   assert.equal(fresh.scope, "s");
 });
 
+test("toAuthData carries planTypeId from plan_type_id or the fallback", () => {
+  const fromServer = toAuthData({ access_token: "at", expires_in: 3600, plan_type_id: "pt1" });
+  assert.equal((fromServer as { planTypeId?: string }).planTypeId, "pt1");
+
+  const fromFallback = toAuthData({ access_token: "at", expires_in: 3600 }, { planTypeId: "pt2" });
+  assert.equal((fromFallback as { planTypeId?: string }).planTypeId, "pt2");
+
+  const none = toAuthData({ access_token: "at", expires_in: 3600 });
+  assert.equal((none as { planTypeId?: string }).planTypeId, undefined);
+});
+
 test("instructionsToPlaylist classifies extension-less URLs via declared type or filename label", () => {
   const tempLink = "https://uc123.dl.dropboxusercontent.com/cd/0/get/tok/file?c_luid=x";
   const declared = instructionsToPlaylist({ name: "D", items: [{ id: "v1", itemType: "file", label: "x", mediaType: "video" as const, downloadUrl: tempLink }] });

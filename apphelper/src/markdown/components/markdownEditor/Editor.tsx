@@ -26,6 +26,7 @@ import { CustomLinkNode } from "./plugins/customLink/CustomLinkNode";
 import EmojisPlugin from "./plugins/emoji/EmojisPlugin";
 import { EmojiNode } from "./plugins/emoji/EmojiNode";
 import EmojiPickerPlugin from "./plugins/emoji/EmojiPickerPlugin";
+import { ImageNode } from "./plugins/image/ImageNode";
 
 interface Props {
   value: string;
@@ -79,6 +80,7 @@ function Editor({ value, onChange = () => {}, mode = "interactive", textAlign = 
       LinkNode,
       CustomLinkNode,
       EmojiNode,
+      ImageNode,
       {
         replace: LinkNode,
         with: (node: LinkNode) => (

@@ -12,6 +12,7 @@ import {
 } from "@lexical/react/LexicalHorizontalRuleNode";
 import { CUSTOM_LINK_NODE_TRANSFORMER } from "./customLink/CustomLinkNodeTransformer";
 import { EMOJI_NODE_MARKDOWN_TRANSFORM } from "./emoji/EmojiNodeTransform";
+import { IMAGE } from "./image/ImageTransformer";
 
 
 export const HR: ElementTransformer = {
@@ -98,7 +99,7 @@ export const PLAYGROUND_TRANSFORMERS: Array<Transformer> = [
   ...modifiedTextTransformers,
   HR,
   ...ELEMENT_TRANSFORMERS,
-
+  IMAGE,
   CUSTOM_LINK_NODE_TRANSFORMER,
   ...TRANSFORMERS.slice(0, 13),
   UNDERLINE

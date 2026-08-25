@@ -14,21 +14,36 @@ export function toAuthData(data: Record<string, unknown>, fallbacks?: { refreshT
   };
 }
 
+export function authIsExpired(auth: ContentProviderAuthData | null | undefined, nowMs: number = Date.now()): boolean {
+  if (!auth?.created_at || !auth.expires_in) return true;
+  const lifetimeMs = auth.expires_in * 1000;
+  const expiresAt = (auth.created_at + auth.expires_in) * 1000;
+  const bufferMs = Math.min(5 * 60 * 1000, Math.floor(lifetimeMs / 10));
+  return nowMs > expiresAt - bufferMs;
+}
+
 export class TokenHelper {
+  private static inflight = new Map<string, Promise<ContentProviderAuthData | null>>();
+
   isAuthValid(auth: ContentProviderAuthData | null | undefined): boolean {
-    if (!auth) return false;
-    return !this.isTokenExpired(auth);
+    return !authIsExpired(auth);
   }
 
   isTokenExpired(auth: ContentProviderAuthData): boolean {
-    if (!auth.created_at || !auth.expires_in) return true;
-    const expiresAt = (auth.created_at + auth.expires_in) * 1000;
-    return Date.now() > expiresAt - 5 * 60 * 1000; // 5-minute buffer
+    return authIsExpired(auth);
   }
 
   async refreshToken(config: ContentProviderConfig, auth: ContentProviderAuthData): Promise<ContentProviderAuthData | null> {
     if (!auth.refresh_token) return null;
+    const key = `${config.oauthBase}|${config.clientId}|${auth.refresh_token}`;
+    const existing = TokenHelper.inflight.get(key);
+    if (existing) return existing;
+    const pending = this.doRefresh(config, auth).finally(() => { TokenHelper.inflight.delete(key); });
+    TokenHelper.inflight.set(key, pending);
+    return pending;
+  }
 
+  private async doRefresh(config: ContentProviderConfig, auth: ContentProviderAuthData): Promise<ContentProviderAuthData | null> {
     try {
       const params = new URLSearchParams({
         grant_type: "refresh_token",
@@ -44,8 +59,6 @@ export class TokenHelper {
       }
 
       const data = await response.json();
-      // Preserve the ministry/lesson binding across refresh — the server only returns plan_type_id
-      // when it changes, so fall back to whatever was already on the incoming auth object.
       const planTypeId = (auth as ContentProviderAuthData & { planTypeId?: string }).planTypeId;
       return toAuthData(data, { refreshToken: auth.refresh_token, scope: auth.scope, planTypeId });
     } catch {

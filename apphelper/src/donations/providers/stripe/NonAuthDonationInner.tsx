@@ -11,6 +11,7 @@ import { handle3DSIfRequired } from "./stripe3DS";
 import { FundDonationInterface, FundInterface, PersonInterface, StripeDonationInterface, UserInterface, ChurchInterface } from "@churchapps/helpers";
 import { Grid, Alert, TextField, Button, FormControl, InputLabel, Select, MenuItem, FormGroup, FormControlLabel, Checkbox, Typography, Box, CircularProgress } from "@mui/material";
 import type { PaperProps } from "@mui/material/Paper";
+import { collectStripeBank } from "./stripeBank";
 
 interface Props {
   churchId: string;
@@ -217,35 +218,7 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
         return;
       }
 
-      // Use Financial Connections to collect bank account
-      const { error: collectError, setupIntent: collectedSetupIntent } = await stripe.collectBankAccountForSetup({
-        clientSecret: setupResponse.clientSecret,
-        params: {
-          payment_method_type: "us_bank_account",
-          payment_method_data: {
-            billing_details: {
-              name: `${firstName} ${lastName}`,
-              email
-            }
-          }
-        }
-      });
-
-      if (collectError) {
-        setErrors([collectError.message || "Failed to connect bank account"]);
-        setProcessing(false);
-        setBankConnecting(false);
-        return;
-      }
-
-      if (!collectedSetupIntent?.payment_method) {
-        setErrors(["Bank account connection was not completed. Please try again."]);
-        setProcessing(false);
-        setBankConnecting(false);
-        return;
-      }
-
-      const { error: confirmError, setupIntent } = await stripe.confirmUsBankAccountSetup(setupResponse.clientSecret);
+      const { error: confirmError, setupIntent } = await collectStripeBank(stripe, setupResponse.clientSecret, gateway?.currency, { name: `${firstName} ${lastName}`, email });
 
       if (confirmError) {
         setErrors([confirmError.message || "Failed to confirm bank account"]);

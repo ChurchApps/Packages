@@ -11,6 +11,7 @@ import { BankForm } from "./BankForm";
 import { FormCardPayment } from "./FormCardPayment";
 import { handle3DSIfRequired } from "./stripe3DS";
 import { StripeInstanceContext, setCurrentStripe, getCurrentStripe } from "./StripeInstanceContext";
+import { isPadCurrency } from "./stripeBank";
 import type {
   PaymentProvider, GuestFormProps, ChargeContext, PaymentToken, ChargeRequest,
   MemberEntryHandle, MemberEntryProps, MethodEditFormProps
@@ -70,6 +71,7 @@ const StripeGuestForm: React.FC<GuestFormProps> = (props) => {
         >
           <ToggleButton value="card" sx={toggleSx}>Credit/Debit Card</ToggleButton>
           {currency === "usd" && <ToggleButton value="bank" sx={toggleSx}>Bank Account (ACH)</ToggleButton>}
+          {isPadCurrency(currency) && <ToggleButton value="bank" sx={toggleSx}>Bank Account (PAD)</ToggleButton>}
         </ToggleButtonGroup>
       </Box>
       <Elements stripe={stripePromise}>

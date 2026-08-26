@@ -7,6 +7,7 @@ import { useStripe } from "@stripe/react-stripe-js";
 import { InputBox, ErrorMessages } from "../../../index";
 import { ApiHelper } from "@churchapps/helpers";
 import { Locale, StripePaymentMethod, PaymentGateway } from "../../helpers";
+import { collectStripeBank, isPadCurrency } from "./stripeBank";
 import { PersonInterface, PaymentMethodInterface, StripeBankAccountInterface, StripeBankAccountUpdateInterface, StripeBankAccountVerifyInterface } from "@churchapps/helpers";
 
 interface Props {
@@ -86,37 +87,10 @@ export const BankForm: React.FC<Props> = (props) => {
 
       const { clientSecret } = setupIntentResponse;
 
-      // Step 2: Collect bank account using Financial Connections
-      const { error: collectError, setupIntent: collectedSetupIntent } = await stripe.collectBankAccountForSetup({
-        clientSecret,
-        params: {
-          payment_method_type: "us_bank_account",
-          payment_method_data: {
-            billing_details: {
-              name: bankAccount.account_holder_name || props.person.name.display,
-              email: props.person.contactInfo.email
-            }
-          }
-        }
+      const { error: confirmError, setupIntent } = await collectStripeBank(stripe, clientSecret, props.gateway?.currency, {
+        name: bankAccount.account_holder_name || props.person.name.display,
+        email: props.person.contactInfo.email || ""
       });
-
-      if (collectError) {
-        setErrorMessage(collectError.message || "Failed to connect bank account");
-        setIsConnecting(false);
-        setShowSave(true);
-        return;
-      }
-
-      // Check if user closed the modal without completing
-      if (!collectedSetupIntent?.payment_method) {
-        setErrorMessage("Bank account connection was not completed. Please try again.");
-        setIsConnecting(false);
-        setShowSave(true);
-        return;
-      }
-
-      // Step 3: Confirm the SetupIntent to complete bank account attachment
-      const { error: confirmError, setupIntent } = await stripe.confirmUsBankAccountSetup(clientSecret);
 
       if (confirmError) {
         setErrorMessage(confirmError.message || "Failed to confirm bank account");
@@ -246,6 +220,7 @@ export const BankForm: React.FC<Props> = (props) => {
     setShowSave(true);
   };
 
+  const isPad = isPadCurrency(props.gateway?.currency);
   const getHeaderText = () => props.bank.id
     ? `${props.bank.name?.toUpperCase() || "BANK"} ****${props.bank.last4 || ""}`
     : "Add New Bank Account";
@@ -287,10 +262,10 @@ export const BankForm: React.FC<Props> = (props) => {
       return (
         <Box sx={{ textAlign: "center", py: 2 }}>
           <Typography variant="body1" sx={{ mb: 2 }}>
-            Securely connect your bank account using Stripe Financial Connections.
+            {isPad ? "Securely add your Canadian bank account for pre-authorized debit." : "Securely connect your bank account using Stripe Financial Connections."}
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            You'll be redirected to log in to your bank and authorize the connection. Your bank credentials are never shared with us.
+            {isPad ? "You'll enter your institution, transit and account numbers and accept a debit mandate. Your details are handled by Stripe." : "You'll be redirected to log in to your bank and authorize the connection. Your bank credentials are never shared with us."}
           </Typography>
           {isConnecting ? (
             <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 2 }}>

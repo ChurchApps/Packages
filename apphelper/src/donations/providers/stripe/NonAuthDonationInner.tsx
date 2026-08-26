@@ -86,7 +86,7 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
         setFundDonations([{ fundId: initialFund.id, amount: (amount && amount !== "") ? parseFloat(amount) : 0 }]);
       }
     });
-    ApiHelper.get("/churches/" + props.churchId, "MembershipApi").then((data: any) => {
+    ApiHelper.get("/churches/lookup/?id=" + props.churchId, "MembershipApi").then((data: any) => {
       setChurch(data);
     });
     ApiHelper.get(`/donate/gateways/${props.churchId}`, "GivingApi").then((response: any) => {

@@ -1,5 +1,11 @@
 # @churchapps/helpers
 
+## 2.2.1
+
+### Patch Changes
+
+- c385cb9: Add NGN, GHS, ZAR, KES and XOF currency symbols for Paystack
+
 ## 2.2.0
 
 ### Minor Changes

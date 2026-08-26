@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 1.3.0
+
+### Minor Changes
+
+- a76a6f1: Stripe: support Canadian pre-authorized debit (acss_debit) for CAD gateways alongside US ACH.
+
 ## 1.2.0
 
 ### Minor Changes

@@ -1,5 +1,11 @@
 # @churchapps/content-providers
 
+## 0.9.4
+
+### Patch Changes
+
+- 76eeee2: Refresh tokens with a proportional expiry buffer and single-flight so short-lived JWTs and concurrent refreshes don't drop the session.
+
 ## 0.9.3
 
 ### Patch Changes

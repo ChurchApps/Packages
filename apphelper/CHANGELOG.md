@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 1.2.0
+
+### Minor Changes
+
+- c385cb9: Add Paystack payment provider (cards + mobile money) for African churches
+
 ## 1.1.6
 
 ### Patch Changes

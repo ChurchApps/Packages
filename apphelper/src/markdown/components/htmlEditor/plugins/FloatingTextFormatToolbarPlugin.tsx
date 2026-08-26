@@ -17,7 +17,6 @@ import {
 
 const FloatingDivContainer = styled(Box)({
   display: "flex",
-  background: "#fff",
   padding: 4,
   verticalAlign: "middle",
   position: "absolute",
@@ -25,7 +24,6 @@ const FloatingDivContainer = styled(Box)({
   left: 0,
   zIndex: 1400,
   opacity: 0,
-  backgroundColor: "#fff",
   boxShadow: "0px 5px 10px rgba(0, 0, 0, 0.3)",
   borderRadius: 8,
   transition: "opacity 0.5s",
@@ -115,7 +113,7 @@ function TextFormatFloatingToolbar({
   }, [editor, updateTextFormatFloatingToolbar]);
 
   return (
-    <FloatingDivContainer ref={popupCharStylesEditorRef}>
+    <FloatingDivContainer ref={popupCharStylesEditorRef} className="floating-toolbar">
       <IconButton
         onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, "bold")}
         className={isBold ? "active" : ""}

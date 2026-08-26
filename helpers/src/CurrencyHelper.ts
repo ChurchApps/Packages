@@ -69,7 +69,12 @@ export class CurrencyHelper {
       dkk: { percent: 2.9, fixed: 1.8, symbol: "DKK" },
       chf: { percent: 2.9, fixed: 0.3, symbol: "CHF" },
       mxn: { percent: 2.9, fixed: 3.0, symbol: "MXN" },
-      brl: { percent: 3.9, fixed: 0.5, symbol: "R$" }
+      brl: { percent: 3.9, fixed: 0.5, symbol: "R$" },
+      ngn: { percent: 1.5, fixed: 100, symbol: "₦" },
+      ghs: { percent: 1.95, fixed: 0, symbol: "GH₵" },
+      zar: { percent: 2.9, fixed: 1, symbol: "R" },
+      kes: { percent: 2.9, fixed: 0, symbol: "KSh" },
+      xof: { percent: 3.2, fixed: 0, symbol: "CFA" }
     };
     return stripeCurrencyFees[normalizedCurrency]?.symbol || "$";
   }

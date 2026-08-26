@@ -3,6 +3,7 @@ import type { PaymentGateway } from "../helpers";
 import { StripeProvider } from "./stripe/StripeProvider";
 import { KingdomFundingProvider } from "./kingdomfunding/KingdomFundingProvider";
 import { PayPalProvider } from "./paypal/PayPalProvider";
+import { PaystackProvider } from "./paystack/PaystackProvider";
 import type { PaymentProvider, ProviderCapabilities } from "./types";
 
 // Built lazily on first access so providers/components import cycle is fully resolved.
@@ -12,7 +13,7 @@ let builtins: Map<string, PaymentProvider> | null = null;
 function getBuiltins(): Map<string, PaymentProvider> {
   if (!builtins) {
     builtins = new Map<string, PaymentProvider>();
-    for (const p of [StripeProvider, KingdomFundingProvider, PayPalProvider]) builtins.set(p.key, p);
+    for (const p of [StripeProvider, KingdomFundingProvider, PayPalProvider, PaystackProvider]) builtins.set(p.key, p);
   }
   return builtins;
 }

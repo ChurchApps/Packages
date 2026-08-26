@@ -68,6 +68,8 @@ export interface ProviderDescriptor {
   selectableInAdmin: boolean;
   betaOnly?: boolean; // hidden in the admin dropdown in prod unless already configured
   setupInstructionsKey?: string;
+  // Shown with the webhook URL for providers where the church pastes it into a dashboard (no webhook key field needed).
+  webhookInstructionsKey?: string;
   signupUrl?: (church: any, user: any) => string;
   currencyHelpUrl?: string;
   eventUrl?: (eventId: string) => string;

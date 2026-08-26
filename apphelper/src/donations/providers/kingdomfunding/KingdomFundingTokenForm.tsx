@@ -27,7 +27,7 @@ interface Props {
   sandbox?: boolean;
 }
 
-const COLLECT_JS_URL = "https://secure.nmi.com/token/Collect.js";
+const COLLECT_JS_URL = "https://lotusconsulting.transactiongateway.com/token/Collect.js";
 
 const customCss = {
   "font-family": "'Roboto','Helvetica','Arial',sans-serif",
@@ -174,6 +174,8 @@ export const KingdomFundingTokenForm = forwardRef<KingdomFundingTokenFormHandle,
         // Prevent a stale script's onload from configuring against the wrong field set after a toggle/remount.
         script.onload = null;
         script.onerror = null;
+        // A superseded script that still executes must not auto-configure a second field set.
+        script.removeAttribute("data-tokenization-key");
         if (pendingRef.current) {
           settlePending("reject", new Error(Locale.label("donation.kingdomFunding.paymentFormNotInitialized")));
         }

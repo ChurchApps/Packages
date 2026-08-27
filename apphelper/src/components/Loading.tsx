@@ -10,7 +10,13 @@ export const Loading: React.FC<Props> = (props) => {
 
   const getContents = () => {
     const text = (props.loadingText) ? props.loadingText : "Loading";
-    const color = (props.color) ? props.color : "#222";
+    
+    let defaultColor = "#222";
+    if (typeof document !== "undefined" && document.body.classList.contains("dark-theme")) {
+      defaultColor = "#fff";
+    }
+    const color = (props.color) ? props.color : defaultColor;
+
     let result = <><Dots speed={0.8} animating={true} size={32} color={color} /><p style={{ color: color }}>{text}</p></>;
     switch (props.size) {
       case "sm":

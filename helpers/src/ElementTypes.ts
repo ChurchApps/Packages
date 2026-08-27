@@ -255,6 +255,7 @@ export const ElementTypes: Record<string, ElementTypeDefinition> = {
         x: { type: "string", description: "X/Twitter profile URL; the icon renders only when set." },
         tiktok: { type: "string", description: "TikTok profile URL; the icon renders only when set." },
         vimeo: { type: "string", description: "Vimeo profile URL; the icon renders only when set." },
+        podcast: { type: "string", description: "Podcast URL (Spotify, Apple Podcasts, etc.); the icon renders only when set." },
         iconStyle: { type: "string", enum: ["filled", "outlined"], description: "filled draws a colored circle; outlined draws a bordered circle." },
         size: { type: "string", enum: ["small", "medium", "large"] },
         alignment: { type: "string", enum: ["left", "center", "right"] },

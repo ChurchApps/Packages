@@ -6,6 +6,7 @@ import FacebookIcon from "@mui/icons-material/Facebook";
 import InstagramIcon from "@mui/icons-material/Instagram";
 import YouTubeIcon from "@mui/icons-material/YouTube";
 import XIcon from "@mui/icons-material/X";
+import PodcastsIcon from "@mui/icons-material/Podcasts";
 import { ElementInterface, SectionInterface } from "../../helpers";
 
 interface Props {
@@ -32,7 +33,8 @@ export const SocialIconsElement = ({ element, onEdit }: Props) => {
     { key: "youtube", url: answers.youtube, label: "YouTube", icon: <YouTubeIcon /> },
     { key: "x", url: answers.x, label: "X", icon: <XIcon /> },
     { key: "tiktok", url: answers.tiktok, label: "TikTok", icon: <TikTokIcon /> },
-    { key: "vimeo", url: answers.vimeo, label: "Vimeo", icon: <VimeoIcon /> }
+    { key: "vimeo", url: answers.vimeo, label: "Vimeo", icon: <VimeoIcon /> },
+    { key: "podcast", url: answers.podcast, label: "Podcast", icon: <PodcastsIcon /> }
   ].filter((n) => n.url);
 
   if (networks.length === 0) {

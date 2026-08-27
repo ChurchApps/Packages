@@ -1,5 +1,11 @@
 # @churchapps/helpers
 
+## 2.2.2
+
+### Patch Changes
+
+- 998eb1a: Add a Podcast link to the Social Icons element
+
 ## 2.2.1
 
 ### Patch Changes

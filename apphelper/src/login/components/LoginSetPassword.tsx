@@ -54,16 +54,17 @@ export const LoginSetPassword: React.FC<Props> = props => {
 
   const submit = async () => {
     const resp = await ApiHelper.postAnonymous("/users/setPasswordGuid", { authGuid: props.auth, newPassword: password, appName: props.appName, appUrl: props.appUrl }, "MembershipApi");
-    const emailForLogin = user?.email || props.email;
+    const emailForLogin = user?.email || resp.email || props.email;
     if (resp.success && emailForLogin) props.login({ email: emailForLogin, password });
-    else props.setShowForgot(true);
+    else if (resp.success) props.setShowForgot(true);
+    else setLinkExpired(true);
   };
 
   React.useEffect(() => {
     loadUser();
   }, []);
 
-  const buttonDisabled = props.isSubmitting || (!user && !props.email);
+  const buttonDisabled = props.isSubmitting;
 
   return (
     <Card sx={{
@@ -105,7 +106,7 @@ export const LoginSetPassword: React.FC<Props> = props => {
             marginBottom: "32px"
           }}
         >
-          {linkExpired ? "Your link has expired" : `Welcome back ${user?.firstName || ""}. Please set your password.`}
+          {linkExpired ? "Your link has expired" : user?.firstName ? `Welcome back ${user.firstName}. Please set your password.` : "Please set your password."}
         </Typography>
 
         {linkExpired ? (

@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 1.3.3
+
+### Patch Changes
+
+- 3f983a7: Set-password page no longer sticks on "Please wait" when the invite link's user lookup fails; shows expired-link state instead.
+
 ## 1.3.2
 
 ### Patch Changes

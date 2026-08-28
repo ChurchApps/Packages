@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 1.3.4
+
+### Patch Changes
+
+- db32079: Add missing login.continueGoogle / login.continueMicrosoft labels
+
 ## 1.3.3
 
 ### Patch Changes

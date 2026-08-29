@@ -12,7 +12,7 @@ export default function GroupCard(props: Props) {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
-    <a href={"/groups/details/" + props.group.slug} style={{ textDecoration: "none" }}>
+    <a href={"/mobile/groups/" + props.group.slug} style={{ textDecoration: "none" }}>
       <div
         style={{
           borderRadius: "16px",

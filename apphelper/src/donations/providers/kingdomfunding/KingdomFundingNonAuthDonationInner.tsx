@@ -74,7 +74,7 @@ export const KingdomFundingNonAuthDonationInner: React.FC<Props> = ({ mainContai
         setFundDonations([{ fundId: data[0].id }]);
       }
     });
-    ApiHelper.get("/churches/" + props.churchId, "MembershipApi").then((data: any) => {
+    ApiHelper.get("/churches/lookup/?id=" + props.churchId, "MembershipApi").then((data: any) => {
       setChurch(data);
     });
     ApiHelper.get(`/donate/gateways/${props.churchId}`, "GivingApi").then((response: any) => {

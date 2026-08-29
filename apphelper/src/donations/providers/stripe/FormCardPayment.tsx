@@ -24,7 +24,7 @@ const FormCardPaymentInner = forwardRef<FormPaymentHandle, FormPaymentProps>((pr
   const fundId = props.question.choices?.find(c => c.text === "FundId")?.value || "";
 
   const getChurchData = () => {
-    ApiHelper.get("/churches/" + props.churchId, "MembershipApi").then((data: any) => {
+    ApiHelper.get("/churches/lookup/?id=" + props.churchId, "MembershipApi").then((data: any) => {
       setChurch(data);
     });
     ApiHelper.get("/funds/churchId/" + props.churchId, "GivingApi").then((data: any) => {

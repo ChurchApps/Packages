@@ -56,6 +56,8 @@ export class SubscriptionManager {
       try {
         await ApiHelper.delete(`/connections/${churchId}/${conversationId}/${SocketHelper.socketId}`, "MessagingApi");
       } catch (err) {
+        const msg = String((err as { message?: string })?.message || err);
+        if (/unauthorized/i.test(msg)) return;
         console.warn("SubscriptionManager.leaveRoom failed:", err);
       }
     }, SubscriptionManager.LEAVE_DEBOUNCE_MS);
@@ -98,6 +100,8 @@ export class SubscriptionManager {
       if (ApiHelper.getConfig("MessagingApi")?.jwt) await ApiHelper.post("/connections", [connection], "MessagingApi");
       else await ApiHelper.postAnonymous("/connections", [connection], "MessagingApi");
     } catch (err) {
+      const msg = String((err as { message?: string })?.message || err);
+      if (/unauthorized/i.test(msg)) return;
       console.warn(`SubscriptionManager.postConnection(${conversationId}) failed:`, err);
     }
   };

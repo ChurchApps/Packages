@@ -1,6 +1,13 @@
 import React from "react";
 import type { GlobalStyleInterface } from "../helpers";
 
+// SpacingScaleEdit stores unitless numbers; a bare "16" is an invalid declaration.
+const spacingValue = (value: any, fallback: string) => {
+  if (value === undefined || value === null || value === "") return fallback;
+  const str = String(value).trim();
+  return /^-?\d*\.?\d+$/.test(str) ? str + "px" : str;
+};
+
 interface Props {
   globalStyles?: GlobalStyleInterface;
   appearance?: any;
@@ -63,12 +70,12 @@ export const Theme: React.FC<Props> = (props) => {
   if (props.globalStyles?.spacing) {
     try {
       const spacing = JSON.parse(props.globalStyles.spacing);
-      lines.push("--spacing-xs: " + (spacing.xs || "4px") + ";");
-      lines.push("--spacing-sm: " + (spacing.sm || "8px") + ";");
-      lines.push("--spacing-md: " + (spacing.md || "16px") + ";");
-      lines.push("--spacing-lg: " + (spacing.lg || "24px") + ";");
-      lines.push("--spacing-xl: " + (spacing.xl || "32px") + ";");
-      lines.push("--spacing-xxl: " + (spacing.xxl || "48px") + ";");
+      lines.push("--spacing-xs: " + spacingValue(spacing.xs, "4px") + ";");
+      lines.push("--spacing-sm: " + spacingValue(spacing.sm, "8px") + ";");
+      lines.push("--spacing-md: " + spacingValue(spacing.md, "16px") + ";");
+      lines.push("--spacing-lg: " + spacingValue(spacing.lg, "24px") + ";");
+      lines.push("--spacing-xl: " + spacingValue(spacing.xl, "32px") + ";");
+      lines.push("--spacing-xxl: " + spacingValue(spacing.xxl, "48px") + ";");
     } catch (e) {
       console.error("Failed to parse spacing JSON:", e);
     }
@@ -88,9 +95,8 @@ export const Theme: React.FC<Props> = (props) => {
     }
   }
 
-  if (props.globalStyles?.customCss) lines.push(props.globalStyles.customCss);
-
-  const css = ":root { " + lines.join("\n") + " }";
+  // Custom CSS is a sibling of :root, not a child - nesting changes how it cascades.
+  const css = ":root { " + lines.join("\n") + " }" + (props.globalStyles?.customCss ? "\n" + props.globalStyles.customCss : "");
 
   // Dynamically load Google Fonts
   React.useEffect(() => {

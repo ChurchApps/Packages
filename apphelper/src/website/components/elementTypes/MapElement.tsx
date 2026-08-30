@@ -16,21 +16,23 @@ const containerStyle = {
 
 export const MapElement = ({ element }: Props) => {
   const [center, setCenter] = useState();
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY || "";
 
   useEffect(() => {
-    if (element.answers?.mapAddress) {
-      fetch(
-        `https://maps.googleapis.com/maps/api/geocode/json?address=${element.answers.mapAddress}&key=${process.env.NEXT_PUBLIC_GOOGLE_API_KEY}`
-      )
-        .then((res) => res.json())
-        .then((data) => setCenter(data?.results?.[0]?.geometry?.location));
-    }
-  }, [element.answers?.mapAddress]);
+    if (!apiKey || !element.answers?.mapAddress) return;
+    fetch(
+      `https://maps.googleapis.com/maps/api/geocode/json?address=${element.answers.mapAddress}&key=${apiKey}`
+    )
+      .then((res) => res.json())
+      .then((data) => setCenter(data?.results?.[0]?.geometry?.location));
+  }, [apiKey, element.answers?.mapAddress]);
 
   const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
-    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_API_KEY || ""
+    googleMapsApiKey: apiKey
   });
+
+  if (!apiKey) return null;
 
   return (
     <>

@@ -83,7 +83,8 @@ function Editor({ value, onChange = () => {}, mode = "interactive", textAlign = 
         replace: LinkNode,
         with: (node: LinkNode) => (
           new CustomLinkNode(node.getURL(), node.getTarget() ?? "_self", [])
-        )
+        ),
+        withKlass: CustomLinkNode
       }
     ],
     markdown: { transformers: PLAYGROUND_TRANSFORMERS }

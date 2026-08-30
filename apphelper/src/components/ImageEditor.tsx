@@ -130,7 +130,7 @@ export function ImageEditor(props: Props) {
       }
     >
       <Suspense fallback={<Loading />}>
-        <Cropper
+        {photoSrc ? <Cropper
           ref={cropperRef}
           src={photoSrc}
           key={photoSrc}
@@ -147,7 +147,7 @@ export function ImageEditor(props: Props) {
           ready={() => {
             setTimeout(selectDefaultCropZone, 100);
           }}
-        />
+        /> : null}
       </Suspense>
     </InputBox>
   );

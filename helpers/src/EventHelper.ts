@@ -52,7 +52,9 @@ export class EventHelper {
     const RR = getRRule();
     // Reconstruct so implicit BYDAY/BYMONTHDAY derive from event.start, not parse-time "now".
     const options = { ...RR.parseString(event.recurrenceRule || "") };
-    options.dtstart = new Date(event.start!);
+    const start = new Date(event.start!);
+    // rrule reads dtstart as UTC; feed local wall-clock so WEEKLY stays on the selected weekday.
+    options.dtstart = new Date(Date.UTC(start.getFullYear(), start.getMonth(), start.getDate(), start.getHours(), start.getMinutes(), start.getSeconds()));
     return new RR(options);
   };
 

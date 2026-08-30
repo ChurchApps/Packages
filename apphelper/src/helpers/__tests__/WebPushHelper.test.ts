@@ -58,8 +58,17 @@ describe("WebPushHelper.subscribe", () => {
     (window as any).Notification = function () { /* */ };
     (window as any).Notification.permission = "default";
     (window as any).Notification.requestPermission = vi.fn().mockResolvedValue("granted");
-    // Clear any prior opt-out / cooldown state in the jsdom localStorage
-    window.localStorage.clear();
+    // Node's experimental Storage is unset without --localstorage-file and shadows jsdom.
+    const memory = new Map<string, string>();
+    const stub = {
+      get length() { return memory.size; },
+      clear() { memory.clear(); },
+      getItem(key: string) { return memory.has(key) ? memory.get(key)! : null; },
+      key(index: number) { return [...memory.keys()][index] ?? null; },
+      removeItem(key: string) { memory.delete(key); },
+      setItem(key: string, value: string) { memory.set(key, String(value)); }
+    };
+    Object.defineProperty(window, "localStorage", { configurable: true, value: stub });
   });
 
   it("posts a webpush subscription to the server when the user grants permission", async () => {

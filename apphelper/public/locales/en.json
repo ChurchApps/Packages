@@ -202,6 +202,8 @@
     "freeForm": "Free Form"
   },
   "login": {
+    "continueGoogle": "Continue with Google",
+    "continueMicrosoft": "Continue with Microsoft",
     "email": "Email",
     "enterCode": "Enter Verification Code",
     "enterCodeInstructions": "Enter the 6-digit code we just emailed you.",

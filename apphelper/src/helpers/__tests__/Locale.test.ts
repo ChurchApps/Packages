@@ -28,3 +28,10 @@ describe("Locale.mapBrowserLanguage", () => {
     expect(map("nn")).toBe("no");
   });
 });
+
+describe("Locale.label English fallbacks", () => {
+  it("resolves the SSO button labels instead of returning the raw keys", () => {
+    expect(Locale.label("login.continueGoogle")).toBe("Continue with Google");
+    expect(Locale.label("login.continueMicrosoft")).toBe("Continue with Microsoft");
+  });
+});

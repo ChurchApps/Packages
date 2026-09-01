@@ -37,9 +37,10 @@ const microsoftIcon = (
   </svg>
 );
 
-const providerMeta: Record<SsoProvider, { label: string; icon: React.ReactNode }> = {
-  google: { label: "login.continueGoogle", icon: googleIcon },
-  microsoft: { label: "login.continueMicrosoft", icon: microsoftIcon }
+// Thunks keep the label keys as static Locale.label() literals so locale-sync's usage scan doesn't prune them.
+const providerMeta: Record<SsoProvider, { label: () => string; icon: React.ReactNode }> = {
+  google: { label: () => Locale.label("login.continueGoogle"), icon: googleIcon },
+  microsoft: { label: () => Locale.label("login.continueMicrosoft"), icon: microsoftIcon }
 };
 
 export const SsoButtons: React.FC = () => {
@@ -84,7 +85,7 @@ export const SsoButtons: React.FC = () => {
             "&:hover": { backgroundColor: "#f9fafb", borderColor: "#d1d5db" }
           }}
         >
-          {Locale.label(providerMeta[provider].label)}
+          {providerMeta[provider].label()}
         </Button>
       ))}
     </>

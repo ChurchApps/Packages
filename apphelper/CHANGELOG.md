@@ -1,5 +1,13 @@
 # @churchapps/apphelper
 
+## 1.3.6
+
+### Patch Changes
+
+- d11a669: Loading spinner and label default to white when `document.body` has `dark-theme`, instead of hard-coding `#222`.
+- b2454b9: Restore SSO button labels lost in locale sync and add them to the English fallbacks
+- 702e244: Website Theme now emits spacing tokens with units (`--spacing-md: 16px` instead of `16`) so saved numeric spacing scales produce valid declarations, and renders `customCss` as a sibling of `:root` rather than nesting it inside.
+
 ## 1.3.5
 
 ### Patch Changes

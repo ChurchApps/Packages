@@ -10,7 +10,7 @@ export const Loading: React.FC<Props> = (props) => {
 
   const getContents = () => {
     const text = (props.loadingText) ? props.loadingText : "Loading";
-    
+
     let defaultColor = "#222";
     if (typeof document !== "undefined" && document.body.classList.contains("dark-theme")) {
       defaultColor = "#fff";

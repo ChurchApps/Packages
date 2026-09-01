@@ -83,7 +83,7 @@ export const PayPalNonAuthDonationInner: React.FC<Props> = ({ mainContainerCssPr
         setFundDonations([{ fundId: initialFund.id, amount: (amount && amount !== "") ? parseFloat(amount) : 0 }]);
       }
     });
-    ApiHelper.get("/churches/" + props.churchId, "MembershipApi").then((_data: any) => {
+    ApiHelper.get("/churches/lookup/?id=" + props.churchId, "MembershipApi").then((_data: any) => {
       _setChurch(_data);
     });
     ApiHelper.get(`/donate/gateways/${props.churchId}`, "GivingApi").then((response: any) => {

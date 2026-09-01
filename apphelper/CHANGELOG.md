@@ -1,5 +1,24 @@
 # @churchapps/apphelper
 
+## 1.3.5
+
+### Patch Changes
+
+- 23b8b7c: Anonymous donation forms load church name via GET /churches/lookup instead of the auth-gated GET /churches/:id.
+- e485e74: Website group cards link to /mobile/groups/<slug>, the route B1App serves.
+
+## 1.3.4
+
+### Patch Changes
+
+- db32079: Add missing login.continueGoogle / login.continueMicrosoft labels
+
+## 1.3.3
+
+### Patch Changes
+
+- 3f983a7: Set-password page no longer sticks on "Please wait" when the invite link's user lookup fails; shows expired-link state instead.
+
 ## 1.3.2
 
 ### Patch Changes

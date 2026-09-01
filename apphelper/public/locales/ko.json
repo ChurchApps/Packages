@@ -1,254 +1,298 @@
-﻿{
-    "common":  {
-                   "cancel":  "ì·¨ì†Œ",
-                   "close":  "ë‹«ë‹¤",
-                   "delete":  "ì‚­ì œ",
-                   "pleaseWait":  "ê¸°ë‹¤ë¦¬ì„¸ìš”...",
-                   "save":  "êµ¬í•˜ë‹¤",
-                   "search":  "ì°¾ë‹¤",
-                   "update":  "ì—…ë°ì´íŠ¸"
-               },
-    "donation":  {
-                     "bankForm":  {
-                                      "accountNumber":  "ê³„ì¢Œ ë²ˆí˜¸",
-                                      "added":  "ì€í–‰ ê³„ì¢Œê°€ ì¶”ê°€ë˜ì—ˆìŠµë‹ˆë‹¤. ",
-                                      "company":  "íšŒì‚¬",
-                                      "firstDeposit":  "ì²« ìž…ê¸ˆ",
-                                      "individual":  "ê°œì¸",
-                                      "name":  "ê³„ì¢Œ ì†Œìœ ìž ì´ë¦„",
-                                      "needVerified":  "ê¸°ë¶€í•˜ê¸° ì „ì— ì€í–‰ ê³„ì¢Œë¥¼ í™•ì¸í•´ì•¼ í•©ë‹ˆë‹¤. ",
-                                      "routingNumber":  "ë¼ìš°íŒ… ë²ˆí˜¸",
-                                      "secondDeposit":  "ë‘ ë²ˆì§¸ ìž…ê¸ˆ",
-                                      "twoDeposits":  "ê³„ì¢Œì— ìž…ê¸ˆëœ 2ê±´ì˜ ìž…ê¸ˆì•¡ì„ ìž…ë ¥í•˜ì—¬ ì€í–‰ê³„ì¢Œ í™•ì¸ì„ ì™„ë£Œí•˜ì„¸ìš”.",
-                                      "updated":  "ì€í–‰ ê³„ì¢Œê°€ ì—…ë°ì´íŠ¸ë˜ì—ˆìŠµë‹ˆë‹¤.",
-                                      "validate":  {
-                                                       "accountNumber":  "ë¼ìš°íŒ… ë²ˆí˜¸ì™€ ê³„ì¢Œ ë²ˆí˜¸ê°€ í•„ìš”í•©ë‹ˆë‹¤.",
-                                                       "holderName":  "ê³„ì¢Œ ì†Œìœ ìž ì´ë¦„ì´ í•„ìš”í•©ë‹ˆë‹¤."
-                                                   },
-                                      "verified":  "ì€í–‰ ê³„ì¢Œê°€ í™•ì¸ë˜ì—ˆìŠµë‹ˆë‹¤."
-                                  },
-                     "cardForm":  {
-                                      "added":  "ì¹´ë“œê°€ ì„±ê³µì ìœ¼ë¡œ ì¶”ê°€ë˜ì—ˆìŠµë‹ˆë‹¤.",
-                                      "addNew":  "ìƒˆ ì¹´ë“œ ì¶”ê°€",
-                                      "expirationMonth":  "ë§Œê¸° ì›”:",
-                                      "expirationYear":  "ë§Œë£Œ ì—°ë„:",
-                                      "updated":  "ì¹´ë“œê°€ ì„±ê³µì ìœ¼ë¡œ ì—…ë°ì´íŠ¸ë˜ì—ˆìŠµë‹ˆë‹¤."
-                                  },
-                     "donationForm":  {
-                                          "annually":  "ë§¤ë…„",
-                                          "biWeekly":  "ê²©ì£¼ ê°„í–‰ë¬¼",
-                                          "cancelled":  "ì •ê¸° ê¸°ë¶€ê°€ ì·¨ì†Œë˜ì—ˆìŠµë‹ˆë‹¤.",
-                                          "confirmDelete":  "ì´ ë°˜ë³µ ê¸°ë¶€ë¥¼ ì‚­ì œí•˜ì‹œê² ìŠµë‹ˆê¹Œ?",
-                                          "cover":  "ê·€í•˜ê°€ ì œ ê¸°ë¶€ê¸ˆì„ 100% ìœ ì§€í•  ìˆ˜ ìžˆë„ë¡ ê±°ëž˜ ìˆ˜ìˆ˜ë£Œë¥¼ ì¶©ë‹¹í•˜ê¸° ìœ„í•´ {}ë¥¼ ì•„ë‚Œì—†ì´ ì¶”ê°€í•˜ê² ìŠµë‹ˆë‹¤.",
-                                          "donate":  "ê¸°ë¶€",
-                                          "editRecurring":  "ë°˜ë³µ ê¸°ë¶€ íŽ¸ì§‘",
-                                          "fees":  "{}ì˜ ê±°ëž˜ ìˆ˜ìˆ˜ë£Œê°€ ì ìš©ë©ë‹ˆë‹¤.",
-                                          "frequency":  "ë¹ˆë„",
-                                          "fund":  "ì¶•ì ",
-                                          "funds":  "ìžê¸ˆ",
-                                          "make":  "ê¸°ë¶€ í•´ì£¼ì„¸ìš”",
-                                          "makeRecurring":  "ì •ê¸° ê¸°ë¶€í•˜ê¸°",
-                                          "method":  "ë°©ë²•",
-                                          "monthly":  "ì›”ê°„ ê°„í–‰ë¬¼",
-                                          "preview":  "ë¯¸ë¦¬ë³´ê¸° ê¸°ë¶€",
-                                          "quarterly":  "ê³„ê°„ì§€",
-                                          "recurringUpdated":  "ì •ê¸° ê¸°ë¶€ê°€ ì—…ë°ì´íŠ¸ë˜ì—ˆìŠµë‹ˆë‹¤.",
-                                          "startDate":  "ì‹œìž‘ì¼",
-                                          "thankYou":  "ê¸°ë¶€í•´ ì£¼ì…”ì„œ ê°ì‚¬í•©ë‹ˆë‹¤!",
-                                          "tooLow":  "ê¸°ë¶€ ê¸ˆì•¡ì€ $0.50ë³´ë‹¤ ì»¤ì•¼ í•©ë‹ˆë‹¤.",
-                                          "total":  "ì´ ê¸°ë¶€ ê¸ˆì•¡",
-                                          "validate":  {
-                                                           "amount":  "ê¸ˆì•¡ì€ $0ì¼ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.",
-                                                           "email":  "ë‹¹ì‹ ì˜ ì´ë©”ì¼ ì£¼ì†Œë¥¼ ìž…ë ¥í•˜ì‹­ì‹œì˜¤.",
-                                                           "firstName":  "ì´ë¦„ì„ ìž…ë ¥í•˜ì„¸ìš”.",
-                                                           "lastName":  "ë‹¹ì‹ ì˜ ì„±ì„ ìž…ë ¥í•˜ì„¸ìš”.",
-                                                           "validEmail":  "ìœ íš¨í•œ ì´ë©”ì¼ ì£¼ì†Œë¥¼ ìž…ë ¥í•˜ì„¸ìš”."
-                                                       },
-                                          "weekly":  "ì£¼ê°„"
-                                      },
-                     "fundDonations":  {
-                                           "addMore":  "ë” ì¶”ê°€",
-                                           "amount":  "ì–‘",
-                                           "fund":  "ì¶•ì "
-                                       },
-                     "paymentMethods":  {
-                                            "addBank":  "ì€í–‰ ê³„ì¢Œ ì¶”ê°€",
-                                            "addCard":  "ì¹´ë“œ ì¶”ê°€",
-                                            "confirmDelete":  "ì´ ê²°ì œ ìˆ˜ë‹¨ì„ ì‚­ì œí•˜ì‹œê² ìŠµë‹ˆê¹Œ?",
-                                            "deleted":  "ê²°ì œ ìˆ˜ë‹¨ì´ ì‚­ì œë˜ì—ˆìŠµë‹ˆë‹¤.",
-                                            "verify":  "ê³„ì • í™•ì¸"
-                                        },
-                     "preview":  {
-                                     "date":  "ê¸°ë¶€ì¼ìž",
-                                     "donate":  "ê¸°ë¶€",
-                                     "every":  "ë°˜ë³µë˜ëŠ” ëª¨ë“  ê²ƒ",
-                                     "fee":  "ê±°ëž˜ ìˆ˜ìˆ˜ë£Œ",
-                                     "funds":  "ìžê¸ˆ",
-                                     "method":  "ê¸°ë¶€ë°©ë²•",
-                                     "notes":  "ë…¸íŠ¸",
-                                     "startingOn":  "ì‹œìž‘ì¼",
-                                     "total":  "ì´",
-                                     "type":  "ê¸°ë¶€ ìœ í˜•"
-                                 },
-                     "recurring":  {
-                                       "amount":  "ì–‘",
-                                       "confirmPause":  "ì´ ì •ê¸° ê¸°ë¶€ë¥¼ ì¼ì‹œì •ì§€í•˜ì‹œê² ìŠµë‹ˆê¹Œ?",
-                                       "every":  "ëª¨ë“ ",
-                                       "interval":  "ê°„ê²©",
-                                       "notFound":  "ê²°ì œ ìˆ˜ë‹¨ì„ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.",
-                                       "paused":  "ì¼ì‹œì •ì§€ë¨",
-                                       "pausedMessage":  "ì •ê¸° ê¸°ë¶€ê°€ ì¼ì‹œì •ì§€ë˜ì—ˆìŠµë‹ˆë‹¤.",
-                                       "pauseFailed":  "ì •ê¸° ê¸°ë¶€ ì¼ì‹œì •ì§€ì— ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤. ë‹¤ì‹œ ì‹œë„í•´ ì£¼ì„¸ìš”.",
-                                       "pauseTooltip":  "ì •ê¸° ê¸°ë¶€ ì¼ì‹œì •ì§€",
-                                       "paymentMethod":  "ê²°ì œ ë°©ë²•",
-                                       "resumedMessage":  "ì •ê¸° ê¸°ë¶€ê°€ ìž¬ê°œë˜ì—ˆìŠµë‹ˆë‹¤.",
-                                       "resumeFailed":  "ì •ê¸° ê¸°ë¶€ ìž¬ê°œì— ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤. ë‹¤ì‹œ ì‹œë„í•´ ì£¼ì„¸ìš”.",
-                                       "resumeTooltip":  "ì •ê¸° ê¸°ë¶€ ìž¬ê°œ",
-                                       "startDate":  "ì‹œìž‘ì¼"
-                                   }
-                 },
-    "eventCalendar":  {
-                          "recurring":  {
-                                            "day":  {
-                                                        "friday":  "ê¸ˆìš”ì¼",
-                                                        "monday":  "ì›”ìš”ì¼",
-                                                        "saturday":  "í† ìš”ì¼",
-                                                        "sunday":  "ì¼ìš”ì¼",
-                                                        "thursday":  "ëª©ìš”ì¼",
-                                                        "tuesday":  "í™”ìš”ì¼",
-                                                        "wednesday":  "ìˆ˜ìš”ì¼"
-                                                    },
-                                            "endDate":  "ì¢…ë£Œì¼",
-                                            "endDateAria":  "ë°˜ë³µ ì¢…ë£Œì¼",
-                                            "ends":  "ì¢…ë£Œ",
-                                            "endsAfter":  "íšŸìˆ˜ ì´í›„",
-                                            "endsAria":  "ë°˜ë³µ ì¢…ë£Œ ì‹œì  ì„ íƒ",
-                                            "endsOn":  "íŠ¹ì • ë‚ ì§œ",
-                                            "freqDay":  "ì¼",
-                                            "freqMonth":  "ì›”",
-                                            "frequency":  "ë¹ˆë„",
-                                            "frequencyAria":  "ë°˜ë³µ ë¹ˆë„ ì„ íƒ",
-                                            "freqWeek":  "ì£¼",
-                                            "interval":  "ê°„ê²©",
-                                            "intervalAria":  "ë°˜ë³µ ê°„ê²©",
-                                            "monthlyOnDay":  "ë§¤ì›” {}ì¼",
-                                            "monthlyOnNth":  "ë§¤ì›” {ordinal} {day}",
-                                            "monthlyOptionAria":  "ì›”ë³„ ë°˜ë³µ ì˜µì…˜ ì„ íƒ",
-                                            "never":  "ì•ˆ í•¨",
-                                            "occurrences":  "íšŸìˆ˜",
-                                            "occurrencesAria":  "ë°˜ë³µ íšŸìˆ˜",
-                                            "on":  "ìš”ì¼",
-                                            "ordinal":  {
-                                                            "first":  "ì²« ë²ˆì§¸",
-                                                            "fourth":  "ë„¤ ë²ˆì§¸",
-                                                            "last":  "ë§ˆì§€ë§‰",
-                                                            "second":  "ë‘ ë²ˆì§¸",
-                                                            "third":  "ì„¸ ë²ˆì§¸"
-                                                        },
-                                            "toggleWeekday":  "ì£¼ê°„ ë°˜ë³µì„ ìœ„í•œ {} í† ê¸€"
-                                        }
-                      },
-    "formSubmissionEdit":  {
-                               "back":  "ë’¤ë¡œ",
-                               "confirmDelete":  "ì´ ì–‘ì‹ ë°ì´í„°ë¥¼ ì‚­ì œí•˜ì‹œê² ìŠµë‹ˆê¹Œ?",
-                               "continue":  "ê³„ì†",
-                               "editForm":  "ì–‘ì‹ íŽ¸ì§‘",
-                               "isRequired":  "í•„ìˆ˜",
-                               "stepProgress":  "{total} ì¤‘ {current}",
-                               "submit":  "ì œì¶œí•˜ë‹¤"
-                           },
-    "gallery":  {
-                    "aspectRatio":  "ì¢…íš¡ë¹„",
-                    "confirmDelete":  "ê°¤ëŸ¬ë¦¬ì—ì„œ ì´ ì´ë¯¸ì§€ë¥¼ ì‚­ì œí•˜ì‹œê² ìŠµë‹ˆê¹Œ?",
-                    "freeForm":  "ìžìœ  í˜•ì‹"
-                },
-    "login":  {
-                  "email":  "ì´ë©”ì¼",
-                  "enterCode":  "ì¸ì¦ ì½”ë“œ ìž…ë ¥",
-                  "enterCodeInstructions":  "ë°©ê¸ˆ ì´ë©”ì¼ë¡œ ë³´ë‚¸ 6ìžë¦¬ ì½”ë“œë¥¼ ìž…ë ¥í•˜ì„¸ìš”.",
-                  "expiredLink":  "í˜„ìž¬ ë§í¬ê°€ ë§Œë£Œë˜ì—ˆìŠµë‹ˆë‹¤.",
-                  "forgot":  "ë¹„ë°€ë²ˆí˜¸ë¥¼ ìžŠìœ¼ ì…¨ë‚˜ìš”",
-                  "login":  "ë¡œê·¸ì¸",
-                  "noAcc":  "ê³„ì •ì´ ì—†ìœ¼ì‹ ê°€ìš”?",
-                  "noAccountFound":  "í•´ë‹¹ ì´ë©”ì¼ë¡œ ë“±ë¡ëœ ê³„ì •ì´ ì—†ìŠµë‹ˆë‹¤. ê³„ì†í•˜ë ¤ë©´ ë“±ë¡í•´ ì£¼ì„¸ìš”.",
-                  "password":  "ë¹„ë°€ë²ˆí˜¸",
-                  "register":  "ë“±ë¡í•˜ë‹¤",
-                  "registerThankYou":  "ë“±ë¡í•´ì£¼ì…”ì„œ ê°ì‚¬í•©ë‹ˆë‹¤! ",
-                  "requestLink":  "ìƒˆ ìž¬ì„¤ì • ë§í¬ ìš”ì²­",
-                  "resendCode":  "ì½”ë“œ ë‹¤ì‹œ ë³´ë‚´ê¸°",
-                  "reset":  "ì´ˆê¸°í™”",
-                  "resetInstructions":  "ë¹„ë°€ë²ˆí˜¸ ìž¬ì„¤ì •ì„ ìš”ì²­í•˜ë ¤ë©´ ì´ë©”ì¼ ì£¼ì†Œë¥¼ ìž…ë ¥í•˜ì„¸ìš”.",
-                  "resetPassword":  "ì•”í˜¸ë¥¼ ìž¬ì„¤ì •",
-                  "setPassword":  "ì•”í˜¸ë¥¼ ì„¤ì •í•˜ì„¸ìš”",
-                  "signIn":  "ë¡œê·¸ì¸",
-                  "signInTitle":  "ë¡œê·¸ì¸ í•´ì£¼ì„¸ìš”",
-                  "validate":  {
-                                   "code":  "6ìžë¦¬ ì½”ë“œë¥¼ ìž…ë ¥í•´ ì£¼ì„¸ìš”.",
-                                   "email":  "ìœ íš¨í•œ ì´ë©”ì¼ ì£¼ì†Œë¥¼ ìž…ë ¥í•˜ì„¸ìš”.",
-                                   "firstName":  "ì´ë¦„ì„ ìž…ë ¥í•˜ì„¸ìš”.",
-                                   "invalid":  "ë¡œê·¸ì¸ ì˜¤ë¥˜. ",
-                                   "lastName":  "ë‹¹ì‹ ì˜ ì„±ì„ ìž…ë ¥í•˜ì„¸ìš”.",
-                                   "password":  "ë¹„ë°€ë²ˆí˜¸ë¥¼ ìž…ë ¥í•´ì£¼ì„¸ìš”.",
-                                   "passwordLength":  "ë¹„ë°€ë²ˆí˜¸ëŠ” 8ìž ì´ìƒì´ì–´ì•¼ í•©ë‹ˆë‹¤.",
-                                   "passwordMatch":  "ë¹„ë°€ë²ˆí˜¸ê°€ ì¼ì¹˜í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤.",
-                                   "selectingChurch":  "êµíšŒì„ íƒì— ì˜¤ë¥˜ê°€ ìžˆìŠµë‹ˆë‹¤. "
-                               },
-                  "verifyCode":  "ì½”ë“œ í™•ì¸",
-                  "verifyPassword":  "ë¹„ë°€ë²ˆí˜¸ í™•ì¸",
-                  "welcomeBack":  "ëŒì•„ì˜¨ ê²ƒì„ í™˜ì˜í•©ë‹ˆë‹¤",
-                  "welcomeName":  "ëŒì•„ì˜¨ ê²ƒì„ í™˜ì˜í•©ë‹ˆë‹¤. \u003cb\u003e{}\u003c/b\u003e!  "
-              },
-    "markdownEditor":  {
-                           "content":  "ì½˜í…ì¸ ",
-                           "markdownGuide":  "ë§ˆí¬ë‹¤ìš´ ê°€ì´ë“œ"
-                       },
-    "notes":  {
-                  "comment":  "ë…¼í‰",
-                  "comments":  "ì½”ë©˜íŠ¸",
-                  "notes":  "ë…¸íŠ¸",
-                  "validate":  {
-                                   "content":  "ë©”ëª¨ë¥¼ ìž…ë ¥í•˜ì„¸ìš”."
-                               }
-              },
-    "person":  {
-                   "email":  "ì´ë©”ì¼",
-                   "firstName":  "ì´ë¦„",
-                   "lastName":  "ì„±",
-                   "name":  "ì´ë¦„"
-               },
-    "selectChurch":  {
-                         "address1":  "ì£¼ì†Œ ë¼ì¸ 1",
-                         "address2":  "ì£¼ì†Œ 2",
-                         "another":  "ë‹¤ë¥¸ êµíšŒë¥¼ ì„ íƒí•˜ì„¸ìš”",
-                         "city":  "ë„ì‹œ",
-                         "confirmRegister":  "ì •ë§ë¡œ ìƒˆ êµíšŒë¥¼ ë“±ë¡í•˜ì‹œê² ìŠµë‹ˆê¹Œ?",
-                         "country":  "êµ­ê°€",
-                         "name":  "êµíšŒ ì´ë¦„",
-                         "noMatches":  "ê²€ìƒ‰ ê²°ê³¼ê°€ ì—†ìŠµë‹ˆë‹¤.",
-                         "register":  "ìƒˆ êµíšŒ ë“±ë¡",
-                         "selectChurch":  "êµíšŒë¥¼ ì„ íƒí•˜ì„¸ìš”",
-                         "state":  "ì£¼/ë„",
-                         "validate":  {
-                                          "address":  "ì£¼ì†ŒëŠ” ë¹„ì›Œë‘˜ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.",
-                                          "city":  "ë„ì‹œëŠ” ë¹„ì›Œë‘˜ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.",
-                                          "country":  "êµ­ê°€ëŠ” ë¹„ì›Œë‘˜ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.",
-                                          "name":  "êµíšŒ ì´ë¦„ì€ ë¹„ì›Œë‘˜ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.",
-                                          "state":  "ì‹œ/ë„ëŠ” ë¹„ì›Œë‘˜ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.",
-                                          "zip":  "ìš°íŽ¸ë²ˆí˜¸ëŠ” ë¹„ì›Œë‘˜ ìˆ˜ ì—†ìŠµë‹ˆë‹¤."
-                                      },
-                         "zip":  "ìš°íŽ¸ë²ˆí˜¸"
-                     },
-    "stockPhotos":  {
-                        "photoBy":  "ì˜ ì‚¬ì§„:",
-                        "providedBy":  "ìŠ¤í†¡ ì‚¬ì§„ ì œê³µ:"
-                    },
-    "support":  {
-                    "discussions":  "ì§€ì› í¬ëŸ¼",
-                    "documentation":  "ë¬¸ì„œ"
-                },
-    "wrapper":  {
-                    "newPrivateMessage":  "ìƒˆ ë¹„ê³µê°œ ë©”ì‹œì§€",
-                    "privateMessage":  "ì‚¬ì‹ ",
-                    "searchForPerson":  "ì‚¬ëžŒ ê²€ìƒ‰"
-                }
+{
+  "common": {
+    "cancel": "ì·¨ì†Œ",
+    "close": "ë‹«ë‹¤",
+    "delete": "ì‚­ì œ",
+    "pleaseWait": "ê¸°ë‹¤ë¦¬ì„¸ìš”...",
+    "save": "êµ¬í•˜ë‹¤",
+    "search": "ì°¾ë‹¤",
+    "update": "ì—…ë°ì´íŠ¸"
+  },
+  "donation": {
+    "bankForm": {
+      "accountNumber": "ê³„ì¢Œ ë²ˆí˜¸",
+      "added": "ì€í–‰ ê³„ì¢Œê°€ ì¶”ê°€ë˜ì—ˆìŠµë‹ˆë‹¤. ",
+      "company": "íšŒì‚¬",
+      "firstDeposit": "ì²« ìž…ê¸ˆ",
+      "individual": "ê°œì¸",
+      "name": "ê³„ì¢Œ ì†Œìœ ìž ì´ë¦„",
+      "needVerified": "ê¸°ë¶€í•˜ê¸° ì „ì— ì€í–‰ ê³„ì¢Œë¥¼ í™•ì¸í•´ì•¼ í•©ë‹ˆë‹¤. ",
+      "routingNumber": "ë¼ìš°íŒ… ë²ˆí˜¸",
+      "secondDeposit": "ë‘ ë²ˆì§¸ ìž…ê¸ˆ",
+      "twoDeposits": "ê³„ì¢Œì— ìž…ê¸ˆëœ 2ê±´ì˜ ìž…ê¸ˆì•¡ì„ ìž…ë ¥í•˜ì—¬ ì€í–‰ê³„ì¢Œ í™•ì¸ì„ ì™„ë£Œí•˜ì„¸ìš”.",
+      "updated": "ì€í–‰ ê³„ì¢Œê°€ ì—…ë°ì´íŠ¸ë˜ì—ˆìŠµë‹ˆë‹¤.",
+      "validate": {
+        "accountNumber": "ë¼ìš°íŒ… ë²ˆí˜¸ì™€ ê³„ì¢Œ ë²ˆí˜¸ê°€ í•„ìš”í•©ë‹ˆë‹¤.",
+        "holderName": "ê³„ì¢Œ ì†Œìœ ìž ì´ë¦„ì´ í•„ìš”í•©ë‹ˆë‹¤."
+      },
+      "verified": "ì€í–‰ ê³„ì¢Œê°€ í™•ì¸ë˜ì—ˆìŠµë‹ˆë‹¤."
+    },
+    "cardForm": {
+      "addNew": "ìƒˆ ì¹´ë“œ ì¶”ê°€",
+      "added": "ì¹´ë“œê°€ ì„±ê³µì ìœ¼ë¡œ ì¶”ê°€ë˜ì—ˆìŠµë‹ˆë‹¤.",
+      "expirationMonth": "ë§Œê¸° ì›”:",
+      "expirationYear": "ë§Œë£Œ ì—°ë„:",
+      "updated": "ì¹´ë“œê°€ ì„±ê³µì ìœ¼ë¡œ ì—…ë°ì´íŠ¸ë˜ì—ˆìŠµë‹ˆë‹¤."
+    },
+    "common": {
+      "cancel": "Cancel",
+      "error": "Error"
+    },
+    "donationForm": {
+      "annually": "ë§¤ë…„",
+      "biWeekly": "ê²©ì£¼ ê°„í–‰ë¬¼",
+      "cancelled": "ì •ê¸° ê¸°ë¶€ê°€ ì·¨ì†Œë˜ì—ˆìŠµë‹ˆë‹¤.",
+      "confirmDelete": "ì´ ë°˜ë³µ ê¸°ë¶€ë¥¼ ì‚­ì œí•˜ì‹œê² ìŠµë‹ˆê¹Œ?",
+      "cover": "ê·€í•˜ê°€ ì œ ê¸°ë¶€ê¸ˆì„ 100% ìœ ì§€í•  ìˆ˜ ìžˆë„ë¡ ê±°ëž˜ ìˆ˜ìˆ˜ë£Œë¥¼ ì¶©ë‹¹í•˜ê¸° ìœ„í•´ {}ë¥¼ ì•„ë‚Œì—†ì´ ì¶”ê°€í•˜ê² ìŠµë‹ˆë‹¤.",
+      "donate": "ê¸°ë¶€",
+      "editRecurring": "ë°˜ë³µ ê¸°ë¶€ íŽ¸ì§‘",
+      "fees": "{}ì˜ ê±°ëž˜ ìˆ˜ìˆ˜ë£Œê°€ ì ìš©ë©ë‹ˆë‹¤.",
+      "frequency": "ë¹ˆë„",
+      "fund": "ì¶•ì ",
+      "funds": "ìžê¸ˆ",
+      "make": "ê¸°ë¶€ í•´ì£¼ì„¸ìš”",
+      "makeRecurring": "ì •ê¸° ê¸°ë¶€í•˜ê¸°",
+      "method": "ë°©ë²•",
+      "monthly": "ì›”ê°„ ê°„í–‰ë¬¼",
+      "preview": "ë¯¸ë¦¬ë³´ê¸° ê¸°ë¶€",
+      "quarterly": "ê³„ê°„ì§€",
+      "recurringUpdated": "ì •ê¸° ê¸°ë¶€ê°€ ì—…ë°ì´íŠ¸ë˜ì—ˆìŠµë‹ˆë‹¤.",
+      "startDate": "ì‹œìž‘ì¼",
+      "thankYou": "ê¸°ë¶€í•´ ì£¼ì…”ì„œ ê°ì‚¬í•©ë‹ˆë‹¤!",
+      "tooLow": "ê¸°ë¶€ ê¸ˆì•¡ì€ $0.50ë³´ë‹¤ ì»¤ì•¼ í•©ë‹ˆë‹¤.",
+      "total": "ì´ ê¸°ë¶€ ê¸ˆì•¡",
+      "validate": {
+        "amount": "ê¸ˆì•¡ì€ $0ì¼ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.",
+        "email": "ë‹¹ì‹ ì˜ ì´ë©”ì¼ ì£¼ì†Œë¥¼ ìž…ë ¥í•˜ì‹­ì‹œì˜¤.",
+        "firstName": "ì´ë¦„ì„ ìž…ë ¥í•˜ì„¸ìš”.",
+        "lastName": "ë‹¹ì‹ ì˜ ì„±ì„ ìž…ë ¥í•˜ì„¸ìš”.",
+        "validEmail": "ìœ íš¨í•œ ì´ë©”ì¼ ì£¼ì†Œë¥¼ ìž…ë ¥í•˜ì„¸ìš”."
+      },
+      "weekly": "ì£¼ê°„"
+    },
+    "fundDonations": {
+      "addMore": "ë” ì¶”ê°€",
+      "amount": "ì–‘",
+      "fund": "ì¶•ì "
+    },
+    "kingdomFunding": {
+      "enterBankDetails": "Enter your bank account details",
+      "enterCardDetails": "Enter card details",
+      "errorProcessingDonation": "Error processing donation",
+      "failedToInitPaymentForm": "Failed to initialize payment form",
+      "failedToLoadPaymentForm": "Failed to load payment form",
+      "failedToProcessCard": "Failed to process card. Please check your card details and try again.",
+      "failedToTokenizeCard": "Failed to tokenize card",
+      "gatewayConfigMissing": "Payment form not available. Gateway configuration missing.",
+      "loadingPaymentForm": "Loading payment form...",
+      "memo": "Memo (optional)",
+      "missingTokenizationKey": "Missing tokenization key",
+      "payWithBank": "Bank (ACH)",
+      "payWithCard": "Card",
+      "paymentFormNotAvailable": "Payment form not available",
+      "paymentFormNotInitialized": "Payment form not initialized",
+      "unexpectedError": "An unexpected error occurred. Please try again.",
+      "validate": {
+        "captchaFailed": "reCAPTCHA verification failed. Please try again.",
+        "captchaRequired": "Please complete the reCAPTCHA verification"
+      }
+    },
+    "paymentMethods": {
+      "addBank": "ì€í–‰ ê³„ì¢Œ ì¶”ê°€",
+      "addCard": "ì¹´ë“œ ì¶”ê°€",
+      "confirmDelete": "ì´ ê²°ì œ ìˆ˜ë‹¨ì„ ì‚­ì œí•˜ì‹œê² ìŠµë‹ˆê¹Œ?",
+      "deleted": "ê²°ì œ ìˆ˜ë‹¨ì´ ì‚­ì œë˜ì—ˆìŠµë‹ˆë‹¤.",
+      "noMethod": "No Method",
+      "verify": "ê³„ì • í™•ì¸"
+    },
+    "paystack": {
+      "emailRequired": "An email address is required to pay with Paystack.",
+      "paymentFailed": "Payment was not completed.",
+      "popupHint": "You'll complete payment in a secure Paystack window. Card, mobile money and bank transfer are accepted.",
+      "saveOnlyWithGift": "Payment methods are saved when you give — check \"Save this card\" while making a gift."
+    },
+    "preview": {
+      "date": "ê¸°ë¶€ì¼ìž",
+      "donate": "ê¸°ë¶€",
+      "every": "ë°˜ë³µë˜ëŠ” ëª¨ë“  ê²ƒ",
+      "fee": "ê±°ëž˜ ìˆ˜ìˆ˜ë£Œ",
+      "funds": "ìžê¸ˆ",
+      "method": "ê¸°ë¶€ë°©ë²•",
+      "notes": "ë…¸íŠ¸",
+      "startingOn": "ì‹œìž‘ì¼",
+      "total": "ì´",
+      "type": "ê¸°ë¶€ ìœ í˜•"
+    },
+    "recurring": {
+      "amount": "ì–‘",
+      "confirmPause": "ì´ ì •ê¸° ê¸°ë¶€ë¥¼ ì¼ì‹œì •ì§€í•˜ì‹œê² ìŠµë‹ˆê¹Œ?",
+      "every": "ëª¨ë“ ",
+      "interval": "ê°„ê²©",
+      "noSubscriptions": "No Subscriptions",
+      "notFound": "ê²°ì œ ìˆ˜ë‹¨ì„ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.",
+      "pauseFailed": "ì •ê¸° ê¸°ë¶€ ì¼ì‹œì •ì§€ì— ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤. ë‹¤ì‹œ ì‹œë„í•´ ì£¼ì„¸ìš”.",
+      "pauseTooltip": "ì •ê¸° ê¸°ë¶€ ì¼ì‹œì •ì§€",
+      "paused": "ì¼ì‹œì •ì§€ë¨",
+      "pausedMessage": "ì •ê¸° ê¸°ë¶€ê°€ ì¼ì‹œì •ì§€ë˜ì—ˆìŠµë‹ˆë‹¤.",
+      "paymentMethod": "ê²°ì œ ë°©ë²•",
+      "resumeFailed": "ì •ê¸° ê¸°ë¶€ ìž¬ê°œì— ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤. ë‹¤ì‹œ ì‹œë„í•´ ì£¼ì„¸ìš”.",
+      "resumeTooltip": "ì •ê¸° ê¸°ë¶€ ìž¬ê°œ",
+      "resumedMessage": "ì •ê¸° ê¸°ë¶€ê°€ ìž¬ê°œë˜ì—ˆìŠµë‹ˆë‹¤.",
+      "startDate": "ì‹œìž‘ì¼"
+    }
+  },
+  "eventCalendar": {
+    "recurring": {
+      "day": {
+        "friday": "ê¸ˆìš”ì¼",
+        "monday": "ì›”ìš”ì¼",
+        "saturday": "í† ìš”ì¼",
+        "sunday": "ì¼ìš”ì¼",
+        "thursday": "ëª©ìš”ì¼",
+        "tuesday": "í™”ìš”ì¼",
+        "wednesday": "ìˆ˜ìš”ì¼"
+      },
+      "endDate": "ì¢…ë£Œì¼",
+      "endDateAria": "ë°˜ë³µ ì¢…ë£Œì¼",
+      "ends": "ì¢…ë£Œ",
+      "endsAfter": "íšŸìˆ˜ ì´í›„",
+      "endsAria": "ë°˜ë³µ ì¢…ë£Œ ì‹œì  ì„ íƒ",
+      "endsOn": "íŠ¹ì • ë‚ ì§œ",
+      "freqDay": "ì¼",
+      "freqMonth": "ì›”",
+      "freqWeek": "ì£¼",
+      "frequency": "ë¹ˆë„",
+      "frequencyAria": "ë°˜ë³µ ë¹ˆë„ ì„ íƒ",
+      "interval": "ê°„ê²©",
+      "intervalAria": "ë°˜ë³µ ê°„ê²©",
+      "monthlyOnDay": "ë§¤ì›” {}ì¼",
+      "monthlyOnNth": "ë§¤ì›” {ordinal} {day}",
+      "monthlyOptionAria": "ì›”ë³„ ë°˜ë³µ ì˜µì…˜ ì„ íƒ",
+      "never": "ì•ˆ í•¨",
+      "occurrences": "íšŸìˆ˜",
+      "occurrencesAria": "ë°˜ë³µ íšŸìˆ˜",
+      "on": "ìš”ì¼",
+      "ordinal": {
+        "first": "ì²« ë²ˆì§¸",
+        "fourth": "ë„¤ ë²ˆì§¸",
+        "last": "ë§ˆì§€ë§‰",
+        "second": "ë‘ ë²ˆì§¸",
+        "third": "ì„¸ ë²ˆì§¸"
+      },
+      "toggleWeekday": "ì£¼ê°„ ë°˜ë³µì„ ìœ„í•œ {} í† ê¸€"
+    }
+  },
+  "fileUpload": {
+    "file": "File",
+    "quotaExceeded": "Storage quota exceeded. Delete unused files or upgrade your storage plan.",
+    "uploadFailed": "Upload failed. Please try again."
+  },
+  "formSubmissionEdit": {
+    "back": "ë’¤ë¡œ",
+    "confirmDelete": "ì´ ì–‘ì‹ ë°ì´í„°ë¥¼ ì‚­ì œí•˜ì‹œê² ìŠµë‹ˆê¹Œ?",
+    "continue": "ê³„ì†",
+    "editForm": "ì–‘ì‹ íŽ¸ì§‘",
+    "isRequired": "í•„ìˆ˜",
+    "stepProgress": "{total} ì¤‘ {current}",
+    "submit": "ì œì¶œí•˜ë‹¤"
+  },
+  "gallery": {
+    "aspectRatio": "ì¢…íš¡ë¹„",
+    "confirmDelete": "ê°¤ëŸ¬ë¦¬ì—ì„œ ì´ ì´ë¯¸ì§€ë¥¼ ì‚­ì œí•˜ì‹œê² ìŠµë‹ˆê¹Œ?",
+    "freeForm": "ìžìœ  í˜•ì‹"
+  },
+  "login": {
+    "email": "ì´ë©”ì¼",
+    "enterCode": "ì¸ì¦ ì½”ë“œ ìž…ë ¥",
+    "enterCodeInstructions": "ë°©ê¸ˆ ì´ë©”ì¼ë¡œ ë³´ë‚¸ 6ìžë¦¬ ì½”ë“œë¥¼ ìž…ë ¥í•˜ì„¸ìš”.",
+    "expiredLink": "í˜„ìž¬ ë§í¬ê°€ ë§Œë£Œë˜ì—ˆìŠµë‹ˆë‹¤.",
+    "forgot": "ë¹„ë°€ë²ˆí˜¸ë¥¼ ìžŠìœ¼ ì…¨ë‚˜ìš”",
+    "login": "ë¡œê·¸ì¸",
+    "noAcc": "ê³„ì •ì´ ì—†ìœ¼ì‹ ê°€ìš”?",
+    "noAccountFound": "í•´ë‹¹ ì´ë©”ì¼ë¡œ ë“±ë¡ëœ ê³„ì •ì´ ì—†ìŠµë‹ˆë‹¤. ê³„ì†í•˜ë ¤ë©´ ë“±ë¡í•´ ì£¼ì„¸ìš”.",
+    "or": "or",
+    "password": "ë¹„ë°€ë²ˆí˜¸",
+    "register": "ë“±ë¡í•˜ë‹¤",
+    "registerThankYou": "ë“±ë¡í•´ì£¼ì…”ì„œ ê°ì‚¬í•©ë‹ˆë‹¤! ",
+    "requestLink": "ìƒˆ ìž¬ì„¤ì • ë§í¬ ìš”ì²­",
+    "resendCode": "ì½”ë“œ ë‹¤ì‹œ ë³´ë‚´ê¸°",
+    "reset": "ì´ˆê¸°í™”",
+    "resetInstructions": "ë¹„ë°€ë²ˆí˜¸ ìž¬ì„¤ì •ì„ ìš”ì²­í•˜ë ¤ë©´ ì´ë©”ì¼ ì£¼ì†Œë¥¼ ìž…ë ¥í•˜ì„¸ìš”.",
+    "resetPassword": "ì•”í˜¸ë¥¼ ìž¬ì„¤ì •",
+    "setPassword": "ì•”í˜¸ë¥¼ ì„¤ì •í•˜ì„¸ìš”",
+    "signIn": "ë¡œê·¸ì¸",
+    "signInTitle": "ë¡œê·¸ì¸ í•´ì£¼ì„¸ìš”",
+    "validate": {
+      "code": "6ìžë¦¬ ì½”ë“œë¥¼ ìž…ë ¥í•´ ì£¼ì„¸ìš”.",
+      "email": "ìœ íš¨í•œ ì´ë©”ì¼ ì£¼ì†Œë¥¼ ìž…ë ¥í•˜ì„¸ìš”.",
+      "firstName": "ì´ë¦„ì„ ìž…ë ¥í•˜ì„¸ìš”.",
+      "invalid": "ë¡œê·¸ì¸ ì˜¤ë¥˜. ",
+      "lastName": "ë‹¹ì‹ ì˜ ì„±ì„ ìž…ë ¥í•˜ì„¸ìš”.",
+      "password": "ë¹„ë°€ë²ˆí˜¸ë¥¼ ìž…ë ¥í•´ì£¼ì„¸ìš”.",
+      "passwordLength": "ë¹„ë°€ë²ˆí˜¸ëŠ” 8ìž ì´ìƒì´ì–´ì•¼ í•©ë‹ˆë‹¤.",
+      "passwordMatch": "ë¹„ë°€ë²ˆí˜¸ê°€ ì¼ì¹˜í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤.",
+      "selectingChurch": "êµíšŒì„ íƒì— ì˜¤ë¥˜ê°€ ìžˆìŠµë‹ˆë‹¤. "
+    },
+    "verifyCode": "ì½”ë“œ í™•ì¸",
+    "verifyPassword": "ë¹„ë°€ë²ˆí˜¸ í™•ì¸",
+    "welcomeBack": "ëŒì•„ì˜¨ ê²ƒì„ í™˜ì˜í•©ë‹ˆë‹¤",
+    "welcomeName": "ëŒì•„ì˜¨ ê²ƒì„ í™˜ì˜í•©ë‹ˆë‹¤. <b>{}</b>!  "
+  },
+  "markdownEditor": {
+    "content": "ì½˜í…ì¸ ",
+    "markdownGuide": "ë§ˆí¬ë‹¤ìš´ ê°€ì´ë“œ"
+  },
+  "notes": {
+    "comment": "ë…¼í‰",
+    "comments": "ì½”ë©˜íŠ¸",
+    "notes": "ë…¸íŠ¸",
+    "notifyOff": "Notify Off",
+    "notifyOn": "Notify On",
+    "openFile": "Open file",
+    "validate": {
+      "content": "ë©”ëª¨ë¥¼ ìž…ë ¥í•˜ì„¸ìš”."
+    }
+  },
+  "person": {
+    "email": "ì´ë©”ì¼",
+    "firstName": "ì´ë¦„",
+    "lastName": "ì„±",
+    "name": "ì´ë¦„"
+  },
+  "selectChurch": {
+    "address1": "ì£¼ì†Œ ë¼ì¸ 1",
+    "address2": "ì£¼ì†Œ 2",
+    "another": "ë‹¤ë¥¸ êµíšŒë¥¼ ì„ íƒí•˜ì„¸ìš”",
+    "city": "ë„ì‹œ",
+    "confirmRegister": "ì •ë§ë¡œ ìƒˆ êµíšŒë¥¼ ë“±ë¡í•˜ì‹œê² ìŠµë‹ˆê¹Œ?",
+    "country": "êµ­ê°€",
+    "name": "êµíšŒ ì´ë¦„",
+    "noMatches": "ê²€ìƒ‰ ê²°ê³¼ê°€ ì—†ìŠµë‹ˆë‹¤.",
+    "register": "ìƒˆ êµíšŒ ë“±ë¡",
+    "selectChurch": "êµíšŒë¥¼ ì„ íƒí•˜ì„¸ìš”",
+    "state": "ì£¼/ë„",
+    "validate": {
+      "address": "ì£¼ì†ŒëŠ” ë¹„ì›Œë‘˜ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.",
+      "city": "ë„ì‹œëŠ” ë¹„ì›Œë‘˜ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.",
+      "country": "êµ­ê°€ëŠ” ë¹„ì›Œë‘˜ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.",
+      "name": "êµíšŒ ì´ë¦„ì€ ë¹„ì›Œë‘˜ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.",
+      "state": "ì‹œ/ë„ëŠ” ë¹„ì›Œë‘˜ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.",
+      "zip": "ìš°íŽ¸ë²ˆí˜¸ëŠ” ë¹„ì›Œë‘˜ ìˆ˜ ì—†ìŠµë‹ˆë‹¤."
+    },
+    "zip": "ìš°íŽ¸ë²ˆí˜¸"
+  },
+  "stockPhotos": {
+    "photoBy": "ì˜ ì‚¬ì§„:",
+    "providedBy": "ìŠ¤í†¡ ì‚¬ì§„ ì œê³µ:"
+  },
+  "support": {
+    "discussions": "ì§€ì› í¬ëŸ¼",
+    "documentation": "ë¬¸ì„œ"
+  },
+  "wrapper": {
+    "newPrivateMessage": "ìƒˆ ë¹„ê³µê°œ ë©”ì‹œì§€",
+    "privateConversation": "Private Conversation",
+    "privateMessage": "ì‚¬ì‹ ",
+    "searchForPerson": "ì‚¬ëžŒ ê²€ìƒ‰"
+  }
 }

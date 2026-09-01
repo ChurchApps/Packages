@@ -68,7 +68,7 @@ export const PaystackNonAuthDonationInner: React.FC<Props> = ({ mainContainerCss
       if (selected) setFundDonations([{ fundId: selected.id, amount: amount ? parseFloat(amount) : 0 }]);
       else if (list.length) setFundDonations([{ fundId: list[0].id }]);
     });
-    ApiHelper.get("/churches/" + props.churchId, "MembershipApi").then((data: any) => setChurch(data));
+    ApiHelper.get("/churches/lookup/?id=" + props.churchId, "MembershipApi").then((data: any) => setChurch(data));
     ApiHelper.get(`/donate/gateways/${props.churchId}`, "GivingApi").then((response: any) => {
       const gateways = Array.isArray(response?.gateways) ? response.gateways : [];
       const gw = DonationHelper.findGatewayByProvider(gateways, "paystack");

@@ -47,6 +47,8 @@ export class Locale {
       "update": "Update"
     },
     "login": {
+      "continueGoogle": "Continue with Google",
+      "continueMicrosoft": "Continue with Microsoft",
       "createAccount": "Create an Account",
       "email": "Email",
       "expiredLink": "The current link is expired.",

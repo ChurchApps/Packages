@@ -1,6 +1,6 @@
 import { AuthType, ContentFile, ContentItem, ContentProviderAuthData, ContentProviderConfig, Instructions, ProviderCapabilities, ProviderLogos } from "../../interfaces";
 import { parsePath } from "../../pathUtils";
-import { createFolder, createFile, detectMediaType, filesToInstructions, slugify } from "../../utils";
+import { createFolder, createFile, detectMediaType, filesToInstructions, isPlaylistMedia, slugify } from "../../utils";
 import { OAuthHelper } from "../../helpers";
 import { getProviderSecret } from "../../helpers/ProviderSecrets";
 import { BaseProvider } from "../BaseProvider";
@@ -91,7 +91,7 @@ export class GoCurriculumProvider extends BaseProvider {
   private getLessonFiles(collection: GoCurriculumCollection, lessonId: string): ContentFile[] {
     const lesson = collection.lessons.find(l => l.id === lessonId);
     if (!lesson) return [];
-    // ponytail: playlist only — resources are PDFs/docx leader material with nothing to present; wire them into instructions if a consumer grows a downloads section
+    // playlist only — resources are PDFs/docx leader material with nothing to present; they surface via getInstructions().downloads
     return lesson.playlist.map(f => createFile(slugify(f.file), f.title, f.url, { mediaType: detectMediaType(`${f.url} ${f.file}`, f.mediaType), thumbnail: f.thumbnail || lesson.thumbnail || collection.thumbnail, seconds: f.duration }));
   }
 
@@ -116,7 +116,12 @@ export class GoCurriculumProvider extends BaseProvider {
 
     const collection = (await this.getData()).catalog.find(c => c.id === segments[0]);
     const lesson = collection?.lessons.find(l => l.id === segments[1]);
-    return filesToInstructions(lesson?.name || "Lesson", files);
+    const instructions = filesToInstructions(lesson?.name || "Lesson", files);
+    const downloads = (lesson?.resources || [])
+      .filter(r => r.url && !isPlaylistMedia(r.url, undefined, r.file))
+      .map(r => ({ id: slugify(r.file || r.title), title: r.title || r.file, url: r.url }));
+    if (downloads.length > 0) instructions.downloads = downloads;
+    return instructions;
   }
 
   generateCodeVerifier(): string {

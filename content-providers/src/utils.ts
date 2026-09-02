@@ -31,6 +31,14 @@ export function isMediaFile(filename: string): boolean {
   return [...VIDEO_EXTENSIONS, ...IMAGE_EXTENSIONS, ...AUDIO_EXTENSIONS].some(ext => lower.endsWith(ext));
 }
 
+/** True when a file belongs in the presented playlist (video/audio), so providers keep it out of Instructions.downloads. */
+export function isPlaylistMedia(url: string, fileType?: string, name?: string): boolean {
+  if (fileType?.startsWith("video/") || fileType?.startsWith("audio/") || fileType === "video" || fileType === "audio") return true;
+  const haystack = `${url} ${name || ""}`.toLowerCase();
+  if (haystack.includes("stream.mux.com") || haystack.includes("externalvideos/download")) return true;
+  return [...VIDEO_EXTENSIONS, ...AUDIO_EXTENSIONS].some(ext => haystack.includes(ext));
+}
+
 export function createFolder(id: string, title: string, path: string, thumbnail?: string, isLeaf?: boolean): ContentFolder {
   return { type: "folder", id, title, path, thumbnail, isLeaf };
 }

@@ -136,6 +136,12 @@ export interface FeedFileInterface {
   seconds?: number;
   fileType?: string;
   thumbnail?: string;
+  bytes?: number;
+}
+
+export interface FeedDownloadInterface {
+  name?: string;
+  files?: FeedFileInterface[];
 }
 
 export interface FeedActionInterface {
@@ -158,6 +164,7 @@ export interface FeedVenueInterface {
   lessonName?: string;
   lessonDescription?: string;
   lessonImage?: string;
+  downloads?: FeedDownloadInterface[];
   sections?: FeedSectionInterface[];
 }
 
@@ -175,9 +182,19 @@ export interface InstructionItem {
   mediaType?: "video" | "image" | "audio";
 }
 
+/** An extra file the teacher downloads/prints (zip, PDF, leader guide) — never part of the presented playlist. */
+export interface ContentDownload {
+  id?: string;
+  title: string;
+  url: string;
+  fileType?: string;
+  bytes?: number;
+}
+
 export interface Instructions {
   name?: string;
   items: InstructionItem[];
+  downloads?: ContentDownload[];
 }
 
 export interface MessageFileInterface {

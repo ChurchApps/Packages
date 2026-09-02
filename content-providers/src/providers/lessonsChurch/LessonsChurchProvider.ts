@@ -1,5 +1,5 @@
-import { ContentProviderConfig, ContentProviderAuthData, ContentItem, ContentFile, ProviderLogos, FeedVenueInterface, Instructions, VenueActionsResponseInterface, ProviderCapabilities, AuthType } from "../../interfaces";
-import { detectMediaType, createFolder } from "../../utils";
+import { ContentProviderConfig, ContentProviderAuthData, ContentItem, ContentFile, ContentDownload, ProviderLogos, FeedDownloadInterface, FeedVenueInterface, Instructions, VenueActionsResponseInterface, ProviderCapabilities, AuthType } from "../../interfaces";
+import { detectMediaType, createFolder, isPlaylistMedia } from "../../utils";
 import { parsePath, getSegment } from "../../pathUtils";
 import { BaseProvider } from "../BaseProvider";
 import { apiRequest, API_BASE } from "./LessonsChurchApi";
@@ -166,6 +166,19 @@ export class LessonsChurchProvider extends BaseProvider {
     return filtered.map(addOn => createFolder(addOn.id as string, addOn.name as string, `${currentPath}/${addOn.id}`, addOn.image as string | undefined, true));
   }
 
+  /** Flatten feed download bundles into printable files, keeping playlist media (videos already in the run-of-show) out. */
+  private convertFeedDownloads(bundles?: FeedDownloadInterface[]): ContentDownload[] {
+    const result: ContentDownload[] = [];
+    for (const bundle of bundles || []) {
+      const files = (bundle.files || []).filter(f => f.url && !isPlaylistMedia(f.url, f.fileType, f.name));
+      for (const file of files) {
+        const title = (files.length === 1 ? bundle.name || file.name : file.name || bundle.name) || "Download";
+        result.push({ id: file.id, title, url: file.url!, fileType: file.fileType, bytes: file.bytes });
+      }
+    }
+    return result;
+  }
+
   async getInstructions(path: string, _auth?: ContentProviderAuthData | null): Promise<Instructions | null> {
     const venueId = getSegment(path, 4);
     if (venueId) {
@@ -180,7 +193,8 @@ export class LessonsChurchProvider extends BaseProvider {
       const lessonImage = feedResponse?.lessonImage;
       const sectionActionsMap = buildSectionActionsMap(actionsResponse, lessonImage, feedResponse);
 
-      return { name: planItemsResponse.venueName, items: (planItemsResponse.items || []).map(item => processInstructionItem(item, sectionActionsMap, lessonImage)) };
+      const downloads = this.convertFeedDownloads(feedResponse?.downloads);
+      return { name: planItemsResponse.venueName, items: (planItemsResponse.items || []).map(item => processInstructionItem(item, sectionActionsMap, lessonImage)), downloads: downloads.length > 0 ? downloads : undefined };
     }
 
     const { segments } = parsePath(path);

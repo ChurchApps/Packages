@@ -145,12 +145,14 @@ export class CurrencyHelper {
   static convertDonation(
     donation: { currency: string; amount: number },
     targetCurrency: string,
+    rates?: any,
     withCurrencyLabel: boolean = true
   ) {
     const converted = this.convertAmount(
       Number(donation.amount || 0),
       donation.currency?.toUpperCase() || "USD",
-      targetCurrency
+      targetCurrency,
+      rates
     );
 
     if (!withCurrencyLabel) return Number(converted).toFixed(2);
@@ -160,7 +162,8 @@ export class CurrencyHelper {
 
   static convertDonationTotals(
     donations: { currency: string; amount: number }[],
-    targetCurrency: string
+    targetCurrency: string,
+    rates?: any
   ) {
     const grouped: Record<string, number> = {};
 
@@ -172,7 +175,7 @@ export class CurrencyHelper {
     let total = 0;
 
     Object.entries(grouped).forEach(([currency, amount]) => {
-      total += this.convertAmount(amount, currency, targetCurrency);
+      total += this.convertAmount(amount, currency, targetCurrency, rates);
     });
 
     return this.formatCurrencyWithLocale(total, targetCurrency);
@@ -181,7 +184,8 @@ export class CurrencyHelper {
   static convertAmount(
     amount: number,
     fromCurrency: string,
-    toCurrency: string
+    toCurrency: string,
+    rates?: any
   ): number {
     const from = (fromCurrency || "USD").toUpperCase();
     const to = (toCurrency || "USD").toUpperCase();
@@ -190,7 +194,8 @@ export class CurrencyHelper {
       return amount;
     }
 
-    const rate = this.rates[from];
+    const RATES = rates && Object.keys(rates).length > 0 ? rates : this.rates;
+    const rate = RATES[from];
 
     if (!rate) {
       return amount;

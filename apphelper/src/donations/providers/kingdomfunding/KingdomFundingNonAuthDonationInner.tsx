@@ -68,10 +68,11 @@ export const KingdomFundingNonAuthDonationInner: React.FC<Props> = ({ mainContai
       if (fundId && fundId !== "") {
         const selectedFund = data.find((f: FundInterface) => f.id === fundId);
         if (selectedFund) {
-          setFundDonations([{ fundId: selectedFund.id, amount: (amount && amount !== "") ? parseFloat(amount) : 0 }]);
+          // go through handleFundDonationsChange so a preselected amount also updates fundsTotal/fee/total, not just the field
+          handleFundDonationsChange([{ fundId: selectedFund.id, amount: (amount && amount !== "") ? parseFloat(amount) : 0 }]);
         }
       } else if (data.length) {
-        setFundDonations([{ fundId: data[0].id }]);
+        handleFundDonationsChange([{ fundId: data[0].id }]);
       }
     });
     ApiHelper.get("/churches/lookup/?id=" + props.churchId, "MembershipApi").then((data: any) => {

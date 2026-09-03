@@ -66,8 +66,9 @@ export const PaystackNonAuthDonationInner: React.FC<Props> = ({ mainContainerCss
       const list: FundInterface[] = props.allowedFundIds?.length ? data.filter((f: FundInterface) => props.allowedFundIds!.includes(f.id!)) : data;
       setFunds(list);
       const selected = fundId ? list.find((f: FundInterface) => f.id === fundId) : undefined;
-      if (selected) setFundDonations([{ fundId: selected.id, amount: amount ? parseFloat(amount) : 0 }]);
-      else if (list.length) setFundDonations([{ fundId: list[0].id }]);
+      // go through handleFundDonationsChange so a preselected amount also updates fundsTotal/fee/total, not just the field
+      if (selected) handleFundDonationsChange([{ fundId: selected.id, amount: amount ? parseFloat(amount) : 0 }]);
+      else if (list.length) handleFundDonationsChange([{ fundId: list[0].id }]);
     });
     ApiHelper.get("/churches/lookup/?id=" + props.churchId, "MembershipApi").then((data: any) => setChurch(data));
     ApiHelper.get(`/donate/gateways/${props.churchId}`, "GivingApi").then((response: any) => {

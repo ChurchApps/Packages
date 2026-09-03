@@ -1,7 +1,7 @@
 import React from "react";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { SELECTION_CHANGE_COMMAND, FORMAT_TEXT_COMMAND, $getSelection, $isRangeSelection, $createParagraphNode, $getNodeByKey } from "lexical";
+import { SELECTION_CHANGE_COMMAND, FORMAT_TEXT_COMMAND, $getSelection, $isRangeSelection, $createParagraphNode, $getNodeByKey, $getRoot } from "lexical";
 import { $wrapNodes, $isAtNodeEnd } from "@lexical/selection";
 import { $getNearestNodeOfType, mergeRegister } from "@lexical/utils";
 import { INSERT_ORDERED_LIST_COMMAND, INSERT_UNORDERED_LIST_COMMAND, REMOVE_LIST_COMMAND, $isListNode, ListNode } from "@lexical/list";
@@ -11,6 +11,8 @@ import { $isCodeNode, getDefaultCodeLanguage, getCodeLanguages, $createCodeNode 
 import { Icon } from "@mui/material";
 import FloatingLinkEditor from "./customLink/FloatingLinkEditor";
 import { TOGGLE_CUSTOM_LINK_NODE_COMMAND, $isCustomLinkNode } from "./customLink/CustomLinkNode";
+import { GalleryModal } from "../../../../components/gallery/GalleryModal";
+import { $createImageNode } from "./image/ImageNode";
 
 const LowPriority = 1;
 
@@ -274,6 +276,7 @@ export function ToolbarPlugin(props: Props) {
   const [blockType, setBlockType] = useState("paragraph");
   const [selectedElementKey, setSelectedElementKey] = useState<string | null>(null);
   const [showBlockOptionsDropDown, setShowBlockOptionsDropDown] = useState(false);
+  const [showGallery, setShowGallery] = useState(false);
   const [codeLanguage, setCodeLanguage] = useState("");
   const [isLink, setIsLink] = useState(false);
   const [isBold, setIsBold] = useState(false);
@@ -411,10 +414,28 @@ export function ToolbarPlugin(props: Props) {
           <button onClick={insertLink} className={"toolbar-item spaced " + (isLink ? "active" : "")} aria-label="Insert Link">
             <i className="format link" />
           </button>
+          <button onClick={() => { setShowGallery(true); }} className={"toolbar-item spaced"} aria-label="Insert Image">
+            <Icon sx={{ fontSize: 18, opacity: 0.6 }}>image</Icon>
+          </button>
           <button onClick={() => { editor.dispatchCommand(FORMAT_TEXT_COMMAND, "code"); }} className={"toolbar-item spaced " + (isCode ? "active" : "")} aria-label="Format Code">
             <i className="format code" />
           </button>
           {isLink && createPortal(<FloatingLinkEditor selectedElementKey={selectedElementKey} linkUrl={linkUrl} setLinkUrl={setLinkUrl} classNamesList={classNamesList} setClassNamesList={setClassNamesList} targetAttribute={targetAttribute} setTargetAttribute={setTargetAttribute} />, portalKey)}
+          {showGallery && createPortal(<GalleryModal aspectRatio={0} onClose={() => setShowGallery(false)} onSelect={(img) => {
+            editor.update(() => {
+              const imageNode = $createImageNode({ altText: "Image", src: img });
+              const selection = $getSelection();
+              if ($isRangeSelection(selection)) {
+                selection.insertNodes([imageNode]);
+              } else {
+                $getRoot().selectEnd();
+                const end = $getSelection();
+                if ($isRangeSelection(end)) end.insertNodes([imageNode]);
+                else $getRoot().append(imageNode);
+              }
+            });
+            setShowGallery(false);
+          }} />, portalKey)}
         </>)}
       <Divider />
       <button onClick={() => { props.goFullScreen(); }} className="toolbar-item spaced" aria-label="Full Screen">

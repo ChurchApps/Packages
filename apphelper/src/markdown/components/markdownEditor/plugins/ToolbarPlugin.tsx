@@ -1,7 +1,7 @@
 import React from "react";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { SELECTION_CHANGE_COMMAND, FORMAT_TEXT_COMMAND, $getSelection, $isRangeSelection, $createParagraphNode, $getNodeByKey } from "lexical";
+import { SELECTION_CHANGE_COMMAND, FORMAT_TEXT_COMMAND, $getSelection, $isRangeSelection, $createParagraphNode, $getNodeByKey, $getRoot } from "lexical";
 import { $wrapNodes, $isAtNodeEnd } from "@lexical/selection";
 import { $getNearestNodeOfType, mergeRegister } from "@lexical/utils";
 import { INSERT_ORDERED_LIST_COMMAND, INSERT_UNORDERED_LIST_COMMAND, REMOVE_LIST_COMMAND, $isListNode, ListNode } from "@lexical/list";
@@ -423,10 +423,15 @@ export function ToolbarPlugin(props: Props) {
           {isLink && createPortal(<FloatingLinkEditor selectedElementKey={selectedElementKey} linkUrl={linkUrl} setLinkUrl={setLinkUrl} classNamesList={classNamesList} setClassNamesList={setClassNamesList} targetAttribute={targetAttribute} setTargetAttribute={setTargetAttribute} />, portalKey)}
           {showGallery && createPortal(<GalleryModal aspectRatio={0} onClose={() => setShowGallery(false)} onSelect={(img) => {
             editor.update(() => {
+              const imageNode = $createImageNode({ altText: "Image", src: img });
               const selection = $getSelection();
               if ($isRangeSelection(selection)) {
-                const imageNode = $createImageNode({ altText: "Image", src: img });
                 selection.insertNodes([imageNode]);
+              } else {
+                $getRoot().selectEnd();
+                const end = $getSelection();
+                if ($isRangeSelection(end)) end.insertNodes([imageNode]);
+                else $getRoot().append(imageNode);
               }
             });
             setShowGallery(false);

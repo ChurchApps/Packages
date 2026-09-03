@@ -99,7 +99,7 @@ export const PLAYGROUND_TRANSFORMERS: Array<Transformer> = [
   ...modifiedTextTransformers,
   HR,
   ...ELEMENT_TRANSFORMERS,
-  IMAGE,
+  IMAGE, // before CUSTOM_LINK_NODE_TRANSFORMER so ![alt](src) is an image, not a link
   CUSTOM_LINK_NODE_TRANSFORMER,
   ...TRANSFORMERS.slice(0, 13),
   UNDERLINE

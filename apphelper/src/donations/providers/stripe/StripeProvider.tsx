@@ -87,6 +87,7 @@ const StripeGuestForm: React.FC<GuestFormProps> = (props) => {
           showFundSelector={props.showFundSelector}
           allowedFundIds={props.allowedFundIds}
           defaultFundId={props.defaultFundId}
+          stripePromise={stripePromise}
         />
       </Elements>
     </Box>

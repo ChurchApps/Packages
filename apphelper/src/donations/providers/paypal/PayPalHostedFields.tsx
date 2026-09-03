@@ -1,10 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, forwardRef, useImperativeHandle } from "react";
-
-declare global {
-  interface Window { paypal?: any }
-}
+import { loadPayPalSdk } from "./paypalSdk";
 
 export interface PayPalHostedFieldsHandle {
   submit: () => Promise<any>;
@@ -17,30 +14,6 @@ interface Props {
   getClientToken?: () => Promise<string>;
   onValidityChange?: (valid: boolean) => void;
   onIneligible?: (reason: string) => void;
-}
-
-function loadPayPalSdk(clientId: string, clientToken?: string): Promise<any> {
-  return new Promise((resolve, reject) => {
-    if (typeof window === "undefined") { reject(new Error("Window not available")); return; }
-    if (window.paypal && window.paypal.HostedFields) { resolve(window.paypal); return; }
-
-    // Avoid adding script multiple times
-    const existing = document.querySelector<HTMLScriptElement>('script[data-apphelper-paypal-sdk="true"]');
-    if (existing) {
-      existing.addEventListener("load", () => resolve(window.paypal));
-      existing.addEventListener("error", (e) => reject(e));
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(clientId)}&components=hosted-fields&intent=capture&commit=true`;
-    script.async = true;
-    script.dataset.apphelperPaypalSdk = "true";
-    if (clientToken) (script as any).dataset.clientToken = clientToken;
-    script.addEventListener("load", () => resolve(window.paypal));
-    script.addEventListener("error", (e) => reject(e));
-    document.body.appendChild(script);
-  });
 }
 
 export const PayPalHostedFields = forwardRef<PayPalHostedFieldsHandle, Props>((props, ref) => {
@@ -71,12 +44,7 @@ export const PayPalHostedFields = forwardRef<PayPalHostedFieldsHandle, Props>((p
           }
         }
 
-        let clientToken: string | undefined;
-        if (props.getClientToken) {
-          try { clientToken = await props.getClientToken(); } catch { /* ignore */ }
-        }
-
-        const paypal = await loadPayPalSdk(props.clientId, clientToken);
+        const paypal = await loadPayPalSdk(props.clientId, props.getClientToken);
         if (cancelled) return;
         if (!paypal || !paypal.HostedFields) {
           throw new Error("PayPal HostedFields unavailable");

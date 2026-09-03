@@ -47,6 +47,7 @@ export const PaystackNonAuthDonationInner: React.FC<Props> = ({ mainContainerCss
   const [searchParams, setSearchParams] = useState<any>(null);
   const [notes, setNotes] = useState("");
   const [coverFees, setCoverFees] = useState(false);
+  const [anonymous, setAnonymous] = useState(false);
   const captchaRef = useRef<ReCAPTCHA>(null);
   const currency: string = gateway?.currency || "ngn";
   const fmt = (amount: number) => CurrencyHelper.formatCurrencyWithLocale(amount, currency);
@@ -87,6 +88,11 @@ export const PaystackNonAuthDonationInner: React.FC<Props> = ({ mainContainerCss
       .catch(() => setCaptchaResponse("error"));
   };
 
+  const handleAnonymousChange = (_e: React.SyntheticEvent<Element, Event>, checked: boolean) => {
+    setAnonymous(checked);
+    if (checked) setDonationType("once");
+  };
+
   const handleCheckChange = (_e: React.SyntheticEvent, checked: boolean) => {
     setCoverFees(checked);
     setTotal(checked ? fundsTotal + transactionFee : fundsTotal);
@@ -94,8 +100,8 @@ export const PaystackNonAuthDonationInner: React.FC<Props> = ({ mainContainerCss
 
   const validate = () => {
     const result: string[] = [];
-    if (!firstName) result.push(Locale.label("donation.donationForm.validate.firstName"));
-    if (!lastName) result.push(Locale.label("donation.donationForm.validate.lastName"));
+    if (!anonymous && !firstName) result.push(Locale.label("donation.donationForm.validate.firstName"));
+    if (!anonymous && !lastName) result.push(Locale.label("donation.donationForm.validate.lastName"));
     if (!email) result.push(Locale.label("donation.donationForm.validate.email"));
     if (fundsTotal === 0) result.push(Locale.label("donation.donationForm.validate.amount"));
     if (result.length === 0 && !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) result.push(Locale.label("donation.donationForm.validate.validEmail"));
@@ -109,9 +115,13 @@ export const PaystackNonAuthDonationInner: React.FC<Props> = ({ mainContainerCss
     if (captchaResponse !== "success") { setErrors([Locale.label("donation.kingdomFunding.validate.captchaFailed")]); return; }
     setProcessing(true);
     try {
-      await ApiHelper.post("/users/loadOrCreate", { userEmail: email, firstName, lastName }, "MembershipApi");
-      const person = await ApiHelper.post("/people/loadOrCreate", { churchId: props.churchId, firstName, lastName, email }, "MembershipApi");
-      await processDonation(person);
+      if (anonymous) {
+        await processDonation(null);
+      } else {
+        await ApiHelper.post("/users/loadOrCreate", { userEmail: email, firstName, lastName }, "MembershipApi");
+        const person = await ApiHelper.post("/people/loadOrCreate", { churchId: props.churchId, firstName, lastName, email }, "MembershipApi");
+        await processDonation(person);
+      }
     } catch (ex: any) {
       setErrors([ex.toString()]);
     }
@@ -122,7 +132,7 @@ export const PaystackNonAuthDonationInner: React.FC<Props> = ({ mainContainerCss
     const compactFunds = fundDonations
       .filter(fd => (fd.amount || 0) > 0 && fd.fundId)
       .map(fd => ({ id: fd.fundId, amount: fd.amount || 0 }));
-    const personPayload = { id: person?.id || "", email: person?.contactInfo?.email || email, name: person?.name?.display || `${firstName} ${lastName}` };
+    const personPayload = { id: person?.id || "", email: person?.contactInfo?.email || email, name: anonymous ? "" : (person?.name?.display || `${firstName} ${lastName}`) };
 
     let reference: string;
     try {
@@ -150,7 +160,8 @@ export const PaystackNonAuthDonationInner: React.FC<Props> = ({ mainContainerCss
       notes,
       church: { name: church?.name || "", subDomain: church?.subDomain || "", churchURL: typeof window !== "undefined" ? window.location.origin : "", logo: props?.churchLogo || "" },
       type: "card",
-      id: reference
+      id: reference,
+      anonymous
     };
     if (donationType === "recurring") {
       payload.billing_cycle_anchor = startDate ? +new Date(startDate) : +new Date();
@@ -211,7 +222,7 @@ export const PaystackNonAuthDonationInner: React.FC<Props> = ({ mainContainerCss
     >
       <ErrorMessages errors={errors} />
       <Grid container spacing={3}>
-        {props.allowRecurring !== false && (
+        {props.allowRecurring !== false && !anonymous && (
           <>
             <Grid size={{ xs: 12, md: 6 }}>
               <Button aria-label="single-donation" size="small" fullWidth style={{ minHeight: "50px" }} variant={donationType === "once" ? "contained" : "outlined"} onClick={() => setDonationType("once")}>
@@ -225,12 +236,14 @@ export const PaystackNonAuthDonationInner: React.FC<Props> = ({ mainContainerCss
             </Grid>
           </>
         )}
-        <Grid size={{ xs: 12, md: 6 }}>
-          <TextField fullWidth label={Locale.label("person.firstName")} name="firstName" value={firstName} onChange={handleChange} />
-        </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <TextField fullWidth label={Locale.label("person.lastName")} name="lastName" value={lastName} onChange={handleChange} />
-        </Grid>
+        {!anonymous && (<>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <TextField fullWidth label={Locale.label("person.firstName")} name="firstName" value={firstName} onChange={handleChange} />
+          </Grid>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <TextField fullWidth label={Locale.label("person.lastName")} name="lastName" value={lastName} onChange={handleChange} />
+          </Grid>
+        </>)}
         <Grid size={{ xs: 12, md: 6 }}>
           <TextField fullWidth label={Locale.label("person.email")} name="email" value={email} onChange={handleChange} />
         </Grid>
@@ -271,6 +284,9 @@ export const PaystackNonAuthDonationInner: React.FC<Props> = ({ mainContainerCss
       )}
 
       <TextField fullWidth label={Locale.label("donation.kingdomFunding.memo")} multiline aria-label="note" name="notes" value={notes} onChange={handleChange} style={{ marginTop: 10, marginBottom: 10 }} />
+      <FormGroup>
+        <FormControlLabel control={<Checkbox checked={anonymous} inputProps={{ "aria-label": "anonymous" }} />} name="anonymous" label={Locale.label("donation.donationForm.anonymous")} onChange={handleAnonymousChange} />
+      </FormGroup>
 
       {fundsTotal > 0 && (
         <div>

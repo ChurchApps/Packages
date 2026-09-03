@@ -58,6 +58,21 @@ test("convertDonation with withCurrencyLabel=false returns a bare 2-decimal amou
   assert.equal(CurrencyHelper.convertDonation({ currency: "usd", amount: 100 }, "eur", false), "50.00");
 });
 
+test("convertAmount uses passed-in rates instead of the cache", () => {
+  CurrencyHelper.rates = { USD: 2 };
+  assert.equal(CurrencyHelper.convertAmount(100, "usd", "eur", { USD: 4 }), 25);
+});
+
+test("convertAmount falls back to the cache when passed rates are empty", () => {
+  CurrencyHelper.rates = { USD: 2 };
+  assert.equal(CurrencyHelper.convertAmount(100, "usd", "eur", {}), 50);
+});
+
+test("convertDonation still honors withCurrencyLabel when rates are passed", () => {
+  CurrencyHelper.rates = { USD: 99 };
+  assert.equal(CurrencyHelper.convertDonation({ currency: "usd", amount: 100 }, "eur", false, { USD: 2 }), "50.00");
+});
+
 test("convertDonationTotals groups by currency before converting and summing", () => {
   CurrencyHelper.rates = { USD: 2 };
   const donations = [
@@ -68,6 +83,16 @@ test("convertDonationTotals groups by currency before converting and summing", (
   // usd group (150) / rate 2 = 75, plus eur group (10, same-currency passthrough) = 85
   const formatted = CurrencyHelper.convertDonationTotals(donations, "eur");
   assert.ok(formatted.includes("85"), formatted);
+});
+
+test("convertDonationTotals uses passed-in rates instead of the cache", () => {
+  CurrencyHelper.rates = { USD: 2 };
+  const formatted = CurrencyHelper.convertDonationTotals(
+    [{ currency: "usd", amount: 100 }, { currency: "eur", amount: 10 }],
+    "eur",
+    { USD: 4 }
+  );
+  assert.ok(formatted.includes("35"), formatted);
 });
 
 test("initializeExchangeRates caches rates once and no-ops while the base is unchanged", async (t) => {

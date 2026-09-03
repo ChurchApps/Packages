@@ -44,6 +44,7 @@ export const KingdomFundingNonAuthDonationInner: React.FC<Props> = ({ mainContai
   const [searchParams, setSearchParams] = useState<any>(null);
   const [notes, setNotes] = useState("");
   const [coverFees, setCoverFees] = useState(false);
+  const [anonymous, setAnonymous] = useState(false);
   const captchaRef = useRef<ReCAPTCHA>(null);
   const kfTokenRef = useRef<KingdomFundingTokenFormHandle>(null);
 
@@ -102,6 +103,11 @@ export const KingdomFundingNonAuthDonationInner: React.FC<Props> = ({ mainContai
     }
   };
 
+  const handleAnonymousChange = (_e: React.SyntheticEvent<Element, Event>, checked: boolean) => {
+    setAnonymous(checked);
+    if (checked) setDonationType("once");
+  };
+
   const handleCheckChange = (_e: React.SyntheticEvent<Element, Event>, checked: boolean) => {
     setCoverFees(checked);
     const totalPayAmount = checked ? fundsTotal + transactionFee : fundsTotal;
@@ -110,8 +116,8 @@ export const KingdomFundingNonAuthDonationInner: React.FC<Props> = ({ mainContai
 
   const validate = () => {
     const result: string[] = [];
-    if (!firstName) result.push(Locale.label("donation.donationForm.validate.firstName"));
-    if (!lastName) result.push(Locale.label("donation.donationForm.validate.lastName"));
+    if (!anonymous && !firstName) result.push(Locale.label("donation.donationForm.validate.firstName"));
+    if (!anonymous && !lastName) result.push(Locale.label("donation.donationForm.validate.lastName"));
     if (!email) result.push(Locale.label("donation.donationForm.validate.email"));
     if (fundsTotal === 0) result.push(Locale.label("donation.donationForm.validate.amount"));
     if (result.length === 0) {
@@ -134,6 +140,10 @@ export const KingdomFundingNonAuthDonationInner: React.FC<Props> = ({ mainContai
 
       setProcessing(true);
       try {
+        if (anonymous) {
+          await processDonation(null);
+          return;
+        }
         await ApiHelper.post("/users/loadOrCreate", { userEmail: email, firstName, lastName }, "MembershipApi");
         const personData = { churchId: props.churchId, firstName, lastName, email };
         const person = await ApiHelper.post("/people/loadOrCreate", personData, "MembershipApi");
@@ -166,10 +176,11 @@ export const KingdomFundingNonAuthDonationInner: React.FC<Props> = ({ mainContai
       person: {
         id: person?.id || "",
         email: person?.contactInfo?.email || email,
-        name: person?.name?.display || `${firstName} ${lastName}`
+        name: anonymous ? "" : (person?.name?.display || `${firstName} ${lastName}`)
       },
       notes,
-      church: churchObj
+      church: churchObj,
+      anonymous
     };
 
     try {
@@ -278,36 +289,38 @@ export const KingdomFundingNonAuthDonationInner: React.FC<Props> = ({ mainContai
     >
       <ErrorMessages errors={errors} />
       <Grid container spacing={3}>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Button
-            aria-label="single-donation"
-            size="small"
-            fullWidth
-            style={{ minHeight: "50px" }}
-            variant={donationType === "once" ? "contained" : "outlined"}
-            onClick={() => setDonationType("once")}
-          >
-            {Locale.label("donation.donationForm.make")}
-          </Button>
-        </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <Button
-            aria-label="recurring-donation"
-            size="small"
-            fullWidth
-            style={{ minHeight: "50px" }}
-            variant={donationType === "recurring" ? "contained" : "outlined"}
-            onClick={() => setDonationType("recurring")}
-          >
-            {Locale.label("donation.donationForm.makeRecurring")}
-          </Button>
-        </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <TextField fullWidth label={Locale.label("person.firstName")} name="firstName" value={firstName} onChange={handleChange} />
-        </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <TextField fullWidth label={Locale.label("person.lastName")} name="lastName" value={lastName} onChange={handleChange} />
-        </Grid>
+        {!anonymous && (<>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <Button
+              aria-label="single-donation"
+              size="small"
+              fullWidth
+              style={{ minHeight: "50px" }}
+              variant={donationType === "once" ? "contained" : "outlined"}
+              onClick={() => setDonationType("once")}
+            >
+              {Locale.label("donation.donationForm.make")}
+            </Button>
+          </Grid>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <Button
+              aria-label="recurring-donation"
+              size="small"
+              fullWidth
+              style={{ minHeight: "50px" }}
+              variant={donationType === "recurring" ? "contained" : "outlined"}
+              onClick={() => setDonationType("recurring")}
+            >
+              {Locale.label("donation.donationForm.makeRecurring")}
+            </Button>
+          </Grid>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <TextField fullWidth label={Locale.label("person.firstName")} name="firstName" value={firstName} onChange={handleChange} />
+          </Grid>
+          <Grid size={{ xs: 12, md: 6 }}>
+            <TextField fullWidth label={Locale.label("person.lastName")} name="lastName" value={lastName} onChange={handleChange} />
+          </Grid>
+        </>)}
         <Grid size={{ xs: 12, md: 6 }}>
           <TextField fullWidth label={Locale.label("person.email")} name="email" value={email} onChange={handleChange} />
         </Grid>
@@ -412,6 +425,10 @@ export const KingdomFundingNonAuthDonationInner: React.FC<Props> = ({ mainContai
         onChange={handleChange}
         style={{ marginTop: 10, marginBottom: 10 }}
       />
+
+      <FormGroup>
+        <FormControlLabel control={<Checkbox checked={anonymous} inputProps={{ "aria-label": "anonymous" }} />} name="anonymous" label={Locale.label("donation.donationForm.anonymous")} onChange={handleAnonymousChange} />
+      </FormGroup>
 
       <div>
         {fundsTotal > 0 && (

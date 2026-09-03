@@ -8,7 +8,7 @@ import { FundDonations } from "../../components";
 import { ApiHelper, DateHelper, CurrencyHelper } from "@churchapps/helpers";
 import { Locale, DonationHelper, StripePaymentMethod } from "../../helpers";
 import { handle3DSIfRequired } from "./stripe3DS";
-import { FundDonationInterface, FundInterface, PersonInterface, StripeDonationInterface, UserInterface, ChurchInterface } from "@churchapps/helpers";
+import { FundDonationInterface, FundInterface, PersonInterface, StripeDonationInterface, ChurchInterface } from "@churchapps/helpers";
 import { Grid, Alert, TextField, Button, FormControl, InputLabel, Select, MenuItem, FormGroup, FormControlLabel, Checkbox, Typography, Box, CircularProgress } from "@mui/material";
 import type { PaperProps } from "@mui/material/Paper";
 import { collectStripeBank } from "./stripeBank";
@@ -57,6 +57,7 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
   const [searchParams, setSearchParams] = useState<any>(null);
   const [notes, setNotes] = useState("");
   const [coverFees, setCoverFees] = useState(false);
+  const [anonymous, setAnonymous] = useState(false);
   const [bankConnecting, setBankConnecting] = useState(false);
   const captchaRef = useRef<ReCAPTCHA>(null);
 
@@ -120,6 +121,11 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
     }
   };
 
+  const handleAnonymousChange = (_e: React.SyntheticEvent<Element, Event>, checked: boolean) => {
+    setAnonymous(checked);
+    if (checked) setDonationType("once");
+  };
+
   const handleCheckChange = (_e: React.SyntheticEvent<Element, Event>, checked: boolean) => {
     setCoverFees(checked);
     const totalPayAmount = checked ? fundsTotal + transactionFee : fundsTotal;
@@ -147,21 +153,25 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
       }
 
       setProcessing(true);
+      if (anonymous) {
+        if (paymentType === "bank") saveBank(); else saveCard();
+        return;
+      }
       ApiHelper.post("/users/loadOrCreate", { userEmail: email, firstName, lastName }, "MembershipApi")
         .catch((ex: any) => { setErrors([ex.toString()]); setProcessing(false); })
-        .then(async (userData: any) => {
+        .then(async () => {
           const personData = { churchId: props.churchId, firstName, lastName, email };
           const person = await ApiHelper.post("/people/loadOrCreate", personData, "MembershipApi");
           if (paymentType === "bank") {
-            saveBank(userData, person);
+            saveBank(person);
           } else {
-            saveCard(userData, person);
+            saveCard(person);
           }
         });
     }
   };
 
-  const saveCard = async (_user: UserInterface, person: PersonInterface) => {
+  const saveCard = async (person?: PersonInterface) => {
     if (gateway?.provider?.toLowerCase() !== "stripe") {
       setErrors(["Stripe payment processing not available for this gateway"]);
       setProcessing(false);
@@ -175,8 +185,11 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
       return;
     }
     const stripePM = await stripe.createPaymentMethod({ type: "card", card: cardData });
-    if (stripePM.error) { setErrors([stripePM.error.message || "Payment method error"]); setProcessing(false); } else {
-      const pm = { id: stripePM.paymentMethod!.id, personId: person.id, email: email, name: person?.name?.display || "", churchId: props.churchId };
+    if (stripePM.error) { setErrors([stripePM.error.message || "Payment method error"]); setProcessing(false); } else if (anonymous) {
+      // Nothing is vaulted for an anonymous gift, so the payment method is charged without a customer.
+      saveDonation(new StripePaymentMethod({ id: stripePM.paymentMethod!.id, type: "card" }));
+    } else {
+      const pm = { id: stripePM.paymentMethod!.id, personId: person?.id, email: email, name: person?.name?.display || "", churchId: props.churchId };
       await ApiHelper.post(
         "/paymentmethods/addcard",
         { ...pm, provider: gateway?.provider || "stripe", gatewayId: gateway?.id },
@@ -193,7 +206,7 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
     }
   };
 
-  const saveBank = async (_user: UserInterface, person: PersonInterface) => {
+  const saveBank = async (person?: PersonInterface) => {
     if (!stripe) {
       setErrors(["Payment processing unavailable"]);
       setProcessing(false);
@@ -206,7 +219,7 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
       // Get ACH setup intent from anonymous endpoint
       const setupResponse = await ApiHelper.postAnonymous("/paymentmethods/ach-setup-intent-anon", {
         email,
-        name: `${firstName} ${lastName}`,
+        name: anonymous ? "Anonymous Donor" : `${firstName} ${lastName}`,
         churchId: props.churchId,
         gatewayId: gateway?.id
       }, "GivingApi");
@@ -218,7 +231,7 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
         return;
       }
 
-      const { error: confirmError, setupIntent } = await collectStripeBank(stripe, setupResponse.clientSecret, gateway?.currency, { name: `${firstName} ${lastName}`, email });
+      const { error: confirmError, setupIntent } = await collectStripeBank(stripe, setupResponse.clientSecret, gateway?.currency, { name: anonymous ? "Anonymous Donor" : `${firstName} ${lastName}`, email });
 
       if (confirmError) {
         setErrors([confirmError.message || "Failed to confirm bank account"]);
@@ -238,7 +251,7 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
         funds: fundDonations.map(fd => ({ id: fd.fundId || "", amount: fd.amount || 0 })),
         person: {
           id: person?.id || "",
-          email: person?.contactInfo?.email || "",
+          email: person?.contactInfo?.email || email,
           name: person?.name?.display || ""
         },
         notes
@@ -256,7 +269,8 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
         church: churchObj,
         provider: "stripe",
         gatewayId: gateway?.id,
-        currency: gateway?.currency || "USD"
+        currency: gateway?.currency || "USD",
+        anonymous
       }, "GivingApi");
 
       if (results?.status === "succeeded" || results?.status === "pending" || results?.status === "processing") {
@@ -272,7 +286,7 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
     setBankConnecting(false);
   };
 
-  const saveDonation = async (paymentMethod: StripePaymentMethod, customerId: string, person?: PersonInterface) => {
+  const saveDonation = async (paymentMethod: StripePaymentMethod, customerId?: string, person?: PersonInterface) => {
     const donation: StripeDonationInterface = {
       amount: total,
       id: paymentMethod.id,
@@ -282,7 +296,7 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
       funds: [],
       person: {
         id: person?.id || "",
-        email: person?.contactInfo?.email || "",
+        email: person?.contactInfo?.email || email,
         name: person?.name?.display || ""
       },
       notes: notes
@@ -312,7 +326,8 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
       church: churchObj,
       provider: gateway?.provider || "stripe",
       gatewayId: gateway?.id,
-      currency: gateway?.currency || "USD"
+      currency: gateway?.currency || "USD",
+      anonymous
     };
     if (donationType === "once") results = await ApiHelper.post("/donate/charge", donationPayload, "GivingApi");
     if (donationType === "recurring") results = await ApiHelper.post("/donate/subscribe", donationPayload, "GivingApi");
@@ -346,8 +361,8 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
 
   const validate = () => {
     const result: string[] = [];
-    if (!firstName) result.push(Locale.label("donation.donationForm.validate.firstName"));
-    if (!lastName) result.push(Locale.label("donation.donationForm.validate.lastName"));
+    if (!anonymous && !firstName) result.push(Locale.label("donation.donationForm.validate.firstName"));
+    if (!anonymous && !lastName) result.push(Locale.label("donation.donationForm.validate.lastName"));
     if (!email) result.push(Locale.label("donation.donationForm.validate.email"));
     if (fundsTotal === 0) result.push(Locale.label("donation.donationForm.validate.amount"));
     if (result.length === 0) {
@@ -432,7 +447,7 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
       <InputBox headerIcon={showHeader ? "volunteer_activism" : ""} headerText={showHeader ? "Donate" : ""} saveFunction={handleSave} saveText="Donate" isSubmitting={processing || bankConnecting} mainContainerCssProps={mainContainerCssProps}>
         <ErrorMessages errors={errors} />
         <Grid container spacing={3}>
-          {paymentType !== "bank" && allowSingleGift && allowRecurring && (
+          {paymentType !== "bank" && allowSingleGift && allowRecurring && !anonymous && (
             <>
               <Grid size={{ xs: 12, md: 6 }}>
                 <Button aria-label="single-donation" size="small" fullWidth style={{ minHeight: "50px" }} variant={donationType === "once" ? "contained" : "outlined"} onClick={() => setDonationType("once")}>{Locale.label("donation.donationForm.make")}</Button>
@@ -442,12 +457,16 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
               </Grid>
             </>
           )}
-          <Grid size={{ xs: 12, md: 6 }}>
-            <TextField fullWidth label={Locale.label("person.firstName")} name="firstName" value={firstName} onChange={handleChange} />
-          </Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
-            <TextField fullWidth label={Locale.label("person.lastName")} name="lastName" value={lastName} onChange={handleChange} />
-          </Grid>
+          {!anonymous && (
+            <>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <TextField fullWidth label={Locale.label("person.firstName")} name="firstName" value={firstName} onChange={handleChange} />
+              </Grid>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <TextField fullWidth label={Locale.label("person.lastName")} name="lastName" value={lastName} onChange={handleChange} />
+              </Grid>
+            </>
+          )}
           <Grid size={{ xs: 12, md: 6 }}>
             <TextField fullWidth label={Locale.label("person.email")} name="email" value={email} onChange={handleChange} />
           </Grid>
@@ -522,6 +541,9 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
         }
         {getFundList()}
         <TextField fullWidth label="Memo (optional)" multiline aria-label="note" name="notes" value={notes} onChange={handleChange} style={{ marginTop: 10, marginBottom: 10 }} />
+        <FormGroup>
+          <FormControlLabel control={<Checkbox checked={anonymous} inputProps={{ "aria-label": "anonymous" }} />} name="anonymous" label={Locale.label("donation.donationForm.anonymous")} onChange={handleAnonymousChange} />
+        </FormGroup>
         <div>
           {fundsTotal > 0
             && <>

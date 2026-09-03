@@ -88,6 +88,7 @@ export class Locale {
       },
       "donationForm": {
         "annually": "Annually",
+        "anonymous": "Give anonymously (one-time gifts only)",
         "biWeekly": "Bi-Weekly",
         "cancelled": "Recurring donation cancelled.",
         "confirmDelete": "Are you sure you wish to delete this recurring donation?",

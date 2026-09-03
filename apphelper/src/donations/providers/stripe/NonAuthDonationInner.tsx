@@ -87,7 +87,8 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
         || (filteredFunds.length > 0 ? filteredFunds[0].id : "");
       const initialFund = filteredFunds.find((f: FundInterface) => f.id === preferredId);
       if (initialFund) {
-        setFundDonations([{ fundId: initialFund.id, amount: (amount && amount !== "") ? parseFloat(amount) : 0 }]);
+        // go through handleFundDonationsChange so a preselected amount also updates fundsTotal/fee/total, not just the field
+        handleFundDonationsChange([{ fundId: initialFund.id, amount: (amount && amount !== "") ? parseFloat(amount) : 0 }]);
       }
     });
     ApiHelper.get("/churches/lookup/?id=" + props.churchId, "MembershipApi").then((data: any) => {

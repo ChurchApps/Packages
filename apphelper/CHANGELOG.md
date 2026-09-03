@@ -1,5 +1,13 @@
 # @churchapps/apphelper
 
+## 1.4.0
+
+### Minor Changes
+
+- 002eb79: Add inline image support to the markdown editor, including gallery insert and `![alt](src)` round-trip.
+- d8c21b4: Guest donation forms get a "Give anonymously" option that skips person creation and sends the gift without a donor.
+- ef7921e: Add Apple Pay and Google Pay to the Stripe guest donation form via the Express Checkout Element, and register the site's domain with Stripe so Apple Pay can offer itself.
+
 ## 1.3.6
 
 ### Patch Changes

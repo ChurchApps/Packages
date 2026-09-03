@@ -1,5 +1,11 @@
 # @churchapps/helpers
 
+## 2.2.3
+
+### Patch Changes
+
+- b5bb735: Allow passing exchange rates into convertDonation, convertDonationTotals, and convertAmount. Add optional currency on subscriptions.
+
 ## 2.2.2
 
 ### Patch Changes

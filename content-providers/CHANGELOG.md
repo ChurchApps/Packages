@@ -1,5 +1,11 @@
 # @churchapps/content-providers
 
+## 0.10.0
+
+### Minor Changes
+
+- 6049db2: Add `downloads` to `Instructions` (new `ContentDownload` interface) so providers can supply printable/leader files alongside the playlist. Lessons.church maps venue feed download bundles (skipping playlist media) and Go Curriculum maps lesson resources. Adds `FeedDownloadInterface`/`FeedVenueInterface.downloads` and an `isPlaylistMedia` util.
+
 ## 0.9.4
 
 ### Patch Changes

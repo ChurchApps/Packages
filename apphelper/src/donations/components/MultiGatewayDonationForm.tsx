@@ -289,7 +289,7 @@ const MultiGatewayDonationInner: React.FC<Props> = (props) => {
 
     // Always close modal to prevent Donate button hanging with no feedback on unrecognized shapes.
     setShowDonationPreviewModal(false);
-    const okStatuses = ["succeeded", "pending", "active", "processing", "CREATED", "Approved"];
+    const okStatuses = ["succeeded", "pending", "active", "processing", "CREATED", "COMPLETED", "Approved"];
     if (results?.status && okStatuses.includes(results.status)) {
       setDonationType(undefined);
       props.donationSuccess(message);

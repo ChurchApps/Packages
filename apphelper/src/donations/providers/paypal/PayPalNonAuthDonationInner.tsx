@@ -5,6 +5,7 @@ import ReCAPTCHA from "react-google-recaptcha";
 import { ErrorMessages, InputBox } from "../../../index";
 import { FundDonations } from "../../components";
 import { PayPalHostedFields, PayPalHostedFieldsHandle } from "./PayPalHostedFields";
+import { PayPalButtons } from "./PayPalButtons";
 import { ApiHelper, DateHelper, CurrencyHelper } from "@churchapps/helpers";
 import { Locale, DonationHelper } from "../../helpers";
 import type { PayPalDonationInterface } from "./PayPalDonationInterface";
@@ -119,9 +120,9 @@ export const PayPalNonAuthDonationInner: React.FC<Props> = ({ mainContainerCssPr
   };
 
   const handleSave = async () => {
-    if (validate()) {
+    if (validate(true)) {
       if (_captchaResponse !== "success") {
-        setErrors(["Please complete the reCAPTCHA verification"]);
+        setErrors([Locale.label("donation.paypal.captchaRequired")]);
         return;
       }
       setProcessing(true);
@@ -135,9 +136,9 @@ export const PayPalNonAuthDonationInner: React.FC<Props> = ({ mainContainerCssPr
     }
   };
 
-  const savePayPalDonation = async (_user: UserInterface, person: PersonInterface) => {
-    let hostedOrderId: string | undefined;
-    if (props.paypalClientId && useHostedFields) {
+  const savePayPalDonation = async (_user: UserInterface, person: PersonInterface, approvedOrderId?: string) => {
+    let hostedOrderId: string | undefined = approvedOrderId;
+    if (!hostedOrderId && props.paypalClientId && useHostedFields) {
       try {
         const payload = await hostedFieldsRef.current?.submit();
         hostedOrderId = payload?.orderId || payload?.id;
@@ -206,15 +207,80 @@ export const PayPalNonAuthDonationInner: React.FC<Props> = ({ mainContainerCssPr
     setProcessing(false);
   };
 
-  const validate = () => {
+  const getPayPalClientToken = async () => {
+    try {
+      const resp = await ApiHelper.post(
+        "/donate/client-token",
+        { churchId: props.churchId, provider: "paypal", gatewayId: gateway?.id },
+        "GivingApi"
+      );
+      const token = resp?.clientToken || resp?.token || resp?.result || resp;
+      return typeof token === "string" && token.length > 0 ? token : "";
+    } catch {
+      return "";
+    }
+  };
+
+  const createPayPalOrder = async () => {
+    try {
+      const fundsPayload = (fundDonations || [])
+        .filter(fd => (fd.amount || 0) > 0 && fd.fundId)
+        .map(fd => ({ id: fd.fundId!, amount: fd.amount || 0 }));
+      const response = await ApiHelper.post(
+        "/donate/create-order",
+        {
+          churchId: props.churchId,
+          provider: "paypal",
+          gatewayId: gateway?.id,
+          amount: total,
+          currency: "USD",
+          funds: fundsPayload,
+          notes
+        },
+        "GivingApi"
+      );
+      return response?.id || response?.orderId || "";
+    } catch (e) {
+      console.warn("Create PayPal order failed; Hosted Fields may not be enabled on backend.", e);
+      return "";
+    }
+  };
+
+  // Gate before the PayPal window opens; an approved order the donor cannot finish is worse than no window.
+  const startWalletOrder = async () => {
+    if (!validate(false)) return "";
+    if (_captchaResponse !== "success") {
+      setErrors([Locale.label("donation.paypal.captchaRequired")]);
+      return "";
+    }
+    setErrors([]);
+    return await createPayPalOrder();
+  };
+
+  const handleWalletApproval = async (orderId: string) => {
+    if (!orderId) return;
+    setProcessing(true);
+    try {
+      const userData = await ApiHelper.post("/users/loadOrCreate", { userEmail: email, firstName, lastName }, "MembershipApi");
+      const person = await ApiHelper.post("/people/loadOrCreate", { churchId: props.churchId, firstName, lastName, email }, "MembershipApi");
+      await savePayPalDonation(userData, person, orderId);
+    } catch (ex: any) {
+      setErrors([ex.toString()]);
+      setProcessing(false);
+    }
+  };
+
+  const validate = (requireCard: boolean) => {
     const result: string[] = [];
     if (!firstName) result.push(Locale.label("donation.donationForm.validate.firstName"));
     if (!lastName) result.push(Locale.label("donation.donationForm.validate.lastName"));
     if (!email) result.push(Locale.label("donation.donationForm.validate.email"));
     if (fundsTotal === 0) result.push(Locale.label("donation.donationForm.validate.amount"));
-    if (props.paypalClientId && useHostedFields) {
-      if (!hostedValid) result.push("Please provide valid card information");
-    } else result.push("PayPal Hosted Fields not available");
+    if (requireCard) {
+      if (props.paypalClientId && useHostedFields) {
+        if (!hostedValid) result.push("Please provide valid card information");
+      } else result.push("PayPal Hosted Fields not available");
+    }
 
     if (result.length === 0) {
       if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) result.push(Locale.label("donation.donationForm.validate.validEmail"));
@@ -334,49 +400,23 @@ export const PayPalNonAuthDonationInner: React.FC<Props> = ({ mainContainerCssPr
             />
           </Grid>
         </Grid>
+        {props.paypalClientId && donationType === "once" && (
+          <PayPalButtons
+            clientId={props.paypalClientId}
+            getClientToken={getPayPalClientToken}
+            createOrder={startWalletOrder}
+            onApprove={handleWalletApproval}
+            onError={(message) => { setErrors([message]); setProcessing(false); }}
+          />
+        )}
         {props.paypalClientId && useHostedFields ? (
           <PayPalHostedFields
             ref={hostedFieldsRef}
             clientId={props.paypalClientId}
-            getClientToken={async () => {
-              try {
-                const resp = await ApiHelper.post(
-                  "/donate/client-token",
-                  { churchId: props.churchId, provider: "paypal", gatewayId: gateway?.id },
-                  "GivingApi"
-                );
-                const token = resp?.clientToken || resp?.token || resp?.result || resp;
-                return typeof token === "string" && token.length > 0 ? token : "";
-              } catch {
-                return "";
-              }
-            }}
+            getClientToken={getPayPalClientToken}
             onValidityChange={setHostedValid}
             onIneligible={() => setUseHostedFields(false)}
-            createOrder={async () => {
-              try {
-                const fundsPayload = (fundDonations || [])
-                  .filter(fd => (fd.amount || 0) > 0 && fd.fundId)
-                  .map(fd => ({ id: fd.fundId!, amount: fd.amount || 0 }));
-                const response = await ApiHelper.post(
-                  "/donate/create-order",
-                  {
-                    churchId: props.churchId,
-                    provider: "paypal",
-                    gatewayId: gateway?.id,
-                    amount: total,
-                    currency: "USD",
-                    funds: fundsPayload,
-                    notes
-                  },
-                  "GivingApi"
-                );
-                return response?.id || response?.orderId || "";
-              } catch (e) {
-                console.warn("Create PayPal order failed; Hosted Fields may not be enabled on backend.", e);
-                return "";
-              }
-            }}
+            createOrder={createPayPalOrder}
           />
         ) : (
           <Alert severity="error" sx={{ mb: 1 }}>PayPal card fields are unavailable. This requires HTTPS and an enabled PayPal merchant.</Alert>

@@ -10,7 +10,7 @@ import { ApiHelper, DateHelper, CurrencyHelper } from "@churchapps/helpers";
 import { Locale, DonationHelper } from "../../helpers";
 import type { PayPalDonationInterface } from "./PayPalDonationInterface";
 import { isPayPalCaptureComplete } from "./paypalStatus";
-import { FundDonationInterface, FundInterface, PersonInterface, UserInterface, ChurchInterface } from "@churchapps/helpers";
+import { FundDonationInterface, FundInterface, PersonInterface, ChurchInterface } from "@churchapps/helpers";
 import { Grid, Alert, TextField, Button, FormControl, InputLabel, Select, MenuItem, FormGroup, FormControlLabel, Checkbox, Typography } from "@mui/material";
 import type { PaperProps } from "@mui/material/Paper";
 
@@ -55,6 +55,7 @@ export const PayPalNonAuthDonationInner: React.FC<Props> = ({ mainContainerCssPr
   const [searchParams, setSearchParams] = useState<any>(null);
   const [notes, setNotes] = useState("");
   const [coverFees, setCoverFees] = useState(false);
+  const [anonymous, setAnonymous] = useState(false);
   const hostedFieldsRef = useRef<PayPalHostedFieldsHandle>(null);
   const [hostedValid, setHostedValid] = useState<boolean>(false);
   const [useHostedFields, setUseHostedFields] = useState<boolean>(true);
@@ -113,6 +114,11 @@ export const PayPalNonAuthDonationInner: React.FC<Props> = ({ mainContainerCssPr
     }
   };
 
+  const handleAnonymousChange = (_e: React.SyntheticEvent<Element, Event>, checked: boolean) => {
+    setAnonymous(checked);
+    if (checked) setDonationType("once");
+  };
+
   const handleCheckChange = (_e: React.SyntheticEvent<Element, Event>, checked: boolean) => {
     setCoverFees(checked);
     const totalPayAmount = checked ? fundsTotal + transactionFee : fundsTotal;
@@ -126,17 +132,21 @@ export const PayPalNonAuthDonationInner: React.FC<Props> = ({ mainContainerCssPr
         return;
       }
       setProcessing(true);
+      if (anonymous) {
+        savePayPalDonation();
+        return;
+      }
       ApiHelper.post("/users/loadOrCreate", { userEmail: email, firstName, lastName }, "MembershipApi")
         .catch((ex: any) => { setErrors([ex.toString()]); setProcessing(false); })
-        .then(async (userData: any) => {
+        .then(async () => {
           const personData = { churchId: props.churchId, firstName, lastName, email };
           const person = await ApiHelper.post("/people/loadOrCreate", personData, "MembershipApi");
-          await savePayPalDonation(userData, person);
+          await savePayPalDonation(person);
         });
     }
   };
 
-  const savePayPalDonation = async (_user: UserInterface, person: PersonInterface, approvedOrderId?: string) => {
+  const savePayPalDonation = async (person?: PersonInterface, approvedOrderId?: string) => {
     let hostedOrderId: string | undefined = approvedOrderId;
     if (!hostedOrderId && props.paypalClientId && useHostedFields) {
       try {
@@ -164,7 +174,7 @@ export const PayPalNonAuthDonationInner: React.FC<Props> = ({ mainContainerCssPr
       funds: [],
       person: {
         id: person?.id || "",
-        email: person?.contactInfo?.email || "",
+        email: person?.contactInfo?.email || email,
         name: person?.name?.display || ""
       },
       notes: notes
@@ -193,7 +203,8 @@ export const PayPalNonAuthDonationInner: React.FC<Props> = ({ mainContainerCssPr
         amount: total,
         funds: compactFunds,
         person: donation.person,
-        notes
+        notes,
+        anonymous
       },
       "GivingApi"
     );
@@ -260,10 +271,14 @@ export const PayPalNonAuthDonationInner: React.FC<Props> = ({ mainContainerCssPr
   const handleWalletApproval = async (orderId: string) => {
     if (!orderId) return;
     setProcessing(true);
+    if (anonymous) {
+      await savePayPalDonation(undefined, orderId);
+      return;
+    }
     try {
-      const userData = await ApiHelper.post("/users/loadOrCreate", { userEmail: email, firstName, lastName }, "MembershipApi");
+      await ApiHelper.post("/users/loadOrCreate", { userEmail: email, firstName, lastName }, "MembershipApi");
       const person = await ApiHelper.post("/people/loadOrCreate", { churchId: props.churchId, firstName, lastName, email }, "MembershipApi");
-      await savePayPalDonation(userData, person, orderId);
+      await savePayPalDonation(person, orderId);
     } catch (ex: any) {
       setErrors([ex.toString()]);
       setProcessing(false);
@@ -272,8 +287,8 @@ export const PayPalNonAuthDonationInner: React.FC<Props> = ({ mainContainerCssPr
 
   const validate = (requireCard: boolean) => {
     const result: string[] = [];
-    if (!firstName) result.push(Locale.label("donation.donationForm.validate.firstName"));
-    if (!lastName) result.push(Locale.label("donation.donationForm.validate.lastName"));
+    if (!anonymous && !firstName) result.push(Locale.label("donation.donationForm.validate.firstName"));
+    if (!anonymous && !lastName) result.push(Locale.label("donation.donationForm.validate.lastName"));
     if (!email) result.push(Locale.label("donation.donationForm.validate.email"));
     if (fundsTotal === 0) result.push(Locale.label("donation.donationForm.validate.amount"));
     if (requireCard) {
@@ -365,7 +380,7 @@ export const PayPalNonAuthDonationInner: React.FC<Props> = ({ mainContainerCssPr
       <InputBox headerIcon={showHeader ? "volunteer_activism" : ""} headerText={showHeader ? "Donate with PayPal" : ""} saveFunction={handleSave} saveText="Donate" isSubmitting={processing} mainContainerCssProps={mainContainerCssProps}>
         <ErrorMessages errors={errors} />
         <Grid container spacing={3}>
-          {allowSingleGift && allowRecurring && (
+          {allowSingleGift && allowRecurring && !anonymous && (
             <>
               <Grid size={{ xs: 12, md: 6 }}>
                 <Button aria-label="single-donation" size="small" fullWidth style={{ minHeight: "50px" }} variant={donationType === "once" ? "contained" : "outlined"} onClick={() => setDonationType("once")}>{Locale.label("donation.donationForm.make")}</Button>
@@ -375,12 +390,14 @@ export const PayPalNonAuthDonationInner: React.FC<Props> = ({ mainContainerCssPr
               </Grid>
             </>
           )}
-          <Grid size={{ xs: 12, md: 6 }}>
-            <TextField fullWidth label={Locale.label("person.firstName")} name="firstName" value={firstName} onChange={handleChange} />
-          </Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
-            <TextField fullWidth label={Locale.label("person.lastName")} name="lastName" value={lastName} onChange={handleChange} />
-          </Grid>
+          {!anonymous && (<>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <TextField fullWidth label={Locale.label("person.firstName")} name="firstName" value={firstName} onChange={handleChange} />
+            </Grid>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <TextField fullWidth label={Locale.label("person.lastName")} name="lastName" value={lastName} onChange={handleChange} />
+            </Grid>
+          </>)}
           <Grid size={{ xs: 12, md: 6 }}>
             <TextField fullWidth label={Locale.label("person.email")} name="email" value={email} onChange={handleChange} />
           </Grid>
@@ -442,6 +459,9 @@ export const PayPalNonAuthDonationInner: React.FC<Props> = ({ mainContainerCssPr
         }
         {getFundList()}
         <TextField fullWidth label="Memo (optional)" multiline aria-label="note" name="notes" value={notes} onChange={handleChange} style={{ marginTop: 10, marginBottom: 10 }} />
+        <FormGroup>
+          <FormControlLabel control={<Checkbox checked={anonymous} inputProps={{ "aria-label": "anonymous" }} />} name="anonymous" label={Locale.label("donation.donationForm.anonymous")} onChange={handleAnonymousChange} />
+        </FormGroup>
         <div>
           {fundsTotal > 0
             && <>

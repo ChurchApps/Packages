@@ -1,5 +1,5 @@
 ---
-"@churchapps/helpers": major
+"@churchapps/helpers": patch
 ---
 
-add rates as a parameter for convertDonation and convertDonationTotals (when passed through api, can save us time conversion tie on frontend). add 'currency' field to subscription
+Allow passing exchange rates into convertDonation, convertDonationTotals, and convertAmount. Add optional currency on subscriptions.

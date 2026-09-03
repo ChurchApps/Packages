@@ -145,8 +145,8 @@ export class CurrencyHelper {
   static convertDonation(
     donation: { currency: string; amount: number },
     targetCurrency: string,
-    rates?: any,
-    withCurrencyLabel: boolean = true
+    withCurrencyLabel: boolean = true,
+    rates?: Record<string, number>
   ) {
     const converted = this.convertAmount(
       Number(donation.amount || 0),
@@ -163,7 +163,7 @@ export class CurrencyHelper {
   static convertDonationTotals(
     donations: { currency: string; amount: number }[],
     targetCurrency: string,
-    rates?: any
+    rates?: Record<string, number>
   ) {
     const grouped: Record<string, number> = {};
 
@@ -185,7 +185,7 @@ export class CurrencyHelper {
     amount: number,
     fromCurrency: string,
     toCurrency: string,
-    rates?: any
+    rates?: Record<string, number>
   ): number {
     const from = (fromCurrency || "USD").toUpperCase();
     const to = (toCurrency || "USD").toUpperCase();
@@ -194,8 +194,8 @@ export class CurrencyHelper {
       return amount;
     }
 
-    const RATES = rates && Object.keys(rates).length > 0 ? rates : this.rates;
-    const rate = RATES[from];
+    const rateMap = rates && Object.keys(rates).length > 0 ? rates : this.rates;
+    const rate = rateMap[from];
 
     if (!rate) {
       return amount;

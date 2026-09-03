@@ -178,6 +178,7 @@ export interface SubscriptionInterface {
   };
   customer: string;
   gatewayId?: string;
+  currency?: string;
 }
 
 export interface PayPalPaymentMethodInterface {

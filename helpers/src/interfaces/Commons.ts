@@ -4,7 +4,7 @@
 export type AssetStatus = "pending" | "published" | "unpublished" | "removed";
 export type SubmissionStatus = "draft" | "pending" | "approved" | "rejected" | "withdrawn";
 export type FileAction = "add" | "replace" | "remove";
-export type ContentLicense = "PD" | "WC" | "CC0" | "CC-BY" | "CC-BY-SA";
+export type ContentLicense = "PD" | "WC" | "CC0" | "CC-BY" | "CC-BY-SA" | "CC-BY-NC" | "CC-BY-NC-SA";
 export type RejectReason = "quality" | "duplicate" | "licensing" | "offtopic" | "incomplete" | "other";
 export type ReportReason = "copyright" | "policy" | "quality" | "other";
 export type ReportResolution = "upheld" | "dismissed" | "duplicate";
@@ -185,7 +185,7 @@ export const ASSET_TYPES: Record<string, AssetTypeDefinition> = {
     key: "song",
     label: "Song",
     product: "worshipcommons",
-    licenses: ["WC", "PD"],
+    licenses: ["WC", "PD", "CC-BY"], // uploadable set: WC (default), PD (CC0 dedication), CC BY 4.0 — SA and NC exist for harvested catalog rows only
     defaultLicense: "WC",
     hasSatellite: true,
     files: [

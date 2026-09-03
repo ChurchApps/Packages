@@ -12,6 +12,8 @@ import { FundDonationInterface, FundInterface, PersonInterface, StripeDonationIn
 import { Grid, Alert, TextField, Button, FormControl, InputLabel, Select, MenuItem, FormGroup, FormControlLabel, Checkbox, Typography, Box, CircularProgress } from "@mui/material";
 import type { PaperProps } from "@mui/material/Paper";
 import { collectStripeBank } from "./stripeBank";
+import { StripeExpressCheckout } from "./ExpressCheckout";
+import type { Stripe } from "@stripe/stripe-js";
 
 interface Props {
   churchId: string;
@@ -25,6 +27,7 @@ interface Props {
   showFundSelector?: boolean;
   allowedFundIds?: string[];
   defaultFundId?: string;
+  stripePromise?: Promise<Stripe | null> | null;
 }
 
 export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, showHeader = true, ...props }) => {
@@ -93,8 +96,22 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
     ApiHelper.get(`/donate/gateways/${props.churchId}`, "GivingApi").then((response: any) => {
       const gateways = Array.isArray(response?.gateways) ? response.gateways : [];
       const stripeGateway = DonationHelper.findGatewayByProvider(gateways, "stripe");
-      if (stripeGateway) setGateway(stripeGateway);
+      if (stripeGateway) {
+        setGateway(stripeGateway);
+        registerWalletDomain();
+      }
     });
+  };
+
+  // Apple Pay only offers itself on a Stripe-verified domain; Google Pay needs nothing.
+  const registerWalletDomain = () => {
+    if (typeof window === "undefined") return;
+    const key = "b1-wallet-domain-" + props.churchId + "-" + window.location.hostname;
+    try {
+      if (window.sessionStorage.getItem(key)) return;
+      window.sessionStorage.setItem(key, "1");
+    } catch { /* storage blocked; registering again is harmless */ }
+    ApiHelper.postAnonymous("/donate/register-domain", { churchId: props.churchId, domain: window.location.hostname }, "GivingApi").catch(() => { /* wallets stay hidden */ });
   };
 
   const handleCaptchaChange = (value: string | null) => {
@@ -133,22 +150,19 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
   };
 
 
+  const captchaError = () => {
+    if (!_captchaResponse) return "Please complete the reCAPTCHA verification";
+    if (_captchaResponse === "robot") return "reCAPTCHA verification failed - detected as robot. Please try again.";
+    if (_captchaResponse === "error") return "reCAPTCHA verification error. Please try again.";
+    if (_captchaResponse !== "success") return `reCAPTCHA verification unexpected response: ${_captchaResponse}`;
+    return null;
+  };
+
   const handleSave = async () => {
     if (validate()) {
-      if (!_captchaResponse) {
-        setErrors(["Please complete the reCAPTCHA verification"]);
-        return;
-      }
-      if (_captchaResponse === "robot") {
-        setErrors(["reCAPTCHA verification failed - detected as robot. Please try again."]);
-        return;
-      }
-      if (_captchaResponse === "error") {
-        setErrors(["reCAPTCHA verification error. Please try again."]);
-        return;
-      }
-      if (_captchaResponse !== "success") {
-        setErrors([`reCAPTCHA verification unexpected response: ${_captchaResponse}`]);
+      const captchaMessage = captchaError();
+      if (captchaMessage) {
+        setErrors([captchaMessage]);
         return;
       }
 
@@ -286,6 +300,40 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
     setBankConnecting(false);
   };
 
+  // Wallet sheets supply the donor's name and email, so the form fields above stay optional here.
+  const handleWalletConfirm = async (paymentMethodId: string, walletName: string, walletEmail: string) => {
+    const donorEmail = walletEmail || email;
+    if (!donorEmail) { setErrors([Locale.label("donation.donationForm.validate.email")]); return false; }
+    const captchaMessage = captchaError();
+    if (captchaMessage) { setErrors([captchaMessage]); return false; }
+
+    setProcessing(true);
+    setErrors([]);
+    const nameParts = (walletName || `${firstName} ${lastName}`).trim().split(/\s+/);
+    const donorFirst = firstName || nameParts[0] || "";
+    const donorLast = lastName || nameParts.slice(1).join(" ") || "";
+
+    try {
+      await ApiHelper.post("/users/loadOrCreate", { userEmail: donorEmail, firstName: donorFirst, lastName: donorLast }, "MembershipApi");
+      const person = await ApiHelper.post("/people/loadOrCreate", { churchId: props.churchId, firstName: donorFirst, lastName: donorLast, email: donorEmail }, "MembershipApi");
+      const result: any = await ApiHelper.post("/paymentmethods/addcard", {
+        id: paymentMethodId,
+        personId: person.id,
+        email: donorEmail,
+        name: person?.name?.display || "",
+        churchId: props.churchId,
+        provider: gateway?.provider || "stripe",
+        gatewayId: gateway?.id
+      }, "GivingApi");
+      if (result?.raw?.message) { setErrors([result.raw.message]); setProcessing(false); return false; }
+      return await saveDonation(result.paymentMethod, result.customerId, person);
+    } catch (ex: any) {
+      setErrors([ex?.message || ex?.toString() || "An unexpected error occurred. Please try again."]);
+      setProcessing(false);
+      return false;
+    }
+  };
+
   const saveDonation = async (paymentMethod: StripePaymentMethod, customerId?: string, person?: PersonInterface) => {
     const donation: StripeDonationInterface = {
       amount: total,
@@ -341,12 +389,14 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
         setErrors([threeDSResult.error || "Authentication failed."]);
       }
       setProcessing(false);
-      return;
+      return threeDSResult.success;
     }
 
+    let succeeded = true;
     if (results?.status === "succeeded" || results?.status === "pending" || results?.status === "active" || results?.status === "processing") {
       setDonationComplete(true);
     } else {
+      succeeded = false;
       // Handle any error case
       if (results?.raw?.message) {
         setErrors([results?.raw?.message]);
@@ -357,6 +407,7 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
       }
     }
     setProcessing(false);
+    return succeeded;
   };
 
   const validate = () => {
@@ -446,6 +497,15 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
     return (
       <InputBox headerIcon={showHeader ? "volunteer_activism" : ""} headerText={showHeader ? "Donate" : ""} saveFunction={handleSave} saveText="Donate" isSubmitting={processing || bankConnecting} mainContainerCssProps={mainContainerCssProps}>
         <ErrorMessages errors={errors} />
+        {donationType === "once" && total > 0 && gateway?.provider?.toLowerCase() === "stripe" && (
+          <StripeExpressCheckout
+            stripePromise={props.stripePromise}
+            amount={total}
+            currency={gateway?.currency || "USD"}
+            onConfirm={handleWalletConfirm}
+            onError={setErrors}
+          />
+        )}
         <Grid container spacing={3}>
           {paymentType !== "bank" && allowSingleGift && allowRecurring && !anonymous && (
             <>

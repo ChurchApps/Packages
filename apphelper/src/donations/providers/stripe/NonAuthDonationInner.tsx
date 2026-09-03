@@ -314,6 +314,10 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
     const donorLast = lastName || nameParts.slice(1).join(" ") || "";
 
     try {
+      if (anonymous) {
+        // Nothing is vaulted for an anonymous gift, so the wallet payment method is charged without a customer or person.
+        return await saveDonation(new StripePaymentMethod({ id: paymentMethodId, type: "card" }), undefined, undefined, donorEmail);
+      }
       await ApiHelper.post("/users/loadOrCreate", { userEmail: donorEmail, firstName: donorFirst, lastName: donorLast }, "MembershipApi");
       const person = await ApiHelper.post("/people/loadOrCreate", { churchId: props.churchId, firstName: donorFirst, lastName: donorLast, email: donorEmail }, "MembershipApi");
       const result: any = await ApiHelper.post("/paymentmethods/addcard", {
@@ -334,7 +338,7 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
     }
   };
 
-  const saveDonation = async (paymentMethod: StripePaymentMethod, customerId?: string, person?: PersonInterface) => {
+  const saveDonation = async (paymentMethod: StripePaymentMethod, customerId?: string, person?: PersonInterface, receiptEmail?: string) => {
     const donation: StripeDonationInterface = {
       amount: total,
       id: paymentMethod.id,
@@ -344,7 +348,7 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
       funds: [],
       person: {
         id: person?.id || "",
-        email: person?.contactInfo?.email || email,
+        email: person?.contactInfo?.email || receiptEmail || email,
         name: person?.name?.display || ""
       },
       notes: notes

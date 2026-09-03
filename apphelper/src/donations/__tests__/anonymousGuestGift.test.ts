@@ -54,6 +54,30 @@ describe("anonymous guest gift", () => {
     }
   });
 
+  it("does not create a user or person when a wallet pays an anonymous gift", () => {
+    const rel = "../providers/stripe/NonAuthDonationInner.tsx";
+    const src = read(rel);
+    const start = src.indexOf("const handleWalletConfirm");
+    expect(start, "handleWalletConfirm is defined").toBeGreaterThan(-1);
+    const body = src.slice(start, src.indexOf("const saveDonation", start));
+
+    const guardIdx = body.indexOf("if (anonymous) {");
+    const userIdx = body.indexOf('ApiHelper.post("/users/loadOrCreate"');
+    const personIdx = body.indexOf('ApiHelper.post("/people/loadOrCreate"');
+    expect(userIdx, "handleWalletConfirm posts /users/loadOrCreate").toBeGreaterThan(-1);
+    expect(personIdx, "handleWalletConfirm posts /people/loadOrCreate").toBeGreaterThan(-1);
+    expect(guardIdx, "handleWalletConfirm guards with if (anonymous)").toBeGreaterThan(-1);
+    expect(guardIdx, "wallet guard sits before /users/loadOrCreate").toBeLessThan(userIdx);
+    expect(guardIdx, "wallet guard sits before /people/loadOrCreate").toBeLessThan(personIdx);
+
+    // The anonymous branch charges the wallet payment method directly - no vaulting.
+    const anonBranch = body.slice(guardIdx, userIdx);
+    expect(anonBranch, "anonymous wallet branch does not vault a card").not.toContain("/paymentmethods/addcard");
+    expect(anonBranch, "anonymous wallet branch charges the wallet payment method").toContain("saveDonation(new StripePaymentMethod({ id: paymentMethodId, type: \"card\" })");
+    // The wallet supplies the receipt email; the form email field may be blank.
+    expect(anonBranch, "anonymous wallet branch keeps the wallet receipt email").toContain("donorEmail");
+  });
+
   it("sends anonymous on the charge payload", () => {
     for (const rel of files) {
       const src = read(rel);

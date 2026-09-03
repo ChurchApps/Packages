@@ -1,5 +1,12 @@
 # @churchapps/apphelper
 
+## 1.5.0
+
+### Minor Changes
+
+- 893da81: Fix guest donation forms (Stripe, PayPal, Paystack, Kingdom Funding) so a `?fundId=` and `?amount=` on the donate link actually preselect the fund and total, not just the amount field — the total, fee, and validation used to stay at $0 until the donor touched a field.
+- a900eeb: Add PayPal Smart Buttons (PayPal + Venmo) above the Hosted Fields card form on the PayPal guest form and member entry, for one-time gifts only. The SDK now loads `components=buttons,hosted-fields&enable-funding=venmo` once for both widgets, and an approved order is charged through the existing `/donate/charge` capture path.
+
 ## 1.4.0
 
 ### Minor Changes

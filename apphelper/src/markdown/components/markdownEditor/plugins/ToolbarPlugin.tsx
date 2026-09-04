@@ -1,6 +1,5 @@
-import React from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SELECTION_CHANGE_COMMAND, FORMAT_TEXT_COMMAND, $getSelection, $isRangeSelection, $createParagraphNode, $getNodeByKey, $getRoot } from "lexical";
 import { $wrapNodes, $isAtNodeEnd } from "@lexical/selection";
 import { $getNearestNodeOfType, mergeRegister } from "@lexical/utils";
@@ -11,8 +10,9 @@ import { $isCodeNode, getDefaultCodeLanguage, getCodeLanguages, $createCodeNode 
 import { Icon } from "@mui/material";
 import FloatingLinkEditor from "./customLink/FloatingLinkEditor";
 import { TOGGLE_CUSTOM_LINK_NODE_COMMAND, $isCustomLinkNode } from "./customLink/CustomLinkNode";
-import { GalleryModal } from "../../../../components/gallery/GalleryModal";
 import { $createImageNode } from "./image/ImageNode";
+
+const GalleryModal = lazy(() => import("../../../../components/gallery/GalleryModal").then(m => ({ default: m.GalleryModal })));
 
 const LowPriority = 1;
 
@@ -421,7 +421,7 @@ export function ToolbarPlugin(props: Props) {
             <i className="format code" />
           </button>
           {isLink && createPortal(<FloatingLinkEditor selectedElementKey={selectedElementKey} linkUrl={linkUrl} setLinkUrl={setLinkUrl} classNamesList={classNamesList} setClassNamesList={setClassNamesList} targetAttribute={targetAttribute} setTargetAttribute={setTargetAttribute} />, portalKey)}
-          {showGallery && createPortal(<GalleryModal aspectRatio={0} onClose={() => setShowGallery(false)} onSelect={(img) => {
+          {showGallery && createPortal(<Suspense fallback={null}><GalleryModal aspectRatio={0} onClose={() => setShowGallery(false)} onSelect={(img) => {
             editor.update(() => {
               const imageNode = $createImageNode({ altText: "Image", src: img });
               const selection = $getSelection();
@@ -435,7 +435,7 @@ export function ToolbarPlugin(props: Props) {
               }
             });
             setShowGallery(false);
-          }} />, portalKey)}
+          }} /></Suspense>, portalKey)}
         </>)}
       <Divider />
       <button onClick={() => { props.goFullScreen(); }} className="toolbar-item spaced" aria-label="Full Screen">

@@ -1,12 +1,16 @@
 "use client";
 
 import React, { useState, useEffect, useRef, Suspense, lazy } from "react";
-import { InputBox, SmallButton, Loading } from ".";
+import { InputBox } from "./InputBox";
+import { SmallButton } from "./SmallButton";
+import { Loading } from "./Loading";
 import { Locale } from "../helpers";
 import { selectDefaultCropBox } from "./selectDefaultCropBox";
-import "cropperjs/dist/cropper.css";
 
-const Cropper = lazy(() => import("react-cropper").then(module => ({ default: module.default })));
+const Cropper = lazy(() => Promise.all([
+  import("react-cropper"),
+  import("cropperjs/dist/cropper.css")
+]).then(([module]) => ({ default: module.default })));
 
 interface Props {
   title?: string;

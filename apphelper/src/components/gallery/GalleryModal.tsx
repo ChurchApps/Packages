@@ -5,10 +5,11 @@ import { ApiHelper } from "../../helpers";
 import { Locale } from "../../helpers";
 import { CommonEnvironmentHelper } from "@churchapps/helpers";
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, Grid, IconButton, InputLabel, MenuItem, Select, Tab, Tabs, Tooltip, Icon } from "@mui/material";
-import React, { useState } from "react";
-import { ImageEditor } from "../ImageEditor";
+import React, { lazy, Suspense, useState } from "react";
 import { TabPanel } from "../TabPanel";
 import { StockPhotos } from "./StockPhotos";
+
+const ImageEditor = lazy(() => import("../ImageEditor").then(m => ({ default: m.ImageEditor })));
 
 interface Props {
   aspectRatio: number,
@@ -156,7 +157,9 @@ export const GalleryModal: React.FC<Props> = (props: Props) => {
         </TabPanel>
         <TabPanel value={tabIndex} index={1}>
           <div>{Locale.label("gallery.aspectRatio")}: {getDisplayAspect()}</div>
-          <ImageEditor onUpdate={handleImageUpdated} photoUrl={editorPhotoUrl} aspectRatio={aspectRatio} outputWidth={1280} outputHeight={768} hideDelete={true} />
+          <Suspense fallback={null}>
+            <ImageEditor onUpdate={handleImageUpdated} photoUrl={editorPhotoUrl} aspectRatio={aspectRatio} outputWidth={1280} outputHeight={768} hideDelete={true} />
+          </Suspense>
         </TabPanel>
         <TabPanel value={tabIndex} index={2}>
           <StockPhotos aspectRatio={aspectRatio} onSelect={props.onSelect} onStockSelect={handleStockSelect} />

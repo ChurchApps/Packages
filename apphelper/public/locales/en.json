@@ -145,7 +145,8 @@
       "resumeFailed": "Failed to resume recurring donation. Please try again.",
       "resumeTooltip": "Resume recurring donation",
       "resumedMessage": "Recurring donation resumed.",
-      "startDate": "Start Date"
+      "startDate": "Start Date",
+      "currencyRatesInfo": "Converted to the church’s selected currency at current exchange rates."
     }
   },
   "eventCalendar": {

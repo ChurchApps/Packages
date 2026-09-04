@@ -18,6 +18,7 @@ interface Props {
 }
 
 export const FundDonation: React.FC<Props> = (props) => {
+  const [value, setValue] = React.useState<number>(0);
 
   const getOptions = () => {
     const result = [];
@@ -32,7 +33,12 @@ export const FundDonation: React.FC<Props> = (props) => {
     const fd = { ...props.fundDonation };
     switch (e.target.name) {
       case "amount":
-        fd.amount = parseFloat(e.target.value.replace("$", "").replace(",", ""));
+        fd.amount = Number(e.target.value);
+        setValue(Number(e.target.value));
+        if (props?.currency && props.currency !== fd.currency) {
+          fd.currency = props?.currency || "";
+        }
+        // fd.amount = parseFloat(e.target.value.replace("$", "").replace(",", ""));
         break;
       case "fund":
         fd.fundId = e.target.value;
@@ -41,11 +47,19 @@ export const FundDonation: React.FC<Props> = (props) => {
     props.updatedFunction(fd, props.index);
   };
 
+  React.useEffect(() => {
+    if (props.currency && props.currency !== props.fundDonation.currency) {
+      setValue(CurrencyHelper.convertAmount(props.fundDonation.amount || 0, props.fundDonation.currency || "", props.currency));
+    } else {
+      setValue(props.fundDonation.amount || 0);
+    }
+  }, [props.fundDonation]);
+
   return (
     <>
       <Grid container spacing={1} alignItems="center" sx={{ mb: 2 }}>
         <Grid size={{ xs: (props.removeFunction && props.hideFundSelect) ? 10 : 12, md: props.hideFundSelect ? (props.removeFunction ? 11 : 12) : 5 }}>
-          <TextField fullWidth name="amount" label={Locale.label("donation.fundDonations.amount")} type="number" disabled={props.params?.amount && props.params.amount !== ""} aria-label="amount" lang="en-150" value={props.fundDonation.amount || ""} onChange={handleChange} InputProps={{ startAdornment: <Icon><Typography>{props.currency ? CurrencyHelper.getCurrencySymbol(props.currency) : "$"}</Typography></Icon> }} />
+          <TextField fullWidth name="amount" label={Locale.label("donation.fundDonations.amount")} type="number" disabled={props.params?.amount && props.params.amount !== ""} aria-label="amount" lang="en-150" value={value || ""} onChange={handleChange} InputProps={{ startAdornment: <Icon><Typography>{props.currency ? CurrencyHelper.getCurrencySymbol(props.currency) : "$"}</Typography></Icon> }} />
         </Grid>
         {!props.hideFundSelect && (
           <Grid size={{ xs: props.removeFunction ? 10 : 12, md: 6 }}>

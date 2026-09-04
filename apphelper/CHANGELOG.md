@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 1.5.1
+
+### Patch Changes
+
+- 3f94541: Stop ImageEditor from loading on every page via a circular chunk (C is not a function). Lazy-load the gallery and cropper, and import ImageEditor siblings directly.
+
 ## 1.5.0
 
 ### Minor Changes

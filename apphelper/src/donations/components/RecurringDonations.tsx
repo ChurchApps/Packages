@@ -120,12 +120,12 @@ export const RecurringDonations: React.FC<Props> = (props) => {
     const result: React.ReactElement[] = [];
     subscription.funds?.forEach((fund: any) => {
       result.push(<div key={subscription.id + fund.id}>
-        {fund.name} <span style={{ float: "right" }}>{CurrencyHelper.convertAmountWithLocale(fund.amount, subscription?.currency, currency)} {subscription?.currency !== currency ? <span style={{ color: "gray" }}>*</span> : ""}</span>
+        {fund.name} <span style={{ float: "right" }}>{CurrencyHelper.convertAmountWithLocale(fund.amount, subscription?.currency || "", currency)} {subscription?.currency !== currency ? <span style={{ color: "gray" }}>*</span> : ""}</span>
       </div>);
     });
     const total = ((subscription.plan?.amount || 0) / 100);
     result.push(<div key={subscription.id + "-total"} style={{ borderTop: "solid #dee2e6 1px" }}>
-        Total <span style={{ float: "right" }}>{CurrencyHelper.convertAmountWithLocale(total, subscription?.currency, currency)} {subscription?.currency !== currency ? <span style={{ color: "gray" }}>*</span> : ""}</span>
+        Total <span style={{ float: "right" }}>{CurrencyHelper.convertAmountWithLocale(total, subscription?.currency || "", currency)} {subscription?.currency !== currency ? <span style={{ color: "gray" }}>*</span> : ""}</span>
     </div>);
     return result;
   };

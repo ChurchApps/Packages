@@ -22,6 +22,7 @@ export class Locale {
     "fr",
     "hi",
     "it",
+    "ja",
     "ko",
     "no",
     "pt",

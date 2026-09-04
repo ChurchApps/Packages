@@ -73,6 +73,9 @@ export interface GroupInterface {
   slug?: string;
   campusId?: string;
   joinPolicy?: "open" | "request" | "closed";
+  // Group chat feed toggles; absent means on.
+  discussionsEnabled?: boolean;
+  announcementsEnabled?: boolean;
   archived?: boolean;
   confidential?: boolean;
   minAgeMonths?: number;

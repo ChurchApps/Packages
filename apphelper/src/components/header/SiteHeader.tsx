@@ -115,10 +115,10 @@ export const SiteHeader = React.memo((props:Props) => {
         else if (props.secondaryMenuLabel === "Forms") result = ["docs/b1-admin/forms/"];
       }
     } else if (props.appName === "B1") {
-      if (props.primaryMenuLabel === "Mobile App") result = ["b1/admin/portal", "b1/mobile/setup"];
-      else if (props.primaryMenuLabel === "Website") result = ["b1/admin/portal", "b1/admin/website-elements", "b1/admin/website-setup"];
-      else if (props.primaryMenuLabel === "Sermons") result = ["b1/admin/sermons", "b1/admin/stream-setup"];
-      else if (props.primaryMenuLabel === "Calendars") result = ["b1/portal/calendars"];
+      if (props.primaryMenuLabel === "Mobile App") result = ["docs/b1-admin/settings/mobile-app", "docs/b1-church/getting-started/installing-pwa"];
+      else if (props.primaryMenuLabel === "Website") result = ["docs/b1-admin/website/initial-setup", "docs/b1-admin/website/page-editor", "docs/b1-admin/website/managing-pages"];
+      else if (props.primaryMenuLabel === "Sermons") result = ["docs/b1-admin/sermons/managing-sermons", "docs/b1-admin/sermons/live-streaming"];
+      else if (props.primaryMenuLabel === "Calendars") result = ["docs/b1-admin/calendars/creating-calendars"];
     }
     return result;
   };

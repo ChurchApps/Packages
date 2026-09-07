@@ -7,6 +7,7 @@ import { PrimaryMenu } from "./PrimaryMenu";
 import { SecondaryMenu } from "./SecondaryMenu";
 import { SecondaryMenuAlt } from "./SecondaryMenuAlt";
 import { SupportDrawer } from "./SupportDrawer";
+import { getSupportArticles } from "./getSupportArticles";
 import { UserContextInterface } from "@churchapps/helpers";
 import { NotificationService } from "../../helpers/NotificationService";
 
@@ -92,37 +93,6 @@ export const SiteHeader = React.memo((props:Props) => {
     })
   );
 
-  const getRelatedArticles = () => {
-    let result: any [] = [];
-    if (props.appName === "B1Admin") {
-      if (props.primaryMenuLabel === "People") {
-        if (props.secondaryMenuLabel === "People") {
-          result = [
-            "docs/b1-admin/people/adding-people",
-            "docs/b1-admin/people/searching-people",
-            "docs/b1-admin/people/roles-permissions"
-          ];
-        } else if (props.secondaryMenuLabel === "Groups") result = ["docs/b1-admin/groups/group-members", "docs/b1-admin/groups", "docs/b1-admin/groups/group-calendar"];
-        else if (props.secondaryMenuLabel === "Attendance") result = ["docs/b1-admin/attendance/", "docs/b1-admin/attendance/check-in"];
-      } else if (props.primaryMenuLabel === "Donations") {
-        if (props.secondaryMenuLabel === "Summary") result = ["docs/b1-admin/donations/donation-reports"];
-        else if (props.secondaryMenuLabel === "Batches" || props.secondaryMenuLabel === "Funds") result = ["docs/b1-admin/donations/", "docs/b1-admin/donations/recording-donations"];
-      } else if (props.primaryMenuLabel === "Serving") {
-        if (props.secondaryMenuLabel === "Plans") result = ["docs/b1-admin/serving/plans"];
-        else if (props.secondaryMenuLabel === "Tasks") result = ["docs/b1-admin/serving/tasks", "docs/b1-admin/serving/automations"];
-      } else if (props.primaryMenuLabel === "Settings") {
-        if (props.secondaryMenuLabel === "Settings") result = ["docs/b1-admin/settings/roles-permissions", "docs/b1-admin/people/exporting-data", "docs/b1-admin/people/importing-data#importing-from-csv", "docs/b1-admin/people/importing-data#importing-from-breeze-chms"];
-        else if (props.secondaryMenuLabel === "Forms") result = ["docs/b1-admin/forms/"];
-      }
-    } else if (props.appName === "B1") {
-      if (props.primaryMenuLabel === "Mobile App") result = ["docs/b1-admin/settings/mobile-app", "docs/b1-church/getting-started/installing-pwa"];
-      else if (props.primaryMenuLabel === "Website") result = ["docs/b1-admin/website/initial-setup", "docs/b1-admin/website/page-editor", "docs/b1-admin/website/managing-pages"];
-      else if (props.primaryMenuLabel === "Sermons") result = ["docs/b1-admin/sermons/managing-sermons", "docs/b1-admin/sermons/live-streaming"];
-      else if (props.primaryMenuLabel === "Calendars") result = ["docs/b1-admin/calendars/creating-calendars"];
-    }
-    return result;
-  };
-
   /*<Typography variant="h6" noWrap>{UserHelper.currentUserChurch?.church?.name || ""}</Typography>*/
   return (<>
     <div id="site-header" style={{
@@ -153,7 +123,7 @@ export const SiteHeader = React.memo((props:Props) => {
             />
           )}
           {!props.context?.user?.id && <Link id="login-link" href="/login" color="inherit" style={{ textDecoration: "none" }}>Login</Link>}
-          <SupportDrawer appName={props.appName} relatedArticles={getRelatedArticles()} />
+          <SupportDrawer appName={props.appName} relatedArticles={getSupportArticles({ appName: props.appName, primaryMenuLabel: props.primaryMenuLabel, secondaryMenuLabel: props.secondaryMenuLabel })} />
         </Toolbar>
       </CustomAppBar>
       <div id="app-bar-spacer" style={{ height: "64px" }}></div>

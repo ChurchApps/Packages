@@ -332,13 +332,18 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
 	React.useEffect(init, []); //eslint-disable-line
 
   const defaultContainerStyle: React.CSSProperties = {
-    minHeight: "100vh",
+    // 100dvh tracks the actually-visible viewport on mobile browsers, where
+    // 100vh assumes the address bar is hidden and pushes content below the fold.
+    minHeight: "100dvh",
     backgroundColor: "white",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
     padding: "16px",
+    // Login renders its footer bar with position:fixed, so reserve its height
+    // here or it covers the bottom of the card (the register link).
+    paddingBottom: "calc(16px + var(--login-footer-height, 0px))",
     position: "relative"
   };
 

@@ -23,6 +23,23 @@ export const Login: React.FC<Props> = ({ mainContainerCssProps = {}, ...props })
   const [email, setEmail] = React.useState(props.defaultEmail || "");
   const [password, setPassword] = React.useState(props.defaultPassword || "");
   const [showPassword, setShowPassword] = React.useState(false);
+  const footerRef = React.useRef<HTMLDivElement>(null);
+
+  // Publish the fixed footer's height so the page wrapper can reserve room for
+  // it; otherwise the footer covers the bottom of the card on short viewports.
+  React.useEffect(() => {
+    const el = footerRef.current;
+    const clear = () => document.documentElement.style.removeProperty("--login-footer-height");
+    if (!props.showFooter || !el || typeof ResizeObserver === "undefined") {
+      clear();
+      return clear;
+    }
+    const apply = () => document.documentElement.style.setProperty("--login-footer-height", `${el.offsetHeight}px`);
+    apply();
+    const observer = new ResizeObserver(apply);
+    observer.observe(el);
+    return () => { observer.disconnect(); clear(); };
+  }, [props.showFooter]);
 
   const validateEmail = (email: string) => (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
 
@@ -239,11 +256,12 @@ export const Login: React.FC<Props> = ({ mainContainerCssProps = {}, ...props })
       </Card>
 
       {props.showFooter && (
-        <div id="login-footer" style={{
+        <div id="login-footer" ref={footerRef} style={{
 				  position: "fixed",
 				  bottom: 0,
 				  left: 0,
 				  right: 0,
+				  zIndex: 1,
 				  backgroundColor: "#f9fafb",
 				  borderTop: "1px solid #e5e7eb",
 				  padding: "16px",

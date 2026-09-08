@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 1.6.1
+
+### Patch Changes
+
+- 534116f: Point the B1 support drawer's Features Tour links at current ChurchAppsSupport doc paths.
+
 ## 1.6.0
 
 ### Minor Changes

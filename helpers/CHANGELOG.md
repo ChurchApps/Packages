@@ -1,5 +1,11 @@
 # @churchapps/helpers
 
+## 2.4.0
+
+### Minor Changes
+
+- 588d81e: Add `discussionsEnabled` and `announcementsEnabled` to `GroupInterface` (per-group chat feed toggles).
+
 ## 2.3.0
 
 ### Minor Changes

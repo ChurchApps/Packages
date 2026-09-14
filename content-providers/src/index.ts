@@ -27,6 +27,13 @@ export { BibleProjectProvider } from "./providers/bibleProject";
 export { HighVoltageKidsProvider } from "./providers/highVoltage";
 export { JesusFilmProvider } from "./providers/jesusFilm";
 export { CbnProvider } from "./providers/cbn";
+export { FreeShowProvider } from "./providers/freeShow";
+export {
+  MOCK_FREESHOW_INSTANCE,
+  networkInstanceToAuth,
+  authToNetworkInstance,
+  type FreeShowDiscoverer
+} from "./providers/freeShow";
 export { LifeChurchProvider } from "./providers/lifeChurch";
 
 export {

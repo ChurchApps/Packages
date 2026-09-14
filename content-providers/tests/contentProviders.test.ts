@@ -11,11 +11,11 @@ import { instructionsToPlaylist, filesToInstructions } from "../src/utils";
 import { toAuthData } from "../src/helpers/TokenHelper";
 import { getPlaylistWithMeta } from "../playground/formats";
 
-const EXPECTED_IDS = "dropbox lessonschurch aplay jesusfilm signpresenter b1church bibleproject planningcenter cbn highvoltagekids lifechurch gocurriculum googledrive".split(" ");
-const COMING_SOON_IDS = "awana freeshow iteachchurch ministrystuff".split(" ");
+const EXPECTED_IDS = "dropbox lessonschurch aplay jesusfilm signpresenter b1church bibleproject planningcenter cbn highvoltagekids lifechurch gocurriculum googledrive freeshow".split(" ");
+const COMING_SOON_IDS = "awana iteachchurch ministrystuff".split(" ");
 const DEVICE_FLOW_IDS = new Set(["signpresenter", "b1church", "cbn"]);
 
-test("registry holds exactly the 13 built-in providers", () => {
+test("registry holds exactly the 14 built-in providers", () => {
   const all = getAllProviders();
   assert.equal(all.length, EXPECTED_IDS.length);
   const ids = all.map(p => p.id).sort();
@@ -92,6 +92,9 @@ test("every provider implements the methods its authTypes and capabilities decla
     }
     if (provider.authTypes.includes("form_login")) {
       assert.ok(has("performLogin"), `${provider.id}.performLogin`);
+    }
+    if (provider.authTypes.includes("network_discovery")) {
+      assert.ok(has("discoverInstances"), `${provider.id}.discoverInstances`);
     }
     if (provider.requiresAuth) {
       assert.ok(!provider.authTypes.includes("none"), `${provider.id}: requiresAuth but authTypes includes "none"`);

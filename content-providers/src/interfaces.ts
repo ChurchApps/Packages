@@ -44,7 +44,15 @@ export interface DeviceFlowState {
   pollCount?: number;
 }
 
-export type AuthType = "none" | "oauth_pkce" | "device_flow" | "form_login";
+export type AuthType = "none" | "oauth_pkce" | "device_flow" | "form_login" | "network_discovery";
+
+export interface NetworkInstance {
+  id: string;
+  name: string;
+  host: string;
+  ip: string;
+  port: number;
+}
 
 export interface ProviderLogos {
   light: string;
@@ -286,6 +294,7 @@ export interface IProvider {
   initiateDeviceFlow?(): Promise<DeviceAuthorizationResponse | null>;
   pollDeviceFlowToken?(deviceCode: string): Promise<DeviceFlowPollResult>;
   performLogin?(email: string, password: string): Promise<ContentProviderAuthData | null>;
+  discoverInstances?(): Promise<NetworkInstance[]>;
 
   getPlaylist?(path: string, auth?: ContentProviderAuthData | null, resolution?: number): Promise<ContentFile[] | null>;
   getInstructions?(path: string, auth?: ContentProviderAuthData | null): Promise<Instructions | null>;

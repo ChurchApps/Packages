@@ -13,6 +13,7 @@ import { PlanningCenterProvider } from "./planningCenter";
 import { SignPresenterProvider } from "./signPresenter";
 import { JesusFilmProvider } from "./jesusFilm";
 import { CbnProvider } from "./cbn";
+import { FreeShowProvider } from "./freeShow";
 
 export { getProvider, getAllProviders, registerProvider } from "./registry";
 
@@ -29,6 +30,7 @@ export { LifeChurchProvider } from "./lifeChurch";
 export { PlanningCenterProvider } from "./planningCenter";
 export { SignPresenterProvider } from "./signPresenter";
 export { CbnProvider } from "./cbn";
+export { FreeShowProvider } from "./freeShow";
 
 interface UnimplementedProvider {
   id: string;
@@ -43,14 +45,6 @@ const unimplementedProviders: UnimplementedProvider[] = [
     logos: {
       light: "https://www.awana.org/wp-content/uploads/2025/04/awana-logo-black.svg",
       dark: "https://www.awana.org/wp-content/uploads/2025/04/awana-logo-white.svg"
-    }
-  },
-  {
-    id: "freeshow",
-    name: "FreeShow",
-    logos: {
-      light: "https://freeshow.app/images/favicon.png",
-      dark: "https://freeshow.app/images/favicon.png"
     }
   },
   {
@@ -85,7 +79,8 @@ function initializeProviders() {
     new LifeChurchProvider(),
     new PlanningCenterProvider(),
     new SignPresenterProvider(),
-    new CbnProvider()
+    new CbnProvider(),
+    new FreeShowProvider()
   ];
   for (const provider of providers) registerProvider(provider);
 }

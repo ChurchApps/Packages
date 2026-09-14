@@ -13,6 +13,7 @@ export interface AttendanceRecordInterface {
   week: number;
   count: number;
   visitDate: Date;
+  checkinTime?: Date;
   groupId: string;
 }
 export interface VisitInterface {

@@ -17,6 +17,7 @@ export * from "./IframeElement";
 export * from "./ImageElement";
 export * from "./LogoElement";
 export * from "./MapElement";
+export * from "./PodcastElement";
 export * from "./RawHTMLElement";
 export * from "./RowElement";
 export * from "./SermonElement";

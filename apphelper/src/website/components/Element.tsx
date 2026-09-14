@@ -24,6 +24,7 @@ import { MapElement } from "./elementTypes/MapElement";
 import { RawHTMLElement } from "./elementTypes/RawHTMLElement";
 import { RowElement } from "./elementTypes/RowElement";
 import { SermonElement } from "./elementTypes/SermonElement";
+import { PodcastElement } from "./elementTypes/PodcastElement";
 import { StreamElement } from "./elementTypes/StreamElement";
 import { DonateLinkElement } from "./elementTypes/DonateLinkElement";
 import { FormElement } from "./elementTypes/FormElement";
@@ -60,6 +61,7 @@ registerDefaultElementRenderer("logo", (p) => <LogoElement key={p.element.id} el
 registerDefaultElementRenderer("map", (p) => <MapElement key={p.element.id} element={p.element} />);
 registerDefaultElementRenderer("rawHTML", (p) => <RawHTMLElement key={p.element.id} element={p.element} onEdit={p.onEdit} />);
 registerDefaultElementRenderer("sermons", (p) => <SermonElement key={p.element.id} churchId={p.church?.id || ""} appearance={p.churchSettings} element={p.element} />);
+registerDefaultElementRenderer("podcast", (p) => <PodcastElement key={p.element.id} element={p.element} onEdit={p.onEdit} />);
 registerDefaultElementRenderer("stream", (p) => p.church ? <StreamElement key={p.element.id} element={p.element} churchSettings={p.churchSettings} church={p.church} editMode={!!p.onEdit} /> : null);
 registerDefaultElementRenderer("donation", (p) => {
   const donationSettings: any = p.element.answers || (p.element.answersJSON ? (() => { try { return JSON.parse(p.element.answersJSON) || {}; } catch { return {}; } })() : {});

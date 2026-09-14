@@ -420,6 +420,23 @@ export const ElementTypes: Record<string, ElementTypeDefinition> = {
       additionalProperties: true
     }
   },
+  podcast: {
+    elementType: "podcast",
+    label: "Podcast",
+    category: "church",
+    schemaVersion: 1,
+    defaults: { feedUrl: "", itemCount: "10", showDates: "true", showDescriptions: "true" },
+    answersSchema: {
+      type: "object",
+      properties: {
+        feedUrl: { type: "string", description: "External podcast RSS feed URL (Apple/Spotify-style feed the church already publishes). The Api fetches and parses it; nothing renders until it is set." },
+        itemCount: { type: ["number", "string"], description: "Max episodes shown (fallback 10); number input may store a string." },
+        showDates: { type: ["string", "boolean"], description: "Checkbox boolean (string \"true\"/\"false\" or native); hides publish dates when false." },
+        showDescriptions: { type: ["string", "boolean"], description: "Checkbox boolean (string \"true\"/\"false\" or native); hides episode descriptions when false." }
+      },
+      additionalProperties: true
+    }
+  },
   stream: {
     elementType: "stream",
     label: "Stream",

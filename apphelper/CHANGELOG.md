@@ -1,5 +1,15 @@
 # @churchapps/apphelper
 
+## 1.7.0
+
+### Minor Changes
+
+- 664e7ef: Add a Podcast website element that renders episodes from an external podcast RSS feed (title, date, description, audio player), separate from the Sermons element.
+
+### Patch Changes
+
+- 456f086: Keep the login page's register link clear of the fixed footer bar on short/mobile viewports
+
 ## 1.6.1
 
 ### Patch Changes

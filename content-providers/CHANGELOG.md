@@ -1,5 +1,11 @@
 # @churchapps/content-providers
 
+## 0.11.0
+
+### Minor Changes
+
+- Add a FreeShow content provider that discovers LAN instances (mockable) and plays a mocked announcements show as a looping playlist
+
 ## 0.10.0
 
 ### Minor Changes

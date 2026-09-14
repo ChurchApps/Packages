@@ -1,0 +1,108 @@
+[
+  "2f357194dfc",
+  {
+    "name": "Announcements",
+    "private": false,
+    "category": "presentation",
+    "settings": {
+      "activeLayout": "f2f357194df",
+      "template": "default"
+    },
+    "timestamps": {
+      "created": 1769712923789,
+      "modified": 1769713271120,
+      "used": 1769713271120
+    },
+    "quickAccess": {},
+    "meta": {},
+    "slides": {
+      "da7b854ee5b": {
+        "group": "Kids Theme Loop",
+        "color": null,
+        "settings": {},
+        "notes": "",
+        "items": []
+      },
+      "5a99fba3e52": {
+        "group": "Preteen Theme",
+        "color": null,
+        "settings": {},
+        "notes": "",
+        "items": []
+      },
+      "52d2ca79bcd": {
+        "group": "Kids Theme Transition to Virtue",
+        "color": null,
+        "settings": {},
+        "notes": "",
+        "items": []
+      },
+      "cd55e66060b": {
+        "group": "Theme",
+        "color": null,
+        "settings": {},
+        "notes": "",
+        "items": []
+      }
+    },
+    "layouts": {
+      "f2f357194df": {
+        "name": "Default",
+        "notes": "",
+        "slides": [
+          {
+            "id": "da7b854ee5b",
+            "background": "a7b854ee5bf",
+            "actions": { "nextAfterMedia": true }
+          },
+          {
+            "id": "5a99fba3e52",
+            "background": "a99fba3e52d",
+            "nextTimer": 7
+          },
+          {
+            "id": "52d2ca79bcd",
+            "background": "2d2ca79bcd5",
+            "actions": { "nextAfterMedia": true }
+          },
+          {
+            "id": "cd55e66060b",
+            "background": "d55e66060b8",
+            "nextTimer": 7,
+            "end": true
+          }
+        ]
+      }
+    },
+    "media": {
+      "a7b854ee5bf": {
+        "name": "Kids Theme Loop",
+        "path": "https://stream.mux.com/kDsWzEqyN7TDoMM3Aykfq1QhEo01JhCWO7t2sABictzk/capped-1080p.mp4",
+        "type": "video",
+        "contentProvider": "amazinglife",
+        "muted": false,
+        "loop": false
+      },
+      "a99fba3e52d": {
+        "name": "Preteen Theme",
+        "path": "https://www.datocms-assets.com/75190/1746649082-2507_screen_preteen_theme.jpg",
+        "type": "image",
+        "contentProvider": "amazinglife"
+      },
+      "2d2ca79bcd5": {
+        "name": "Kids Theme Transition to Virtue",
+        "path": "https://stream.mux.com/101lB00Wj00AMUsjbuNYkNofkNHQXpZeThL3mFZNsSB5A00/capped-1080p.mp4",
+        "type": "video",
+        "contentProvider": "amazinglife",
+        "muted": false,
+        "loop": false
+      },
+      "d55e66060b8": {
+        "name": "Theme",
+        "path": "https://www.datocms-assets.com/75190/1746648669-2507_screen_kids_theme.jpg",
+        "type": "image",
+        "contentProvider": "amazinglife"
+      }
+    }
+  }
+]

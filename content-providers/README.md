@@ -52,6 +52,7 @@ const plan = await provider.getPresentations(serviceId);
 - **CbnProvider** - CBN Superbook curriculum
 - **HighVoltageKidsProvider** - High Voltage Kids curriculum (static catalog)
 - **LifeChurchProvider** - Life.Church kids curriculum (static catalog)
+- **FreeShowProvider** - FreeShow shows discovered on the local network (mocked announcements playlist)
 
 ### Create a Custom Provider
 
@@ -66,6 +67,7 @@ class MyProvider extends BaseProvider {
   //                   (OAuthHelper implements the standard flow; delegate to it like SignPresenterProvider)
   //   device_flow  -> initiateDeviceFlow / pollDeviceFlowToken (see DeviceFlowHelper)
   //   form_login   -> performLogin
+  //   network_discovery -> discoverInstances
   //   playlist / instructions / mediaLicensing -> getPlaylist / getInstructions / checkMediaLicense
   // The protected apiRequest() helper performs authenticated JSON fetches against config.apiBase.
 }

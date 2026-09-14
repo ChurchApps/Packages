@@ -1,5 +1,11 @@
 # @churchapps/helpers
 
+## 2.5.0
+
+### Minor Changes
+
+- 664e7ef: Add a Podcast website element that renders episodes from an external podcast RSS feed (title, date, description, audio player), separate from the Sermons element.
+
 ## 2.4.0
 
 ### Minor Changes

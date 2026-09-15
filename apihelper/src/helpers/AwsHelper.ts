@@ -131,7 +131,9 @@ export class AwsHelper {
       });
       const response = await this.getClient().send(command);
       return (await response.Body?.transformToString()) ?? null;
-    } catch (error) {
+    } catch (error: any) {
+      const code = error?.name || error?.Code || error?.code;
+      if (code === "NoSuchKey" || error?.$metadata?.httpStatusCode === 404) return null;
       console.error("Error reading from S3:", error);
       return null;
     }

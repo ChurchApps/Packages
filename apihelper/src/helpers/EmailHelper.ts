@@ -26,20 +26,33 @@ export class EmailHelper {
     }
   }
 
+  private static safeImageUrl(value?: string) {
+    if (!value) return "";
+    try {
+      const url = new URL(value);
+      if (url.protocol !== "https:" && url.protocol !== "http:") return "";
+      return EmailHelper.escapeHtml(url.href);
+    } catch {
+      return "";
+    }
+  }
+
 
   private static getSESClient(): SESClient {
     return new SESClient({ region: "us-east-2" });
   }
 
-  public static async sendTemplatedEmail(from: string, to: string, appName: string, appUrl: string, subject: string, contents: string, emailTemplate: "EmailTemplate.html" | "ChurchEmailTemplate.html" = "EmailTemplate.html", replyTo?: string) {
+  public static async sendTemplatedEmail(from: string, to: string, appName: string, appUrl: string, subject: string, contents: string, emailTemplate: "EmailTemplate.html" | "ChurchEmailTemplate.html" = "EmailTemplate.html", replyTo?: string, logoUrl?: string) {
     if (!appName) appName = "B1";
     if (!appUrl) appUrl = "https://b1.church";
     appName = EmailHelper.escapeHtml(appName);
     appUrl = EmailHelper.safeHttpUrl(appUrl);
+    const safeLogoUrl = EmailHelper.safeImageUrl(logoUrl);
+    const logo = safeLogoUrl ? "<img src=\"" + safeLogoUrl + "\" alt=\"Logo: \" style=\"width: 100%\" /> " : "";
 
     const template = EmailHelper.readTemplate(emailTemplate);
     const emailBody = template
-      .replace("{appLink}", "<a target='_blank' rel='noreferrer noopener' href=\"" + appUrl + "/\">" + appName + "</a>")
+      .replace("{appLink}", "<a target='_blank' rel='noreferrer noopener' href=\"" + appUrl + "/\">" + logo + appName + "</a>")
       .replace("{contents}", contents);
     await EmailHelper.sendEmail({ from, to, subject, body: emailBody, replyTo });
   }

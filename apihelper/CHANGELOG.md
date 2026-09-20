@@ -1,5 +1,12 @@
 # @churchapps/apihelper
 
+## 1.1.4
+
+### Patch Changes
+
+- 19b17d3: Add an optional `logoUrl` to `EmailHelper.sendTemplatedEmail` so church emails can show a logo while the app name stays escaped.
+- 48b3c8e: Do not log expected S3 NoSuchKey misses as errors.
+
 ## 1.1.3
 
 ### Patch Changes

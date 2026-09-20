@@ -1,5 +1,11 @@
 # @churchapps/helpers
 
+## 2.5.1
+
+### Patch Changes
+
+- ca212fa: Add optional checkinTime to AttendanceRecordInterface so clients can display the actual check-in instant separately from visitDate.
+
 ## 2.5.0
 
 ### Minor Changes

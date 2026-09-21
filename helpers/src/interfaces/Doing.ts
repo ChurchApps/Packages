@@ -163,6 +163,7 @@ export interface PlanItemTimeInterface {
   planItemId?: string;
   timeId?: string;
   excluded?: boolean;
+  positionId?: string;
 }
 export interface BlockoutDateInterface {
   id?: string;

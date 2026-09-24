@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 1.7.1
+
+### Patch Changes
+
+- 302f95c: Register now tells people who already have a ChurchApps account to sign in instead of showing "user already exists".
+
 ## 1.7.0
 
 ### Minor Changes

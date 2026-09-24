@@ -57,7 +57,7 @@ export const Register: React.FC<Props> = (props) => {
       const resp: CheckEmailResponseInterface = await ApiHelper.postAnonymous("/users/checkEmail", { email: emailToCheck }, "MembershipApi");
       if (submissionStartedRef.current) return;
       if (resp.exists) {
-        props.updateErrors(["An account already exists for this email. Please sign in instead."]);
+        props.updateErrors([Locale.label("login.accountExists")]);
       } else if (resp.peopleMatches.length > 0) {
         const match = resp.peopleMatches[0];
         const u = { ...user, email: emailToCheck };
@@ -72,8 +72,10 @@ export const Register: React.FC<Props> = (props) => {
     } catch { /* no-op */ }
   };
 
+  const friendlyErrors = (errs: string[]) => errs.map((err) => /already exists/i.test(String(err)) ? Locale.label("login.accountExists") : err);
+
   const handleRegisterErrors = (errs: string[]) => {
-    props.updateErrors(errs);
+    props.updateErrors(friendlyErrors(errs));
   };
 
   const handleRegisterSuccess = (resp: LoginResponseInterface) => {
@@ -121,7 +123,7 @@ export const Register: React.FC<Props> = (props) => {
             props.onVerified(resp.authGuid, user.email || "");
           } else handleRegisterSuccess(resp);
         })
-        .catch((e: any) => { props.updateErrors([e.toString()]); })
+        .catch((e: any) => { props.updateErrors(friendlyErrors([e.toString()])); })
         .finally(() => {
           setIsSubmitting(false);
         });

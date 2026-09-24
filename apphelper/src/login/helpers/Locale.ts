@@ -48,6 +48,7 @@ export class Locale {
       "update": "Update"
     },
     "login": {
+      "accountExists": "You already have a ChurchApps account. Please sign in with it instead.",
       "continueGoogle": "Continue with Google",
       "continueMicrosoft": "Continue with Microsoft",
       "createAccount": "Create an Account",

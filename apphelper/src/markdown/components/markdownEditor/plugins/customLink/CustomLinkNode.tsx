@@ -1,6 +1,7 @@
 import { LexicalNode, createCommand, LexicalCommand, $isElementNode, $getSelection, ElementNode, NodeKey, $applyNodeReplacement, $isRangeSelection } from "lexical";
 import { LinkNode } from "@lexical/link";
 import { addClassNamesToElement } from "@lexical/utils";
+import { isSafeHref } from "../../markdownPreviewHtml";
 
 export interface LinkCustomizationAttributes {
   url: string;
@@ -57,7 +58,7 @@ export class CustomLinkNode extends LinkNode {
   createDOM() {
     const link = document.createElement("a");
 
-    link.href = this.__url;
+    if (isSafeHref(this.__url)) link.href = this.__url;
 
     link.setAttribute("target", this.__target || "_blank");
 
@@ -117,7 +118,8 @@ export const toggleCustomLinkNode = (
 
     linkNode.setClassNames(uniqueClassNames);
 
-    dom.setAttribute("href", url);
+    if (isSafeHref(url)) dom.setAttribute("href", url);
+    else dom.removeAttribute("href");
     dom.setAttribute("target", target);
 
     dom.setAttribute("class", uniqueClassNames.join(" "));

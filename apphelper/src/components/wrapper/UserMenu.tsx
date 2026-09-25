@@ -224,7 +224,7 @@ const UserMenuContent: React.FC<Props> = React.memo((props) => {
       const subDomain = props.context?.userChurch?.church?.subDomain;
       const b1Url = CommonEnvironmentHelper.B1Root.replace("{key}", subDomain || "");
       const returnUrl = encodeURIComponent(`/mobile/community/${personId}`);
-      return <NavItem url={`${b1Url}/login?jwt=${jwt}&churchId=${churchId}&returnUrl=${returnUrl}`} external={true} label={getLabel("wrapper.editChurchProfile", "Edit Church Profile")} icon="church" onNavigate={props.onNavigate} />;
+      return <NavItem url={`${b1Url}/login?churchId=${churchId}&returnUrl=${returnUrl}#jwt=${encodeURIComponent(jwt || "")}`} external={true} label={getLabel("wrapper.editChurchProfile", "Edit Church Profile")} icon="church" onNavigate={props.onNavigate} />;
     }
   };
 

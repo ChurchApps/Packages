@@ -36,6 +36,7 @@ interface Props {
 }
 
 const COOKIE_MAX_AGE = 2 * 24 * 60 * 60;
+const isLocalPath = (url: string) => /^\/(?![/\\])/.test(url.replace(/[\t\n\r]/g, ""));
 
 const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssProps, ...props }) => {
   const [welcomeBackName, setWelcomeBackName] = React.useState("");
@@ -90,7 +91,7 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
 
     const search = new URLSearchParams(location?.search);
     const rawReturnUrl = search.get("returnUrl") || props.returnUrl || "/";
-    const returnUrl = rawReturnUrl.startsWith("/") && !rawReturnUrl.startsWith("//") ? rawReturnUrl : "/";
+    const returnUrl = isLocalPath(rawReturnUrl) ? rawReturnUrl : "/";
 
     if (props.handleRedirect) {
       props.handleRedirect(returnUrl);
@@ -211,7 +212,7 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
 
     const search = new URLSearchParams(location?.search);
     const rawReturnUrl = search.get("returnUrl") || props.returnUrl || "/";
-    const returnUrl = rawReturnUrl.startsWith("/") && !rawReturnUrl.startsWith("//") ? rawReturnUrl : "/";
+    const returnUrl = isLocalPath(rawReturnUrl) ? rawReturnUrl : "/";
     if (returnUrl && typeof window !== "undefined") {
       if (props.handleRedirect) {
         props.handleRedirect(returnUrl, UserHelper.user, person, UserHelper.currentUserChurch, UserHelper.userChurches);

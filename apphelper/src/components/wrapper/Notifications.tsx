@@ -30,6 +30,8 @@ import {
 import { NotificationInterface, UserContextInterface } from "@churchapps/helpers";
 import { DateHelper } from "../../helpers";
 
+const isSafeLink = (url: string) => /^(https?:\/\/|\/(?![/\\]))/i.test(url.replace(/\s/g, ""));
+
 interface Props {
   appName: string;
   context: UserContextInterface;
@@ -199,7 +201,7 @@ export const Notifications: React.FC<Props> = (props) => {
                     </Stack>
                   }
                   secondary={
-                    notification.link && (
+                    notification.link && isSafeLink(notification.link) && (
                       <Box sx={{ mt: 1 }}>
                         <IconButton
                           size="small"

@@ -21,7 +21,7 @@ export const MapElement = ({ element }: Props) => {
   useEffect(() => {
     if (!apiKey || !element.answers?.mapAddress) return;
     fetch(
-      `https://maps.googleapis.com/maps/api/geocode/json?address=${element.answers.mapAddress}&key=${apiKey}`
+      `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(element.answers.mapAddress)}&key=${apiKey}`
     )
       .then((res) => res.json())
       .then((data) => setCenter(data?.results?.[0]?.geometry?.location));

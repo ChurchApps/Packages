@@ -21,31 +21,20 @@ Code moves here only when it has **two or more real consumers today** and a **st
 
 ## Releasing
 
-Versioning is tracked with changesets; **publishing to npm is manual and local** (nothing in CI publishes).
+Versioning is tracked with changesets; **publishing is automatic**. Every push to `main` runs `.github/workflows/release.yml`, which consumes pending changesets, pushes a `Version packages` commit back to `main`, and publishes the bumped packages to npm via trusted publishing (OIDC, with provenance). Nobody publishes from a laptop, and no npm token exists.
 
 ### With every change
 
-Run `yarn changeset` at the root. Pick the package(s) you touched, the bump type (patch = fix, minor = new export/feature, major = breaking), and write a one-line summary — it becomes the CHANGELOG entry. Commit the generated `.changeset/*.md` file together with your code change (VS Code as usual). Changesets accumulate across commits until you release; `yarn changeset status` shows what's pending.
+Run `yarn changeset` at the root. Pick the package(s) you touched, the bump type (patch = fix, minor = new export/feature, major = breaking), and write a one-line summary — it becomes the CHANGELOG entry. Commit the generated `.changeset/*.md` file together with your code change. Merging to `main` releases it; `yarn changeset status` shows what's pending.
 
 This is **enforced by a pre-commit hook** (`.githooks/pre-commit`, activated by `postinstall` setting `core.hooksPath`): committing staged changes to any package's `src/`, `public/`, or `package.json` without a staged changeset file is blocked. For changes that genuinely don't affect published behavior, bypass with `git commit --no-verify`. (On macOS/Linux clones, give the hook the executable bit once: `chmod +x .githooks/pre-commit`.)
 
-### When ready to publish
-
-```bash
-yarn publish-all
-```
-
-That runs two steps you can also invoke separately:
-- `yarn version-packages` — consumes pending changesets: bumps package.json versions, writes CHANGELOGs, syncs internal dep ranges, updates yarn.lock
-- `yarn release` — builds everything in dependency order, then publishes the bumped packages to npm (uses your npm login; no git tags)
-
-Then commit and push everything in VS Code (the version bumps, CHANGELOGs, lockfile, and deleted changeset files) with a message like `Version packages`. Publishing before committing is fine — npm reads what's on disk, and `--no-git-tag` means nothing touches git. (The pre-commit hook accepts this commit because the consumed `.changeset/*.md` deletions are staged.)
-
 Notes:
-- `npm whoami` must show an account with publish rights to `@churchapps`.
-- `yarn release` is idempotent: it skips packages already published at their current version, so if a build fails halfway, fix and re-run.
+- Pull after merging — the release job pushes the `Version packages` commit (bumps, CHANGELOGs, lockfile, deleted changesets) to `main`.
+- The publish step is idempotent: it skips versions already on the registry, so re-run the workflow after a partial failure.
 - Internal dependents are bumped automatically (e.g. a `helpers` release patch-bumps `apihelper`/`apphelper` so their ranges stay current).
-- Don't run raw `npm publish` inside a single package — it skips build ordering and the version bookkeeping `yarn release` handles.
+- Each package's trusted publisher on npmjs.com names `ChurchApps/Packages` + `release.yml`. Renaming the workflow file breaks publishing until those are updated (`npm trust list <pkg>`).
+- Don't publish locally (`yarn release`, `npm publish`). If CI is down and a release can't wait, `yarn publish-all` still works with an npm login + 2FA — then push the version commit yourself.
 
 ## Deprecation rule
 

@@ -2,6 +2,7 @@
 import React, { useEffect } from "react";
 import { StreamingServiceExtendedInterface } from "../../helpers";
 import type { AppearanceInterface } from "../../..";
+import { DateHelper } from "../../..";
 
 interface Props {
   currentService: StreamingServiceExtendedInterface | null;
@@ -16,7 +17,7 @@ export const VideoContainer: React.FC<Props> = (props) => {
   const getCountdownTime = (serviceTime: Date) => {
     let remainingSeconds = Math.floor((serviceTime.getTime() - currentTime) / 1000);
     if (remainingSeconds > 86400) {
-      return serviceTime.toDateString() + " - " + serviceTime.toLocaleString("en-US", { hour: "numeric", minute: "numeric", hour12: true });
+      return serviceTime.toDateString() + " - " + serviceTime.toLocaleString(DateHelper.locale, { hour: "numeric", minute: "numeric" });
     } else {
       const hours = Math.floor(remainingSeconds / 3600);
       remainingSeconds = remainingSeconds - (hours * 3600);

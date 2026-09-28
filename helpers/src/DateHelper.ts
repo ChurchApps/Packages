@@ -8,6 +8,32 @@ dayjs.extend(customParseFormat);
 
 export class DateHelper {
 
+  // Church region (BCP 47, e.g. "en-GB") used for display formatting. en-US keeps the legacy formats.
+  static locale = "en-US";
+
+  static setLocale(locale?: string | null) {
+    DateHelper.locale = DateHelper.normalizeLocale(locale);
+  }
+
+  static normalizeLocale(locale?: string | null) {
+    if (!locale) return "en-US";
+    try {
+      return Intl.DateTimeFormat.supportedLocalesOf([locale])[0] || "en-US";
+    } catch { return "en-US"; }
+  }
+
+  // Intl options for callers that need a custom date/time shape in the church region.
+  static formatLocale(date: Date, options: Intl.DateTimeFormatOptions) {
+    if (date === undefined || date === null) return "";
+    const d = date instanceof Date ? date : new Date(date);
+    if (isNaN(d.getTime())) return "";
+    return new Intl.DateTimeFormat(DateHelper.locale, options).format(d);
+  }
+
+  private static useLegacyFormat() {
+    return DateHelper.locale === "en-US";
+  }
+
   //Fixes timezone issues when you just need the date.
   static toDate(input: any) {
     const str = input.toString();
@@ -39,16 +65,19 @@ export class DateHelper {
 
   static prettyDate(date: Date) {
     if (date === undefined || date === null) return "";
+    if (!DateHelper.useLegacyFormat()) return DateHelper.formatLocale(date, { dateStyle: "medium" });
     return this.formatDateTime(date, "MMM d, yyyy");
   }
 
   static prettyDateTime(date: Date) {
     if (date === undefined || date === null) return "";
+    if (!DateHelper.useLegacyFormat()) return DateHelper.formatLocale(date, { dateStyle: "medium", timeStyle: "short" });
     return this.formatDateTime(date, "MMM d, yyyy h:mm a");
   }
 
   static prettyTime(date: Date) {
     if (date === undefined || date === null) return "";
+    if (!DateHelper.useLegacyFormat()) return DateHelper.formatLocale(date, { timeStyle: "short" });
     return this.formatDateTime(date, "h:mm a");
   }
 
@@ -138,6 +167,7 @@ export class DateHelper {
   }
 
   static getShortDate(d: Date): string {
+    if (!DateHelper.useLegacyFormat()) return DateHelper.formatLocale(d, { year: "numeric", month: "numeric", day: "numeric" });
     return (d.getMonth() + 1).toString() + "/" + (d.getDate()).toString() + "/" + d.getFullYear().toString();
   }
 

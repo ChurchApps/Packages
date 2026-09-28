@@ -6,7 +6,7 @@ import TopicIcon from "@mui/icons-material/Topic";
 import LiveTvIcon from "@mui/icons-material/LiveTv";
 import PlayCircleOutlineIcon from "@mui/icons-material/PlayCircleOutline";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import { ApiHelper } from "../../..";
+import { ApiHelper, DateHelper } from "../../..";
 import { AppearanceHelper } from "../../..";
 import { Loading } from "../../..";
 import type { PlaylistInterface, SermonInterface } from "@churchapps/helpers";
@@ -57,7 +57,7 @@ export const SermonElement = ({ churchId, appearance, element }: Props) => {
     if (!date) return "";
     const d = new Date(date);
     if (isNaN(d.getTime())) return "";
-    return d.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+    return d.toLocaleDateString(DateHelper.locale, { year: "numeric", month: "long", day: "numeric" });
   };
 
   const thumbFor = (item: SermonInterface) => item.thumbnail || AppearanceHelper.getLogo(appearance, "/images/logo.png", "/images/logo.png", "#FFF");

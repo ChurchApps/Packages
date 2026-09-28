@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { ApiHelper } from "../../..";
+import { ApiHelper, DateHelper } from "../../..";
 import { ElementInterface, SectionInterface } from "../../helpers";
 
 interface PodcastEpisode {
@@ -35,7 +35,7 @@ const formatDate = (iso: string) => {
   if (!iso) return "";
   const d = new Date(iso);
   if (isNaN(d.getTime())) return "";
-  return d.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+  return d.toLocaleDateString(DateHelper.locale, { year: "numeric", month: "long", day: "numeric" });
 };
 
 const formatDuration = (seconds: number) => {

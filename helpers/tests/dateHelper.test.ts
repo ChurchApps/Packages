@@ -97,3 +97,39 @@ test("toMysqlDate formats a Date as 'YYYY-MM-DD HH:mm:ss' in local time (dayjs d
   assert.equal(DateHelper.toMysqlDate(null as unknown as Date), undefined);
   assert.equal(DateHelper.toMysqlDate(undefined as unknown as Date), undefined);
 });
+
+test("church region: unset and en-US keep the legacy display strings exactly", () => {
+  const d = new Date(2026, 8, 28, 15, 5);
+  for (const locale of [undefined, "en-US"]) {
+    DateHelper.setLocale(locale);
+    assert.equal(DateHelper.locale, "en-US");
+    assert.equal(DateHelper.prettyDate(d), "Sep 28, 2026");
+    assert.equal(DateHelper.prettyDateTime(d), "Sep 28, 2026 3:05 PM");
+    assert.equal(DateHelper.prettyTime(d), "3:05 PM");
+    assert.equal(DateHelper.getShortDate(d), "9/28/2026");
+  }
+});
+
+test("church region: en-GB formats dates day-first and times in 24h", () => {
+  const d = new Date(2026, 8, 28, 15, 5);
+  DateHelper.setLocale("en-GB");
+  try {
+    assert.equal(DateHelper.locale, "en-GB");
+    assert.equal(DateHelper.getShortDate(d), "28/09/2026");
+    assert.match(DateHelper.prettyDate(d), /^28 Sept? 2026$/);
+    assert.match(DateHelper.prettyDateTime(d), /^28 Sept? 2026,? 15:05$/);
+    assert.equal(DateHelper.prettyTime(d), "15:05");
+    assert.equal(DateHelper.formatLocale(d, { month: "long", day: "numeric" }), "28 September");
+    // Wire formats never follow the region.
+    assert.equal(DateHelper.formatHtml5Date(d), "2026-09-28");
+    assert.equal(DateHelper.toMysqlDate(d), "2026-09-28 15:05:00");
+  } finally {
+    DateHelper.setLocale("en-US");
+  }
+});
+
+test("church region: an invalid locale falls back to en-US", () => {
+  DateHelper.setLocale("not a locale!!");
+  assert.equal(DateHelper.locale, "en-US");
+  assert.equal(DateHelper.prettyDate(new Date(2026, 8, 28)), "Sep 28, 2026");
+});

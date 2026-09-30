@@ -35,7 +35,8 @@ interface Props {
 	handleRedirect?: (url: string, user?: UserInterface, person?: PersonInterface, userChurch?: LoginUserChurchInterface, userChurches?: LoginUserChurchInterface[]) => void; // Function to handle redirects from parent component
 }
 
-const COOKIE_MAX_AGE = 2 * 24 * 60 * 60;
+// Outlive the 2-day user jwt plus the Api's 30-day refresh window, so an expired jwt can still be traded for a new one.
+const COOKIE_MAX_AGE = 32 * 24 * 60 * 60;
 const isLocalPath = (url: string) => /^\/(?![/\\])/.test(url.replace(/[\t\n\r]/g, ""));
 
 const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssProps, ...props }) => {
@@ -188,7 +189,7 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
 
   async function continueLoginProcess() {
     if (UserHelper.currentUserChurch) {
-      // Store the user JWT (180-day) for session persistence, not the API JWT (2-day)
+      // Store the user JWT (refreshable for 30 days after it expires) for session persistence, not the API JWT
       setCookie("jwt", userJwt || userJwtBackup, { path: "/", maxAge: COOKIE_MAX_AGE, secure: window.location.protocol === "https:", sameSite: "lax" });
       try {
         if (UserHelper.currentUserChurch.church.id) ApiHelper.patch(`/userChurch/${UserHelper.user.id}`, { churchId: UserHelper.currentUserChurch.church.id, appName: props.appName, lastAccessed: new Date() }, "MembershipApi");

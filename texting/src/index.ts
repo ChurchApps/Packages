@@ -17,3 +17,4 @@ export {
 export { TextInChurchProvider } from "./providers/textInChurch/index.js";
 export { ClearstreamProvider } from "./providers/clearstream/index.js";
 export { MutualMinistryProvider } from "./providers/mutualMinistry/index.js";
+export { NaloProvider } from "./providers/nalo/index.js";

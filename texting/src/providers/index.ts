@@ -3,6 +3,7 @@ import { TextInChurchProvider } from "./textInChurch/index.js";
 import { ClearstreamProvider } from "./clearstream/index.js";
 import { MutualMinistryProvider } from "./mutualMinistry/index.js";
 import { MinistryStuffProvider } from "./ministryStuff/index.js";
+import { NaloProvider } from "./nalo/index.js";
 
 const providers = new Map<string, ITextingProvider>();
 
@@ -11,6 +12,7 @@ providers.set("textinchurch", new TextInChurchProvider());
 providers.set("clearstream", new ClearstreamProvider());
 providers.set("mutualministry", new MutualMinistryProvider());
 providers.set("ministrystuff", new MinistryStuffProvider());
+providers.set("nalo", new NaloProvider());
 
 const providerMeta: Record<string, Omit<ProviderInfo, "id">> = {
   clearstream: {
@@ -40,6 +42,13 @@ const providerMeta: Record<string, Omit<ProviderInfo, "id">> = {
     requiresSecret: false,
     settingsUrl: "https://ministrystuff.org",
     helpText: "Flat-rate monthly texting credits. No API key needed - your MinistryStuff subscription is linked to your church automatically."
+  },
+  nalo: {
+    name: "Nalo Solutions",
+    requiresApiKey: true,
+    requiresSecret: false,
+    settingsUrl: "https://www.nalosolutions.com",
+    helpText: "Ghana SMS gateway. Enter the auth key from your Nalo account and a sender ID that Nalo has approved for your account."
   }
 };
 
@@ -74,3 +83,4 @@ export { TextInChurchProvider } from "./textInChurch/index.js";
 export { ClearstreamProvider } from "./clearstream/index.js";
 export { MutualMinistryProvider } from "./mutualMinistry/index.js";
 export { MinistryStuffProvider } from "./ministryStuff/index.js";
+export { NaloProvider } from "./nalo/index.js";

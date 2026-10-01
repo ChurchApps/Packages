@@ -1,4 +1,4 @@
-import { ContentItem, ContentFile, Plan, PlanSection, PlanPresentation } from "../../interfaces";
+import { ContentItem, ContentFile } from "../../interfaces";
 import { createFile, createFolder, slugify } from "../../utils";
 import { HighVoltageData, LessonFolder, StudyFolder } from "./HighVoltageKidsInterfaces";
 
@@ -54,27 +54,6 @@ export function findLesson(data: HighVoltageData, collectionSlug: string, studyI
 
   const lesson = study.lessons.find(l => l.id === lessonId);
   return lesson || null;
-}
-
-export function buildStudyPlan(study: StudyFolder): Plan {
-  const allFiles: ContentFile[] = [];
-  const sections: PlanSection[] = study.lessons.map(lesson => {
-    const files: ContentFile[] = lesson.files.map(file => {
-      const contentFile: ContentFile = { type: "file", id: file.id, title: file.title, mediaType: file.mediaType as "video" | "image", url: file.url, thumbnail: lesson.image };
-      allFiles.push(contentFile);
-      return contentFile;
-    });
-    const presentation: PlanPresentation = { id: lesson.id, name: lesson.name, actionType: "play", files };
-    return { id: lesson.id, name: lesson.name, presentations: [presentation] };
-  });
-
-  return { id: study.id, name: study.name, thumbnail: study.image, sections, allFiles };
-}
-
-export function buildLessonPlan(lesson: LessonFolder): Plan {
-  const files: ContentFile[] = lesson.files.map(file => ({ type: "file" as const, id: file.id, title: file.title, mediaType: file.mediaType as "video" | "image", url: file.url, thumbnail: lesson.image }));
-  const presentation: PlanPresentation = { id: lesson.id, name: lesson.name, actionType: "play", files };
-  return { id: lesson.id, name: lesson.name, thumbnail: lesson.image, sections: [{ id: "main", name: "Content", presentations: [presentation] }], allFiles: files };
 }
 
 export function buildStudyPlaylist(study: StudyFolder): ContentFile[] {

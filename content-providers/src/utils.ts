@@ -52,7 +52,7 @@ function generateId(): string {
 }
 
 /** Wrap a ContentFile in the standard play-action InstructionItem used by most providers. */
-export function fileToActionItem(file: ContentFile): InstructionItem {
+function fileToActionItem(file: ContentFile): InstructionItem {
   return {
     id: file.id + "-action",
     itemType: "action",

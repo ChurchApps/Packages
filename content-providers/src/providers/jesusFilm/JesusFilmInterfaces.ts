@@ -1,4 +1,4 @@
-export interface ArclightImageUrls {
+interface ArclightImageUrls {
   thumbnail?: string;
   videoStill?: string;
   mobileCinematicHigh?: string;
@@ -28,7 +28,7 @@ export interface ArclightMediaListResponse {
   total: number;
 }
 
-export interface ArclightDownloadUrl {
+interface ArclightDownloadUrl {
   url: string;
   width: number;
   height: number;

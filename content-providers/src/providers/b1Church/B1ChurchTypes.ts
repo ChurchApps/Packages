@@ -44,26 +44,3 @@ export interface B1PlanItem {
   link?: string;
   children?: B1PlanItem[];
 }
-
-export interface ArrangementKeyResponse {
-  arrangementKey?: {
-    id: string;
-    keySignature?: string;
-  };
-  arrangement?: {
-    id: string;
-    name?: string;
-    lyrics?: string;
-  };
-  song?: {
-    id: string;
-    dateAdded?: string;
-    notes?: string;
-  };
-  songDetail?: {
-    title?: string;
-    artist?: string;
-    seconds?: number;
-    keySignature?: string;
-  };
-}

@@ -78,9 +78,3 @@ export function getProviderInfo(): ProviderInfo[] {
     ...(providerMeta[id] || { name: providers.get(id)!.name, requiresApiKey: true, requiresSecret: false, settingsUrl: "", helpText: "" })
   }));
 }
-
-export { TextInChurchProvider } from "./textInChurch/index.js";
-export { ClearstreamProvider } from "./clearstream/index.js";
-export { MutualMinistryProvider } from "./mutualMinistry/index.js";
-export { MinistryStuffProvider } from "./ministryStuff/index.js";
-export { NaloProvider } from "./nalo/index.js";

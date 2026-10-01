@@ -23,7 +23,7 @@ export interface StudyFolder {
   lessons: LessonFolder[];
 }
 
-export interface Collection {
+interface Collection {
   name: string;
   folders: StudyFolder[];
 }

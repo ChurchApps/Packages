@@ -3,7 +3,7 @@ import { createFolder, createFile } from "../../utils";
 import { CbnCatalogCourse, CbnLesson, CbnLessonPlaylist, CbnThumb } from "./CbnInterfaces";
 
 /** Normalize a `thumb` (plain URL string or WordPress attachment object) to a URL string. */
-export function resolveThumb(thumb: CbnThumb | null | undefined): string | undefined {
+function resolveThumb(thumb: CbnThumb | null | undefined): string | undefined {
   if (typeof thumb === "string") return thumb || undefined;
   if (thumb && typeof thumb === "object") {
     const medium = thumb.sizes?.medium;

@@ -1,5 +1,5 @@
 export { OAuthHelper } from "./OAuthHelper";
-export { TokenHelper, authIsExpired, toAuthData } from "./TokenHelper";
+export { TokenHelper } from "./TokenHelper";
 export { DeviceFlowHelper } from "./DeviceFlowHelper";
 export { ApiHelper } from "./ApiHelper";
-export { setProviderSecret, getProviderSecret } from "./ProviderSecrets";
+export { setProviderSecret } from "./ProviderSecrets";

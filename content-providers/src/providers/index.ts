@@ -17,21 +17,6 @@ import { FreeShowProvider } from "./freeShow";
 
 export { getProvider, getAllProviders, registerProvider } from "./registry";
 
-export { APlayProvider } from "./aPlay";
-export { B1ChurchProvider } from "./b1Church";
-export { DropboxProvider } from "./dropbox";
-export { GoCurriculumProvider } from "./goCurriculum";
-export { GoogleDriveProvider } from "./googledrive";
-export { BibleProjectProvider } from "./bibleProject";
-export { HighVoltageKidsProvider } from "./highVoltage";
-export { JesusFilmProvider } from "./jesusFilm";
-export { LessonsChurchProvider } from "./lessonsChurch";
-export { LifeChurchProvider } from "./lifeChurch";
-export { PlanningCenterProvider } from "./planningCenter";
-export { SignPresenterProvider } from "./signPresenter";
-export { CbnProvider } from "./cbn";
-export { FreeShowProvider } from "./freeShow";
-
 interface UnimplementedProvider {
   id: string;
   name: string;

@@ -43,7 +43,7 @@ export interface CbnCourseDetail {
 }
 
 /** A single video from a lesson playlist */
-export interface CbnPlaylistVideo {
+interface CbnPlaylistVideo {
   title: string;
   video_id: string;
   account_id: string;

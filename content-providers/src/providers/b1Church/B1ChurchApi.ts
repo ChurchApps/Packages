@@ -2,7 +2,7 @@ import { ContentProviderAuthData, FeedVenueInterface, ContentItem, Plan, Content
 import { B1Ministry, B1PlanType, B1Plan, B1PlanItem } from "./B1ChurchTypes";
 
 export const API_BASE = "https://api.churchapps.org";
-export const LESSONS_API_BASE = "https://api.lessons.church";
+const LESSONS_API_BASE = "https://api.lessons.church";
 
 export type ProxyMethod = "browse" | "getPresentations" | "getPlaylist" | "getInstructions";
 

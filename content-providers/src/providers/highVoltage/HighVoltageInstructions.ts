@@ -9,7 +9,7 @@ function getBaseName(title: string): string {
 }
 
 /** Group consecutive files with same base name into actions. */
-export function groupFilesIntoActions(files: LessonFileJson[], thumbnail?: string): InstructionItem[] {
+function groupFilesIntoActions(files: LessonFileJson[], thumbnail?: string): InstructionItem[] {
   const actionItems: InstructionItem[] = [];
   let currentGroup: LessonFileJson[] = [];
   let currentBaseName: string | null = null;

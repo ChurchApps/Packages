@@ -19,6 +19,8 @@ type Props = {
   context: UserContextInterface;
   appName: string;
   onNavigate: (url: string) => void;
+  /** Extra controls for the user dropdown (e.g. a theme picker); see UserMenu `extras`. */
+  userMenuExtras?: React.ReactNode;
 }
 
 export const SiteHeader = React.memo((props:Props) => {
@@ -120,6 +122,7 @@ export const SiteHeader = React.memo((props:Props) => {
               loadCounts={refresh}
               notificationCounts={{ notificationCount: 0, pmCount: 0 }}
               onNavigate={props.onNavigate}
+              extras={props.userMenuExtras}
             />
           )}
           {!props.context?.user?.id && <Link id="login-link" href="/login" color="inherit" style={{ textDecoration: "none" }}>Login</Link>}

@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 1.8.0
+
+### Minor Changes
+
+- 9d2ecd7: SiteHeader takes an optional `userMenuExtras` prop, which is passed to UserMenu as `extras`. It renders app-specific controls, such as a theme picker, in the user dropdown above Logout.
+
 ## 1.7.5
 
 ### Patch Changes

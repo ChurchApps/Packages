@@ -22,6 +22,8 @@ interface Props {
   context: UserContextInterface;
   appName: string;
   onNavigate: (url: string) => void;
+  /** App-specific controls shown above Logout. Pass a component that reads its own state; the menu is memoized and won't re-render for it. */
+  extras?: React.ReactNode;
 }
 
 // Create a persistent store for modal state that survives component re-renders
@@ -121,6 +123,11 @@ const UserMenuContent: React.FC<Props> = React.memo((props) => {
     result.push(<NavItem onClick={() => { modalStateStore.setShowNotifications(true); }} label={getLabel("wrapper.notifications", "Notifications")} icon="notifications" key="/notifications" onNavigate={props.onNavigate} badgeCount={directNotificationCounts.notificationCount} />);
 
     result.push(<NavItem label={getLabel("wrapper.editProfile", "Edit Profile")} key="EditProfile" icon="person" onClick={() => { setTabIndex(3); }} />);
+    if (props.extras) {
+      result.push(<div key="extras-divider" style={{ borderTop: "1px solid #CCC", marginTop: 4 }}></div>);
+      result.push(<Box key="extras" sx={{ px: 2, py: 1.5 }}>{props.extras}</Box>);
+      result.push(<div key="extras-divider-end" style={{ borderTop: "1px solid #CCC", marginBottom: 4 }}></div>);
+    }
     // Create logout URL with current page as return URL
     const currentPath = typeof window !== "undefined" ? window.location.pathname + window.location.search : "/";
     const logoutUrl = `/login?action=logout&returnUrl=${encodeURIComponent(currentPath)}`;

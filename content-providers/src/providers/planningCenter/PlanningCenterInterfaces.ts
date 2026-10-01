@@ -31,37 +31,3 @@ export interface PCOPlanItem {
     arrangement?: { data?: { id: string } };
   };
 }
-
-export interface PCOSong {
-  id: string;
-  attributes: {
-    title?: string;
-    author?: string;
-    copyright?: string;
-    ccli_number?: string;
-  };
-}
-
-export interface PCOArrangement {
-  id: string;
-  attributes: {
-    name?: string;
-    chord_chart_key?: string;
-    bpm?: number;
-    sequence?: string[];
-  };
-}
-
-export interface PCOSection {
-  label: string;
-  lyrics: string;
-}
-
-export interface PCOAttachment {
-  id: string;
-  attributes: {
-    filename: string;
-    content_type?: string;
-    url?: string;
-  };
-}

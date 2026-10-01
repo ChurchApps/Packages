@@ -1,4 +1,4 @@
-export interface GoCurriculumPlaylistItem {
+interface GoCurriculumPlaylistItem {
   title: string;
   file: string;
   url: string;
@@ -8,14 +8,14 @@ export interface GoCurriculumPlaylistItem {
   shareUrl?: string;
 }
 
-export interface GoCurriculumResource {
+interface GoCurriculumResource {
   title: string;
   file: string;
   url: string;
   shareUrl?: string;
 }
 
-export interface GoCurriculumLesson {
+interface GoCurriculumLesson {
   id: string;
   name: string;
   thumbnail?: string;

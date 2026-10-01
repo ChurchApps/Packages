@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 1.7.5
+
+### Patch Changes
+
+- e2d4852: Task notifications now open `/serving/tasks/{id}` in B1Admin instead of the removed `/tasks/{id}` route, which showed Page Not Found.
+
 ## 1.7.4
 
 ### Patch Changes

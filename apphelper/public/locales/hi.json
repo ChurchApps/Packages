@@ -403,7 +403,11 @@
   },
   "wrapper": {
     "chatWith": "Chat with",
+    "currentChurch": "वर्तमान चर्च",
     "deleteChurch": "Delete",
+    "editAccount": "खाता संपादित करें",
+    "editChurchProfile": "चर्च प्रोफ़ाइल संपादित करें",
+    "editProfile": "प्रोफ़ाइल संपादित करें",
     "logout": "Logout",
     "messages": "Messages",
     "newPrivateMessage": "नया निजी संदेश",

@@ -403,7 +403,11 @@
   },
   "wrapper": {
     "chatWith": "Chat with",
+    "currentChurch": "Nuvarande kyrka",
     "deleteChurch": "Delete",
+    "editAccount": "Redigera konto",
+    "editChurchProfile": "Redigera kyrkprofil",
+    "editProfile": "Redigera profil",
     "logout": "Logout",
     "messages": "Messages",
     "newPrivateMessage": "Nytt privat meddelande",

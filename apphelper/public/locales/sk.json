@@ -403,7 +403,11 @@
   },
   "wrapper": {
     "chatWith": "Chat with",
+    "currentChurch": "Aktuálny zbor",
     "deleteChurch": "Delete",
+    "editAccount": "Upraviť účet",
+    "editChurchProfile": "Upraviť profil v zbore",
+    "editProfile": "Upraviť profil",
     "logout": "Logout",
     "messages": "Messages",
     "newPrivateMessage": "Nová súkromná správa",

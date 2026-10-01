@@ -403,7 +403,11 @@
   },
   "wrapper": {
     "chatWith": "Chat with",
+    "currentChurch": "Biserica curentă",
     "deleteChurch": "Delete",
+    "editAccount": "Editează contul",
+    "editChurchProfile": "Editează profilul bisericii",
+    "editProfile": "Editează profilul",
     "logout": "Logout",
     "messages": "Messages",
     "newPrivateMessage": "Mesaj privat nou",

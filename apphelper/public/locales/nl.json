@@ -403,7 +403,11 @@
   },
   "wrapper": {
     "chatWith": "Chat with",
+    "currentChurch": "Huidige kerk",
     "deleteChurch": "Delete",
+    "editAccount": "Account bewerken",
+    "editChurchProfile": "Kerkprofiel bewerken",
+    "editProfile": "Profiel bewerken",
     "logout": "Logout",
     "messages": "Messages",
     "newPrivateMessage": "Nieuw privébericht",

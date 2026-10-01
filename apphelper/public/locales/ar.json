@@ -403,7 +403,11 @@
   },
   "wrapper": {
     "chatWith": "Chat with",
+    "currentChurch": "الكنيسة الحالية",
     "deleteChurch": "Delete",
+    "editAccount": "تعديل الحساب",
+    "editChurchProfile": "تعديل ملف الكنيسة الشخصي",
+    "editProfile": "تعديل الملف الشخصي",
     "logout": "Logout",
     "messages": "Messages",
     "newPrivateMessage": "رسالة خاصة جديدة",

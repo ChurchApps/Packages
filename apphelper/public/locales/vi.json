@@ -403,7 +403,11 @@
   },
   "wrapper": {
     "chatWith": "Chat with",
+    "currentChurch": "Hội thánh hiện tại",
     "deleteChurch": "Delete",
+    "editAccount": "Chỉnh sửa tài khoản",
+    "editChurchProfile": "Chỉnh sửa hồ sơ hội thánh",
+    "editProfile": "Chỉnh sửa hồ sơ",
     "logout": "Logout",
     "messages": "Messages",
     "newPrivateMessage": "Tin nhắn riêng tư mới",

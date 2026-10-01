@@ -403,7 +403,11 @@
   },
   "wrapper": {
     "chatWith": "Chat with",
+    "currentChurch": "当前教会",
     "deleteChurch": "Delete",
+    "editAccount": "编辑账户",
+    "editChurchProfile": "编辑教会资料",
+    "editProfile": "编辑个人资料",
     "logout": "Logout",
     "messages": "Messages",
     "newPrivateMessage": "新私信",

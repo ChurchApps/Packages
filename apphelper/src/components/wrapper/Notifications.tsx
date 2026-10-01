@@ -92,7 +92,7 @@ export const Notifications: React.FC<Props> = (props) => {
     let app = "";
     let path = "";
     switch (notification.contentType) {
-      case "task": app = "b1admin"; path = "/tasks/" + notification.contentId; break;
+      case "task": app = "b1admin"; path = "/serving/tasks/" + notification.contentId; break;
       case "assignment": app = "b1"; path = "/mobile/plans/" + notification.contentId; break;
     }
 

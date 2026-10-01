@@ -403,7 +403,11 @@
   },
   "wrapper": {
     "chatWith": "Chat with",
+    "currentChurch": "Mevcut kilise",
     "deleteChurch": "Delete",
+    "editAccount": "Hesabı Düzenle",
+    "editChurchProfile": "Kilise Profilini Düzenle",
+    "editProfile": "Profili Düzenle",
     "logout": "Logout",
     "messages": "Messages",
     "newPrivateMessage": "Yeni Özel Mesaj",

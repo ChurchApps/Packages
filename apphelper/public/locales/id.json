@@ -403,7 +403,11 @@
   },
   "wrapper": {
     "chatWith": "Chat with",
+    "currentChurch": "Gereja saat ini",
     "deleteChurch": "Delete",
+    "editAccount": "Edit Akun",
+    "editChurchProfile": "Edit Profil Gereja",
+    "editProfile": "Edit Profil",
     "logout": "Logout",
     "messages": "Messages",
     "newPrivateMessage": "Pesan Pribadi Baru",

@@ -403,7 +403,11 @@
   },
   "wrapper": {
     "chatWith": "Chat with",
+    "currentChurch": "現在の教会",
     "deleteChurch": "Delete",
+    "editAccount": "アカウントを編集",
+    "editChurchProfile": "教会プロフィールを編集",
+    "editProfile": "プロフィールを編集",
     "logout": "Logout",
     "messages": "Messages",
     "newPrivateMessage": "新しいプライベート メッセージ",

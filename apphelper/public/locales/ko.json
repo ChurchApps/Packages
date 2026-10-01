@@ -403,7 +403,11 @@
   },
   "wrapper": {
     "chatWith": "Chat with",
+    "currentChurch": "현재 교회",
     "deleteChurch": "Delete",
+    "editAccount": "계정 편집",
+    "editChurchProfile": "교회 프로필 편집",
+    "editProfile": "프로필 편집",
     "logout": "Logout",
     "messages": "Messages",
     "newPrivateMessage": "새 비공개 메시지",

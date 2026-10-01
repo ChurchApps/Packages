@@ -403,7 +403,11 @@
   },
   "wrapper": {
     "chatWith": "Chat with",
+    "currentChurch": "Nykyinen seurakunta",
     "deleteChurch": "Delete",
+    "editAccount": "Muokkaa tiliä",
+    "editChurchProfile": "Muokkaa seurakuntaprofiilia",
+    "editProfile": "Muokkaa profiilia",
     "logout": "Logout",
     "messages": "Messages",
     "newPrivateMessage": "Uusi yksityinen viesti",

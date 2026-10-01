@@ -403,7 +403,11 @@
   },
   "wrapper": {
     "chatWith": "Chat with",
+    "currentChurch": "Aktuální církev",
     "deleteChurch": "Delete",
+    "editAccount": "Upravit účet",
+    "editChurchProfile": "Upravit profil v církvi",
+    "editProfile": "Upravit profil",
     "logout": "Logout",
     "messages": "Messages",
     "newPrivateMessage": "Nová soukromá zpráva",

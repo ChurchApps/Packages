@@ -403,7 +403,11 @@
   },
   "wrapper": {
     "chatWith": "Chat with",
+    "currentChurch": "Jelenlegi gyülekezet",
     "deleteChurch": "Delete",
+    "editAccount": "Fiók szerkesztése",
+    "editChurchProfile": "Gyülekezeti profil szerkesztése",
+    "editProfile": "Profil szerkesztése",
     "logout": "Logout",
     "messages": "Messages",
     "newPrivateMessage": "Új személyes üzenet",

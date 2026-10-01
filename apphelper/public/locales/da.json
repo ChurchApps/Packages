@@ -403,7 +403,11 @@
   },
   "wrapper": {
     "chatWith": "Chat with",
+    "currentChurch": "Nuværende kirke",
     "deleteChurch": "Delete",
+    "editAccount": "Rediger konto",
+    "editChurchProfile": "Rediger kirkeprofil",
+    "editProfile": "Rediger profil",
     "logout": "Logout",
     "messages": "Messages",
     "newPrivateMessage": "Ny privat besked",

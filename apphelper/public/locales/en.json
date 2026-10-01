@@ -403,7 +403,11 @@
   },
   "wrapper": {
     "chatWith": "Chat with",
+    "currentChurch": "Current church",
     "deleteChurch": "Delete",
+    "editAccount": "Edit Account",
+    "editChurchProfile": "Edit Church Profile",
+    "editProfile": "Edit Profile",
     "logout": "Logout",
     "messages": "Messages",
     "newPrivateMessage": "New Private Message",

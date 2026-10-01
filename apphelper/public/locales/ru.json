@@ -403,7 +403,11 @@
   },
   "wrapper": {
     "chatWith": "Chat with",
+    "currentChurch": "Текущая церковь",
     "deleteChurch": "Delete",
+    "editAccount": "Редактировать аккаунт",
+    "editChurchProfile": "Редактировать профиль в церкви",
+    "editProfile": "Редактировать профиль",
     "logout": "Logout",
     "messages": "Messages",
     "newPrivateMessage": "Новое личное сообщение",

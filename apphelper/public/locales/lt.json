@@ -403,7 +403,11 @@
   },
   "wrapper": {
     "chatWith": "Chat with",
+    "currentChurch": "Dabartinė bažnyčia",
     "deleteChurch": "Delete",
+    "editAccount": "Redaguoti paskyrą",
+    "editChurchProfile": "Redaguoti bažnyčios profilį",
+    "editProfile": "Redaguoti profilį",
     "logout": "Logout",
     "messages": "Messages",
     "newPrivateMessage": "Nauja privati žinutė",

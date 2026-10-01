@@ -403,7 +403,11 @@
   },
   "wrapper": {
     "chatWith": "Chat with",
+    "currentChurch": "Trenutna cerkev",
     "deleteChurch": "Delete",
+    "editAccount": "Uredi račun",
+    "editChurchProfile": "Uredi cerkveni profil",
+    "editProfile": "Uredi profil",
     "logout": "Logout",
     "messages": "Messages",
     "newPrivateMessage": "Novo zasebno sporočilo",

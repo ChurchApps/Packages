@@ -19,7 +19,6 @@ class ApiHelperClass {
   getConfig(keyName: string) {
     let result: ApiConfig = null as unknown as ApiConfig;
     this.apiConfigs.forEach(config => { if (config.keyName === keyName) result = config; });
-    //if (result === null) throw new Error("Unconfigured API: " + keyName);
     return result;
   }
 

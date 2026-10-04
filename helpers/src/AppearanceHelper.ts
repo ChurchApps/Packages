@@ -54,7 +54,6 @@ export class AppearanceHelper {
       const gWeight = .587 * Math.pow(g, 2);
       const bWeight = .114 * Math.pow(b, 2);
       const brightness = Math.sqrt(rWeight + gWeight + bWeight);
-      //return brightness < 128;  //
       return brightness < 156;
     }
 

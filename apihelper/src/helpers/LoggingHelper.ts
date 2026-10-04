@@ -1,6 +1,5 @@
 import winston from "winston";
 import WinstonCloudWatch from "winston-cloudwatch";
-//import AWS from "aws-sdk";
 import { EnvironmentBase } from "./EnvironmentBase.js";
 
 export class LoggingHelper {
@@ -39,7 +38,6 @@ export class LoggingHelper {
 
   private init(streamName: string) {
     this.pendingMessages = false;
-    //AWS.config.update({ region: "us-east-2" });
     if (EnvironmentBase.appEnv === "staging") this.logDestination = "cloudwatch";
     else if (EnvironmentBase.appEnv === "prod") this.logDestination = "cloudwatch";
 

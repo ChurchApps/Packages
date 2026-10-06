@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 1.8.1
+
+### Patch Changes
+
+- 8301144: Clicking a form submission notification opens the form's submissions tab, and the Notifications dialog closes when you click through.
+
 ## 1.8.0
 
 ### Minor Changes

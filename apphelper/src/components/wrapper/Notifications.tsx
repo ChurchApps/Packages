@@ -94,7 +94,9 @@ export const Notifications: React.FC<Props> = (props) => {
     switch (notification.contentType) {
       case "task": app = "b1admin"; path = "/serving/tasks/" + notification.contentId; break;
       case "assignment": app = "b1"; path = "/mobile/plans/" + notification.contentId; break;
+      case "form": app = "b1admin"; path = "/forms/" + notification.contentId + "?tab=submissions"; break;
     }
+    if (path === "") return;
 
     const appUrl = getAppUrl(app);
     if (appUrl === "") {

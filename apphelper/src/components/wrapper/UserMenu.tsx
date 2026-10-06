@@ -281,7 +281,7 @@ const UserMenuContent: React.FC<Props> = React.memo((props) => {
         >
           <DialogTitle id="notifications-title">{getLabel("wrapper.notifications", "Notifications")}</DialogTitle>
           <DialogContent>
-            <Notifications context={props.context} appName={props.appName} onUpdate={props.loadCounts} onNavigate={props.onNavigate} />
+            <Notifications context={props.context} appName={props.appName} onUpdate={props.loadCounts} onNavigate={(url) => { modalStateStore.setShowNotifications(false); props.onNavigate(url); }} />
           </DialogContent>
         </Dialog>
       </>

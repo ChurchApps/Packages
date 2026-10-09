@@ -43,6 +43,8 @@ export const Register: React.FC<Props> = (props) => {
   const [matchedChurchName, setMatchedChurchName] = React.useState(props.defaultChurchName || "");
   const [code, setCode] = React.useState("");
   const [resendCooldown, setResendCooldown] = React.useState(0);
+  const honeypotRef = React.useRef<HTMLInputElement>(null);
+  const mountedAtRef = React.useRef(Date.now());
 
   React.useEffect(() => {
     if (resendCooldown <= 0) return;
@@ -113,7 +115,8 @@ export const Register: React.FC<Props> = (props) => {
     if (validate()) {
       submissionStartedRef.current = true;
       setIsSubmitting(true);
-      ApiHelper.postAnonymous("/users/register", user, "MembershipApi")
+      const botTrap = { website: honeypotRef.current?.value || "", fillMs: Date.now() - mountedAtRef.current };
+      ApiHelper.postAnonymous("/users/register", { ...user, ...botTrap }, "MembershipApi")
         .then((resp: any) => {
           if (resp.errors) handleRegisterErrors(resp.errors);
           else if (resp.mailConfigured === false && resp.authGuid && props.onVerified) {
@@ -405,6 +408,8 @@ export const Register: React.FC<Props> = (props) => {
               }}
             />
           </div>
+
+          <input ref={honeypotRef} type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" style={{ position: "absolute", left: "-10000px", width: "1px", height: "1px", overflow: "hidden" }} />
 
           <Button
             type="submit"

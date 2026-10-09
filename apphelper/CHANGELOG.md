@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 1.8.2
+
+### Patch Changes
+
+- 0d747a9: Register form sends a hidden honeypot field and fill time so the API can drop bot signups.
+
 ## 1.8.1
 
 ### Patch Changes

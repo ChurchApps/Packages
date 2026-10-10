@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 1.8.3
+
+### Patch Changes
+
+- 2715aea: HTML page elements now run the scripts they contain, including JavaScript pasted with its `<script>` tags, so embedded widgets show up on the live site.
+
 ## 1.8.2
 
 ### Patch Changes

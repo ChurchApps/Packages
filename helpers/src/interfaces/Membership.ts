@@ -218,6 +218,13 @@ export interface ServiceTimeInterface {
   longName?: string;
   serviceId?: string;
   groups?: GroupInterface[];
+  // Optional church-local schedule: 0 = Sunday, times "HH:mm". Check-in is only time-gated when dayOfWeek and startTime are set.
+  dayOfWeek?: number | null;
+  startTime?: string | null;
+  endTime?: string | null;
+  checkinOpenMinutes?: number | null;
+  checkinCloseMinutes?: number | null;
+  checkinOpen?: boolean;
 }
 export interface MemberPermissionInterface {
   id?: string;

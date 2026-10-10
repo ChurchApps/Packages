@@ -1,5 +1,11 @@
 # @churchapps/helpers
 
+## 2.7.0
+
+### Minor Changes
+
+- dfe5543: `ServiceTimeInterface` gains an optional check-in schedule (`dayOfWeek`, `startTime`, `endTime`, `checkinOpenMinutes`, `checkinCloseMinutes`) and the computed `checkinOpen` flag returned by `GET /attendance/servicetimes`.
+
 ## 2.6.0
 
 ### Minor Changes

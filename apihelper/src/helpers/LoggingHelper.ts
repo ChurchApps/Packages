@@ -53,7 +53,6 @@ export class LoggingHelper {
       if (this.pendingMessages) {
         if (this.wc) {
           this.wc.kthxbye(() => {
-            // this._logger = null;
             this.pendingMessages = false;
           });
         }

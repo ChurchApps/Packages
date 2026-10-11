@@ -21,10 +21,13 @@ const lessonsFeed = {
   lessonImage: "https://content.lessons.church/lesson.jpg",
   downloads: [
     { name: "Slides and Printables", files: [{ id: "f1", name: "Slides and Printables.zip", url: "https://content.lessons.church/files/slides-and-printables.zip", fileType: "application/zip", bytes: 2048 }] },
-    { name: "Leader Materials", files: [
-      { id: "f2", name: "Leader Guide.pdf", url: "https://content.lessons.church/files/leader-guide.pdf", fileType: "application/pdf" },
-      { id: "f3", name: "Handout.pdf", url: "https://content.lessons.church/files/handout.pdf", fileType: "application/pdf" }
-    ] },
+    {
+      name: "Leader Materials",
+      files: [
+        { id: "f2", name: "Leader Guide.pdf", url: "https://content.lessons.church/files/leader-guide.pdf", fileType: "application/pdf" },
+        { id: "f3", name: "Handout.pdf", url: "https://content.lessons.church/files/handout.pdf", fileType: "application/pdf" }
+      ]
+    },
     { name: "Lesson Video", files: [{ id: "f4", name: "lesson.mp4", url: "https://content.lessons.church/files/lesson.mp4", fileType: "video/mp4" }] },
     { name: "Worship Track", files: [{ id: "f5", name: "worship-track.mp3", url: "https://content.lessons.church/files/worship-track" }] }
   ]
@@ -72,20 +75,24 @@ test("Lessons.church getInstructions omits downloads when the feed has none", as
 const goAuth: ContentProviderAuthData = { access_token: "at", refresh_token: "rt", token_type: "Bearer", created_at: 0, expires_in: 3600, scope: "basic" };
 
 const goCatalog = {
-  catalog: [{
-    id: "faith-lab",
-    name: "Faith Lab",
-    lessons: [{
-      id: "lesson-1",
-      name: "God Keeps His Promises",
-      playlist: [{ title: "Big Idea Video", file: "big-idea.mp4", url: "https://go.example.com/big-idea.mp4", mediaType: "video" }],
-      resources: [
-        { title: "Leader Guide", file: "leader-guide.pdf", url: "https://go.example.com/leader-guide.pdf" },
-        { title: "Activity Sheet", file: "activity-sheet.docx", url: "https://go.example.com/activity-sheet.docx" },
-        { title: "Countdown Video", file: "countdown.mp4", url: "https://go.example.com/countdown.mp4" }
+  catalog: [
+    {
+      id: "faith-lab",
+      name: "Faith Lab",
+      lessons: [
+        {
+          id: "lesson-1",
+          name: "God Keeps His Promises",
+          playlist: [{ title: "Big Idea Video", file: "big-idea.mp4", url: "https://go.example.com/big-idea.mp4", mediaType: "video" }],
+          resources: [
+            { title: "Leader Guide", file: "leader-guide.pdf", url: "https://go.example.com/leader-guide.pdf" },
+            { title: "Activity Sheet", file: "activity-sheet.docx", url: "https://go.example.com/activity-sheet.docx" },
+            { title: "Countdown Video", file: "countdown.mp4", url: "https://go.example.com/countdown.mp4" }
+          ]
+        }
       ]
-    }]
-  }]
+    }
+  ]
 };
 
 test("Go Curriculum getInstructions maps resources to downloads and keeps the playlist as-is", async () => {

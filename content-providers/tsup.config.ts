@@ -9,5 +9,5 @@ export default defineConfig({
   dts: true,
   clean: true,
   sourcemap: true,
-  define: { __PACKAGE_VERSION__: JSON.stringify(pkg.version) },
+  define: { __PACKAGE_VERSION__: JSON.stringify(pkg.version) }
 });

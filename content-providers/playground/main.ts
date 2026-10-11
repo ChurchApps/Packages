@@ -408,7 +408,6 @@ function showVenueChoiceModal(folder: ContentFolder) {
   };
 
   const getPlaylistSource = () => caps?.instructions ? 'Instructions' : 'Playlist';
-  // const getPresentationsSource = () => caps?.instructions ? 'Instructions' : 'Playlist';
   const getInstructionsSource = () => 'Playlist';
 
   const choiceHtml = `
@@ -435,11 +434,6 @@ function showVenueChoiceModal(folder: ContentFolder) {
     closeVenueChoiceModal();
     handleViewAsPlaylist(folder);
   });
-
-  // document.getElementById('view-presentations-btn')!.addEventListener('click', () => {
-  //   closeVenueChoiceModal();
-  //   handleViewAsPresentations(folder);
-  // });
 
   document.getElementById('view-expanded-btn')!.addEventListener('click', () => {
     closeVenueChoiceModal();
@@ -475,17 +469,6 @@ async function handleViewAsPlaylist(folder: ContentFolder) {
   updateBreadcrumb();
   renderPlaylistView(result.playlist, result.meta);
 }
-
-// async function handleViewAsPresentations(folder: ContentFolder) {
-//   if (!elements) return;
-
-//   const result = await viewAsPresentations(folder);
-
-//   if (!result) return;
-
-//   updateBreadcrumb();
-//   renderPlanView(result.plan, result.meta);
-// }
 
 async function handleViewAsInstructions(folder: ContentFolder) {
   if (!elements) return;

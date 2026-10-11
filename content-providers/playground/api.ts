@@ -11,14 +11,6 @@ export interface PlaylistResult {
   meta: ResolvedFormatMeta;
 }
 
-// /**
-//  * Result type for viewAsPresentations function
-//  */
-// export interface PresentationsResult {
-//   plan: Plan;
-//   meta: ResolvedFormatMeta;
-// }
-
 /**
  * Result type for viewAsInstructions function
  */
@@ -73,44 +65,6 @@ export async function viewAsPlaylist(folder: ContentFolder): Promise<PlaylistRes
     return null;
   }
 }
-
-// /**
-//  * Get presentations/plan data for a folder using FormatResolver.
-//  * Updates state with current path, breadcrumb, and plan information.
-//  * @param folder - The folder to get presentations data for
-//  * @returns Plan data with metadata, or null on error
-//  */
-// export async function viewAsPresentations(folder: ContentFolder): Promise<PresentationsResult | null> {
-//   if (!state.currentProvider) return null;
-
-//   showLoading(true);
-
-//   try {
-//     const resolver = new FormatResolver(state.currentProvider);
-//     const { data: plan, meta } = await resolver.getPresentationsWithMeta(folder.path, state.currentAuth);
-
-//     if (!plan) {
-//       showStatus('This provider does not support presentations view', 'error');
-//       showLoading(false);
-//       return null;
-//     }
-
-//     // Update state
-//     state.currentPlan = plan;
-//     state.currentVenueFolder = folder;
-//     state.currentView = 'plan';
-//     state.currentPath = folder.path;
-//     state.breadcrumbTitles.push(folder.title);
-
-//     showLoading(false);
-//     return { plan, meta };
-
-//   } catch (error) {
-//     showLoading(false);
-//     showStatus(`Failed to load presentations: ${error}`, 'error');
-//     return null;
-//   }
-// }
 
 export async function viewAsInstructions(folder: ContentFolder): Promise<InstructionsResult | null> {
   if (!state.currentProvider) return null;

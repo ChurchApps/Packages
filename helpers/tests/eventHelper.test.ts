@@ -47,9 +47,7 @@ test("removeExcludeDates drops an occurrence matched by calendar date, not exact
 
 test("removeExcludeDates matches mysql-style datetime strings that would fail ISO equality", () => {
   const start = new Date(2026, 0, 8, 18, 30, 0);
-  const events: EventInterface[] = [
-    { id: "drop", start, exceptionDates: ["2026-01-08 12:00:00"] as any }
-  ];
+  const events: EventInterface[] = [{ id: "drop", start, exceptionDates: ["2026-01-08 12:00:00"] as any }];
   EventHelper.removeExcludeDates(events);
   assert.equal(events.length, 0);
 });

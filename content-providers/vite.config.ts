@@ -8,9 +8,7 @@ export default defineConfig({
   root: resolve(__dirname, "playground"),
   server: {
     port: 3000,
-    open: true,
+    open: true
   },
-  define: {
-    __PACKAGE_VERSION__: JSON.stringify(pkg.version),
-  },
+  define: { __PACKAGE_VERSION__: JSON.stringify(pkg.version) }
 });

@@ -15,11 +15,17 @@ const containerStyle = {
 };
 
 export const MapElement = ({ element }: Props) => {
-  const [center, setCenter] = useState();
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY || "";
+  // useJsApiLoader injects the Maps script even with an empty key and warns NoApiKeys.
+  if (!apiKey) return null;
+  return <LoadedMap element={element} apiKey={apiKey} />;
+};
+
+const LoadedMap = ({ element, apiKey }: Props & { apiKey: string }) => {
+  const [center, setCenter] = useState();
 
   useEffect(() => {
-    if (!apiKey || !element.answers?.mapAddress) return;
+    if (!element.answers?.mapAddress) return;
     fetch(
       `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(element.answers.mapAddress)}&key=${apiKey}`
     )
@@ -31,8 +37,6 @@ export const MapElement = ({ element }: Props) => {
     id: "google-map-script",
     googleMapsApiKey: apiKey
   });
-
-  if (!apiKey) return null;
 
   return (
     <>

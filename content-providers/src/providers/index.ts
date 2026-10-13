@@ -5,6 +5,7 @@ import { B1ChurchProvider } from "./b1Church";
 import { DropboxProvider } from "./dropbox";
 import { GoCurriculumProvider } from "./goCurriculum";
 import { GoogleDriveProvider } from "./googledrive";
+import { OneDriveProvider } from "./onedrive";
 import { BibleProjectProvider } from "./bibleProject";
 import { HighVoltageKidsProvider } from "./highVoltage";
 import { LessonsChurchProvider } from "./lessonsChurch";
@@ -57,6 +58,7 @@ function initializeProviders() {
     new DropboxProvider(),
     new GoCurriculumProvider(),
     new GoogleDriveProvider(),
+    new OneDriveProvider(),
     new BibleProjectProvider(),
     new HighVoltageKidsProvider(),
     new JesusFilmProvider(),

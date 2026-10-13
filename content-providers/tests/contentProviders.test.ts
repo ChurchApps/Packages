@@ -11,11 +11,11 @@ import { instructionsToPlaylist, filesToInstructions } from "../src/utils";
 import { toAuthData } from "../src/helpers/TokenHelper";
 import { getPlaylistWithMeta } from "../playground/formats";
 
-const EXPECTED_IDS = "dropbox lessonschurch aplay jesusfilm signpresenter b1church bibleproject planningcenter cbn highvoltagekids lifechurch gocurriculum googledrive freeshow".split(" ");
+const EXPECTED_IDS = "dropbox lessonschurch aplay jesusfilm signpresenter b1church bibleproject planningcenter cbn highvoltagekids lifechurch gocurriculum googledrive onedrive freeshow".split(" ");
 const COMING_SOON_IDS = "awana iteachchurch ministrystuff".split(" ");
 const DEVICE_FLOW_IDS = new Set(["signpresenter", "b1church", "cbn"]);
 
-test("registry holds exactly the 14 built-in providers", () => {
+test("registry holds exactly the 15 built-in providers", () => {
   const all = getAllProviders();
   assert.equal(all.length, EXPECTED_IDS.length);
   const ids = all.map(p => p.id).sort();

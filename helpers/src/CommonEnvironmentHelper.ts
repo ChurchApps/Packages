@@ -79,7 +79,7 @@ export class CommonEnvironmentHelper {
 
   //NOTE: None of these values are secret.
   static initStaging = () => {
-    CommonEnvironmentHelper.applyApiBase("https://api.staging.churchapps.org");
+    CommonEnvironmentHelper.applyApiBase(CommonEnvironmentHelper.readApiBase() || "https://api.staging.churchapps.org");
     CommonEnvironmentHelper.MessagingApiSocket = "wss://socket.staging.churchapps.org";
     CommonEnvironmentHelper.AskApi = "https://askapi.staging.churchapps.org";
     CommonEnvironmentHelper.GoogleAnalyticsTag = "";
@@ -92,7 +92,7 @@ export class CommonEnvironmentHelper {
 
   //NOTE: None of these values are secret.
   static initProd = () => {
-    CommonEnvironmentHelper.applyApiBase("https://api.churchapps.org");
+    CommonEnvironmentHelper.applyApiBase(CommonEnvironmentHelper.readApiBase() || "https://api.churchapps.org");
     CommonEnvironmentHelper.MessagingApiSocket = "wss://socket.churchapps.org";
     CommonEnvironmentHelper.AskApi = "https://askapi.churchapps.org";
 

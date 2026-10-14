@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 1.8.5
+
+### Patch Changes
+
+- c70a27a: Guest bank donations no longer attempt a charge when the bank account still needs verification; the donor is told to give by card or sign in instead.
+
 ## 1.8.4
 
 ### Patch Changes

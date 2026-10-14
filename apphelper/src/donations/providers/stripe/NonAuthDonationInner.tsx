@@ -255,6 +255,14 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
         return;
       }
 
+      // An unverified bank can't be charged, and a guest has no saved account to finish verification from later.
+      if (setupIntent?.status !== "succeeded") {
+        setErrors(["This bank account couldn't be verified instantly. Please give by card, or sign in and add the bank account under your giving profile."]);
+        setProcessing(false);
+        setBankConnecting(false);
+        return;
+      }
+
       setBankConnecting(false);
 
       const donation: StripeDonationInterface = {

@@ -3,7 +3,7 @@
 import React from "react";
 // import { MuiTelInput } from "mui-tel-input"; // Temporarily disabled due to MUI v7 compatibility
 import { AnswerInterface, QuestionInterface } from "@churchapps/helpers";
-import { Checkbox, Select, MenuItem, SelectChangeEvent, FormControl, InputLabel, TextField, FormLabel, FormGroup, FormControlLabel, Box } from "@mui/material";
+import { Checkbox, Select, MenuItem, SelectChangeEvent, FormControl, InputLabel, TextField, FormLabel, FormGroup, FormControlLabel, Box, Typography } from "@mui/material";
 
 interface Props {
   answer: AnswerInterface
@@ -32,8 +32,11 @@ export const QuestionEdit = React.forwardRef<any, Props>(({ noBackground = false
   };
 
   const q = props.question;
+  const description = q.description
+    ? <Typography variant="body2" color="text.secondary" className="question-description" sx={{ mt: 0.5, whiteSpace: "pre-wrap" }}>{q.description}</Typography>
+    : null;
 
-  if (q.fieldType === "Heading") return <h5>{q.title}</h5>;
+  if (q.fieldType === "Heading") return <><h5>{q.title}</h5>{description}</>;
   else {
     let input;
     const choiceOptions = [];
@@ -91,7 +94,8 @@ export const QuestionEdit = React.forwardRef<any, Props>(({ noBackground = false
         break;
       default: return null;
     }
-    return input;
+    if (!description) return input;
+    return <Box>{input}{description}</Box>;
   }
 
 });

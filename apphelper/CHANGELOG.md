@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 1.8.4
+
+### Patch Changes
+
+- 36c2994: Form questions show the description entered in the editor when someone fills out the form.
+
 ## 1.8.3
 
 ### Patch Changes

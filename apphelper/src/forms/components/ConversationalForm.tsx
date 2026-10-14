@@ -90,6 +90,9 @@ export const ConversationalForm: React.FC<Props> = (props) => {
         <Typography component="h2" sx={{ mb: 2, textAlign: "center", fontWeight: 600, fontSize: { xs: "1.4rem", sm: "1.75rem" } }} data-testid="conversational-question">
           {question.title}
         </Typography>
+        {question.fieldType === "Heading" && question.description && (
+          <Typography variant="body1" sx={{ mb: 2, textAlign: "center", color: "text.secondary", whiteSpace: "pre-wrap" }}>{question.description}</Typography>
+        )}
         {question.fieldType !== "Heading" && (
           <Box sx={{ "& .MuiInputLabel-root": { display: "none" }, "& fieldset legend": { display: "none" } }}>
             {props.renderInput(question)}

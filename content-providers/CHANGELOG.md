@@ -1,5 +1,12 @@
 # @churchapps/content-providers
 
+## 0.12.0
+
+### Minor Changes
+
+- 4f2cf2e: FreeShow provider talks to real FreeShow machines over the REST API (projects, shows, local images via get_thumbnail) and exports `freeShowServicesToInstances` to turn `_freeshow._udp` mDNS results into connectable machines; the mock show and `MOCK_FREESHOW_INSTANCE` are removed.
+- 55b6f5c: Go Curriculum browses Elementary and Preschool feeds from Go's live Dropbox exports; paths gain an age-group segment.
+
 ## 0.11.0
 
 ### Minor Changes

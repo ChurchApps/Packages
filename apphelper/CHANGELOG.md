@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 1.8.6
+
+### Patch Changes
+
+- e942a66: Hungarian (hu) is now a supported language, so browsers set to Hungarian load the existing hu locale files instead of falling back to English.
+
 ## 1.8.5
 
 ### Patch Changes

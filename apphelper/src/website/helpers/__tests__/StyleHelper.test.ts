@@ -32,3 +32,22 @@ describe("StyleHelper fonts", () => {
     expect(StyleHelper.getCss([{ id: "s2", elements: [{ id: "e6", styles: { all: { color: "#FFF" } } }] }])).not.toContain("h6");
   });
 });
+
+describe("StyleHelper text color", () => {
+  const globalStyles = { palette: JSON.stringify({ light: "#FFFFFF", lightAccent: "#DDDDDD", accent: "#0000DD", darkAccent: "#9999DD", dark: "#333333" }) };
+
+  it("resolves a bare palette keyword like var(--key)", () => {
+    expect(StyleHelper.getTextColor("dark", globalStyles)).toBe("#333333");
+    expect(StyleHelper.getTextColor("var(--dark)", globalStyles)).toBe("#333333");
+  });
+
+  it("leaves hex values and unknown keywords alone", () => {
+    expect(StyleHelper.getTextColor("#123456", globalStyles)).toBe("#123456");
+    expect(StyleHelper.getTextColor("primary", globalStyles)).toBe("primary");
+  });
+
+  it("returns the bare keyword when there is no palette", () => {
+    expect(StyleHelper.getTextColor("dark", {})).toBe("dark");
+    expect(StyleHelper.getTextColor("light", {})).toBe("light");
+  });
+});

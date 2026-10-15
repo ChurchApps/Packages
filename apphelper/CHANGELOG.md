@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 1.8.7
+
+### Patch Changes
+
+- 4b17839: Resolve bare palette keywords so the transparent header shows the dark logo when the first section text color is "dark".
+
 ## 1.8.6
 
 ### Patch Changes

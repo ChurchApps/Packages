@@ -102,7 +102,7 @@ test("Go Curriculum getInstructions maps resources to downloads and keeps the pl
   });
   try {
     const provider = new GoCurriculumProvider();
-    const instructions = await provider.getInstructions("/faith-lab/lesson-1", goAuth);
+    const instructions = await provider.getInstructions("/elementary/faith-lab/lesson-1", goAuth);
     assert.ok(instructions);
     // playlist untouched: the one video still presents
     assert.equal(instructions.items.length, 1);

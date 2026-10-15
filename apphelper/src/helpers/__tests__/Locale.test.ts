@@ -40,6 +40,10 @@ describe("Locale.supportedLanguages", () => {
     expect(supported).toContain(map("ja-JP"));
   });
 
+  it("includes Hungarian so hu browsers get the hu locale files", () => {
+    expect(supported).toContain(map("hu-HU"));
+  });
+
   // zh-TW is the one supported language with no file of its own; it falls back to zh.
   it("ships a locale file for every supported language", () => {
     const files = readdirSync(localeDir);

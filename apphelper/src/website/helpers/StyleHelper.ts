@@ -59,6 +59,10 @@ export class StyleHelper {
         if (textColor.indexOf("dark") > -1 || textColor.indexOf("darkAccent") > -1 || textColor.indexOf("accent") > -1) textColor = "dark";
       }
       if (!textColor) textColor = "#FFF";
+    } else if (globalStyles?.palette) {
+      // Section templates save bare palette keys such as "dark"; resolve them like var(--dark).
+      const palette = JSON.parse(globalStyles.palette);
+      if (typeof palette[textColor] === "string") textColor = palette[textColor];
     }
     return textColor;
   };

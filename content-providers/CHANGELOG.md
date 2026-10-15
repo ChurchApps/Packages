@@ -1,5 +1,11 @@
 # @churchapps/content-providers
 
+## 0.13.0
+
+### Minor Changes
+
+- a5e31c6: Add OneDrive content provider (Microsoft Graph, OAuth PKCE)
+
 ## 0.12.0
 
 ### Minor Changes

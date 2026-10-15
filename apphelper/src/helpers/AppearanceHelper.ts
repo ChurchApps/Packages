@@ -30,7 +30,8 @@ export class AppearanceHelper {
   }
 
   public static getLogoByTextColor(logoLight: string, logoDark: string, textColor: string) {
-    return (this.isDark(textColor)) ? logoLight : logoDark;
+    const isDarkKeyword = textColor === "dark" || textColor === "darkAccent";
+    return (isDarkKeyword || this.isDark(textColor)) ? logoLight : logoDark;
   }
 
   private static isDark(backgroundColor: string) {

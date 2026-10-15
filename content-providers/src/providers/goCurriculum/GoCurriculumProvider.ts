@@ -8,12 +8,15 @@ import goCurriculumData from "./data.json";
 import { GoCurriculumData, GoCurriculumCollection } from "./GoCurriculumInterfaces";
 
 /**
- * Path: / → collections, /{collection} → lessons (leaf), /{collection}/{lesson} → files.
- * Catalog is Go's export hosted on Dropbox (fetched at runtime so it auto-updates);
- * bundled data.json is the fallback when the fetch fails.
+ * Path: / → age groups, /{group} → collections, /{group}/{collection} → lessons (leaf), /{group}/{collection}/{lesson} → files.
+ * Each group is a Go export hosted on Dropbox (fetched at runtime so it auto-updates);
+ * bundled data.json is the fallback when a fetch fails.
  * A valid gocurriculum.com login (WP OAuth Server plugin) gates all of it.
  */
-const CATALOG_URL = "https://dl.dropboxusercontent.com/scl/fi/kb3qlgspv92x8m3mk5s8d/data.json?rlkey=z13qq7aghyszv2w1yud2obtqm";
+const FEEDS = [
+  { id: "elementary", name: "Elementary", url: "https://dl.dropboxusercontent.com/scl/fi/xortbrs2nk49wemscubpu/data.json?rlkey=gnzxyrauhud7xtjlejrs8ysp7" },
+  { id: "preschool", name: "Preschool", url: "https://dl.dropboxusercontent.com/scl/fi/1cdovbglp5rpfmb9mdg2s/data.json?rlkey=miwsssb0o7i2wdijrdc7jjqcl" }
+];
 const CATALOG_TTL_MS = 60 * 60 * 1000;
 
 export class GoCurriculumProvider extends BaseProvider {
@@ -39,17 +42,24 @@ export class GoCurriculumProvider extends BaseProvider {
     scopes: ["basic"]
   };
 
-  private data: GoCurriculumData = goCurriculumData;
+  private data: Record<string, GoCurriculumData> = goCurriculumData;
   private dataFetchedAt = 0;
 
-  private async getData(): Promise<GoCurriculumData> {
-    if (Date.now() - this.dataFetchedAt < CATALOG_TTL_MS) return this.data;
-    try {
-      const response = await fetch(CATALOG_URL);
-      if (response.ok) this.data = await response.json() as GoCurriculumData;
-    } catch { /* keep last good catalog (bundled data.json at worst) */ }
-    this.dataFetchedAt = Date.now();
-    return this.data;
+  private async getData(groupId: string): Promise<GoCurriculumData | undefined> {
+    if (Date.now() - this.dataFetchedAt >= CATALOG_TTL_MS) {
+      await Promise.all(FEEDS.map(async f => {
+        try {
+          const response = await fetch(f.url);
+          if (response.ok) this.data[f.id] = await response.json() as GoCurriculumData;
+        } catch { /* keep last good catalog (bundled data.json at worst) */ }
+      }));
+      this.dataFetchedAt = Date.now();
+    }
+    return this.data[groupId];
+  }
+
+  private async getCollection(segments: string[]): Promise<GoCurriculumCollection | undefined> {
+    return (await this.getData(segments[0]))?.catalog.find(c => c.id === segments[1]);
   }
 
   readonly requiresAuth = true;
@@ -75,15 +85,15 @@ export class GoCurriculumProvider extends BaseProvider {
   async browse(path?: string | null, auth?: ContentProviderAuthData | null): Promise<ContentItem[]> {
     if (!(await this.verifyAuth(auth))) return [];
     const { segments, depth } = parsePath(path);
-    const data = await this.getData();
 
-    if (depth === 0) return data.catalog.map(c => createFolder(c.id, c.name, `/${c.id}`, c.thumbnail));
+    if (depth === 0) return FEEDS.map(f => createFolder(f.id, f.name, `/${f.id}`));
+    if (depth === 1) return ((await this.getData(segments[0]))?.catalog || []).map(c => createFolder(c.id, c.name, `/${segments[0]}/${c.id}`, c.thumbnail));
 
-    const collection = data.catalog.find(c => c.id === segments[0]);
+    const collection = await this.getCollection(segments);
     if (!collection) return [];
 
-    if (depth === 1) return collection.lessons.map(l => createFolder(l.id, l.name, `/${collection.id}/${l.id}`, l.thumbnail || collection.thumbnail, true));
-    if (depth === 2) return this.getLessonFiles(collection, segments[1]);
+    if (depth === 2) return collection.lessons.map(l => createFolder(l.id, l.name, `/${segments[0]}/${collection.id}/${l.id}`, l.thumbnail || collection.thumbnail, true));
+    if (depth === 3) return this.getLessonFiles(collection, segments[2]);
 
     return [];
   }
@@ -98,24 +108,24 @@ export class GoCurriculumProvider extends BaseProvider {
   async getPlaylist(path: string, auth?: ContentProviderAuthData | null, _resolution?: number): Promise<ContentFile[] | null> {
     if (!(await this.verifyAuth(auth))) return null;
     const { segments, depth } = parsePath(path);
-    if (depth !== 2) return null;
+    if (depth !== 3) return null;
 
-    const collection = (await this.getData()).catalog.find(c => c.id === segments[0]);
+    const collection = await this.getCollection(segments);
     if (!collection) return null;
 
-    const files = this.getLessonFiles(collection, segments[1]);
+    const files = this.getLessonFiles(collection, segments[2]);
     return files.length > 0 ? files : null;
   }
 
   async getInstructions(path: string, auth?: ContentProviderAuthData | null): Promise<Instructions | null> {
     const { segments, depth } = parsePath(path);
-    if (depth !== 2) return null;
+    if (depth !== 3) return null;
 
     const files = await this.getPlaylist(path, auth);
     if (!files) return null;
 
-    const collection = (await this.getData()).catalog.find(c => c.id === segments[0]);
-    const lesson = collection?.lessons.find(l => l.id === segments[1]);
+    const collection = await this.getCollection(segments);
+    const lesson = collection?.lessons.find(l => l.id === segments[2]);
     const instructions = filesToInstructions(lesson?.name || "Lesson", files);
     const downloads = (lesson?.resources || [])
       .filter(r => r.url && !isPlaylistMedia(r.url, undefined, r.file))

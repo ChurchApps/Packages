@@ -29,7 +29,9 @@ export { JesusFilmProvider } from "./providers/jesusFilm";
 export { CbnProvider } from "./providers/cbn";
 export { FreeShowProvider } from "./providers/freeShow";
 export {
-  MOCK_FREESHOW_INSTANCE,
+  FREESHOW_REST_PORT,
+  freeShowServicesToInstances,
+  type MdnsService,
   networkInstanceToAuth,
   authToNetworkInstance,
   type FreeShowDiscoverer

@@ -38,3 +38,16 @@ export interface FreeShowShow {
   layouts?: Record<string, FreeShowLayout>;
   media?: Record<string, FreeShowMedia>;
 }
+
+export interface FreeShowProjectItem {
+  id: string;
+  name?: string;
+  type?: string;
+}
+
+export interface FreeShowProject {
+  name?: string;
+  deleted?: boolean;
+  archived?: boolean;
+  shows?: FreeShowProjectItem[];
+}

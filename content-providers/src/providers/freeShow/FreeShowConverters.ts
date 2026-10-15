@@ -1,29 +1,10 @@
-import { ContentFile, ContentFolder, ContentProviderAuthData, NetworkInstance } from "../../interfaces";
-import { createFile, createFolder, detectMediaType } from "../../utils";
+import { ContentFile, ContentProviderAuthData, NetworkInstance } from "../../interfaces";
+import { createFile, detectMediaType } from "../../utils";
 import {
   DEFAULT_SLIDE_SECONDS,
   FreeShowLayoutSlide,
   FreeShowShow
 } from "./FreeShowInterfaces";
-
-export const MOCK_FREESHOW_INSTANCE: NetworkInstance = {
-  id: "mock-local",
-  name: "This PC",
-  host: "localhost",
-  ip: "127.0.0.1",
-  port: 5505
-};
-
-export function parseShowExport(raw: unknown): { id: string; show: FreeShowShow } | null {
-  if (Array.isArray(raw) && raw.length >= 2 && typeof raw[0] === "string" && raw[1] && typeof raw[1] === "object") {
-    return { id: raw[0], show: raw[1] as FreeShowShow };
-  }
-  if (raw && typeof raw === "object" && "layouts" in (raw as object) && "media" in (raw as object)) {
-    const show = raw as FreeShowShow;
-    return { id: show.id || "show", show };
-  }
-  return null;
-}
 
 export function slideSeconds(ref: FreeShowLayoutSlide, mediaType: "video" | "image" | "audio"): number | undefined {
   if (typeof ref.nextTimer === "number" && ref.nextTimer > 0) return ref.nextTimer;
@@ -31,7 +12,9 @@ export function slideSeconds(ref: FreeShowLayoutSlide, mediaType: "video" | "ima
   return DEFAULT_SLIDE_SECONDS;
 }
 
-export function showToFiles(show: FreeShowShow): ContentFile[] {
+export type MediaUrlResolver = (path: string, explicitType?: string) => string | null;
+
+export function showToFiles(show: FreeShowShow, resolveUrl: MediaUrlResolver = path => path): ContentFile[] {
   const layoutId = show.settings?.activeLayout || Object.keys(show.layouts || {})[0];
   const layout = layoutId ? show.layouts?.[layoutId] : undefined;
   const refs = layout?.slides || [];
@@ -43,25 +26,21 @@ export function showToFiles(show: FreeShowShow): ContentFile[] {
     const media = show.media?.[ref.background];
     const path = media?.path;
     if (!path) continue;
+    const url = resolveUrl(path, media?.type);
+    if (!url) continue;
 
     const mediaType = detectMediaType(path, media?.type);
     const slide = show.slides?.[ref.id];
     const title = media?.name || slide?.group || "Slide";
-    files.push(createFile(ref.id, title, path, {
+    files.push(createFile(ref.id, title, url, {
       mediaType,
-      thumbnail: mediaType === "image" ? path : undefined,
+      thumbnail: mediaType === "image" && url === path ? path : undefined,
       seconds: slideSeconds(ref, mediaType),
       loop: loops,
       loopVideo: false
     }));
   }
   return files;
-}
-
-export function showToFolder(id: string, show: FreeShowShow): ContentFolder {
-  const files = showToFiles(show);
-  const thumbnail = files.find(file => file.mediaType === "image")?.url || files[0]?.thumbnail;
-  return createFolder(id, show.name || "Show", `/${id}`, thumbnail, true);
 }
 
 export function networkInstanceToAuth(instance: NetworkInstance): ContentProviderAuthData {

@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 1.8.9
+
+### Patch Changes
+
+- eab2cc6: CalendarElement, GroupCalendar and CuratedCalendar accept an eventUrl prop; when set, clicking an event navigates to that URL instead of opening the detail dialog.
+
 ## 1.8.8
 
 ### Patch Changes

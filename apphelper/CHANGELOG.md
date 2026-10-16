@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 1.8.8
+
+### Patch Changes
+
+- bd1fc6b: Group join-request notifications in B1 Admin now open the group on the church's B1 site, both from the row and from View Details. Other notifications with a link open it when you click the row.
+
 ## 1.8.7
 
 ### Patch Changes

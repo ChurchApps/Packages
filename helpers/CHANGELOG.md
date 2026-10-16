@@ -1,5 +1,11 @@
 # @churchapps/helpers
 
+## 2.7.1
+
+### Patch Changes
+
+- eab2cc6: EventInterface has a photoUrl for the event photo shown on event pages and upcoming-event tiles.
+
 ## 2.7.0
 
 ### Minor Changes

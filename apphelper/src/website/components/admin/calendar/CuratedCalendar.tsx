@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { ApiHelper } from "../../../..";
-import type { CuratedEventWithEventInterface } from "@churchapps/helpers";
+import type { CuratedEventWithEventInterface, EventInterface } from "@churchapps/helpers";
 import { CuratedEventCalendar } from "./CuratedEventCalendar";
 
 interface Props {
@@ -12,6 +12,7 @@ interface Props {
   firstDayOfWeek?: number;
   updatedCallback?: () => void;
   refresh?: any;
+  eventUrl?: (event: EventInterface) => string;
 }
 
 export function CuratedCalendar(props: Props) {
@@ -30,6 +31,6 @@ export function CuratedCalendar(props: Props) {
   useEffect(loadData, [props.curatedCalendarId, props?.refresh]);
 
   return (
-    <CuratedEventCalendar events={events} curatedCalendarId={props.curatedCalendarId} churchId={props.churchId} firstDayOfWeek={props.firstDayOfWeek} onRequestRefresh={loadData} mode={props.mode} />
+    <CuratedEventCalendar events={events} curatedCalendarId={props.curatedCalendarId} churchId={props.churchId} firstDayOfWeek={props.firstDayOfWeek} onRequestRefresh={loadData} mode={props.mode} eventUrl={props.eventUrl} />
   );
 }

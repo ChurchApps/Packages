@@ -16,6 +16,7 @@ interface Props {
   churchId?: string;
   firstDayOfWeek?: number;
   onRequestRefresh?: () => void;
+  eventUrl?: (event: EventInterface) => string;
 }
 
 export function EventCalendar(props: Props) {
@@ -51,6 +52,7 @@ export function EventCalendar(props: Props) {
   };
 
   const handleEventClick = (event: EventInterface) => {
+    if (props.eventUrl) { window.location.assign(props.eventUrl(event)); return; }
     const ev = { ...event };
     // let tz = new Date().getTimezoneOffset();
     // ev.start = new Date(ev.start);

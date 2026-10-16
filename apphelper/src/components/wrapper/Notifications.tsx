@@ -88,6 +88,14 @@ export const Notifications: React.FC<Props> = (props) => {
     }
   };
 
+  // "/mobile/..." links are B1 member-site paths; open them there, not on the current app.
+  const resolveLink = (link: string) => (link.startsWith("/mobile/") ? getAppUrl("b1") + link : link);
+
+  const openLink = (notification:NotificationInterface) => {
+    if (!notification.link || !isSafeLink(notification.link)) return;
+    window.open(resolveLink(notification.link), "_blank");
+  };
+
   const handleClick = (notification:NotificationInterface) => {
     let app = "";
     let path = "";
@@ -96,7 +104,7 @@ export const Notifications: React.FC<Props> = (props) => {
       case "assignment": app = "b1"; path = "/mobile/plans/" + notification.contentId; break;
       case "form": app = "b1admin"; path = "/forms/" + notification.contentId + "?tab=submissions"; break;
     }
-    if (path === "") return;
+    if (path === "") { openLink(notification); return; }
 
     const appUrl = getAppUrl(app);
     if (appUrl === "") {
@@ -209,7 +217,7 @@ export const Notifications: React.FC<Props> = (props) => {
                           size="small"
                           onClick={(e) => {
                             e.stopPropagation();
-                            window.open(notification.link || "", "_blank");
+                            openLink(notification);
                           }}
                           sx={{ p: 0.5 }}
                         >

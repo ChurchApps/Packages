@@ -510,7 +510,8 @@ export const ElementTypes: Record<string, ElementTypeDefinition> = {
       type: "object",
       properties: {
         calendarType: { type: "string", enum: ["group", "curated"] },
-        calendarId: { type: "string", description: "Group id (calendarType \"group\") or curated calendar id (calendarType \"curated\")." }
+        calendarId: { type: "string", description: "Group id (calendarType \"group\") or curated calendar id (calendarType \"curated\")." },
+        display: { type: "string", enum: ["month", "upcoming"], description: "Month calendar grid (default) or upcoming-event photo tiles." }
       },
       additionalProperties: true
     }

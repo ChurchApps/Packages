@@ -1,3 +1,4 @@
+import type { EventInterface } from "@churchapps/helpers";
 import { ElementInterface } from "../../helpers";
 import { GroupCalendar } from "../eventCalendar/GroupCalendar";
 import { CuratedCalendar } from "../admin/calendar/CuratedCalendar";
@@ -9,9 +10,11 @@ interface Props {
   canEdit?: boolean;
   /** Church's first day of week (0=Sunday ... 6=Saturday). */
   firstDayOfWeek?: number;
+  /** When set, clicking an event navigates here instead of opening the detail dialog. */
+  eventUrl?: (event: EventInterface) => string;
 }
 
-export const CalendarElement = ({ element, churchId, canEdit = false, firstDayOfWeek = 0 }: Props) => {
+export const CalendarElement = ({ element, churchId, canEdit = false, firstDayOfWeek = 0, eventUrl }: Props) => {
   const calendarType = element.answers?.calendarType;
   const calendarId = element.answers?.calendarId;
 
@@ -25,9 +28,9 @@ export const CalendarElement = ({ element, churchId, canEdit = false, firstDayOf
     }
 
     if (calendarType === "group") {
-      return <GroupCalendar churchId={churchId} groupId={calendarId} canEdit={canEdit} firstDayOfWeek={firstDayOfWeek} />;
+      return <GroupCalendar churchId={churchId} groupId={calendarId} canEdit={canEdit} firstDayOfWeek={firstDayOfWeek} eventUrl={eventUrl} />;
     } else if (calendarType === "curated") {
-      return <CuratedCalendar churchId={churchId} curatedCalendarId={calendarId} mode={canEdit ? "edit" : "view"} firstDayOfWeek={firstDayOfWeek} />;
+      return <CuratedCalendar churchId={churchId} curatedCalendarId={calendarId} mode={canEdit ? "edit" : "view"} firstDayOfWeek={firstDayOfWeek} eventUrl={eventUrl} />;
     }
 
     return (

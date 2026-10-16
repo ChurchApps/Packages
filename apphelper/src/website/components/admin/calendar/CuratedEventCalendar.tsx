@@ -8,7 +8,7 @@ import { Button, Icon, Snackbar, Stack, Menu, MenuItem } from "@mui/material";
 import EventNoteIcon from "@mui/icons-material/EventNote";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import { EventHelper, CommonEnvironmentHelper } from "../../../..";
-import type { CuratedEventWithEventInterface } from "@churchapps/helpers";
+import type { CuratedEventWithEventInterface, EventInterface } from "@churchapps/helpers";
 import { EditCalendarEventModal } from "./EditCalendarEventModal";
 import { DisplayCalendarEventModal } from "./DisplayCalendarEventModal";
 
@@ -19,6 +19,7 @@ interface Props {
   churchId?: string;
   firstDayOfWeek?: number;
   onRequestRefresh?: () => void;
+  eventUrl?: (event: EventInterface) => string;
 }
 
 export function CuratedEventCalendar(props: Props) {
@@ -66,6 +67,7 @@ export function CuratedEventCalendar(props: Props) {
   };
 
   const handleEventClick = (event: CuratedEventWithEventInterface) => {
+    if (props.eventUrl) { window.location.assign(props.eventUrl(event)); return; }
     const ev = { ...event };
     // let tz = new Date().getTimezoneOffset();
     // ev.start = new Date(ev.start);

@@ -82,6 +82,7 @@ export interface EventInterface {
   tags?: string;
   formId?: string;
   rsvpDisabled?: boolean;
+  photoUrl?: string;
 }
 export interface EventRsvpInterface {
   id?: string;

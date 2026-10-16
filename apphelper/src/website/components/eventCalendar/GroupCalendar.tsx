@@ -11,6 +11,7 @@ interface Props {
   groupId: string;
   canEdit: boolean;
   firstDayOfWeek?: number;
+  eventUrl?: (event: EventInterface) => string;
 }
 
 export function GroupCalendar(props: Props) {
@@ -29,6 +30,6 @@ export function GroupCalendar(props: Props) {
   useEffect(loadData, [props.groupId]);
 
   return (
-    <EventCalendar events={events} editGroupId={props.canEdit ? props.groupId : ""} churchId={props.churchId} firstDayOfWeek={props.firstDayOfWeek} onRequestRefresh={loadData} />
+    <EventCalendar events={events} editGroupId={props.canEdit ? props.groupId : ""} churchId={props.churchId} firstDayOfWeek={props.firstDayOfWeek} onRequestRefresh={loadData} eventUrl={props.eventUrl} />
   );
 }

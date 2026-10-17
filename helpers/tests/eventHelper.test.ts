@@ -51,3 +51,13 @@ test("removeExcludeDates matches mysql-style datetime strings that would fail IS
   EventHelper.removeExcludeDates(events);
   assert.equal(events.length, 0);
 });
+
+test("hasTag matches any comma-separated entry, trimmed and case-insensitive", () => {
+  const event: EventInterface = { tags: "Youth, students" };
+  assert.equal(EventHelper.hasTag(event, "youth"), true);
+  assert.equal(EventHelper.hasTag(event, " STUDENTS "), true);
+  assert.equal(EventHelper.hasTag(event, "adults"), false);
+  assert.equal(EventHelper.hasTag({}, "youth"), false);
+  assert.equal(EventHelper.hasTag({}, ""), true);
+  assert.equal(EventHelper.hasTag(event, undefined), true);
+});

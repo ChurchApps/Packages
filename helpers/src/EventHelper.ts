@@ -35,6 +35,12 @@ type ParsedOptions = any;
 
 export class EventHelper {
 
+  static hasTag = (event: { tags?: string | null }, tag?: string | null) => {
+    const wanted = (tag || "").trim().toLowerCase();
+    if (!wanted) return true;
+    return (event.tags || "").split(",").some((t) => t.trim().toLowerCase() === wanted);
+  };
+
   static getRange = (event:EventInterface, startDate:Date, endDate:Date) => {
     const start = new Date(event.start!);
     const rrule = EventHelper.getFullRRule(event);

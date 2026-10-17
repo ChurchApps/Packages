@@ -17,6 +17,7 @@ interface Props {
 export const CalendarElement = ({ element, churchId, canEdit = false, firstDayOfWeek = 0, eventUrl }: Props) => {
   const calendarType = element.answers?.calendarType;
   const calendarId = element.answers?.calendarId;
+  const tag = element.answers?.tag;
 
   const renderCalendar = () => {
     if (!calendarId) {
@@ -28,9 +29,9 @@ export const CalendarElement = ({ element, churchId, canEdit = false, firstDayOf
     }
 
     if (calendarType === "group") {
-      return <GroupCalendar churchId={churchId} groupId={calendarId} canEdit={canEdit} firstDayOfWeek={firstDayOfWeek} eventUrl={eventUrl} />;
+      return <GroupCalendar churchId={churchId} groupId={calendarId} canEdit={canEdit} firstDayOfWeek={firstDayOfWeek} eventUrl={eventUrl} tag={tag} />;
     } else if (calendarType === "curated") {
-      return <CuratedCalendar churchId={churchId} curatedCalendarId={calendarId} mode={canEdit ? "edit" : "view"} firstDayOfWeek={firstDayOfWeek} eventUrl={eventUrl} />;
+      return <CuratedCalendar churchId={churchId} curatedCalendarId={calendarId} mode={canEdit ? "edit" : "view"} firstDayOfWeek={firstDayOfWeek} eventUrl={eventUrl} tag={tag} />;
     }
 
     return (

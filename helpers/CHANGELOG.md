@@ -1,5 +1,11 @@
 # @churchapps/helpers
 
+## 2.8.0
+
+### Minor Changes
+
+- d8fe745: EventHelper.hasTag matches an event's comma-separated tags against one tag (trimmed, case-insensitive; empty tag matches everything). Calendar element answersSchema gains an optional `tag`.
+
 ## 2.7.1
 
 ### Patch Changes

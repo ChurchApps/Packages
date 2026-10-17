@@ -32,6 +32,7 @@ export class Permissions {
         contentType: "People",
         action: "View Members"
       },
+      viewNames: { api: "MembershipApi", contentType: "People", action: "View Names" },
       edit: { api: "MembershipApi", contentType: "People", action: "Edit" }
     },
     plans: { edit: { api: "MembershipApi", contentType: "Plans", action: "Edit" } },

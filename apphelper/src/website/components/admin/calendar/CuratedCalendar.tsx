@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { ApiHelper } from "../../../..";
-import type { CuratedEventWithEventInterface, EventInterface } from "@churchapps/helpers";
+import { EventHelper, type CuratedEventWithEventInterface, type EventInterface } from "@churchapps/helpers";
 import { CuratedEventCalendar } from "./CuratedEventCalendar";
 
 interface Props {
@@ -13,22 +13,26 @@ interface Props {
   updatedCallback?: () => void;
   refresh?: any;
   eventUrl?: (event: EventInterface) => string;
+  /** Only show events carrying this tag; empty shows all. */
+  tag?: string;
 }
 
 export function CuratedCalendar(props: Props) {
   const [events, setEvents] = useState<CuratedEventWithEventInterface[]>([]);
 
+  const filterTag = (data: CuratedEventWithEventInterface[]) => (data || []).filter((e) => EventHelper.hasTag(e, props.tag));
+
   const loadData = () => {
     // Curated calendars can be public or require editing permissions
     // Use mode prop to determine which endpoint to use
     if (props.mode === "edit") {
-      ApiHelper.get("/curatedEvents/calendar/" + props.curatedCalendarId, "ContentApi").then((data: any) => { setEvents(data); if (props.updatedCallback) props.updatedCallback(); });
+      ApiHelper.get("/curatedEvents/calendar/" + props.curatedCalendarId, "ContentApi").then((data: any) => { setEvents(filterTag(data)); if (props.updatedCallback) props.updatedCallback(); });
     } else {
-      ApiHelper.getAnonymous("/curatedEvents/public/calendar/" + props.churchId + "/" + props.curatedCalendarId, "ContentApi").then((data: any) => { setEvents(data); });
+      ApiHelper.getAnonymous("/curatedEvents/public/calendar/" + props.churchId + "/" + props.curatedCalendarId, "ContentApi").then((data: any) => { setEvents(filterTag(data)); });
     }
   };
 
-  useEffect(loadData, [props.curatedCalendarId, props?.refresh]);
+  useEffect(loadData, [props.curatedCalendarId, props?.refresh, props.tag]);
 
   return (
     <CuratedEventCalendar events={events} curatedCalendarId={props.curatedCalendarId} churchId={props.churchId} firstDayOfWeek={props.firstDayOfWeek} onRequestRefresh={loadData} mode={props.mode} eventUrl={props.eventUrl} />

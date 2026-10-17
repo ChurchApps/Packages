@@ -1,5 +1,11 @@
 # @churchapps/helpers
 
+## 2.9.0
+
+### Minor Changes
+
+- d1c6c53: Permissions.membershipApi.people.viewNames for the Api's "View People Names Only" permission (People / View Names).
+
 ## 2.8.0
 
 ### Minor Changes

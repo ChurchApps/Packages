@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 1.8.10
+
+### Patch Changes
+
+- d8fe745: CalendarElement reads `answers.tag` and passes it to GroupCalendar and CuratedCalendar, which show only events carrying that tag.
+
 ## 1.8.9
 
 ### Patch Changes

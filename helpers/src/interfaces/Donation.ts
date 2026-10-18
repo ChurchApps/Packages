@@ -6,6 +6,9 @@ export interface DonationBatchInterface {
   id?: string;
   name?: string;
   batchDate?: string; // YYYY-MM-DD format - date-only field
+  status?: "open" | "closed";
+  closedDate?: Date;
+  closedBy?: string;
   donationCount?: number;
   totalAmount?: number;
 }

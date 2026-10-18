@@ -58,7 +58,8 @@ export class Permissions {
         action: "View Summary"
       },
       view: { api: "GivingApi", contentType: "Donations", action: "View" },
-      edit: { api: "GivingApi", contentType: "Donations", action: "Edit" }
+      edit: { api: "GivingApi", contentType: "Donations", action: "Edit" },
+      enter: { api: "GivingApi", contentType: "Donations", action: "Enter" }
     },
     settings: {
       view: { api: "GivingApi", contentType: "Settings", action: "View" },

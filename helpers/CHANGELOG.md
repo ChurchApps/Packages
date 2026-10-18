@@ -1,5 +1,11 @@
 # @churchapps/helpers
 
+## 2.10.0
+
+### Minor Changes
+
+- 076df01: Permissions.givingApi.donations.enter for the Api's "Enter Donations" permission (Donations / Enter), and status/closedDate/closedBy on DonationBatchInterface for closed batches.
+
 ## 2.9.0
 
 ### Minor Changes

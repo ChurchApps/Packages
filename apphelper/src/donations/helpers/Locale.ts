@@ -25,6 +25,7 @@ export class Locale {
     "ja",
     "ko",
     "no",
+    "pl",
     "pt",
     "ru",
     "tl",

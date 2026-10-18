@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 1.8.12
+
+### Patch Changes
+
+- d86a256: Polish (pl) is now a supported language, so browsers set to Polish load the existing pl locale files instead of falling back to English.
+
 ## 1.8.11
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 1.8.11
+
+### Patch Changes
+
+- 6394555: FormSubmissionEdit loads an existing submission with its questions and answers, so editing a submitted form shows its fields.
+
 ## 1.8.10
 
 ### Patch Changes

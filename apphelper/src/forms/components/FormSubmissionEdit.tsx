@@ -154,7 +154,7 @@ export const FormSubmissionEdit: React.FC<Props> = ({ showHeader = true, noBackg
 
   const loadData = () => {
     if (!UniqueIdHelper.isMissing(props.formSubmissionId)) {
-      ApiHelper.get("/formsubmissions/" + props.formSubmissionId, "MembershipApi").then((data: FormSubmissionInterface) => {
+      ApiHelper.get("/formsubmissions/" + props.formSubmissionId + "/?include=questions,answers", "MembershipApi").then((data: FormSubmissionInterface) => {
         setFormSubmission(data);
       });
     } else if (!UniqueIdHelper.isMissing(props.addFormId)) ApiHelper.get("/questions/?formId=" + props.addFormId, "MembershipApi").then((data: any) => setFormSubmissionData(data));

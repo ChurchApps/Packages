@@ -1,25 +1,14 @@
 import { injectable } from "inversify";
 import { interfaces } from "inversify-express-utils";
 import express from "express";
-import jwt from "jsonwebtoken";
 import { Principal } from "./Principal.js";
 import { EnvironmentBase } from "../helpers/EnvironmentBase.js";
+import { principalFromAuthorizationHeader } from "./principalFromHeader.js";
 
 @injectable()
 export class CustomAuthProvider implements interfaces.AuthProvider {
   // public async getUser(req: express.Request, res: express.Response, next: express.NextFunction): Promise<interfaces.Principal> {
   public async getUser(req: express.Request, _res: express.Response, _next: express.NextFunction): Promise<Principal> {
-    const authHeader = req.headers.authorization;
-    if (authHeader) {
-      const token = authHeader.split(" ")[1];
-      if (!token) return null as unknown as Principal;
-      const decoded = jwt.verify(token, EnvironmentBase.jwtSecret, { algorithms: ["HS256"] });
-
-      const result = decoded ? new Principal(typeof decoded === "object" && decoded !== null ? decoded as Record<string, unknown> : {}) : null;
-      if (result) result.details.jwt = token;
-      return result as Principal;
-    }
-
-    return null as unknown as Principal;
+    return principalFromAuthorizationHeader(req.headers.authorization, EnvironmentBase.jwtSecret) as Principal;
   }
 }

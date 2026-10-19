@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 1.8.13
+
+### Patch Changes
+
+- 4e88c9f: Remove the signup honeypot field; browser autofill was filling it and real people never got their verification code.
+
 ## 1.8.12
 
 ### Patch Changes

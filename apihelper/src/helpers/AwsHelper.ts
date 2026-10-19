@@ -6,19 +6,38 @@ import { buildS3UploadPolicy, inferContentTypeFromKey, s3ObjectAcl } from "./S3U
 
 export class AwsHelper {
 
-  //Pulls from AWS SSM Parameter Store
-  static async readParameter(parameterName: string): Promise<string> {
-    let result = "";
-    try {
-      const ssm = new SSMClient({ region: process.env.AWS_REGION || "us-east-2" });
-      const params = { Name: parameterName, WithDecryption: true };
-      const command = new GetParameterCommand(params);
-      const response = await ssm.send(command);
-      result = response?.Parameter?.Value || "";
-    } catch {
-      result = "";
+  private static _ssm: SSMClient;
+
+  private static ssm(): SSMClient {
+    if (!this._ssm) this._ssm = new SSMClient({ region: process.env.AWS_REGION || "us-east-2" });
+    return this._ssm;
+  }
+
+  /**
+   * Pulls from AWS SSM Parameter Store. A burst of cold starts gets throttled by SSM; one failed
+   * read used to come back as "" and leave that container with no connection string for every
+   * request it ever served. Retry with backoff, and say which parameter failed when giving up.
+   */
+  static async readParameter(
+    parameterName: string,
+    send: (command: GetParameterCommand) => Promise<{ Parameter?: { Value?: string } } | undefined> = (command) => this.ssm().send(command),
+    options: { attempts?: number; baseDelayMs?: number } = {}
+  ): Promise<string> {
+    const attempts = Math.max(1, options.attempts ?? 4);
+    const baseDelayMs = options.baseDelayMs ?? 200;
+    let lastError: unknown;
+    for (let attempt = 1; attempt <= attempts; attempt++) {
+      try {
+        const response = await send(new GetParameterCommand({ Name: parameterName, WithDecryption: true }));
+        return response?.Parameter?.Value || "";
+      } catch (e) {
+        lastError = e;
+        if (attempt < attempts) await new Promise((resolve) => setTimeout(resolve, baseDelayMs * 2 ** (attempt - 1)));
+      }
     }
-    return result;
+    const err = lastError as { name?: string; message?: string } | undefined;
+    console.error(`AwsHelper.readParameter failed for ${parameterName} after ${attempts} attempts: ${err?.name || "Error"}: ${err?.message || String(lastError)}`);
+    return "";
   }
 
   private static _client: S3Client;

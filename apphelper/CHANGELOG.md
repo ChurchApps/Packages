@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 1.8.14
+
+### Patch Changes
+
+- 0abda45: Add a download link on website podcast episodes that saves the file under the episode title.
+
 ## 1.8.13
 
 ### Patch Changes

@@ -22,6 +22,7 @@ export const Forgot: React.FC<Props> = props => {
   const [codeSent, setCodeSent] = React.useState(false);
   const [code, setCode] = React.useState("");
   const [resendCooldown, setResendCooldown] = React.useState(0);
+  const verifyInFlight = React.useRef(false);
 
   React.useEffect(() => {
     if (resendCooldown <= 0) return;
@@ -74,10 +75,12 @@ export const Forgot: React.FC<Props> = props => {
   };
 
   const verify = (submittedCode: string) => {
+    if (verifyInFlight.current) return;
     if (submittedCode.length !== 6) {
       setErrors([Locale.label("login.validate.code")]);
       return;
     }
+    verifyInFlight.current = true;
     setErrors([]);
     setIsSubmitting(true);
     ApiHelper.postAnonymous("/users/verifyCode", { email, code: submittedCode }, "MembershipApi").then((resp: any) => {
@@ -85,7 +88,7 @@ export const Forgot: React.FC<Props> = props => {
       else setErrors([Locale.label("login.validate.code")]);
     }).catch(() => {
       setErrors([Locale.label("login.validate.code")]);
-    }).finally(() => { setIsSubmitting(false); });
+    }).finally(() => { verifyInFlight.current = false; setIsSubmitting(false); });
   };
 
   const submitCode: FormEventHandler = (e) => {

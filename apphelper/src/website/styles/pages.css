@@ -913,6 +913,7 @@ code {
 .podcastMetaSep { padding: 0 2px; }
 .podcastEpisodeDesc { font-size: 0.9rem; opacity: 0.85; margin: 6px 0 0; white-space: pre-line; }
 .podcastAudio { display: block; width: 100%; max-width: 640px; margin-top: 10px; }
+.podcastDownload { display: inline-block; margin-top: 6px; font-size: 0.9rem; }
 .podcastEmpty { padding: 12px; border: 1px dashed #bbb; border-radius: 4px; opacity: 0.8; }
 
 /* campaignProgress */

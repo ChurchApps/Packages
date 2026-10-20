@@ -125,7 +125,12 @@ export const PodcastElement = ({ element, onEdit }: Props) => {
                   </div>
                 )}
                 {showDescriptions && ep.description && <p className="podcastEpisodeDesc">{ep.description}</p>}
-                {ep.audioUrl && <audio className="podcastAudio" controls preload="none" src={ep.audioUrl} data-testid="podcast-audio">{ep.audioType ? <source src={ep.audioUrl} type={ep.audioType} /> : null}</audio>}
+                {ep.audioUrl && (
+                  <>
+                    <audio className="podcastAudio" controls preload="none" src={ep.audioUrl} data-testid="podcast-audio">{ep.audioType ? <source src={ep.audioUrl} type={ep.audioType} /> : null}</audio>
+                    {!onEdit && ep.guid && <a className="podcastDownload" data-testid="podcast-download" href={"/api/podcast/download?url=" + encodeURIComponent(feedUrl) + "&guid=" + encodeURIComponent(ep.guid)} aria-label={"Download " + (ep.title || "episode")}>Download</a>}
+                  </>
+                )}
               </div>
             </div>
           );

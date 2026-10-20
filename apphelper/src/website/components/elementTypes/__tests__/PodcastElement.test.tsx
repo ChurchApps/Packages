@@ -50,6 +50,10 @@ describe("PodcastElement", () => {
     expect(episodes[0].querySelector(".podcastEpisodeMeta")?.textContent).toContain("47 min");
     expect(episodes[0].querySelector(".podcastEpisodeDesc")?.textContent).toBe("Donald Clark opens the book of Ruth.");
     expect(episodes[0].querySelector("audio")?.getAttribute("src")).toBe("https://cdn.example.com/audio/ep-2.mp3");
+    const download = episodes[0].querySelector('[data-testid="podcast-download"]');
+    expect(download?.textContent).toBe("Download");
+    expect(download?.getAttribute("href")).toBe("/api/podcast/download?url=" + encodeURIComponent("https://feeds.example.com/podcast.xml") + "&guid=" + encodeURIComponent("ep-2"));
+    expect(download?.getAttribute("href")).not.toContain("cdn.example.com");
     expect(episodes[1].querySelector("img")).toBeNull();
     // Trailer has no episode number, so it gets a positional anchor.
     expect(episodes[2].id).toBe("ep-1");

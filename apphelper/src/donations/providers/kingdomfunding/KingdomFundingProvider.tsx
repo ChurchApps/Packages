@@ -120,7 +120,7 @@ export const KingdomFundingProvider: PaymentProvider = {
         ["zip", church?.zip],
         ["country", church?.country]
       ];
-      return "https://kingdomfunding.org/begin-registration/?" + params.map(([k, v]) => k + "=" + encodeURIComponent(v || "")).join("&");
+      return "https://kingdomfundinginternational.com/churches/apply?" + params.map(([k, v]) => k + "=" + encodeURIComponent(v || "")).join("&");
     }
   },
   capabilities: { savedCard: true, savedBank: true, guestAch: true, memberNewCard: true, recurring: true, editRecurring: false, pauseRecurring: false },

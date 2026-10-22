@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 1.8.15
+
+### Patch Changes
+
+- 4b07e25: Point the Kingdom Funding signup link at kingdomfundinginternational.com/churches/apply
+
 ## 1.8.14
 
 ### Patch Changes

@@ -4,6 +4,7 @@ import { ClearstreamProvider } from "./clearstream/index.js";
 import { MutualMinistryProvider } from "./mutualMinistry/index.js";
 import { MinistryStuffProvider } from "./ministryStuff/index.js";
 import { NaloProvider } from "./nalo/index.js";
+import { TwilioProvider } from "./twilio/index.js";
 
 const providers = new Map<string, ITextingProvider>();
 
@@ -13,6 +14,7 @@ providers.set("clearstream", new ClearstreamProvider());
 providers.set("mutualministry", new MutualMinistryProvider());
 providers.set("ministrystuff", new MinistryStuffProvider());
 providers.set("nalo", new NaloProvider());
+providers.set("twilio", new TwilioProvider());
 
 const providerMeta: Record<string, Omit<ProviderInfo, "id">> = {
   clearstream: {
@@ -49,6 +51,13 @@ const providerMeta: Record<string, Omit<ProviderInfo, "id">> = {
     requiresSecret: false,
     settingsUrl: "https://www.nalosolutions.com",
     helpText: "Ghana SMS gateway. Enter the auth key from your Nalo account and a sender ID that Nalo has approved for your account."
+  },
+  twilio: {
+    name: "Twilio",
+    requiresApiKey: true,
+    requiresSecret: true,
+    settingsUrl: "https://console.twilio.com",
+    helpText: "Enter the Account SID and Auth Token from your Twilio Console and a Twilio phone number (or Messaging Service SID) registered for A2P 10DLC."
   }
 };
 

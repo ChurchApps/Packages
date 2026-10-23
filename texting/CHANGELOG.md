@@ -1,5 +1,11 @@
 # @churchapps/texting
 
+## 0.6.0
+
+### Minor Changes
+
+- 1bf77b0: Add Twilio as a bring-your-own texting provider (Account SID, Auth Token, From Number or Messaging Service SID).
+
 ## 0.5.0
 
 ### Minor Changes

@@ -4,13 +4,11 @@ import { createFolder, createFile, detectMediaType, filesToInstructions, isPlayl
 import { OAuthHelper } from "../../helpers";
 import { getProviderSecret } from "../../helpers/ProviderSecrets";
 import { BaseProvider } from "../BaseProvider";
-import goCurriculumData from "./data.json";
 import { GoCurriculumData, GoCurriculumCollection } from "./GoCurriculumInterfaces";
 
 /**
  * Path: / → age groups, /{group} → collections, /{group}/{collection} → lessons (leaf), /{group}/{collection}/{lesson} → files.
- * Each group is a Go export hosted on Dropbox (fetched at runtime so it auto-updates);
- * bundled data.json is the fallback when a fetch fails.
+ * Each group is a Go export hosted on Dropbox, fetched at runtime so it auto-updates.
  * A valid gocurriculum.com login (WP OAuth Server plugin) gates all of it.
  */
 const FEEDS = [
@@ -42,7 +40,7 @@ export class GoCurriculumProvider extends BaseProvider {
     scopes: ["basic"]
   };
 
-  private data: Record<string, GoCurriculumData> = goCurriculumData;
+  private data: Record<string, GoCurriculumData> = {};
   private dataFetchedAt = 0;
 
   private async getData(groupId: string): Promise<GoCurriculumData | undefined> {
@@ -51,9 +49,10 @@ export class GoCurriculumProvider extends BaseProvider {
         try {
           const response = await fetch(f.url);
           if (response.ok) this.data[f.id] = await response.json() as GoCurriculumData;
-        } catch { /* keep last good catalog (bundled data.json at worst) */ }
+        } catch { /* keep last good catalog */ }
       }));
-      this.dataFetchedAt = Date.now();
+      // no bundled fallback, so retry on the next call until every feed has loaded
+      if (FEEDS.every(f => this.data[f.id])) this.dataFetchedAt = Date.now();
     }
     return this.data[groupId];
   }

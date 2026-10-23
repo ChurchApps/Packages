@@ -1,5 +1,11 @@
 # @churchapps/content-providers
 
+## 0.13.1
+
+### Patch Changes
+
+- 80fa803: GoCurriculum: drop the bundled data.json fallback; the catalog now comes only from Go's hosted feeds, and a failed fetch retries on the next request instead of waiting an hour.
+
 ## 0.13.0
 
 ### Minor Changes

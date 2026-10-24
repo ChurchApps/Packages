@@ -28,6 +28,7 @@ export { HighVoltageKidsProvider } from "./providers/highVoltage";
 export { JesusFilmProvider } from "./providers/jesusFilm";
 export { CbnProvider } from "./providers/cbn";
 export { FreeShowProvider } from "./providers/freeShow";
+export { GoCurriculumProvider, type GoCurriculumCatalogLoader, type GoCurriculumData } from "./providers/goCurriculum";
 export {
   FREESHOW_REST_PORT,
   freeShowServicesToInstances,

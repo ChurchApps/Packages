@@ -8,14 +8,25 @@ import { GoCurriculumData, GoCurriculumCollection } from "./GoCurriculumInterfac
 
 /**
  * Path: / → age groups, /{group} → collections, /{group}/{collection} → lessons (leaf), /{group}/{collection}/{lesson} → files.
- * Each group is a Go export hosted on Dropbox, fetched at runtime so it auto-updates.
- * A valid gocurriculum.com login (WP OAuth Server plugin) gates all of it.
+ * Each group is a Go export fetched at runtime. Feed URLs are private: a server host supplies them with
+ * setProviderSecret("gocurriculumFeeds", '{"elementary":"https://...","preschool":"https://..."}'); a device host calls
+ * setCatalogLoader to fetch through its server instead. A valid gocurriculum.com login (WP OAuth Server plugin) gates all of it.
  */
-const FEEDS = [
-  { id: "elementary", name: "Elementary", url: "https://dl.dropboxusercontent.com/scl/fi/xortbrs2nk49wemscubpu/data.json?rlkey=gnzxyrauhud7xtjlejrs8ysp7" },
-  { id: "preschool", name: "Preschool", url: "https://dl.dropboxusercontent.com/scl/fi/1cdovbglp5rpfmb9mdg2s/data.json?rlkey=miwsssb0o7i2wdijrdc7jjqcl" }
+const GROUPS = [
+  { id: "elementary", name: "Elementary" },
+  { id: "preschool", name: "Preschool" }
 ];
 const CATALOG_TTL_MS = 60 * 60 * 1000;
+
+export type GoCurriculumCatalogLoader = (groupId: string, auth: ContentProviderAuthData) => Promise<GoCurriculumData | null>;
+
+async function loadFromFeed(groupId: string): Promise<GoCurriculumData | null> {
+  let url: string | undefined;
+  try { url = JSON.parse(getProviderSecret("gocurriculumFeeds") || "{}")[groupId]; } catch { return null; }
+  if (!url) return null;
+  const response = await fetch(url);
+  return response.ok ? await response.json() as GoCurriculumData : null;
+}
 
 export class GoCurriculumProvider extends BaseProvider {
   private readonly oauthHelper = new OAuthHelper();
@@ -42,23 +53,35 @@ export class GoCurriculumProvider extends BaseProvider {
 
   private data: Record<string, GoCurriculumData> = {};
   private dataFetchedAt = 0;
+  private loadCatalog: GoCurriculumCatalogLoader = loadFromFeed;
 
-  private async getData(groupId: string): Promise<GoCurriculumData | undefined> {
+  setCatalogLoader(loader: GoCurriculumCatalogLoader): void {
+    this.loadCatalog = loader;
+    this.dataFetchedAt = 0;
+  }
+
+  private async getData(groupId: string, auth: ContentProviderAuthData): Promise<GoCurriculumData | undefined> {
     if (Date.now() - this.dataFetchedAt >= CATALOG_TTL_MS) {
-      await Promise.all(FEEDS.map(async f => {
+      await Promise.all(GROUPS.map(async g => {
         try {
-          const response = await fetch(f.url);
-          if (response.ok) this.data[f.id] = await response.json() as GoCurriculumData;
+          const data = await this.loadCatalog(g.id, auth);
+          if (data) this.data[g.id] = data;
         } catch { /* keep last good catalog */ }
       }));
       // no bundled fallback, so retry on the next call until every feed has loaded
-      if (FEEDS.every(f => this.data[f.id])) this.dataFetchedAt = Date.now();
+      if (GROUPS.every(g => this.data[g.id])) this.dataFetchedAt = Date.now();
     }
     return this.data[groupId];
   }
 
-  private async getCollection(segments: string[]): Promise<GoCurriculumCollection | undefined> {
-    return (await this.getData(segments[0]))?.catalog.find(c => c.id === segments[1]);
+  private async getCollection(segments: string[], auth: ContentProviderAuthData): Promise<GoCurriculumCollection | undefined> {
+    return (await this.getData(segments[0], auth))?.catalog.find(c => c.id === segments[1]);
+  }
+
+  // what a server host returns to a device host's setCatalogLoader
+  async getCatalog(groupId: string, auth?: ContentProviderAuthData | null): Promise<GoCurriculumData | null> {
+    if (!auth || !(await this.verifyAuth(auth))) return null;
+    return (await this.getData(groupId, auth)) || null;
   }
 
   readonly requiresAuth = true;
@@ -82,13 +105,13 @@ export class GoCurriculumProvider extends BaseProvider {
   }
 
   async browse(path?: string | null, auth?: ContentProviderAuthData | null): Promise<ContentItem[]> {
-    if (!(await this.verifyAuth(auth))) return [];
+    if (!auth || !(await this.verifyAuth(auth))) return [];
     const { segments, depth } = parsePath(path);
 
-    if (depth === 0) return FEEDS.map(f => createFolder(f.id, f.name, `/${f.id}`));
-    if (depth === 1) return ((await this.getData(segments[0]))?.catalog || []).map(c => createFolder(c.id, c.name, `/${segments[0]}/${c.id}`, c.thumbnail));
+    if (depth === 0) return GROUPS.map(g => createFolder(g.id, g.name, `/${g.id}`));
+    if (depth === 1) return ((await this.getData(segments[0], auth))?.catalog || []).map(c => createFolder(c.id, c.name, `/${segments[0]}/${c.id}`, c.thumbnail));
 
-    const collection = await this.getCollection(segments);
+    const collection = await this.getCollection(segments, auth);
     if (!collection) return [];
 
     if (depth === 2) return collection.lessons.map(l => createFolder(l.id, l.name, `/${segments[0]}/${collection.id}/${l.id}`, l.thumbnail || collection.thumbnail, true));
@@ -105,11 +128,11 @@ export class GoCurriculumProvider extends BaseProvider {
   }
 
   async getPlaylist(path: string, auth?: ContentProviderAuthData | null, _resolution?: number): Promise<ContentFile[] | null> {
-    if (!(await this.verifyAuth(auth))) return null;
+    if (!auth || !(await this.verifyAuth(auth))) return null;
     const { segments, depth } = parsePath(path);
     if (depth !== 3) return null;
 
-    const collection = await this.getCollection(segments);
+    const collection = await this.getCollection(segments, auth);
     if (!collection) return null;
 
     const files = this.getLessonFiles(collection, segments[2]);
@@ -121,9 +144,9 @@ export class GoCurriculumProvider extends BaseProvider {
     if (depth !== 3) return null;
 
     const files = await this.getPlaylist(path, auth);
-    if (!files) return null;
+    if (!files || !auth) return null;
 
-    const collection = await this.getCollection(segments);
+    const collection = await this.getCollection(segments, auth);
     const lesson = collection?.lessons.find(l => l.id === segments[2]);
     const instructions = filesToInstructions(lesson?.name || "Lesson", files);
     const downloads = (lesson?.resources || [])

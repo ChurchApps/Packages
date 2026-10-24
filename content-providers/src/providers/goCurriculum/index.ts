@@ -1,2 +1,2 @@
-export { GoCurriculumProvider } from "./GoCurriculumProvider";
+export { GoCurriculumProvider, type GoCurriculumCatalogLoader } from "./GoCurriculumProvider";
 export * from "./GoCurriculumInterfaces";

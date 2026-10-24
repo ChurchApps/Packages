@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 1.8.16
+
+### Patch Changes
+
+- 661f555: Notes bell: switch the icon right after a click so a second click mutes instead of saving another "on" marker.
+
 ## 1.8.15
 
 ### Patch Changes

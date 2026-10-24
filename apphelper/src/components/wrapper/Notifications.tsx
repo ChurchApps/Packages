@@ -151,6 +151,12 @@ export const Notifications: React.FC<Props> = (props) => {
                 component="button"
                 onClick={() => handleClick(notification)}
                 sx={{
+                  // A <button> otherwise shows the browser's black text, unreadable in dark mode.
+                  color: "text.primary",
+                  width: "100%",
+                  textAlign: "left",
+                  border: 0,
+                  font: "inherit",
                   alignItems: "flex-start",
                   py: 2,
                   cursor: "pointer",

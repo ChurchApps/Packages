@@ -1,5 +1,11 @@
 # @churchapps/content-providers
 
+## 0.14.0
+
+### Minor Changes
+
+- 8ce66d7: Go Curriculum: feed URLs are no longer in the package. Server hosts pass them with `setProviderSecret("gocurriculumFeeds", json)`; device hosts call `GoCurriculumProvider.setCatalogLoader` to fetch through their server, which serves `getCatalog`.
+
 ## 0.13.1
 
 ### Patch Changes

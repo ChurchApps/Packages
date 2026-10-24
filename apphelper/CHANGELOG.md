@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 1.8.17
+
+### Patch Changes
+
+- e95dc6a: Notification rows use the theme's text color instead of the browser's black button text, so they read in dark mode.
+
 ## 1.8.16
 
 ### Patch Changes

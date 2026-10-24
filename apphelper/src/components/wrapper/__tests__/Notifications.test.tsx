@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import React, { act } from "react";
 import { createRoot } from "react-dom/client";
+import { ThemeProvider, createTheme } from "@mui/material/styles";
 
 vi.mock("@churchapps/helpers", async (importOriginal) => {
   const actual: any = await importOriginal();
@@ -61,5 +62,31 @@ describe("Notifications click", () => {
     await clickNotification("n3", "View Details");
     expect(open).toHaveBeenCalledWith("https://grace.b1.church/mobile/groups/GRP1", "_blank");
     open.mockRestore();
+  });
+});
+
+describe("Notifications colors", () => {
+  // The rows are <button>s; without their own color they show the browser's black button text on a dark theme.
+  it("gives each row the theme's text color so it reads on a dark background", async () => {
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+    const root = createRoot(container);
+    const context: any = { userChurch: { church: { id: "c1", subDomain: "grace" } } };
+    const theme = createTheme({ palette: { mode: "dark" } });
+    // jsdom has no user-agent stylesheet; this is the browser's default for buttons.
+    const uaButton = document.createElement("style");
+    uaButton.textContent = "button { color: rgb(0, 0, 0); }";
+    document.head.appendChild(uaButton);
+
+    await act(async () => {
+      root.render(<ThemeProvider theme={theme}><Notifications appName="B1Admin" context={context} onNavigate={() => {}} onUpdate={() => {}} /></ThemeProvider>);
+    });
+
+    const row = container.querySelector("#notification-item-n1") as HTMLElement;
+    expect(getComputedStyle(row).color).toBe("rgb(255, 255, 255)");
+
+    act(() => root.unmount());
+    container.remove();
+    uaButton.remove();
   });
 });

@@ -44,7 +44,11 @@ interface Props {
 
 /** Bell icon toggling notification subscription for this conversation; renders nothing if conversationId or personId missing */
 export const SubscriptionToggle: React.FC<Props> = ({ conversationId, messages, personId, size = "small", color, mutedColor }) => {
-  const subscribed = React.useMemo(() => computeSubscriptionState(messages, personId), [messages, personId]);
+  const computed = React.useMemo(() => computeSubscriptionState(messages, personId), [messages, personId]);
+  // Parents don't reload messages after a toggle, so remember the posted state until they do.
+  const [override, setOverride] = React.useState<boolean | null>(null);
+  React.useEffect(() => { setOverride(null); }, [computed, personId, conversationId]);
+  const subscribed = override ?? computed;
   const [busy, setBusy] = React.useState(false);
 
   const onToggle = async () => {
@@ -57,6 +61,7 @@ export const SubscriptionToggle: React.FC<Props> = ({ conversationId, messages, 
         [{ conversationId, messageType: SUBSCRIPTION_MESSAGE_TYPE, content: next }],
         "MessagingApi"
       );
+      setOverride(next === "on");
     } catch (err) {
       console.warn("SubscriptionToggle.toggle failed:", err);
     } finally {

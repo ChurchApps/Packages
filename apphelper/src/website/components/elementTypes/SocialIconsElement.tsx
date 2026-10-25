@@ -4,6 +4,7 @@ import React from "react";
 import { SvgIcon } from "@mui/material";
 import FacebookIcon from "@mui/icons-material/Facebook";
 import InstagramIcon from "@mui/icons-material/Instagram";
+import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import YouTubeIcon from "@mui/icons-material/YouTube";
 import XIcon from "@mui/icons-material/X";
 import PodcastsIcon from "@mui/icons-material/Podcasts";
@@ -30,6 +31,7 @@ export const SocialIconsElement = ({ element, onEdit }: Props) => {
   const networks: { key: string; url: string; label: string; icon: React.ReactNode }[] = [
     { key: "facebook", url: answers.facebook, label: "Facebook", icon: <FacebookIcon /> },
     { key: "instagram", url: answers.instagram, label: "Instagram", icon: <InstagramIcon /> },
+    { key: "whatsapp", url: answers.whatsapp, label: "WhatsApp", icon: <WhatsAppIcon /> },
     { key: "youtube", url: answers.youtube, label: "YouTube", icon: <YouTubeIcon /> },
     { key: "x", url: answers.x, label: "X", icon: <XIcon /> },
     { key: "tiktok", url: answers.tiktok, label: "TikTok", icon: <TikTokIcon /> },

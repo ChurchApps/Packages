@@ -1,5 +1,11 @@
 # @churchapps/helpers
 
+## 2.11.0
+
+### Minor Changes
+
+- aa906a5: Social Icons element links WhatsApp, and the website Form element shows a form's header photo above its questions.
+
 ## 2.10.0
 
 ### Minor Changes

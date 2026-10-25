@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 1.9.0
+
+### Minor Changes
+
+- aa906a5: Social Icons element links WhatsApp, and the website Form element shows a form's header photo above its questions.
+
 ## 1.8.17
 
 ### Patch Changes

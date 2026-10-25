@@ -1,5 +1,11 @@
 # @churchapps/helpers
 
+## 2.11.1
+
+### Patch Changes
+
+- f7c8d3a: Workflow triggers carry an `allowRepeatAfterClose` flag: with "Only once per person" on, a person can get a new card once their old one on the board is closed.
+
 ## 2.11.0
 
 ### Minor Changes

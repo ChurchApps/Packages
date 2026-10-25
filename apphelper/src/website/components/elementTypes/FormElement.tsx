@@ -13,7 +13,7 @@ interface Props {
   church: ChurchInterface;
 }
 
-export interface FormInterface { id?: string, name?: string, contentType?: string, restricted?: boolean, accessStartTime?: Date, accessEndTime?: Date, archived: boolean, action?: string, thankYouMessage?: string, displayMode?: "standard" | "conversational" }
+export interface FormInterface { id?: string, name?: string, contentType?: string, restricted?: boolean, accessStartTime?: Date, accessEndTime?: Date, archived: boolean, action?: string, thankYouMessage?: string, photoUrl?: string, displayMode?: "standard" | "conversational" }
 
 export const FormElement = (props: Props) => {
   const [addFormId, setAddFormId] = useState<string>("");
@@ -65,6 +65,14 @@ export const FormElement = (props: Props) => {
 
   return (
     <>
+      {form?.photoUrl && (
+        <img
+          src={form.photoUrl}
+          alt={form.name || ""}
+          data-testid="form-header-photo"
+          style={{ display: "block", width: "100%", aspectRatio: "16 / 9", objectFit: "cover", borderRadius: 8, marginBottom: 16 }}
+        />
+      )}
       <FormSubmissionEdit
         churchId={props.church.id}
         addFormId={addFormId}

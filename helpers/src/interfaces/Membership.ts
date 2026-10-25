@@ -43,6 +43,7 @@ export interface FormInterface {
   archived: boolean;
   action?: string;
   displayMode?: "standard" | "conversational";
+  photoUrl?: string;
 }
 export interface FormSubmissionInterface {
   id?: string;

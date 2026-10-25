@@ -88,6 +88,7 @@ export interface WorkflowTriggerInterface {
   stepId?: string;
   conditions?: string;
   oncePerSubject?: boolean;
+  allowRepeatAfterClose?: boolean;
   active?: boolean;
 }
 

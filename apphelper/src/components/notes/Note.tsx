@@ -22,6 +22,7 @@ export const Note: React.FC<Props> = (props) => {
   if (message === null) return null;
   const datePosted = new Date(message.timeUpdated || message.timeSent || NaN);
   const displayDuration = DateHelper.getDisplayDuration(datePosted);
+  const displayDateTime = isNaN(datePosted.getTime()) ? "" : DateHelper.prettyDateTime(datePosted);
 
   const isEdited = message.timeUpdated && message.timeUpdated !== message.timeSent;
 
@@ -107,8 +108,8 @@ export const Note: React.FC<Props> = (props) => {
               <Typography variant="subtitle2" fontWeight="bold">
                 {message.person?.name?.display}
               </Typography>
-              <Typography variant="caption" color="text.secondary">
-                {displayDuration}
+              <Typography variant="caption" color="text.secondary" title={displayDateTime} data-testid="note-timestamp">
+                {displayDateTime ? `${displayDateTime} · ${displayDuration}` : displayDuration}
               </Typography>
               {isEdited && (
                 <Typography variant="caption" color="text.secondary">

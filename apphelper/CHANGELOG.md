@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 1.9.1
+
+### Patch Changes
+
+- 846dffa: Notes and messages show the date and time they were posted next to the relative age ("Oct 22, 2026, 6:42 PM · 3d").
+
 ## 1.9.0
 
 ### Minor Changes

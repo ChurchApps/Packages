@@ -83,7 +83,7 @@ export function RRuleEditor(props: Props) {
     switch (rRuleOptions.freq.toString()) {
       case RRule.WEEKLY.toString():
         result = (<>
-          <ButtonGroup size="small">
+          <ButtonGroup size="small" fullWidth sx={{ "& .MuiButtonGroup-grouped": { minWidth: 0, px: 0 } }}>
             {getDayButton(RRule.SU, "S")}
             {getDayButton(RRule.MO, "M")}
             {getDayButton(RRule.TU, "T")}
@@ -200,7 +200,7 @@ export function RRuleEditor(props: Props) {
           </Select>
         </FormControl>
       </Grid>
-      <Grid size={{ xs: 5 }}>
+      <Grid size={{ xs: 12, sm: 5 }}>
         <FormControl fullWidth size="small">
           {getFreqFollowUp()}
         </FormControl>

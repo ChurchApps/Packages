@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 1.10.0
+
+### Minor Changes
+
+- ded8314: Login page asks for an authenticator or backup code when the account has two-factor sign-in turned on
+
 ## 1.9.2
 
 ### Patch Changes

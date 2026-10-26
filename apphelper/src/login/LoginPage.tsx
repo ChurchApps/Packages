@@ -12,6 +12,7 @@ import { Forgot } from "./components/Forgot";
 import { Alert, PaperProps } from "@mui/material";
 import { Login } from "./components/Login";
 import { LoginSetPassword } from "./components/LoginSetPassword";
+import { MfaCode } from "./components/MfaCode";
 import ga4 from "react-ga4";
 
 interface Props {
@@ -56,6 +57,7 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
   } | null>(null);
   const [verifiedAuth, setVerifiedAuth] = React.useState<string>("");
   const [verifiedEmail, setVerifiedEmail] = React.useState<string>("");
+  const [mfaToken, setMfaToken] = React.useState("");
 
   const loginFormRef = React.useRef<{ setSubmitting?: (value: boolean) => void } | null>(null);
   const location = typeof window !== "undefined" ? window.location : undefined;
@@ -106,7 +108,9 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
     const hashParams = typeof window !== "undefined" ? new URLSearchParams(window.location.hash.replace(/^#/, "")) : new URLSearchParams();
     const hashJwt = hashParams.get("jwt") || "";
     const hashLoginError = hashParams.get("loginError");
-    if (hashJwt || hashLoginError) window.history.replaceState(null, "", window.location.pathname + window.location.search);
+    const hashMfaToken = hashParams.get("mfaToken") || "";
+    if (hashJwt || hashLoginError || hashMfaToken) window.history.replaceState(null, "", window.location.pathname + window.location.search);
+    if (hashMfaToken) { setMfaToken(hashMfaToken); return; }
 
     const loginError = hashLoginError || search.get("loginError");
     if (loginError) setErrors([loginError]);
@@ -287,11 +291,19 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
     try {
       const resp: LoginResponseInterface = await ApiHelper.postAnonymous("/users/login", data, "MembershipApi");
       setIsSubmitting(false);
+      if (resp.mfaRequired) {
+        setPendingAutoLogin(false);
+        setWelcomeBackName("");
+        setMfaToken(resp.mfaToken || "");
+        return;
+      }
+      setMfaToken("");
       handleLoginSuccess(resp);
     } catch (e: any) {
       setPendingAutoLogin(false);
       setWelcomeBackName("");
-      if (!data.jwt) handleLoginErrors([e.toString()], data.email);
+      if (data.mfaToken) setErrors([e?.message === "Too many requests" ? e.message : Locale.label("login.mfaInvalid")]);
+      else if (!data.jwt) handleLoginErrors([e.toString()], data.email);
       setIsSubmitting(false);
     }
   };
@@ -319,6 +331,7 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
   const handleCodeVerified = (authGuid: string, email?: string) => { setVerifiedAuth(authGuid); if (email) setVerifiedEmail(email); setShowForgot(false); setShowRegister(false); };
 
   const getInputBox = () => {
+    if (mfaToken) return <MfaCode isSubmitting={isSubmitting} submit={(code) => login({ mfaToken, mfaCode: code })} cancel={() => { setMfaToken(""); setErrors([]); }} />;
     if (verifiedAuth) return (<LoginSetPassword setErrors={setErrors} setShowForgot={setShowForgot} isSubmitting={isSubmitting} auth={verifiedAuth} email={verifiedEmail} login={login} appName={props.appName || ""} appUrl={cleanAppUrl() || ""} />);
     if (showRegister) {
       return (

@@ -39,6 +39,8 @@ export interface LoginResponseInterface {
   user: UserInterface;
   userChurches: LoginUserChurchInterface[];
   errors: string[];
+  mfaRequired?: boolean;
+  mfaToken?: string;
 }
 export interface LoginUserChurchInterface {
   person: PersonInterface;

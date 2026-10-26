@@ -1,5 +1,11 @@
 # @churchapps/helpers
 
+## 2.11.2
+
+### Patch Changes
+
+- 3081aa0: Add `dateAdded` to `PersonInterface` and `joinDate` to `GroupMemberInterface`.
+
 ## 2.11.1
 
 ### Patch Changes

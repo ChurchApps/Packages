@@ -43,12 +43,14 @@ test("getWeekSunday returns the Sunday that begins the given ISO-ish week of the
   assert.equal((week2.getTime() - week1.getTime()) / (1000 * 60 * 60 * 24), 7);
 });
 
-test("getNextSunday is exactly 7 days after getLastSunday", () => {
+test("getNextSunday is exactly 7 calendar days after getLastSunday", () => {
   const last = DateHelper.getLastSunday();
   const next = DateHelper.getNextSunday();
   assert.equal(last.getDay(), 0);
   assert.equal(next.getDay(), 0);
-  assert.equal((next.getTime() - last.getTime()) / (1000 * 60 * 60 * 24), 7);
+  const lastDay = Date.UTC(last.getFullYear(), last.getMonth(), last.getDate());
+  const nextDay = Date.UTC(next.getFullYear(), next.getMonth(), next.getDate());
+  assert.equal((nextDay - lastDay) / (1000 * 60 * 60 * 24), 7);
 });
 
 test("formatHtml5Date passes through YYYY-MM-DD strings and extracts the date part of ISO strings", () => {

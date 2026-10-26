@@ -1,5 +1,11 @@
 # @churchapps/content-providers
 
+## 0.15.0
+
+### Minor Changes
+
+- 3650653: Go Curriculum: lesson instructions now carry the Large Group leader guide (sections and say/do/play/note actions), and each collection gets a "Small Group Guides" folder with the Small Group guide for every lesson.
+
 ## 0.14.0
 
 ### Minor Changes

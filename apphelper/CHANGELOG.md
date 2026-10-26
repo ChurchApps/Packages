@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 1.9.2
+
+### Patch Changes
+
+- 077e7c7: Weekly recurrence day buttons share the row's width so Saturday is no longer cut off in event dialogs.
+
 ## 1.9.1
 
 ### Patch Changes

@@ -83,3 +83,41 @@ test("GoCurriculum uses the host catalog loader", async () => {
     restore();
   }
 });
+
+test("GoCurriculum turns the Large and Small Group guides into instructions", async () => {
+  const video = { file: "intro.mp4", url: "https://feeds.test/intro.mp4", mediaType: "video", seconds: 30 };
+  const guided = { catalog: [{ id: "faith-lab", name: "Faith Lab", lessons: [{
+    id: "lesson-1", name: "Lesson 1",
+    playlist: [{ title: "Intro Video", ...video }],
+    script: { sections: [{ name: "Opening", role: "lesson", items: [{ type: "play", content: "Play intro", files: [video] }, { type: "say", content: "*Welcome* everyone!" }] }] },
+    smallGroup: { sections: [{ name: "Story Questions", role: "lesson", items: [{ type: "do", content: "Ask the questions." }] }] }
+  }] }] };
+  const { restore } = mockFetch(() => ({ ok: false }));
+  try {
+    const provider = new GoCurriculumProvider();
+    provider.setCatalogLoader(async () => guided);
+
+    const lessons = await provider.browse("/elementary/faith-lab", goAuth);
+    assert.deepEqual(lessons.map(l => l.path), ["/elementary/faith-lab/small-group", "/elementary/faith-lab/lesson-1"]);
+    assert.deepEqual((await provider.browse("/elementary/faith-lab/small-group", goAuth)).map(l => l.path), ["/elementary/faith-lab/small-group/lesson-1"]);
+
+    const lg = await provider.getInstructions("/elementary/faith-lab/lesson-1", goAuth);
+    const opening = lg?.items[0];
+    assert.equal(opening?.itemType, "section");
+    assert.equal(opening?.label, "Opening");
+    const [play, say] = opening?.children || [];
+    assert.equal(play.actionType, "play");
+    assert.equal(play.children?.[0].downloadUrl, video.url);
+    assert.equal(play.children?.[0].label, "Intro Video");
+    assert.equal(say.actionType, "say");
+    assert.equal(say.label, "Welcome everyone!");
+    assert.equal(say.content, "*Welcome* everyone!");
+
+    const sg = await provider.getInstructions("/elementary/faith-lab/small-group/lesson-1", goAuth);
+    assert.equal(sg?.items[0].label, "Story Questions");
+    assert.equal(sg?.items[0].children?.[0].actionType, "do");
+    assert.equal(await provider.getPlaylist("/elementary/faith-lab/small-group", goAuth), null);
+  } finally {
+    restore();
+  }
+});

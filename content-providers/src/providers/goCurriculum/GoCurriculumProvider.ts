@@ -1,13 +1,15 @@
-import { AuthType, ContentFile, ContentItem, ContentProviderAuthData, ContentProviderConfig, Instructions, ProviderCapabilities, ProviderLogos } from "../../interfaces";
+import { AuthType, ContentFile, ContentItem, ContentProviderAuthData, ContentProviderConfig, InstructionItem, Instructions, ProviderCapabilities, ProviderLogos } from "../../interfaces";
 import { parsePath } from "../../pathUtils";
 import { createFolder, createFile, detectMediaType, filesToInstructions, isPlaylistMedia, slugify } from "../../utils";
 import { OAuthHelper } from "../../helpers";
 import { getProviderSecret } from "../../helpers/ProviderSecrets";
 import { BaseProvider } from "../BaseProvider";
-import { GoCurriculumData, GoCurriculumCollection } from "./GoCurriculumInterfaces";
+import { GoCurriculumData, GoCurriculumCollection, GoCurriculumGuide, GoCurriculumGuideItem, GoCurriculumLesson } from "./GoCurriculumInterfaces";
 
 /**
  * Path: / → age groups, /{group} → collections, /{group}/{collection} → lessons (leaf), /{group}/{collection}/{lesson} → files.
+ * A lesson's instructions are its Large Group guide (script). Small Group guides (no media) live in a sibling folder,
+ * /{group}/{collection}/small-group/{lesson}, so Large Group paths and series order stay untouched.
  * Each group is a Go export fetched at runtime. Feed URLs are private: a server host supplies them with
  * setProviderSecret("gocurriculumFeeds", '{"elementary":"https://...","preschool":"https://..."}'); a device host calls
  * setCatalogLoader to fetch through its server instead. A valid gocurriculum.com login (WP OAuth Server plugin) gates all of it.
@@ -17,6 +19,33 @@ const GROUPS = [
   { id: "preschool", name: "Preschool" }
 ];
 const CATALOG_TTL_MS = 60 * 60 * 1000;
+const SMALL_GROUP = "small-group";
+
+function guideAction(item: GoCurriculumGuideItem, id: string, lesson: GoCurriculumLesson): InstructionItem {
+  const plain = (item.content || "").replace(/\*+/g, "").trim();
+  const label = plain.length > 100 ? plain.slice(0, 100).trimEnd() + "…" : plain;
+  const files: InstructionItem[] = (item.files || []).map(f => ({
+    id: slugify(f.file),
+    itemType: "file",
+    label: lesson.playlist.find(p => p.url === f.url)?.title || f.file,
+    seconds: f.seconds,
+    downloadUrl: f.url,
+    mediaType: detectMediaType(`${f.url} ${f.file}`, f.mediaType),
+    thumbnail: f.thumbnail || lesson.thumbnail
+  }));
+  return { id, itemType: "action", actionType: item.type, label, content: item.content !== label ? item.content : undefined, seconds: files[0]?.seconds, children: files.length ? files : undefined };
+}
+
+function guideToInstructions(name: string, guide: GoCurriculumGuide, prefix: string, lesson: GoCurriculumLesson): Instructions {
+  // ponytail: index-based ids — Go's export has no stable ids, so a re-export that reorders items re-ids them
+  const items: InstructionItem[] = guide.sections.map((s, i) => ({
+    id: `${prefix}-${i}`,
+    itemType: "section",
+    label: s.name,
+    children: s.items.map((a, j) => guideAction(a, `${prefix}-${i}-${j}`, lesson))
+  }));
+  return { name, items };
+}
 
 export type GoCurriculumCatalogLoader = (groupId: string, auth: ContentProviderAuthData) => Promise<GoCurriculumData | null>;
 
@@ -114,7 +143,13 @@ export class GoCurriculumProvider extends BaseProvider {
     const collection = await this.getCollection(segments, auth);
     if (!collection) return [];
 
-    if (depth === 2) return collection.lessons.map(l => createFolder(l.id, l.name, `/${segments[0]}/${collection.id}/${l.id}`, l.thumbnail || collection.thumbnail, true));
+    const base = `/${segments[0]}/${collection.id}`;
+    if (depth === 2) {
+      const lessons = collection.lessons.map(l => createFolder(l.id, l.name, `${base}/${l.id}`, l.thumbnail || collection.thumbnail, true));
+      // first, so bulk scheduling from a lesson (which takes the lessons after it) never picks it up
+      return collection.lessons.some(l => l.smallGroup) ? [createFolder(SMALL_GROUP, "Small Group Guides", `${base}/${SMALL_GROUP}`, collection.thumbnail), ...lessons] : lessons;
+    }
+    if (depth === 3 && segments[2] === SMALL_GROUP) return collection.lessons.filter(l => l.smallGroup).map(l => createFolder(l.id, l.name, `${base}/${SMALL_GROUP}/${l.id}`, l.thumbnail || collection.thumbnail, true));
     if (depth === 3) return this.getLessonFiles(collection, segments[2]);
 
     return [];
@@ -140,16 +175,28 @@ export class GoCurriculumProvider extends BaseProvider {
   }
 
   async getInstructions(path: string, auth?: ContentProviderAuthData | null): Promise<Instructions | null> {
+    if (!auth || !(await this.verifyAuth(auth))) return null;
     const { segments, depth } = parsePath(path);
-    if (depth !== 3) return null;
-
-    const files = await this.getPlaylist(path, auth);
-    if (!files || !auth) return null;
+    const smallGroup = depth === 4 && segments[2] === SMALL_GROUP;
+    if (depth !== 3 && !smallGroup) return null;
 
     const collection = await this.getCollection(segments, auth);
-    const lesson = collection?.lessons.find(l => l.id === segments[2]);
-    const instructions = filesToInstructions(lesson?.name || "Lesson", files);
-    const downloads = (lesson?.resources || [])
+    const lesson = collection?.lessons.find(l => l.id === segments[depth - 1]);
+    if (!collection || !lesson) return null;
+
+    let instructions: Instructions;
+    if (smallGroup) {
+      if (!lesson.smallGroup?.sections?.length) return null;
+      instructions = guideToInstructions(`${lesson.name} - Small Group`, lesson.smallGroup, "sg", lesson);
+    } else if (lesson.script?.sections?.length) {
+      instructions = guideToInstructions(lesson.name, lesson.script, "lg", lesson);
+    } else {
+      const files = this.getLessonFiles(collection, lesson.id);
+      if (files.length === 0) return null;
+      instructions = filesToInstructions(lesson.name, files);
+    }
+
+    const downloads = (lesson.resources || [])
       .filter(r => r.url && !isPlaylistMedia(r.url, undefined, r.file))
       .map(r => ({ id: slugify(r.file || r.title), title: r.title || r.file, url: r.url }));
     if (downloads.length > 0) instructions.downloads = downloads;

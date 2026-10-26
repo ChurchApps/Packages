@@ -15,7 +15,32 @@ interface GoCurriculumResource {
   shareUrl?: string;
 }
 
-interface GoCurriculumLesson {
+interface GoCurriculumGuideFile {
+  file: string;
+  url: string;
+  mediaType?: string;
+  thumbnail?: string;
+  seconds?: number;
+}
+
+export interface GoCurriculumGuideItem {
+  type: string;
+  content: string;
+  files?: GoCurriculumGuideFile[];
+}
+
+interface GoCurriculumGuideSection {
+  name: string;
+  role?: string;
+  items: GoCurriculumGuideItem[];
+}
+
+export interface GoCurriculumGuide {
+  source?: string;
+  sections: GoCurriculumGuideSection[];
+}
+
+export interface GoCurriculumLesson {
   id: string;
   name: string;
   thumbnail?: string;
@@ -24,6 +49,8 @@ interface GoCurriculumLesson {
   keyVerse?: string;
   playlist: GoCurriculumPlaylistItem[];
   resources?: GoCurriculumResource[];
+  script?: GoCurriculumGuide;
+  smallGroup?: GoCurriculumGuide;
 }
 
 export interface GoCurriculumCollection {

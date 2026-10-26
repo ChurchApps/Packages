@@ -107,6 +107,7 @@ export interface GroupMemberInterface {
   groupId: string;
   group?: GroupInterface;
   leader?: boolean;
+  joinDate?: Date;
 }
 export interface GroupJoinRequestInterface {
   id?: string;
@@ -174,6 +175,7 @@ export interface PersonInterface {
   anniversary?: string;  // YYYY-MM-DD format - date-only field
   photo?: string;
   photoUpdated?: Date;
+  dateAdded?: Date;  // set by the server when the person is created; empty for people added before it was recorded
   householdId?: string;
   householdRole?: string;
   campusId?: string;

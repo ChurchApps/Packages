@@ -1,5 +1,11 @@
 # @churchapps/content-providers
 
+## 0.15.2
+
+### Patch Changes
+
+- 145de08: Switch the Dropbox provider to the new Dropbox app key.
+
 ## 0.15.1
 
 ### Patch Changes

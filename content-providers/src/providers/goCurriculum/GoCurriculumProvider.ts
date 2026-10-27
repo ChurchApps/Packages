@@ -5,6 +5,7 @@ import { OAuthHelper } from "../../helpers";
 import { getProviderSecret } from "../../helpers/ProviderSecrets";
 import { BaseProvider } from "../BaseProvider";
 import { GoCurriculumData, GoCurriculumCollection, GoCurriculumGuide, GoCurriculumGuideItem, GoCurriculumLesson } from "./GoCurriculumInterfaces";
+import { GO_LOGO } from "./logo";
 
 /**
  * Path: / → age groups, /{group} → collections, /{group}/{collection} → lessons (leaf), /{group}/{collection}/{lesson} → files.
@@ -64,10 +65,7 @@ export class GoCurriculumProvider extends BaseProvider {
   readonly id = "gocurriculum";
   readonly name = "Go Curriculum";
 
-  readonly logos: ProviderLogos = {
-    light: "https://gocurriculum.com/wp-content/uploads/go-logo-curriculum-v2.png",
-    dark: "https://gocurriculum.com/wp-content/uploads/go-logo-curriculum-v2.png"
-  };
+  readonly logos: ProviderLogos = { light: GO_LOGO, dark: GO_LOGO };
 
   readonly config: ContentProviderConfig = {
     id: "gocurriculum",

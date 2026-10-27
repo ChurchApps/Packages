@@ -1,5 +1,11 @@
 # @churchapps/helpers
 
+## 2.13.0
+
+### Minor Changes
+
+- 243be2d: Prevent duplicate password-reset token submissions and add shared Hymns interfaces for consuming apps.
+
 ## 2.12.0
 
 ### Minor Changes

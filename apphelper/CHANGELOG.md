@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 1.10.1
+
+### Patch Changes
+
+- 243be2d: Prevent duplicate password-reset token submissions and add shared Hymns interfaces for consuming apps.
+
 ## 1.10.0
 
 ### Minor Changes

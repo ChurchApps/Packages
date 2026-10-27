@@ -34,7 +34,7 @@ export class DropboxProvider extends BaseProvider {
     name: "Dropbox",
     apiBase: "https://api.dropboxapi.com",
     oauthBase: "https://www.dropbox.com/oauth2",
-    clientId: "9io0q0q9angdz9j",
+    clientId: "s8eot158flc42d1",
     scopes: []
   };
 

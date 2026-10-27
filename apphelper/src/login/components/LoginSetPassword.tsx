@@ -24,6 +24,8 @@ export const LoginSetPassword: React.FC<Props> = props => {
   const [user, setUser] = React.useState<UserInterface | null>(null);
   const [showPassword, setShowPassword] = React.useState(false);
   const [linkExpired, setLinkExpired] = React.useState(false);
+  const [isSaving, setIsSaving] = React.useState(false);
+  const saveInFlight = React.useRef(false);
 
   const validate = () => {
     const result = [];
@@ -53,18 +55,28 @@ export const LoginSetPassword: React.FC<Props> = props => {
   };
 
   const submit = async () => {
-    const resp = await ApiHelper.postAnonymous("/users/setPasswordGuid", { authGuid: props.auth, newPassword: password, appName: props.appName, appUrl: props.appUrl }, "MembershipApi");
-    const emailForLogin = user?.email || resp.email || props.email;
-    if (resp.success && emailForLogin) props.login({ email: emailForLogin, password });
-    else if (resp.success) props.setShowForgot(true);
-    else setLinkExpired(true);
+    if (saveInFlight.current) return;
+    saveInFlight.current = true;
+    setIsSaving(true);
+    try {
+      const resp = await ApiHelper.postAnonymous("/users/setPasswordGuid", { authGuid: props.auth, newPassword: password, appName: props.appName, appUrl: props.appUrl }, "MembershipApi");
+      const emailForLogin = user?.email || resp.email || props.email;
+      if (resp.success && emailForLogin) props.login({ email: emailForLogin, password });
+      else if (resp.success) props.setShowForgot(true);
+      else setLinkExpired(true);
+    } catch {
+      props.setErrors(["We couldn't reset your password. Please check your connection and try again."]);
+    } finally {
+      saveInFlight.current = false;
+      setIsSaving(false);
+    }
   };
 
   React.useEffect(() => {
     loadUser();
   }, []);
 
-  const buttonDisabled = props.isSubmitting;
+  const buttonDisabled = props.isSubmitting || isSaving;
 
   return (
     <Card sx={{

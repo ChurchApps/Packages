@@ -8,6 +8,7 @@ import { PayPalHostedFields, PayPalHostedFieldsHandle } from "./PayPalHostedFiel
 import { PayPalButtons } from "./PayPalButtons";
 import { ApiHelper, DateHelper, CurrencyHelper } from "@churchapps/helpers";
 import { Locale, DonationHelper } from "../../helpers";
+import { GuestCaptcha } from "../../helpers/GuestCaptcha";
 import type { PayPalDonationInterface } from "./PayPalDonationInterface";
 import { isPayPalCaptureComplete } from "./paypalStatus";
 import { FundDonationInterface, FundInterface, PersonInterface, ChurchInterface } from "@churchapps/helpers";
@@ -60,6 +61,7 @@ export const PayPalNonAuthDonationInner: React.FC<Props> = ({ mainContainerCssPr
   const [hostedValid, setHostedValid] = useState<boolean>(false);
   const [useHostedFields, setUseHostedFields] = useState<boolean>(true);
   const captchaRef = useRef<ReCAPTCHA>(null);
+  const captchaPass = useRef("");
 
   const getUrlParam = (param: string) => {
     if (typeof window === "undefined") return null;
@@ -98,21 +100,27 @@ export const PayPalNonAuthDonationInner: React.FC<Props> = ({ mainContainerCssPr
 
   const handleCaptchaChange = (value: string | null) => {
     if (value) {
-      ApiHelper.postAnonymous("/donate/captcha-verify", { token: value }, "GivingApi")
-        .then((data: any) => {
-          if (data.response === "success" || data.response === "human" || data.success === true || data.score >= 0.5) {
-            setCaptchaResponse("success");
-          } else {
-            setCaptchaResponse(data.response || "robot");
-          }
+      GuestCaptcha.verify(value, props.churchId)
+        .then((result) => {
+          captchaPass.current = result.pass;
+          setCaptchaResponse(result.status);
         })
         .catch((error: any) => {
           console.error("Error verifying captcha:", error);
+          captchaPass.current = "";
           setCaptchaResponse("error");
         });
     } else {
+      captchaPass.current = "";
       setCaptchaResponse("");
     }
+  };
+
+  // A failed gift needs a fresh check, so the retry carries a new pass.
+  const resetCaptcha = () => {
+    captchaPass.current = "";
+    captchaRef.current?.reset();
+    setCaptchaResponse(bypassRecaptcha ? "success" : "");
   };
 
   const handleAnonymousChange = (_e: React.SyntheticEvent<Element, Event>, checked: boolean) => {
@@ -194,27 +202,33 @@ export const PayPalNonAuthDonationInner: React.FC<Props> = ({ mainContainerCssPr
     }
 
     const compactFunds = (donation.funds || []).map(f => ({ id: f.id, amount: f.amount }));
-    const results = await ApiHelper.post(
-      "/donate/charge",
-      {
-        provider: "paypal",
-        gatewayId: gateway?.id,
-        id: hostedOrderId,
-        churchId: props.churchId,
-        amount: total,
-        funds: compactFunds,
-        person: donation.person,
-        notes,
-        anonymous
-      },
-      "GivingApi"
-    );
+    let results: any;
+    try {
+      results = await ApiHelper.post(
+        "/donate/charge",
+        GuestCaptcha.withPass({
+          provider: "paypal",
+          gatewayId: gateway?.id,
+          id: hostedOrderId,
+          churchId: props.churchId,
+          amount: total,
+          funds: compactFunds,
+          person: donation.person,
+          notes,
+          anonymous
+        }, captchaPass.current),
+        "GivingApi"
+      );
+    } catch (ex: any) {
+      results = { error: ex?.message };
+    }
 
     if (isPayPalCaptureComplete(results?.status)) {
       setDonationComplete(true);
     } else {
       // Any non-captured status (including "CREATED") is a failure, not success.
       setErrors([results?.message || results?.error || "Payment processing failed"]);
+      resetCaptcha();
     }
     setProcessing(false);
   };
@@ -240,7 +254,7 @@ export const PayPalNonAuthDonationInner: React.FC<Props> = ({ mainContainerCssPr
         .map(fd => ({ id: fd.fundId!, amount: fd.amount || 0 }));
       const response = await ApiHelper.post(
         "/donate/create-order",
-        {
+        GuestCaptcha.withPass({
           churchId: props.churchId,
           provider: "paypal",
           gatewayId: gateway?.id,
@@ -248,7 +262,7 @@ export const PayPalNonAuthDonationInner: React.FC<Props> = ({ mainContainerCssPr
           currency: "USD",
           funds: fundsPayload,
           notes
-        },
+        }, captchaPass.current),
         "GivingApi"
       );
       return response?.id || response?.orderId || "";

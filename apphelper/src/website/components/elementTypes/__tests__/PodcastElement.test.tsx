@@ -45,6 +45,13 @@ describe("PodcastElement", () => {
     const episodes = el.querySelectorAll('[data-testid="podcast-episode"]');
     expect(episodes).toHaveLength(3);
     expect(episodes[0].id).toBe("ep-2");
+    // pages.css stacks .sermonListItem into a column on phones; the thumbnail must come first so the picture sits above the text.
+    expect(episodes[0].classList.contains("sermonListItem")).toBe(true);
+    const thumb = episodes[0].querySelector(".sermonThumbList");
+    const body = episodes[0].querySelector(".sermonListBody");
+    expect(thumb).not.toBeNull();
+    expect(body).not.toBeNull();
+    expect(thumb!.compareDocumentPosition(body!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(episodes[0].querySelector("h3")?.textContent).toBe("Walking Through Ruth");
     expect(episodes[0].querySelector(".podcastEpisodeMeta")?.textContent).toContain("September 5, 2026");
     expect(episodes[0].querySelector(".podcastEpisodeMeta")?.textContent).toContain("47 min");

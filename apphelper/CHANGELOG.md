@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 1.10.4
+
+### Patch Changes
+
+- 60161f1: Show the church's currency symbol in the amount box on the Paystack guest giving form instead of "$".
+
 ## 1.10.3
 
 ### Patch Changes

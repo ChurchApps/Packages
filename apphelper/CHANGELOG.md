@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 1.10.3
+
+### Patch Changes
+
+- 2c93e51: Website row columns with no phone width now stack full width on phones instead of keeping their desktop width.
+
 ## 1.10.2
 
 ### Patch Changes

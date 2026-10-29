@@ -290,7 +290,7 @@ export const PaystackNonAuthDonationInner: React.FC<Props> = ({ mainContainerCss
         <>
           <hr />
           <h4>{Locale.label("donation.donationForm.funds")}</h4>
-          <FundDonations fundDonations={fundDonations} funds={funds} params={searchParams} updatedFunction={handleFundDonationsChange} />
+          <FundDonations fundDonations={fundDonations} funds={funds} params={searchParams} updatedFunction={handleFundDonationsChange} currency={currency} />
         </>
       )}
 

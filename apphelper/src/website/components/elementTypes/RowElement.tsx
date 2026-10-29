@@ -55,7 +55,8 @@ export function RowElement(props: Props) {
       const colSize = c.answers?.size || 6;
       const desktopPercent = (colSize / 12) * 100;
       const rawMobileSize = Number(c.answers?.mobileSize);
-      const mobileSize = (rawMobileSize && !isNaN(rawMobileSize)) ? rawMobileSize : colSize;
+      // Columns with no phone width stack full width on phones.
+      const mobileSize = (rawMobileSize && !isNaN(rawMobileSize)) ? rawMobileSize : 12;
       const mobilePercent = (mobileSize / 12) * 100;
       const rawOrder = Number(c.answers?.mobileOrder);
       const order = !isNaN(rawOrder) ? rawOrder : null;

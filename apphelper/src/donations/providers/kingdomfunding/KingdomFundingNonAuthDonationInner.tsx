@@ -6,6 +6,7 @@ import { ErrorMessages, InputBox } from "../../../index";
 import { FundDonations } from "../../components";
 import { ApiHelper, DateHelper, CurrencyHelper } from "@churchapps/helpers";
 import { Locale, DonationHelper } from "../../helpers";
+import { GuestCaptcha } from "../../helpers/GuestCaptcha";
 import { FundDonationInterface, FundInterface, ChurchInterface } from "@churchapps/helpers";
 import {
   Grid, Alert, TextField, Button, FormControl, InputLabel, Select, MenuItem,
@@ -46,6 +47,7 @@ export const KingdomFundingNonAuthDonationInner: React.FC<Props> = ({ mainContai
   const [coverFees, setCoverFees] = useState(false);
   const [anonymous, setAnonymous] = useState(false);
   const captchaRef = useRef<ReCAPTCHA>(null);
+  const captchaPass = useRef("");
   const kfTokenRef = useRef<KingdomFundingTokenFormHandle>(null);
 
   const [payMethod, setPayMethod] = useState<"card" | "ach">(
@@ -88,20 +90,26 @@ export const KingdomFundingNonAuthDonationInner: React.FC<Props> = ({ mainContai
 
   const handleCaptchaChange = (value: string | null) => {
     if (value) {
-      ApiHelper.postAnonymous("/donate/captcha-verify", { token: value }, "GivingApi")
-        .then((data: any) => {
-          if (data.response === "success" || data.response === "human" || data.success === true || data.score >= 0.5) {
-            setCaptchaResponse("success");
-          } else {
-            setCaptchaResponse(data.response || "robot");
-          }
+      GuestCaptcha.verify(value, props.churchId)
+        .then((result) => {
+          captchaPass.current = result.pass;
+          setCaptchaResponse(result.status);
         })
         .catch(() => {
+          captchaPass.current = "";
           setCaptchaResponse("error");
         });
     } else {
+      captchaPass.current = "";
       setCaptchaResponse("");
     }
+  };
+
+  // A failed gift needs a fresh check, so the retry carries a new pass.
+  const resetCaptcha = () => {
+    captchaPass.current = "";
+    captchaRef.current?.reset();
+    setCaptchaResponse("");
   };
 
   const handleAnonymousChange = (_e: React.SyntheticEvent<Element, Event>, checked: boolean) => {
@@ -210,20 +218,23 @@ export const KingdomFundingNonAuthDonationInner: React.FC<Props> = ({ mainContai
 
       let results;
       if (donationType === "once") {
-        results = await ApiHelper.post("/donate/charge", basePayload, "GivingApi");
+        results = await ApiHelper.post("/donate/charge", GuestCaptcha.withPass(basePayload, captchaPass.current), "GivingApi");
       } else {
-        results = await ApiHelper.post("/donate/subscribe", basePayload, "GivingApi");
+        results = await ApiHelper.post("/donate/subscribe", GuestCaptcha.withPass(basePayload, captchaPass.current), "GivingApi");
       }
 
       if (results?.status === "succeeded" || results?.status === "pending" || results?.status === "active" || results?.status === "processing" || results?.status === "Approved") {
         setDonationComplete(true);
       } else if (results?.raw?.message || results?.message || results?.error) {
         setErrors([results?.raw?.message || results?.message || results?.error]);
+        resetCaptcha();
       } else {
         setErrors([Locale.label("donation.kingdomFunding.unexpectedError")]);
+        resetCaptcha();
       }
     } catch (error: any) {
       setErrors([error.message || Locale.label("donation.kingdomFunding.errorProcessingDonation")]);
+      resetCaptcha();
     }
 
     setProcessing(false);

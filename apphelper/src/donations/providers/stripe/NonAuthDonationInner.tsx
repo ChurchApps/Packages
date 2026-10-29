@@ -7,6 +7,7 @@ import { ErrorMessages, InputBox } from "../../../index";
 import { FundDonations } from "../../components";
 import { ApiHelper, DateHelper, CurrencyHelper } from "@churchapps/helpers";
 import { Locale, DonationHelper, StripePaymentMethod } from "../../helpers";
+import { GuestCaptcha } from "../../helpers/GuestCaptcha";
 import { handle3DSIfRequired } from "./stripe3DS";
 import { FundDonationInterface, FundInterface, PersonInterface, StripeDonationInterface, ChurchInterface } from "@churchapps/helpers";
 import { Grid, Alert, TextField, Button, FormControl, InputLabel, Select, MenuItem, FormGroup, FormControlLabel, Checkbox, Typography, Box, CircularProgress } from "@mui/material";
@@ -63,6 +64,7 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
   const [anonymous, setAnonymous] = useState(false);
   const [bankConnecting, setBankConnecting] = useState(false);
   const captchaRef = useRef<ReCAPTCHA>(null);
+  const captchaPass = useRef("");
 
   const paymentType = props.paymentType || "card";
 
@@ -118,13 +120,10 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
   const handleCaptchaChange = (value: string | null) => {
     if (value) {
 
-      ApiHelper.postAnonymous("/donate/captcha-verify", { token: value }, "GivingApi")
-        .then((data: any) => {
-          if (data.response === "success" || data.response === "human" || data.success === true || data.score >= 0.5) {
-            setCaptchaResponse("success");
-          } else {
-            setCaptchaResponse(data.response || "robot");
-          }
+      GuestCaptcha.verify(value, props.churchId)
+        .then((result) => {
+          captchaPass.current = result.pass;
+          setCaptchaResponse(result.status);
         })
         .catch((error: any) => {
           console.error("Error verifying captcha:", error);
@@ -132,11 +131,20 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
             console.error("Error response data:", error.response.data);
             console.error("Error response status:", error.response.status);
           }
+          captchaPass.current = "";
           setCaptchaResponse("error");
         });
     } else {
+      captchaPass.current = "";
       setCaptchaResponse("");
     }
+  };
+
+  // A failed gift needs a fresh check, so the retry carries a new pass.
+  const resetCaptcha = () => {
+    captchaPass.current = "";
+    captchaRef.current?.reset();
+    setCaptchaResponse(bypassRecaptcha ? "success" : "");
   };
 
   const handleAnonymousChange = (_e: React.SyntheticEvent<Element, Event>, checked: boolean) => {
@@ -207,16 +215,21 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
       const pm = { id: stripePM.paymentMethod!.id, personId: person?.id, email: email, name: person?.name?.display || "", churchId: props.churchId };
       await ApiHelper.post(
         "/paymentmethods/addcard",
-        { ...pm, provider: gateway?.provider || "stripe", gatewayId: gateway?.id },
+        GuestCaptcha.withPass({ ...pm, provider: gateway?.provider || "stripe", gatewayId: gateway?.id }, captchaPass.current),
         "GivingApi"
       ).then((result: any) => {
         if (result?.raw?.message) {
           setErrors([result.raw.message]);
+          resetCaptcha();
           setProcessing(false);
         } else {
           const d: { paymentMethod: StripePaymentMethod, customerId: string } = result;
           saveDonation(d.paymentMethod, d.customerId, person);
         }
+      }).catch((ex: any) => {
+        setErrors([ex?.message || "An unexpected error occurred. Please try again."]);
+        resetCaptcha();
+        setProcessing(false);
       });
     }
   };
@@ -232,15 +245,16 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
 
     try {
       // Get ACH setup intent from anonymous endpoint
-      const setupResponse = await ApiHelper.postAnonymous("/paymentmethods/ach-setup-intent-anon", {
+      const setupResponse = await ApiHelper.postAnonymous("/paymentmethods/ach-setup-intent-anon", GuestCaptcha.withPass({
         email,
         name: anonymous ? "Anonymous Donor" : `${firstName} ${lastName}`,
         churchId: props.churchId,
         gatewayId: gateway?.id
-      }, "GivingApi");
+      }, captchaPass.current), "GivingApi");
 
       if (setupResponse?.error) {
         setErrors([setupResponse.error]);
+        resetCaptcha();
         setProcessing(false);
         setBankConnecting(false);
         return;
@@ -287,22 +301,24 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
         logo: props?.churchLogo || ""
       };
 
-      const results = await ApiHelper.post("/donate/charge", {
+      const results = await ApiHelper.post("/donate/charge", GuestCaptcha.withPass({
         ...donation,
         church: churchObj,
         provider: "stripe",
         gatewayId: gateway?.id,
         currency: gateway?.currency || "USD",
         anonymous
-      }, "GivingApi");
+      }, captchaPass.current), "GivingApi");
 
       if (results?.status === "succeeded" || results?.status === "pending" || results?.status === "processing") {
         setDonationComplete(true);
       } else {
         setErrors([results?.raw?.message || results?.error || "An unexpected error occurred"]);
+        resetCaptcha();
       }
     } catch (error: any) {
       setErrors([error.message || "Error processing bank donation"]);
+      resetCaptcha();
     }
 
     setProcessing(false);
@@ -329,7 +345,7 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
       }
       await ApiHelper.post("/users/loadOrCreate", { userEmail: donorEmail, firstName: donorFirst, lastName: donorLast }, "MembershipApi");
       const person = await ApiHelper.post("/people/loadOrCreate", { churchId: props.churchId, firstName: donorFirst, lastName: donorLast, email: donorEmail }, "MembershipApi");
-      const result: any = await ApiHelper.post("/paymentmethods/addcard", {
+      const result: any = await ApiHelper.post("/paymentmethods/addcard", GuestCaptcha.withPass({
         id: paymentMethodId,
         personId: person.id,
         email: donorEmail,
@@ -337,11 +353,12 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
         churchId: props.churchId,
         provider: gateway?.provider || "stripe",
         gatewayId: gateway?.id
-      }, "GivingApi");
-      if (result?.raw?.message) { setErrors([result.raw.message]); setProcessing(false); return false; }
+      }, captchaPass.current), "GivingApi");
+      if (result?.raw?.message) { setErrors([result.raw.message]); resetCaptcha(); setProcessing(false); return false; }
       return await saveDonation(result.paymentMethod, result.customerId, person);
     } catch (ex: any) {
       setErrors([ex?.message || ex?.toString() || "An unexpected error occurred. Please try again."]);
+      resetCaptcha();
       setProcessing(false);
       return false;
     }
@@ -390,8 +407,15 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
       currency: gateway?.currency || "USD",
       anonymous
     };
-    if (donationType === "once") results = await ApiHelper.post("/donate/charge", donationPayload, "GivingApi");
-    if (donationType === "recurring") results = await ApiHelper.post("/donate/subscribe", donationPayload, "GivingApi");
+    try {
+      if (donationType === "once") results = await ApiHelper.post("/donate/charge", GuestCaptcha.withPass(donationPayload, captchaPass.current), "GivingApi");
+      if (donationType === "recurring") results = await ApiHelper.post("/donate/subscribe", GuestCaptcha.withPass(donationPayload, captchaPass.current), "GivingApi");
+    } catch (ex: any) {
+      setErrors([ex?.message || "An unexpected error occurred. Please try again."]);
+      resetCaptcha();
+      setProcessing(false);
+      return false;
+    }
 
     // Handle 3D Secure authentication if required
     const threeDSResult = await handle3DSIfRequired(results, stripe);
@@ -410,6 +434,7 @@ export const NonAuthDonationInner: React.FC<Props> = ({ mainContainerCssProps, s
       setDonationComplete(true);
     } else {
       succeeded = false;
+      resetCaptcha();
       // Handle any error case
       if (results?.raw?.message) {
         setErrors([results?.raw?.message]);

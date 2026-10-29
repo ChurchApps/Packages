@@ -6,6 +6,7 @@ import { ErrorMessages, InputBox } from "../../../index";
 import { FundDonations } from "../../components";
 import { ApiHelper, DateHelper, CurrencyHelper } from "@churchapps/helpers";
 import { Locale, DonationHelper } from "../../helpers";
+import { GuestCaptcha } from "../../helpers/GuestCaptcha";
 import { FundDonationInterface, FundInterface, ChurchInterface } from "@churchapps/helpers";
 import {
   Grid, Alert, TextField, Button, FormControl, InputLabel, Select, MenuItem,
@@ -49,6 +50,7 @@ export const PaystackNonAuthDonationInner: React.FC<Props> = ({ mainContainerCss
   const [coverFees, setCoverFees] = useState(false);
   const [anonymous, setAnonymous] = useState(false);
   const captchaRef = useRef<ReCAPTCHA>(null);
+  const captchaPass = useRef("");
   const currency: string = gateway?.currency || "ngn";
   const fmt = (amount: number) => CurrencyHelper.formatCurrencyWithLocale(amount, currency);
 
@@ -79,13 +81,18 @@ export const PaystackNonAuthDonationInner: React.FC<Props> = ({ mainContainerCss
   };
 
   const handleCaptchaChange = (value: string | null) => {
+    captchaPass.current = "";
     if (!value) { setCaptchaResponse(""); return; }
-    ApiHelper.postAnonymous("/donate/captcha-verify", { token: value }, "GivingApi")
-      .then((data: any) => {
-        const ok = data.response === "success" || data.response === "human" || data.success === true || data.score >= 0.5;
-        setCaptchaResponse(ok ? "success" : (data.response || "robot"));
-      })
+    GuestCaptcha.verify(value, props.churchId)
+      .then((result) => { captchaPass.current = result.pass; setCaptchaResponse(result.status); })
       .catch(() => setCaptchaResponse("error"));
+  };
+
+  // A failed gift needs a fresh check, so the retry carries a new pass.
+  const resetCaptcha = () => {
+    captchaPass.current = "";
+    captchaRef.current?.reset();
+    setCaptchaResponse("");
   };
 
   const handleAnonymousChange = (_e: React.SyntheticEvent<Element, Event>, checked: boolean) => {
@@ -169,11 +176,15 @@ export const PaystackNonAuthDonationInner: React.FC<Props> = ({ mainContainerCss
     }
 
     try {
-      const results = await ApiHelper.post(donationType === "once" ? "/donate/charge" : "/donate/subscribe", payload, "GivingApi");
+      const results = await ApiHelper.post(donationType === "once" ? "/donate/charge" : "/donate/subscribe", GuestCaptcha.withPass(payload, captchaPass.current), "GivingApi");
       if (["succeeded", "pending", "active", "processing"].includes(results?.status)) setDonationComplete(true);
-      else setErrors([results?.error || results?.message || Locale.label("donation.kingdomFunding.unexpectedError")]);
+      else {
+        setErrors([results?.error || results?.message || Locale.label("donation.kingdomFunding.unexpectedError")]);
+        resetCaptcha();
+      }
     } catch (error: any) {
       setErrors([error.message || Locale.label("donation.kingdomFunding.errorProcessingDonation")]);
+      resetCaptcha();
     }
   };
 

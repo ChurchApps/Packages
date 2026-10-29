@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 1.10.5
+
+### Patch Changes
+
+- e79fe8f: Stack sermon and podcast list items on phones: picture on top, text and audio player below.
+
 ## 1.10.4
 
 ### Patch Changes

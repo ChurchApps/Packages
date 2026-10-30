@@ -1,6 +1,7 @@
 "use client";
 
-import { forwardRef, useImperativeHandle, useState, useEffect, useMemo } from "react";
+import { forwardRef, useImperativeHandle, useState, useEffect, useMemo, useRef } from "react";
+import ReCAPTCHA from "react-google-recaptcha";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, CardElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import { Box, Grid, TextField } from "@mui/material";
@@ -8,6 +9,7 @@ import { CurrencyHelper } from "@churchapps/helpers";
 import { ApiHelper, UserInterface, PersonInterface, StripeDonationInterface, ChurchInterface, FundInterface, ArrayHelper, UserHelper } from "@churchapps/helpers";
 import { Locale } from "../../helpers";
 import { handle3DSIfRequired } from "./stripe3DS";
+import { GuestCaptcha } from "../../helpers/GuestCaptcha";
 import type { FormPaymentHandle, FormPaymentProps } from "../types";
 
 const FormCardPaymentInner = forwardRef<FormPaymentHandle, FormPaymentProps>((props, ref) => {
@@ -22,6 +24,13 @@ const FormCardPaymentInner = forwardRef<FormPaymentHandle, FormPaymentProps>((pr
   const gateway = props.gateway;
   const amt = Number(props.question.choices?.find(c => c.text === "Amount")?.value || 0);
   const fundId = props.question.choices?.find(c => c.text === "FundId")?.value || "";
+  // Guests must pass the captcha; the Api refuses guest card saves and charges without its pass.
+  const isGuest = !ApiHelper.isAuthenticated;
+  const bypassRecaptcha = typeof process !== "undefined" && process.env?.NEXT_PUBLIC_BYPASS_RECAPTCHA === "true";
+  const recaptchaSiteKey = (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_GOOGLE_RECAPTCHA_SITE_KEY) || "";
+  const [captchaResponse, setCaptchaResponse] = useState(bypassRecaptcha ? "success" : "");
+  const captchaRef = useRef<ReCAPTCHA>(null);
+  const captchaPass = useRef("");
 
   const getChurchData = () => {
     ApiHelper.get("/churches/lookup/?id=" + props.churchId, "MembershipApi").then((data: any) => {
@@ -31,6 +40,20 @@ const FormCardPaymentInner = forwardRef<FormPaymentHandle, FormPaymentProps>((pr
       const result = ArrayHelper.getOne(data, "id", fundId);
       setFund(result);
     });
+  };
+
+  const handleCaptchaChange = (value: string | null) => {
+    if (!value) { captchaPass.current = ""; setCaptchaResponse(""); return; }
+    GuestCaptcha.verify(value, props.churchId)
+      .then((result) => { captchaPass.current = result.pass; setCaptchaResponse(result.status); })
+      .catch(() => { captchaPass.current = ""; setCaptchaResponse("error"); });
+  };
+
+  // A failed payment needs a fresh check, so the retry carries a new pass.
+  const resetCaptcha = () => {
+    captchaPass.current = "";
+    captchaRef.current?.reset();
+    setCaptchaResponse(bypassRecaptcha ? "success" : "");
   };
 
   const handlePayment = async () => {
@@ -47,11 +70,13 @@ const FormCardPaymentInner = forwardRef<FormPaymentHandle, FormPaymentProps>((pr
 
       const cardSavedRes = await saveCard(userData, person);
       if (!cardSavedRes.success) {
+        if (isGuest) resetCaptcha();
         return { paymentSuccessful: false, name: "", errors: cardSavedRes.errors || [] };
       }
 
       return { paymentSuccessful: true, name: person?.name?.display || "", errors: [] as string[] };
     } catch (err) {
+      if (isGuest) resetCaptcha();
       const errorMessage = "An error occurred while processing your payment.";
       return { paymentSuccessful: false, name: "", errors: [errorMessage] as string[] };
     }
@@ -77,7 +102,7 @@ const FormCardPaymentInner = forwardRef<FormPaymentHandle, FormPaymentProps>((pr
           gatewayId: gateway?.id
         };
         try {
-          const result = await ApiHelper.post("/paymentmethods/addcard", pm, "GivingApi");
+          const result = await ApiHelper.post("/paymentmethods/addcard", GuestCaptcha.withPass(pm, captchaPass.current), "GivingApi");
           if (result?.raw?.message) {
             return { success: false, errors: [result.raw.message] };
           } else {
@@ -120,7 +145,7 @@ const FormCardPaymentInner = forwardRef<FormPaymentHandle, FormPaymentProps>((pr
     };
 
     try {
-      const result = await ApiHelper.post("/donate/charge", { ...payment, church: churchObj, provider: "stripe", gatewayId: gateway?.id }, "GivingApi");
+      const result = await ApiHelper.post("/donate/charge", GuestCaptcha.withPass({ ...payment, church: churchObj, provider: "stripe", gatewayId: gateway?.id }, captchaPass.current), "GivingApi");
 
       const threeDSResult = await handle3DSIfRequired(result, stripe);
       if (threeDSResult.requiresAction) {
@@ -150,6 +175,7 @@ const FormCardPaymentInner = forwardRef<FormPaymentHandle, FormPaymentProps>((pr
     if (result.length === 0) {
       if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) result.push(Locale.label("donation.donationForm.validate.validEmail"));
     }
+    if (result.length === 0 && isGuest && captchaResponse !== "success") result.push("Please complete the reCAPTCHA verification");
     return result;
   };
 
@@ -179,6 +205,11 @@ const FormCardPaymentInner = forwardRef<FormPaymentHandle, FormPaymentProps>((pr
           <CardElement options={formStyling} />
         </div>
       </Grid>
+      {isGuest && !bypassRecaptcha && (
+        <Grid size={12}>
+          <ReCAPTCHA sitekey={recaptchaSiteKey} ref={captchaRef} onChange={handleCaptchaChange} onExpired={() => { captchaPass.current = ""; setCaptchaResponse(""); }} onErrored={() => setCaptchaResponse("error")} />
+        </Grid>
+      )}
     </Grid>
   </div>;
 });

@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 1.10.6
+
+### Patch Changes
+
+- 3f31eda: Add the reCAPTCHA checkbox to the payment block on public forms and send its pass with guest card saves and charges, so guest form payments keep working once the Api requires the captcha.
+
 ## 1.10.5
 
 ### Patch Changes

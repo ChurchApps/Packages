@@ -6,6 +6,7 @@ import { ApiHelper } from "@churchapps/helpers";
 import { PayPalHostedFields, PayPalHostedFieldsHandle } from "./PayPalHostedFields";
 import { PayPalButtons } from "./PayPalButtons";
 import { Locale } from "../../helpers";
+import { GuestCaptcha } from "../../helpers/GuestCaptcha";
 import { PayPalNonAuthDonationInner } from "./PayPalNonAuthDonationInner";
 import type {
   PaymentProvider, GuestFormProps, ChargeRequest, PaymentToken,
@@ -56,7 +57,7 @@ const PayPalMemberEntry = forwardRef<MemberEntryHandle, MemberEntryProps>(({ gat
       const ctx = getContext?.();
       const resp = await ApiHelper.post(
         "/donate/create-order",
-        {
+        GuestCaptcha.withPass({
           churchId: ctx?.churchId || "",
           provider: "paypal",
           gatewayId: gateway.id,
@@ -64,7 +65,7 @@ const PayPalMemberEntry = forwardRef<MemberEntryHandle, MemberEntryProps>(({ gat
           currency: (ctx?.currency || "USD").toUpperCase(),
           funds: ctx?.funds || [],
           notes: ctx?.notes || ""
-        },
+        }, ctx?.captchaPass || ""),
         "GivingApi"
       );
       return resp?.id || resp?.orderId || "";

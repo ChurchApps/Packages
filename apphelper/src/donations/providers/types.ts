@@ -31,6 +31,8 @@ export interface ChargeContext {
   interval?: { interval_count: number; interval: string };
   billingCycleAnchor?: number;
   saveCard?: boolean;
+  // Guest checkouts: the pass from /donate/captcha-verify, sent with every card save and order.
+  captchaPass?: string;
   customerId?: string;
   currency?: string;
 }

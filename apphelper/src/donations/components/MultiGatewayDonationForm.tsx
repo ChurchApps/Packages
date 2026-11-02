@@ -110,7 +110,9 @@ const MultiGatewayDonationInner: React.FC<Props> = (props) => {
   const loadFunds = useCallback(async () => {
     setFundsLoaded(false);
     try {
-      const data = await ApiHelper.get("/funds", "GivingApi");
+      // Donor-facing: only funds marked "Visible to Donors", even when the donor is staff.
+      const url = props?.church?.id ? `/funds/churchId/${props.church.id}` : "/funds";
+      const data = await ApiHelper.get(url, "GivingApi");
       const fundList = Array.isArray(data) ? data : [];
       setFunds(fundList);
       if (fundList.length) setFundDonations([{ fundId: fundList[0].id }]);
@@ -121,7 +123,7 @@ const MultiGatewayDonationInner: React.FC<Props> = (props) => {
     } finally {
       setFundsLoaded(true);
     }
-  }, []);
+  }, [props?.church?.id]);
 
   const loadGateway = useCallback(async () => {
     try {

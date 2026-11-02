@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 1.10.9
+
+### Patch Changes
+
+- 66a20af: Signed-in giving form lists only funds marked "Visible to Donors", even for staff
+
 ## 1.10.8
 
 ### Patch Changes

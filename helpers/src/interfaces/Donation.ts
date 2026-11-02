@@ -22,6 +22,7 @@ export interface DonationInterface {
   method?: string;
   methodDetails?: string;
   notes?: string;
+  enteredBy?: string;
   status?: DonationStatus;
   person?: PersonInterface;
   fund?: FundInterface;

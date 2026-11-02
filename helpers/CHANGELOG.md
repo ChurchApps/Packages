@@ -1,5 +1,11 @@
 # @churchapps/helpers
 
+## 2.13.1
+
+### Patch Changes
+
+- 332c7d7: DonationInterface carries enteredBy, the person id the Api stamps on a hand-entered gift.
+
 ## 2.13.0
 
 ### Minor Changes

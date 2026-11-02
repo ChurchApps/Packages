@@ -1,5 +1,11 @@
 # @churchapps/helpers
 
+## 2.14.1
+
+### Patch Changes
+
+- 846b73f: The display name now includes the person's title (name.prefix) when one is entered, e.g. "Rev Michael Carter".
+
 ## 2.14.0
 
 ### Minor Changes

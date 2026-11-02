@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 1.10.8
+
+### Patch Changes
+
+- 25e8c57: Calendars colour each event by its group. EventHelper.groupColor gives every group a stable colour from a fixed palette, and the curated and group month views use it.
+
 ## 1.10.7
 
 ### Patch Changes

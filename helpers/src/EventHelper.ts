@@ -41,6 +41,21 @@ export class EventHelper {
     return (event.tags || "").split(",").some((t) => t.trim().toLowerCase() === wanted);
   };
 
+  // Distinct hues that each keep white text above 4.5:1 contrast.
+  static groupColors = ["#1565C0", "#2E7D32", "#C62828", "#6A1B9A", "#BF360C", "#00695C", "#AD1457", "#283593", "#6D4C41", "#827717"];
+
+  /** A stable colour for a group, so its events look the same on every calendar. */
+  static groupColor = (groupId?: string | null) => {
+    if (!groupId) return null;
+    // FNV-1a: cheap, and spreads similar ids across the palette.
+    let hash = 0x811c9dc5;
+    for (let i = 0; i < groupId.length; i++) {
+      hash ^= groupId.charCodeAt(i);
+      hash = Math.imul(hash, 0x01000193);
+    }
+    return EventHelper.groupColors[(hash >>> 0) % EventHelper.groupColors.length];
+  };
+
   static getRange = (event:EventInterface, startDate:Date, endDate:Date) => {
     const start = new Date(event.start!);
     const rrule = EventHelper.getFullRRule(event);

@@ -69,6 +69,11 @@ export function EventCalendar(props: Props) {
     if (props.onRequestRefresh) props.onRequestRefresh();
   };
 
+  const eventStyle = (event: EventInterface) => {
+    const color = EventHelper.groupColor(event.groupId);
+    return color ? { style: { backgroundColor: color, borderColor: color } } : {};
+  };
+
   const expandedEvents: EventInterface[] = [];
   const startRange = new Date();
   const endRange = new Date();
@@ -107,7 +112,7 @@ export function EventCalendar(props: Props) {
           <SmallButton icon="event_note" text="Add Event" onClick={() => { handleAddEvent({ start: new Date(), end: new Date() }); }} />
         </Stack>
       }
-      <Calendar localizer={localizer} events={expandedEvents} startAccessor="start" endAccessor="end" style={{ height: 500 }} onSelectEvent={handleEventClick} onSelectSlot={handleAddEvent} selectable={props.editGroupId !== null} />
+      <Calendar localizer={localizer} events={expandedEvents} startAccessor="start" endAccessor="end" style={{ height: 500 }} onSelectEvent={handleEventClick} onSelectSlot={handleAddEvent} eventPropGetter={eventStyle} selectable={props.editGroupId !== null} />
       {editEvent && props.editGroupId && <EditEventModal event={editEvent} onDone={handleDone} />}
       {displayEvent && <DisplayEventModal event={displayEvent} onDone={handleDone} canEdit={props.editGroupId !== ""} onEdit={() => { setEditEvent(displayEvent); setDisplayEvent(null); }} />}
       <Snackbar open={open} onClose={() => setOpen(false)} autoHideDuration={2000} message={"Copied to clipboard!"} anchorOrigin={{ vertical: "bottom", horizontal: "center" }} ContentProps={{ sx: { background: "green" } }} />

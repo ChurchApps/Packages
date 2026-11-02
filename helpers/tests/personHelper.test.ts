@@ -16,6 +16,20 @@ test("getDisplayNameFromPerson mirrors getDisplayName's nickname rule off person
   assert.equal(PersonHelper.getDisplayNameFromPerson(noNick), "Jane Doe");
 });
 
+test("getDisplayName puts a non-empty title (prefix) before the name", () => {
+  assert.equal(PersonHelper.getDisplayName("Michael", "Carter", "", "Rev"), "Rev Michael Carter");
+  assert.equal(PersonHelper.getDisplayName("Jane", "Doe", "JD", "Dr"), 'Dr Jane "JD" Doe');
+  assert.equal(PersonHelper.getDisplayName("Jane", "Doe", "", "  "), "Jane Doe");
+  assert.equal(PersonHelper.getDisplayName("Jane", "Doe", ""), "Jane Doe");
+});
+
+test("getDisplayNameFromPerson includes person.name.prefix when one is entered", () => {
+  assert.equal(PersonHelper.getDisplayNameFromPerson({ name: { first: "Michael", last: "Carter", prefix: "Rev" } }), "Rev Michael Carter");
+  assert.equal(PersonHelper.getDisplayNameFromPerson({ name: { first: "Jane", last: "Doe", nick: "JD", prefix: " Dr " } }), 'Dr Jane "JD" Doe');
+  assert.equal(PersonHelper.getDisplayNameFromPerson({ name: { first: "Jane", last: "Doe", prefix: "" } }), "Jane Doe");
+  assert.equal(PersonHelper.getDisplayNameFromPerson({ name: { first: "Jane", last: "Doe", prefix: null } }), "Jane Doe");
+});
+
 test("getAge computes whole years elapsed since the birthdate", () => {
   const tenYearsAgo = new Date();
   tenYearsAgo.setFullYear(tenYearsAgo.getFullYear() - 10);

@@ -147,6 +147,7 @@ export interface NameInterface {
   last?: string;
   nick?: string;
   display?: string;
+  prefix?: string;
   title?: string;
   suffix?: string;
 }

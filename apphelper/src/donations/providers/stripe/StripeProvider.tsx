@@ -10,6 +10,7 @@ import { CardForm } from "./CardForm";
 import { BankForm } from "./BankForm";
 import { FormCardPayment } from "./FormCardPayment";
 import { handle3DSIfRequired } from "./stripe3DS";
+import { GuestCaptcha } from "../../helpers/GuestCaptcha";
 import { StripeInstanceContext, setCurrentStripe, getCurrentStripe } from "./StripeInstanceContext";
 import { isPadCurrency } from "./stripeBank";
 import type {
@@ -106,7 +107,7 @@ const StripeMemberEntry = forwardRef<MemberEntryHandle, MemberEntryProps>(({ gat
       if (stripePM.error) throw new Error(stripePM.error.message || "Card creation failed");
 
       const ctx = getContext?.();
-      const result = await ApiHelper.post("/paymentmethods/addcard", {
+      const result = await ApiHelper.post("/paymentmethods/addcard", GuestCaptcha.withPass({
         id: stripePM.paymentMethod!.id,
         personId: ctx?.person?.id,
         email: ctx?.person?.email,
@@ -114,8 +115,9 @@ const StripeMemberEntry = forwardRef<MemberEntryHandle, MemberEntryProps>(({ gat
         churchId: ctx?.churchId,
         provider: "stripe",
         gatewayId: gateway?.id
-      }, "GivingApi");
+      }, ctx?.captchaPass || ""), "GivingApi");
       if (result?.raw?.message) throw new Error(result.raw.message);
+      if (result?.error) throw new Error(result.error);
 
       const pm = result?.paymentMethod;
       return { id: pm?.id, type: "card", saved: true, customerId: result?.customerId, last4: pm?.last4, brand: pm?.name };

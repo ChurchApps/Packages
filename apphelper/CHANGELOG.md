@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 1.10.7
+
+### Patch Changes
+
+- 1b2f944: Card entry for Stripe and PayPal sends the guest captcha pass from its charge context, and GuestCaptcha is exported, so guest event registration payments keep working once the Api requires the captcha.
+
 ## 1.10.6
 
 ### Patch Changes

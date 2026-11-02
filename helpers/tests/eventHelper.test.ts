@@ -61,3 +61,13 @@ test("hasTag matches any comma-separated entry, trimmed and case-insensitive", (
   assert.equal(EventHelper.hasTag({}, ""), true);
   assert.equal(EventHelper.hasTag(event, undefined), true);
 });
+
+test("groupColor is stable per group and drawn from the palette", () => {
+  assert.equal(EventHelper.groupColor(null), null);
+  assert.equal(EventHelper.groupColor(""), null);
+  const color = EventHelper.groupColor("GRP00000001");
+  assert.ok(EventHelper.groupColors.includes(color!));
+  assert.equal(EventHelper.groupColor("GRP00000001"), color);
+  const ids = Array.from({ length: 50 }, (_, i) => "grp" + i.toString(36).padStart(8, "x"));
+  assert.ok(new Set(ids.map(EventHelper.groupColor)).size >= 6, "similar ids should spread across the palette");
+});

@@ -29,13 +29,22 @@ export class PersonHelper {
   }
 
   public static getDisplayNameFromPerson(person: any) {
-    if (person?.name?.nick !== null && person?.name?.nick !== "" && person?.name?.nick !== undefined) return person.name.first + " \"" + person.name.nick + "\" " + person.name.last;
-    else return person.name.first + " " + person.name.last;
+    let result = "";
+    if (person?.name?.nick !== null && person?.name?.nick !== "" && person?.name?.nick !== undefined) result = person.name.first + " \"" + person.name.nick + "\" " + person.name.last;
+    else result = person.name.first + " " + person.name.last;
+    return PersonHelper.prependPrefix(person?.name?.prefix, result);
   }
 
-  static getDisplayName(firstName: string, lastName: string, nickName: string): string {
-    if (nickName !== undefined && nickName !== null && nickName.length > 0) return firstName + ' "' + nickName + '" ' + lastName;
-    else return firstName + " " + lastName;
+  static getDisplayName(firstName: string, lastName: string, nickName: string, prefix?: string): string {
+    let result = "";
+    if (nickName !== undefined && nickName !== null && nickName.length > 0) result = firstName + ' "' + nickName + '" ' + lastName;
+    else result = firstName + " " + lastName;
+    return PersonHelper.prependPrefix(prefix, result);
+  }
+
+  private static prependPrefix(prefix: string | null | undefined, name: string): string {
+    const title = (prefix || "").trim();
+    return title ? title + " " + name : name;
   }
 
   public static getBirthMonth(birthdate: Date): number {

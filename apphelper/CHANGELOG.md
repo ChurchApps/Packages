@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 1.10.10
+
+### Patch Changes
+
+- ea3ee7b: Form question fields size the border notch for their bold label, so long labels no longer run into the border.
+
 ## 1.10.9
 
 ### Patch Changes

@@ -2,6 +2,8 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 
 import { CurrencyHelper } from "../src/CurrencyHelper";
+import { ApiHelper } from "../src/ApiHelper";
+import { UserHelper } from "../src/UserHelper";
 
 test("formatCurrency formats a number as USD with 2 decimal places", () => {
   assert.equal(CurrencyHelper.formatCurrency(5), "$5.00");
@@ -9,12 +11,39 @@ test("formatCurrency formats a number as USD with 2 decimal places", () => {
   assert.equal(CurrencyHelper.formatCurrency(0), "$0.00");
 });
 
-test("getCurrencySymbol resolves known currencies case-insensitively and defaults to $", () => {
+test("getCurrencySymbol resolves known currencies case-insensitively and defaults to $ only without a currency", () => {
   assert.equal(CurrencyHelper.getCurrencySymbol("usd"), "$");
   assert.equal(CurrencyHelper.getCurrencySymbol("EUR"), "€");
   assert.equal(CurrencyHelper.getCurrencySymbol("GBP"), "£");
-  assert.equal(CurrencyHelper.getCurrencySymbol("not-a-currency"), "$");
+  assert.equal(CurrencyHelper.getCurrencySymbol("php"), "₱");
+  assert.equal(CurrencyHelper.getCurrencySymbol("not-a-currency"), "NOT-A-CURRENCY");
   assert.equal(CurrencyHelper.getCurrencySymbol(undefined), "$");
+});
+
+test("loadCurrency uses the gateway currency when a provider exists", async (t) => {
+  t.mock.method(ApiHelper, "get", async () => [{ currency: "eur" }]);
+  const anon = t.mock.method(ApiHelper, "getAnonymous", async () => ({ currency: "php" }));
+  assert.equal(await CurrencyHelper.loadCurrency(), "eur");
+  assert.equal(anon.mock.callCount(), 0);
+});
+
+test("loadCurrency falls back to the church currency setting when there is no gateway", async (t) => {
+  UserHelper.currentUserChurch = { church: { id: "CHU1" } } as any;
+  t.mock.method(ApiHelper, "get", async () => []);
+  const anon = t.mock.method(ApiHelper, "getAnonymous", async () => ({ currency: "PHP" }));
+  assert.equal(await CurrencyHelper.loadCurrency(), "php");
+  assert.deepEqual(anon.mock.calls[0].arguments, ["/settings/public/CHU1", "MembershipApi"]);
+});
+
+test("loadCurrency defaults to usd with no gateway and no setting, or when the lookup fails", async (t) => {
+  UserHelper.currentUserChurch = { church: { id: "CHU1" } } as any;
+  t.mock.method(ApiHelper, "get", async () => []);
+  const anon = t.mock.method(ApiHelper, "getAnonymous", async () => ({}));
+  assert.equal(await CurrencyHelper.loadCurrency(), "usd");
+  anon.mock.mockImplementation(async () => { throw new Error("down"); });
+  assert.equal(await CurrencyHelper.loadCurrency(), "usd");
+  UserHelper.currentUserChurch = undefined as any;
+  assert.equal(await CurrencyHelper.loadCurrency(), "usd");
 });
 
 test("formatCurrencyWithLocale renders amount with the currency's symbol, not its ISO code", () => {

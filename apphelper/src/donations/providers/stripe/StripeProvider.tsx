@@ -20,7 +20,7 @@ import type {
 import type { PaymentGateway } from "../../helpers";
 
 const stripeSupportedCurrencies = [
-  "usd", "eur", "gbp", "cad", "aud", "inr", "jpy", "sgd", "hkd", "sek", "nok", "dkk", "chf", "mxn", "brl"
+  "usd", "eur", "gbp", "cad", "aud", "inr", "jpy", "sgd", "hkd", "sek", "nok", "dkk", "chf", "mxn", "brl", "php"
 ];
 
 // Default card rates per currency; the admin fee-settings form seeds from these.
@@ -39,7 +39,8 @@ const stripeDefaultFees: Record<string, { percent: number; fixed: number; symbol
   dkk: { percent: 2.9, fixed: 1.8, symbol: "DKK" },
   chf: { percent: 2.9, fixed: 0.3, symbol: "CHF" },
   mxn: { percent: 2.9, fixed: 3.0, symbol: "MXN" },
-  brl: { percent: 3.9, fixed: 0.5, symbol: "R$" }
+  brl: { percent: 3.9, fixed: 0.5, symbol: "R$" },
+  php: { percent: 3.9, fixed: 15, symbol: "₱" }
 };
 
 const toggleSx = {

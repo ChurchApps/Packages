@@ -1,4 +1,5 @@
 import { ApiHelper } from "./ApiHelper.js";
+import { UserHelper } from "./UserHelper.js";
 
 type RatesCache = {
   base: string;
@@ -14,10 +15,19 @@ export class CurrencyHelper {
   static rates: Record<string, number> = {};
   static currentBase = "";
 
+  // The church currency: the gateway's currency when a provider exists, otherwise the church's
+  // public "currency" setting (so churches without online giving can pick one), otherwise usd.
   static loadCurrency = async () => {
     const gateways = await ApiHelper.get("/gateways", "GivingApi");
-    if (gateways.length === 0) return "usd";
-    return gateways[0].currency || "usd";
+    if (gateways.length > 0) return gateways[0].currency || "usd";
+    const churchId = UserHelper.currentUserChurch?.church?.id;
+    if (!churchId) return "usd";
+    try {
+      const settings = await ApiHelper.getAnonymous("/settings/public/" + churchId, "MembershipApi");
+      return (settings?.currency || "usd").toLowerCase();
+    } catch {
+      return "usd";
+    }
   };
 
   static formatCurrency(amount: number) {
@@ -74,9 +84,10 @@ export class CurrencyHelper {
       ghs: { percent: 1.95, fixed: 0, symbol: "GH₵" },
       zar: { percent: 2.9, fixed: 1, symbol: "R" },
       kes: { percent: 2.9, fixed: 0, symbol: "KSh" },
-      xof: { percent: 3.2, fixed: 0, symbol: "CFA" }
+      xof: { percent: 3.2, fixed: 0, symbol: "CFA" },
+      php: { percent: 3.9, fixed: 15, symbol: "₱" }
     };
-    return stripeCurrencyFees[normalizedCurrency]?.symbol || "$";
+    return stripeCurrencyFees[normalizedCurrency]?.symbol || normalizedCurrency.toUpperCase();
   }
 
   private static getLocaleForCurrency(currency: string): string {
@@ -95,7 +106,8 @@ export class CurrencyHelper {
       DKK: "da-DK",
       CHF: "de-CH",
       MXN: "es-MX",
-      BRL: "pt-BR"
+      BRL: "pt-BR",
+      PHP: "en-PH"
     };
 
     return currencyLocaleMap[currency] || "en-US";

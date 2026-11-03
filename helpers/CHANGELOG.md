@@ -1,5 +1,11 @@
 # @churchapps/helpers
 
+## 2.15.0
+
+### Minor Changes
+
+- 91c1b3e: Church currency falls back to the church's "currency" setting when no giving provider exists; PHP added to the Stripe currency list and symbol table; unknown currencies show their ISO code instead of "$"
+
 ## 2.14.1
 
 ### Patch Changes

@@ -5,6 +5,9 @@ import React from "react";
 import { AnswerInterface, QuestionInterface } from "@churchapps/helpers";
 import { Checkbox, Select, MenuItem, SelectChangeEvent, FormControl, InputLabel, TextField, FormLabel, FormGroup, FormControlLabel, Box, Typography } from "@mui/material";
 
+// Labels are bold, so the outlined border's notch (sized from a hidden copy of the label in its legend) must be bold too or the line runs through the label.
+const boldLabelSx = { "& .MuiOutlinedInput-notchedOutline legend": { fontWeight: "bold" } };
+
 interface Props {
   answer: AnswerInterface
   question: QuestionInterface,
@@ -50,10 +53,10 @@ export const QuestionEdit = React.forwardRef<any, Props>(({ noBackground = false
 
     const answerValue = (props.answer === null) ? "" : props.answer.value;
     switch (q.fieldType) {
-      case "Textbox": input = <TextField fullWidth style={noBackground ? { backgroundColor: "white", borderRadius: "4px" } : {}} InputLabelProps={{ sx: { fontWeight: "bold" } }} label={q.title} placeholder={q.placeholder} value={answerValue} onChange={handleChange} />; break;
+      case "Textbox": input = <TextField fullWidth style={noBackground ? { backgroundColor: "white", borderRadius: "4px" } : {}} sx={boldLabelSx} InputLabelProps={{ sx: { fontWeight: "bold" } }} label={q.title} placeholder={q.placeholder} value={answerValue} onChange={handleChange} />; break;
       case "Multiple Choice": {
         input = (
-          <FormControl fullWidth style={noBackground ? { backgroundColor: "white", borderRadius: "4px" } : {}}>
+          <FormControl fullWidth style={noBackground ? { backgroundColor: "white", borderRadius: "4px" } : {}} sx={boldLabelSx}>
             <InputLabel sx={{ fontWeight: "bold" }}>{q.title}</InputLabel>
             <Select fullWidth label={q.title} value={answerValue} onChange={handleChange}>{choiceOptions}</Select>
           </FormControl>);
@@ -61,7 +64,7 @@ export const QuestionEdit = React.forwardRef<any, Props>(({ noBackground = false
       }
       case "Yes/No": {
         input = (
-          <FormControl fullWidth style={noBackground ? { backgroundColor: "white", borderRadius: "4px" } : {}}>
+          <FormControl fullWidth style={noBackground ? { backgroundColor: "white", borderRadius: "4px" } : {}} sx={boldLabelSx}>
             <InputLabel sx={{ fontWeight: "bold" }}>{q.title}</InputLabel>
             <Select fullWidth label={q.title} value={answerValue} onChange={handleChange}>
               <MenuItem value="False">No</MenuItem>
@@ -83,12 +86,12 @@ export const QuestionEdit = React.forwardRef<any, Props>(({ noBackground = false
       }
       case "Whole Number":
       case "Decimal":
-        input = <TextField fullWidth style={noBackground ? { backgroundColor: "white", borderRadius: "4px" } : {}} type="number" InputLabelProps={{ shrink: true, sx: { fontWeight: "bold" } }} label={q.title} placeholder={q.placeholder} value={answerValue} onChange={handleChange} />;
+        input = <TextField fullWidth style={noBackground ? { backgroundColor: "white", borderRadius: "4px" } : {}} type="number" sx={boldLabelSx} InputLabelProps={{ shrink: true, sx: { fontWeight: "bold" } }} label={q.title} placeholder={q.placeholder} value={answerValue} onChange={handleChange} />;
         break;
-      case "Date": input = <TextField fullWidth style={noBackground ? { backgroundColor: "white", borderRadius: "4px" } : {}} type="date" InputLabelProps={{ shrink: true, sx: { fontWeight: "bold" } }} label={q.title} placeholder={q.placeholder} value={answerValue} onChange={handleChange} />; break;
-      case "Phone Number": input = <TextField fullWidth style={noBackground ? { backgroundColor: "white", borderRadius: "4px" } : {}} type="tel" InputLabelProps={{ sx: { fontWeight: "bold" } }} label={q.title} placeholder="(555) 123-4567" value={answerValue} onChange={handleChange} />; break;
-      case "Email": input = <TextField fullWidth style={noBackground ? { backgroundColor: "white", borderRadius: "4px" } : {}} type="email" InputLabelProps={{ sx: { fontWeight: "bold" } }} label={q.title} placeholder="john@doe.com" value={answerValue} onChange={handleChange} />; break;
-      case "Text Area": input = <TextField fullWidth style={noBackground ? { backgroundColor: "white", borderRadius: "4px" } : {}} multiline rows={4} InputLabelProps={{ sx: { fontWeight: "bold" } }} label={q.title} placeholder={q.placeholder} value={answerValue} onChange={handleChange} />; break;
+      case "Date": input = <TextField fullWidth style={noBackground ? { backgroundColor: "white", borderRadius: "4px" } : {}} type="date" sx={boldLabelSx} InputLabelProps={{ shrink: true, sx: { fontWeight: "bold" } }} label={q.title} placeholder={q.placeholder} value={answerValue} onChange={handleChange} />; break;
+      case "Phone Number": input = <TextField fullWidth style={noBackground ? { backgroundColor: "white", borderRadius: "4px" } : {}} type="tel" sx={boldLabelSx} InputLabelProps={{ sx: { fontWeight: "bold" } }} label={q.title} placeholder="(555) 123-4567" value={answerValue} onChange={handleChange} />; break;
+      case "Email": input = <TextField fullWidth style={noBackground ? { backgroundColor: "white", borderRadius: "4px" } : {}} type="email" sx={boldLabelSx} InputLabelProps={{ sx: { fontWeight: "bold" } }} label={q.title} placeholder="john@doe.com" value={answerValue} onChange={handleChange} />; break;
+      case "Text Area": input = <TextField fullWidth style={noBackground ? { backgroundColor: "white", borderRadius: "4px" } : {}} multiline rows={4} sx={boldLabelSx} InputLabelProps={{ sx: { fontWeight: "bold" } }} label={q.title} placeholder={q.placeholder} value={answerValue} onChange={handleChange} />; break;
       case "Payment":
         input = props.onPaymentRequired ? props.onPaymentRequired(q) : <Box sx={{ p: 2, border: 1, borderColor: "warning.main", borderRadius: 1 }}>Payment processing requires payment provider integration</Box>;
         break;

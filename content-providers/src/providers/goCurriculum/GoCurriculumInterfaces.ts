@@ -1,4 +1,4 @@
-interface GoCurriculumPlaylistItem {
+export interface GoCurriculumPlaylistItem {
   title: string;
   file: string;
   url: string;
@@ -6,6 +6,8 @@ interface GoCurriculumPlaylistItem {
   duration?: number;
   thumbnail?: string;
   shareUrl?: string;
+  // membership tiers that may see this item, e.g. ["videoPlus", "premium", "platinum"]; missing = everyone
+  tiers?: string[];
 }
 
 interface GoCurriculumResource {

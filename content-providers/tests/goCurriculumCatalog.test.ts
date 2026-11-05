@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { GoCurriculumProvider } from "../src/providers/goCurriculum/GoCurriculumProvider";
+import { GoCurriculumProvider, parseMemberships } from "../src/providers/goCurriculum/GoCurriculumProvider";
 import { ContentProviderAuthData } from "../src/interfaces";
 import { setProviderSecret } from "../src/helpers/ProviderSecrets";
 
@@ -119,5 +119,52 @@ test("GoCurriculum turns the Large and Small Group guides into instructions", as
     assert.equal(await provider.getPlaylist("/elementary/faith-lab/small-group", goAuth), null);
   } finally {
     restore();
+  }
+});
+
+test("GoCurriculum reads tiers from active_memberships", () => {
+  assert.deepEqual(parseMemberships({ active_memberships: ["ELEMENTARY [PREMIUM]", "Preschool [Video Plus]", "no brackets"] }),
+    [{ group: "elementary", tier: "premium" }, { group: "preschool", tier: "videoplus" }]);
+  assert.deepEqual(parseMemberships({ active_memberships: "ELEMENTARY [BASIC]" }), [{ group: "elementary", tier: "basic" }]);
+  assert.deepEqual(parseMemberships({ memberpress: { active_memberships: [{ id: 5399, title: "ELEMENTARY [PREMIUM]" }], subscriptions: [] } }),
+    [{ group: "elementary", tier: "premium" }]);
+  assert.deepEqual(parseMemberships({}), []);
+});
+
+test("GoCurriculum hides tier-tagged playlist items from users without that tier", async () => {
+  const topher = { title: "Topher Time", file: "topher.mp4", url: "https://feeds.test/topher.mp4", tiers: ["videoPlus", "premium", "platinum"] };
+  const intro = { title: "Intro", file: "intro.mp4", url: "https://feeds.test/intro.mp4" };
+  const tagged = { catalog: [{ id: "faith-lab", name: "Faith Lab", lessons: [{
+    id: "lesson-1", name: "Lesson 1", playlist: [intro, topher],
+    script: { sections: [{ name: "Opening", items: [{ type: "play", content: "Play Topher", files: [{ file: topher.file, url: topher.url }] }] }] }
+  }] }] };
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = (async (_url: unknown, init?: RequestInit) => {
+    const token = new URLSearchParams(String(init?.body)).get("access_token");
+    const memberships = { basic: ["ELEMENTARY [BASIC]"], premium: ["ELEMENTARY [PREMIUM]"], preschool: ["PRESCHOOL [PLATINUM]"], videoplus: ["ELEMENTARY [VIDEO PLUS]"] }[token as string] || [];
+    return { ok: true, json: async () => ({ memberpress: { active_memberships: memberships.map((title, id) => ({ id, title })) } }) } as Response;
+  }) as typeof fetch;
+  try {
+    const provider = new GoCurriculumProvider();
+    provider.setCatalogLoader(async () => tagged);
+    const as = (token: string) => ({ ...goAuth, access_token: token });
+    const titles = async (token: string) => (await provider.getPlaylist("/elementary/faith-lab/lesson-1", as(token)))?.map(f => f.title);
+
+    assert.deepEqual(await titles("basic"), ["Intro"]);
+    assert.deepEqual(await titles("none"), ["Intro"]);
+    assert.deepEqual(await titles("preschool"), ["Intro"], "a preschool membership doesn't unlock elementary");
+    assert.deepEqual(await titles("premium"), ["Intro", "Topher Time"]);
+    assert.deepEqual(await titles("videoplus"), ["Intro", "Topher Time"]);
+
+    const basicGuide = await provider.getInstructions("/elementary/faith-lab/lesson-1", as("basic"));
+    assert.equal(basicGuide?.items[0].children?.[0].children, undefined);
+    const premiumGuide = await provider.getInstructions("/elementary/faith-lab/lesson-1", as("premium"));
+    assert.equal(premiumGuide?.items[0].children?.[0].children?.[0].downloadUrl, topher.url);
+
+    const basicCatalog = await provider.getCatalog("elementary", as("basic"));
+    assert.deepEqual(basicCatalog?.catalog[0].lessons[0].playlist.map(p => p.title), ["Intro"]);
+    assert.equal(tagged.catalog[0].lessons[0].playlist.length, 2, "the shared cached feed is not mutated");
+  } finally {
+    globalThis.fetch = realFetch;
   }
 });

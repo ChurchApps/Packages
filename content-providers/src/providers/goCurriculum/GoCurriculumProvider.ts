@@ -4,7 +4,7 @@ import { createFolder, createFile, detectMediaType, filesToInstructions, isPlayl
 import { OAuthHelper } from "../../helpers";
 import { getProviderSecret } from "../../helpers/ProviderSecrets";
 import { BaseProvider } from "../BaseProvider";
-import { GoCurriculumData, GoCurriculumCollection, GoCurriculumGuide, GoCurriculumGuideItem, GoCurriculumLesson } from "./GoCurriculumInterfaces";
+import { GoCurriculumData, GoCurriculumCollection, GoCurriculumGuide, GoCurriculumGuideItem, GoCurriculumLesson, GoCurriculumPlaylistItem } from "./GoCurriculumInterfaces";
 import { GO_LOGO } from "./logo";
 
 /**
@@ -48,6 +48,51 @@ function guideToInstructions(name: string, guide: GoCurriculumGuide, prefix: str
   return { name, items };
 }
 
+// "ELEMENTARY [PREMIUM]" → { group: "elementary", tier: "premium" }. Compared with case and punctuation stripped so
+// "VIDEO PLUS" matches a feed tag of "videoPlus".
+// ponytail: format guessed from one /oauth/me example — confirm against Go's full product list before relying on it
+interface GoMembership { group: string; tier: string; }
+const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+// /oauth/me nests them as memberpress.active_memberships: [{ id: 5399, title: "ELEMENTARY [PREMIUM]" }]
+export function parseMemberships(me: unknown): GoMembership[] {
+  const body = me as { active_memberships?: unknown, memberpress?: { active_memberships?: unknown } } | null;
+  const raw = body?.memberpress?.active_memberships ?? body?.active_memberships;
+  const list = Array.isArray(raw) ? raw : raw ? [raw] : [];
+  const result: GoMembership[] = [];
+  for (const entry of list) {
+    const title = typeof entry === "string" ? entry : (entry as { title?: string, name?: string })?.title || (entry as { name?: string })?.name;
+    const match = typeof title === "string" ? /^(.*?)\s*\[([^\]]+)\]\s*$/.exec(title) : null;
+    if (match) result.push({ group: normalize(match[1]), tier: normalize(match[2]) });
+  }
+  return result;
+}
+
+// untagged items are open to everyone; tagged ones need a membership in that tier for this age group
+// (a membership with no group prefix counts for every group)
+function canSee(item: GoCurriculumPlaylistItem, groupId: string, memberships: GoMembership[]): boolean {
+  if (!item.tiers?.length) return true;
+  const tiers = item.tiers.map(normalize);
+  return memberships.some(m => (!m.group || m.group === normalize(groupId)) && tiers.includes(m.tier));
+}
+
+function filterGuide(guide: GoCurriculumGuide | undefined, hidden: Set<string>): GoCurriculumGuide | undefined {
+  if (!guide || hidden.size === 0) return guide;
+  return { ...guide, sections: guide.sections.map(s => ({ ...s, items: s.items.map(i => i.files ? { ...i, files: i.files.filter(f => !hidden.has(f.url)) } : i) })) };
+}
+
+// drops tier-restricted playlist items the user can't see, plus the guide steps' links to them
+function filterCollection(collection: GoCurriculumCollection, groupId: string, memberships: GoMembership[]): GoCurriculumCollection {
+  return {
+    ...collection,
+    lessons: collection.lessons.map(lesson => {
+      const hidden = new Set(lesson.playlist.filter(p => !canSee(p, groupId, memberships)).map(p => p.url));
+      if (hidden.size === 0) return lesson;
+      return { ...lesson, playlist: lesson.playlist.filter(p => !hidden.has(p.url)), script: filterGuide(lesson.script, hidden), smallGroup: filterGuide(lesson.smallGroup, hidden) };
+    })
+  };
+}
+
 export type GoCurriculumCatalogLoader = (groupId: string, auth: ContentProviderAuthData) => Promise<GoCurriculumData | null>;
 
 async function loadFromFeed(groupId: string): Promise<GoCurriculumData | null> {
@@ -60,7 +105,8 @@ async function loadFromFeed(groupId: string): Promise<GoCurriculumData | null> {
 
 export class GoCurriculumProvider extends BaseProvider {
   private readonly oauthHelper = new OAuthHelper();
-  private readonly verifiedTokens = new Set<string>();
+  // token → its active memberships, from /oauth/me
+  private readonly verifiedTokens = new Map<string, GoMembership[]>();
 
   readonly id = "gocurriculum";
   readonly name = "Go Curriculum";
@@ -102,20 +148,28 @@ export class GoCurriculumProvider extends BaseProvider {
   }
 
   private async getCollection(segments: string[], auth: ContentProviderAuthData): Promise<GoCurriculumCollection | undefined> {
-    return (await this.getData(segments[0], auth))?.catalog.find(c => c.id === segments[1]);
+    const collection = (await this.getData(segments[0], auth))?.catalog.find(c => c.id === segments[1]);
+    return collection && filterCollection(collection, segments[0], this.membershipsFor(auth));
   }
 
-  // what a server host returns to a device host's setCatalogLoader
+  private membershipsFor(auth: ContentProviderAuthData): GoMembership[] {
+    return this.verifiedTokens.get(auth.access_token) || [];
+  }
+
+  // what a server host returns to a device host's setCatalogLoader — already filtered to the user's tiers
   async getCatalog(groupId: string, auth?: ContentProviderAuthData | null): Promise<GoCurriculumData | null> {
     if (!auth || !(await this.verifyAuth(auth))) return null;
-    return (await this.getData(groupId, auth)) || null;
+    const data = await this.getData(groupId, auth);
+    if (!data) return null;
+    const memberships = this.membershipsFor(auth);
+    return { ...data, catalog: data.catalog.map(c => filterCollection(c, groupId, memberships)) };
   }
 
   readonly requiresAuth = true;
   readonly authTypes: AuthType[] = ["oauth_pkce"];
   readonly capabilities: ProviderCapabilities = { browse: true, playlist: true, instructions: true, mediaLicensing: false };
 
-  // ponytail: any valid login unlocks everything for the pilot — per-tier (MemberPress) filtering waits on Go's membership endpoint
+  // any valid login unlocks untagged content; playlist items with `tiers` also need a matching active membership
   private async verifyAuth(auth?: ContentProviderAuthData | null): Promise<boolean> {
     const token = auth?.access_token;
     if (!token) return false;
@@ -124,7 +178,9 @@ export class GoCurriculumProvider extends BaseProvider {
       // POST body instead of Authorization header — WP hosts commonly strip the header
       const response = await fetch(`${this.config.oauthBase}/me`, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: new URLSearchParams({ access_token: token }).toString() });
       if (!response.ok) return false;
-      this.verifiedTokens.add(token);
+      let me: unknown = null;
+      try { me = await response.json(); } catch { /* no body: untagged content only */ }
+      this.verifiedTokens.set(token, parseMemberships(me));
       return true;
     } catch {
       return false;

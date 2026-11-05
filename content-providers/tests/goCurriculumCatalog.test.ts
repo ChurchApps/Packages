@@ -1,5 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 
 import { GoCurriculumProvider, parseMemberships } from "../src/providers/goCurriculum/GoCurriculumProvider";
 import { ContentProviderAuthData } from "../src/interfaces";
@@ -164,6 +165,50 @@ test("GoCurriculum hides tier-tagged playlist items from users without that tier
     const basicCatalog = await provider.getCatalog("elementary", as("basic"));
     assert.deepEqual(basicCatalog?.catalog[0].lessons[0].playlist.map(p => p.title), ["Intro"]);
     assert.equal(tagged.catalog[0].lessons[0].playlist.length, 2, "the shared cached feed is not mutated");
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+});
+
+test("GoCurriculum maps Go's MemberPress product ids to tiers", () => {
+  const ids = (...list: number[]) => parseMemberships({ memberpress: { active_memberships: list.map(id => ({ id, title: "unparseable" })) } });
+  assert.deepEqual(ids(486), [{ group: "preschool", tier: "basic" }]);
+  assert.deepEqual(ids(5398), [{ group: "preschool", tier: "premium" }]);
+  assert.deepEqual(ids(485), [{ group: "elementary", tier: "basic" }]);
+  assert.deepEqual(ids(5399), [{ group: "elementary", tier: "premium" }]);
+  assert.deepEqual(ids(7467), [{ group: "preschool", tier: "videoplus" }]);
+  assert.deepEqual(ids(7468), [{ group: "elementary", tier: "videoplus" }]);
+  assert.deepEqual(ids(7466), [{ group: "preschool", tier: "platinum" }, { group: "elementary", tier: "platinum" }]);
+  assert.deepEqual(ids(5401), [{ group: "preschool", tier: "basic" }, { group: "elementary", tier: "basic" }]);
+  assert.deepEqual(ids(5402), [{ group: "preschool", tier: "premium" }, { group: "elementary", tier: "premium" }]);
+  assert.deepEqual(parseMemberships({ memberpress: { active_memberships: [{ id: 1, title: "PRESCHOOL [PREMIUM]" }] } }), [{ group: "preschool", tier: "premium" }], "unknown ids fall back to the title");
+});
+
+// tests/fixtures/goCurriculumElementary.json is Go's sample Elementary export; every playlist item is tagged basic/premium/platinum
+test("GoCurriculum gates Go's tier-tagged export by each test account's membership", async () => {
+  const feed = JSON.parse(readFileSync(new URL("./fixtures/goCurriculumElementary.json", import.meta.url), "utf8"));
+  const collection = feed.catalog[0];
+  const lesson = collection.lessons[0];
+  const all = lesson.playlist.map((p: { title: string }) => p.title);
+  // the sample has no videoPlus items yet, so add one to cover the Topher Time Plus / JTS Plus accounts
+  lesson.playlist.push({ title: "Video Plus Extra", file: "extra.mp4", mediaType: "video", url: "https://feeds.test/extra.mp4", tiers: ["videoPlus"] });
+  // the test accounts Go set up for each product, keyed by their MemberPress id
+  const accounts: Record<string, number> = { prebasic: 486, prepremium: 5398, elembasic: 485, elempremium: 5399, tophertime: 7467, jtsplus: 7468, platinum: 7466, basicbundle: 5401, premiumbundle: 5402 };
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = (async (_url: unknown, init?: RequestInit) => {
+    const id = accounts[new URLSearchParams(String(init?.body)).get("access_token") as string];
+    return { ok: true, json: async () => ({ memberpress: { active_memberships: id ? [{ id, title: "" }] : [] } }) } as Response;
+  }) as typeof fetch;
+  try {
+    const provider = new GoCurriculumProvider();
+    provider.setCatalogLoader(async groupId => groupId === "elementary" ? feed : { catalog: [] });
+    const titles = async (group: string, token: string) => (await provider.getPlaylist(`/${group}/${collection.id}/${lesson.id}`, { ...goAuth, access_token: token }))?.map(f => f.title) || [];
+    const sees = async (group: string, tokens: string[]) => Object.fromEntries(await Promise.all(tokens.map(async t => [t, (await titles(group, t)).length])));
+
+    assert.deepEqual(await sees("elementary", ["elembasic", "elempremium", "platinum", "basicbundle", "premiumbundle"]),
+      { elembasic: all.length, elempremium: all.length, platinum: all.length, basicbundle: all.length, premiumbundle: all.length });
+    assert.deepEqual(await sees("elementary", ["prebasic", "prepremium", "tophertime", "none"]), { prebasic: 0, prepremium: 0, tophertime: 0, none: 0 });
+    assert.deepEqual(await titles("elementary", "jtsplus"), ["Video Plus Extra"], "JTS Plus unlocks elementary videoPlus items only");
   } finally {
     globalThis.fetch = realFetch;
   }

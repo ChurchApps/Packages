@@ -1,0 +1,750 @@
+{
+  "generatedAt": "2026-11-05T19:01:55.914Z",
+  "provider": {
+    "name": "Imagination Time Machine"
+  },
+  "catalog": [
+    {
+      "id": "imagination-time-machine",
+      "name": "Imagination Time Machine",
+      "thumbnail": "https://feeds.test/media-1",
+      "lessons": [
+        {
+          "id": "lesson-2-2",
+          "name": "September 13 - 2.2 The Sun Stands Still",
+          "thumbnail": "https://feeds.test/media-1",
+          "bigIdea": "God has power over all things, so we can battle our fear with faith.",
+          "bibleBasis": "Joshua 9–10",
+          "keyVerse": "“I looked to the Lord, and he answered me. He saved me from everything I was afraid of.” Psalm 34:4 (NIrV)",
+          "playlist": [
+            {
+              "title": "ITM Sun Stands Still",
+              "file": "2_2 ITM_Sun Stands Still.mp4",
+              "mediaType": "video",
+              "url": "https://feeds.test/media-2",
+              "shareUrl": "https://feeds.test/media-3",
+              "duration": 433,
+              "tiers": [
+                "basic",
+                "premium",
+                "platinum"
+              ]
+            },
+            {
+              "title": "Big Bible Story Sun Stands Still",
+              "file": "2_2 Big Bible Story_Sun Stands Still.jpg",
+              "mediaType": "image",
+              "url": "https://feeds.test/media-1",
+              "shareUrl": "https://feeds.test/media-4",
+              "thumbnail": "https://feeds.test/media-1",
+              "tiers": [
+                "basic",
+                "premium",
+                "platinum"
+              ]
+            },
+            {
+              "title": "Bible Story Questions Older",
+              "file": "2_2 Bible Story Questions_Older.jpg",
+              "mediaType": "image",
+              "url": "https://feeds.test/media-5",
+              "shareUrl": "https://feeds.test/media-6",
+              "thumbnail": "https://feeds.test/media-5",
+              "tiers": [
+                "basic",
+                "premium",
+                "platinum"
+              ]
+            },
+            {
+              "title": "Bible Story Questions Young",
+              "file": "2_2 Bible Story Questions_Young.jpg",
+              "mediaType": "image",
+              "url": "https://feeds.test/media-7",
+              "shareUrl": "https://feeds.test/media-8",
+              "thumbnail": "https://feeds.test/media-7",
+              "tiers": [
+                "basic",
+                "premium",
+                "platinum"
+              ]
+            },
+            {
+              "title": "Psalm 34 4",
+              "file": "2_2 Psalm 34_4.jpg",
+              "mediaType": "image",
+              "url": "https://feeds.test/media-9",
+              "shareUrl": "https://feeds.test/media-10",
+              "thumbnail": "https://feeds.test/media-9",
+              "tiers": [
+                "basic",
+                "premium",
+                "platinum"
+              ]
+            },
+            {
+              "title": "Psalm 34 4",
+              "file": "2_2 Psalm 34_4.mp4",
+              "mediaType": "video",
+              "url": "https://feeds.test/media-11",
+              "shareUrl": "https://feeds.test/media-12",
+              "duration": 30,
+              "tiers": [
+                "basic",
+                "premium",
+                "platinum"
+              ]
+            }
+          ],
+          "resources": [
+            {
+              "title": "Bible Verse Sign",
+              "file": "2_2 Bible Verse Sign.pdf",
+              "url": "https://feeds.test/media-13",
+              "shareUrl": "https://feeds.test/media-14",
+              "tiers": [
+                "basic",
+                "premium",
+                "platinum"
+              ]
+            },
+            {
+              "title": "Coloring Page The Sun Stands Still",
+              "file": "2_2 Coloring Page_The Sun Stands Still.pdf",
+              "url": "https://feeds.test/media-15",
+              "shareUrl": "https://feeds.test/media-16",
+              "tiers": [
+                "videoPlus",
+                "basic",
+                "premium",
+                "platinum"
+              ]
+            },
+            {
+              "title": "GO! Home Guide",
+              "file": "2_2 GO! Home Guide.pdf",
+              "url": "https://feeds.test/media-17",
+              "shareUrl": "https://feeds.test/media-18",
+              "tiers": [
+                "videoPlus",
+                "basic",
+                "premium",
+                "platinum"
+              ]
+            },
+            {
+              "title": "Premium Small Group Activity",
+              "file": "2_2 Premium Small Group Activity.pdf",
+              "url": "https://feeds.test/media-19",
+              "shareUrl": "https://feeds.test/media-20",
+              "tiers": [
+                "premium",
+                "platinum"
+              ]
+            },
+            {
+              "title": "Timeline Review Card Joshua",
+              "file": "2_2 Timeline Review Card_Joshua.pdf",
+              "url": "https://feeds.test/media-21",
+              "shareUrl": "https://feeds.test/media-22",
+              "tiers": [
+                "basic",
+                "premium",
+                "platinum"
+              ]
+            },
+            {
+              "title": "LG 2 2 THE SUN STANDS STILL",
+              "file": "LG 2_2 THE SUN STANDS STILL.docx",
+              "url": "https://feeds.test/media-23",
+              "shareUrl": "https://feeds.test/media-24",
+              "tiers": [
+                "basic",
+                "premium",
+                "platinum"
+              ]
+            },
+            {
+              "title": "SG 2 2 THE SUN STANDS STILL",
+              "file": "SG 2_2 THE SUN STANDS STILL.docx",
+              "url": "https://feeds.test/media-25",
+              "shareUrl": "https://feeds.test/media-26",
+              "tiers": [
+                "basic",
+                "premium",
+                "platinum"
+              ]
+            },
+            {
+              "title": "SUPPLY LIST 2 2 THE SUN STANDS STILL",
+              "file": "SUPPLY LIST 2_2 THE SUN STANDS STILL.docx",
+              "url": "https://feeds.test/media-27",
+              "shareUrl": "https://feeds.test/media-28",
+              "tiers": [
+                "basic",
+                "premium",
+                "platinum"
+              ]
+            }
+          ],
+          "script": {
+            "source": "LG 2_2 THE SUN STANDS STILL.docx",
+            "sections": [
+              {
+                "name": "LEADER DEVOTIONAL",
+                "role": "prep",
+                "items": [
+                  {
+                    "type": "note",
+                    "content": "I was in my late twenties and working in the title industry as a closer for residential and commercial properties. Our company was sponsoring an all-day seminar for realtors, bankers, and lenders at a ritzy golf club. The day was going well and coming to a close when my boss, the owner of the company, asked me to wrap things up by talking about our company and thanking everyone for being there. Wait what?!! What just happened? I had about 20 minutes to pull together my thoughts on what I was going to say to 120+ people of importance in the big, fancy room? If you were to jump into my head at that moment you would have heard something like this. “I can’t! I’m afraid! What if I mess up? What if I don’t represent my company well? What if I forget what I want to say? I haven’t rehearsed. Ok God. Help me. Order my thoughts and give me courage. Give me the right words to say and give me peace. God, thank you for your help.” Thankfully, I wrapped up the seminar and it went well. I definitely attribute that small win to God!"
+                  },
+                  {
+                    "type": "note",
+                    "content": "We all have moments in our lives that we are afraid and fearful. It is what we do in those moments where our faith is tested. We can choose to live in fear or we can turn to Jesus and ask for a peace that only He can give. In Psalm 56:3-4 David says, “When I am afraid, I will trust in you. In God, whose word I praise, in God I trust, I will not be afraid…” So many men and women of faith in the Bible were afraid of the task that had been set before them. But they prayed. They trusted. They thanked God. I believe it’s a pattern that we can repeat."
+                  },
+                  {
+                    "type": "note",
+                    "content": "Is there something you are facing today that makes you afraid? A new job? A speaking engagement? Being alone? Fear of failure? I encourage you to ask God to help you with your fear. He hears you, He knows you, and He cares for you. Let Him show you His power at work in your life."
+                  },
+                  {
+                    "type": "note",
+                    "content": "Pray. Trust. Thank God."
+                  },
+                  {
+                    "type": "note",
+                    "content": "*Trisha Rindels*"
+                  },
+                  {
+                    "type": "note",
+                    "content": "GO! Contributor"
+                  }
+                ]
+              },
+              {
+                "name": "LARGE GROUP SKILL BUILDING",
+                "role": "prep",
+                "items": [
+                  {
+                    "type": "note",
+                    "content": "***Gestures: Get Your Hands in the Game***"
+                  },
+                  {
+                    "type": "note",
+                    "content": "For some people, using their hands while talking comes quite naturally. In fact, we probably all know someone who talks so much with their hands that you might wonder if they’ve made up their own version of sign language. For others, not so much. Their hands hang like dead weights as if they were anchors keeping them from floating into space. Regardless of where you fall on the spectrum, harnessing the communication power of your hands is very important. If you use them well, they’ll grab the interest of your audience and reinforce your message. On the other hand (pun intended), if you don’t have command of your hands, they can betray your message. Here are a few tips to help put your hands to work:"
+                  },
+                  {
+                    "type": "note",
+                    "content": "**Recognize the communication power of your hands:** Wrap your brain around this: Your hands are *always* communicating. It is impossible not to say something with your hands (or any of your body, for that matter). The sooner you grasp this, the sooner you can begin making them say what you want."
+                  },
+                  {
+                    "type": "note",
+                    "content": "**Avoid distracting gestures:** There are certain gestures that can distract the audience and betray your message. Hands hanging low, hands in pockets, hands on hips, and arms crossed can communicate disinterest or nervousness."
+                  },
+                  {
+                    "type": "note",
+                    "content": "**Make your hands match your mouth:** If you’re telling kids how exciting God’s Word is, but you have your hands in your pockets, your hands are betraying your message. Your mouth is saying “exciting,” but your hands are saying “boring.” Choose gestures that match and strengthen your message."
+                  },
+                  {
+                    "type": "note",
+                    "content": "**Be spontaneous:** For a lot of people, their hands naturally reflect their inner thoughts and emotions. The more comfortable you are with your audience, the more your hands will “speak.” So relax and let them go to work!"
+                  },
+                  {
+                    "type": "note",
+                    "content": "**Be intentional:** Spontaneity is great, but sometimes you need to be intentional about the gestures you make. Look through your next lesson. Choose one or two places to use an intentional gesture. During an intense moment of battle, you might clench your fists. When you’re telling the kids about God’s enormous love for them, you might spread your hands far apart. Decide what you want to do and practice ahead of time."
+                  }
+                ]
+              },
+              {
+                "name": "UNIT DESCRIPTION",
+                "role": "prep",
+                "items": [
+                  {
+                    "type": "note",
+                    "content": "Welcome aboard the Imagination Time Machine — a contraption that can take you not only any-*where,* but any-*when*! The only limitation is your own imagination! During the “Imagination Time Machine” series, kids will join Max on a journey through the Bible. Our imagination destination: The Promised Land. Kids will get to experience firsthand what it was like to be an Israelite by imagining the sights, sounds, smells, feelings, and tastes of life in the land God gave them to call home."
+                  }
+                ]
+              },
+              {
+                "name": "SET-UP INSTRUCTIONS",
+                "role": "prep",
+                "items": [
+                  {
+                    "type": "note",
+                    "content": "Place 3 or 4 juggling-sized balls or bean bags in the teaching area. Bean bags may be preferable because they won’t roll away when you drop them."
+                  },
+                  {
+                    "type": "note",
+                    "content": "Remove the labels from two empty plastic water bottles. Remove the lid from one of the bottles, but not the other. Place both bottles on a small table in the teaching area."
+                  },
+                  {
+                    "type": "note",
+                    "content": "Find a light-colored glove and use a marker to write the letters F-E-A-R across the knuckles. Place the glove in the teaching area near the water bottles."
+                  },
+                  {
+                    "type": "note",
+                    "content": "Choose which of the Reflect and Respond Stations you would like to make available. Set out the appropriate materials for each of those stations."
+                  }
+                ]
+              },
+              {
+                "name": "Opening",
+                "role": "lesson",
+                "items": [
+                  {
+                    "type": "do",
+                    "content": "Slide: “Imagination Time Machine” title graphic"
+                  },
+                  {
+                    "type": "do",
+                    "content": "Sound: Play upbeat music as kids move to large group area"
+                  },
+                  {
+                    "type": "do",
+                    "content": "Video: Play “Imagination Time Machine” intro video"
+                  }
+                ]
+              },
+              {
+                "name": "IMAGINATION TIME MACHINE INTRO",
+                "role": "lesson",
+                "items": [
+                  {
+                    "type": "say",
+                    "content": "*(Enter the teaching area while trying, but failing, to juggle some balls or bean bags.)* Hello everybody and welcome to another week of “Imagination Time Machine”! *(Keep trying and failing to juggle while delivering lines.)* Whenever we step inside of the Imagination Time Machine, we can use our imagination to travel any-*where* and any-*when*! Today we’re going to be traveling back to Bible times to experience firsthand what it was like to be an Israelite living in the Promised Land. *(Hold onto balls or bean bags, but stop trying to juggle.)*"
+                  },
+                  {
+                    "type": "say",
+                    "content": "I imagine you’re wondering what in the world I’m doing. You see — I’ve been trying to juggle for the longest time, but I can’t seem to do it. That’s the wonderful thing about your imagination, though. When you use your imagination, you can do just about anything. Here — let me show you. *(Set down balls or bean bags.)* Let’s all imagine that we’re juggling 3 balls."
+                  },
+                  {
+                    "type": "say",
+                    "content": "Move your arms and hands as if you’re juggling balls. Encourage the kids to do the same. After a moment, tell the kids to imagine they’re juggling 5 balls, then 10 balls, then cannonballs, then fireballs, then porcupines. With each different object, move your arms and hands accordingly. This is an opportunity to have fun and be a little silly. Finally, tell the kids to imagine they’re juggling something that you’re afraid of such as snakes, spiders, etc. Immediately drop the item and recoil in fear."
+                  },
+                  {
+                    "type": "say",
+                    "content": "I probably shouldn’t have imagined that. I forgot that I’m afraid of \\_\\_\\_\\_\\_ *(insert fear object)*. *(Regain composure.)* Is there anything you are afraid of or that freaks you out? *(Take answers.)* Those can be some pretty freaky things! But in today’s true Bible story, we’re going to find out that maybe we don’t need to be quite so scared of those things. Speaking of the story, we should probably get started!"
+                  },
+                  {
+                    "type": "do",
+                    "content": "If possible, have the kids spread out and lie down on the floor, flat on their back. Turn the lights down or off to help create a quiet, distraction-free environment. When the kids are all in place and quiet, begin playing the “Imagination Time Machine” video. The video script is included below so that you can see how the story unfolds."
+                  }
+                ]
+              },
+              {
+                "name": "THE BIG BIBLE STORY — THE SUN STANDS STILL",
+                "role": "lesson",
+                "items": [
+                  {
+                    "type": "play",
+                    "content": "Play “Imagination Time Machine: The Sun Stands Still”",
+                    "files": [
+                      {
+                        "file": "2_2 ITM_Sun Stands Still.mp4",
+                        "url": "https://feeds.test/media-2",
+                        "mediaType": "video",
+                        "seconds": 433
+                      }
+                    ]
+                  },
+                  {
+                    "type": "do",
+                    "content": "Lights: Turn OFF lights"
+                  },
+                  {
+                    "type": "say",
+                    "content": "Hello everybody — my name is Max! I’ll be your guide in the ITM. That stands for “Imagination Time Machine.” There are some rules you need to follow for a safe trip in the ITM. First, close your eyes when I tell you to and don’t open them until I tell you to. The ITM projects in the darkness. If you open your eyes, its projection system shuts down. Second, follow my imagination instructions closely so you don’t get lost. I’m entering the coordinates right now. Location: the city of Jerusalem. Time: 1405 BC — a year after Jericho is defeated. Alrighty then — this would be a good time to close your eyes and imagine you’re rocketing through time and space. *(ITM noises begin. Screen goes to black.)*"
+                  },
+                  {
+                    "type": "say",
+                    "content": "Brace yourself — we’re coming in for a landing! *(Thud sound.)* Imagine yourself stepping out of the ITM and into the massive throne room of a beautiful palace. Imagine what the throne room looks like. *(Giant door creaking sound.)* Quick — hide! Someone is coming. Imagine that the giant throne room doors open as 5 kings enter the room with urgency. Can you hear their heavy footsteps as they rush into the room? They seem upset — something big is going on. Quietly move closer to hear what they’re saying."
+                  },
+                  {
+                    "type": "say",
+                    "content": "**King 1:** The nation of Israel must be stopped. Word has it that their God has promised to give this land to them. But curse them and their God! Jerusalem will be theirs over my dead body!"
+                  },
+                  {
+                    "type": "say",
+                    "content": "**King 2:** How could any one of our nations defeat Israel? Have you not heard how their God fights for them? If the city of Jericho with its giant walls couldn’t stop them, then how can we?"
+                  },
+                  {
+                    "type": "say",
+                    "content": "**King 1:** We are five nations, but they are only one. If we band together, they won’t stand a chance against us."
+                  },
+                  {
+                    "type": "say",
+                    "content": "**King 2:** I hear the nation of Gibeon has already made a peace treaty with Israel. Maybe we should too."
+                  },
+                  {
+                    "type": "say",
+                    "content": "**King: 1:** Or maybe we should teach those traitors from Gibeon a lesson. Our five nations will fight as one and we will destroy Gibeon, right before we destroy Israel."
+                  },
+                  {
+                    "type": "say",
+                    "content": "Later on, many miles away, a man named Joshua stands in a large tent, leaning over a map with his army commanders. Joshua is the warrior leader of Israel — chosen by God to bring His people into the Promised Land. Imagine what he looks like. Imagine what he’s wearing — the sword at his side. Can you hear his voice as he strategizes with his commanders? Suddenly, a man rushes into the tent."
+                  },
+                  {
+                    "type": "say",
+                    "content": "**Man of Gibeon:** Joshua, my lord! I come to you from Gibeon. The five Amorite kings have joined armies and have attacked us for making peace with you. Please, we need your help!"
+                  },
+                  {
+                    "type": "say",
+                    "content": "Eager to help out, Joshua and his commanders rush from the tent to ready their army. Quick — follow him. In no time, the army of Israel is in formation and marching toward Gibeon. Imagine you’ve snuck into the ranks of the marching men. What do you see? What does it sound like? Although Joshua is quick to help the people of Gibeon, he fears being outnumbered by the 5 armies. He also senses the fear among his warriors. Move in close to Joshua and listen to what he says to his men."
+                  },
+                  {
+                    "type": "say",
+                    "content": "**Joshua:** I know that they are five nations and we are only one, but listen to what the Lord has told me. “Do not be afraid. I will give them over to you. Not one of them will be able to fight against you and win.”"
+                  },
+                  {
+                    "type": "say",
+                    "content": "The Israelites have faith that God is with them and it pushes their fear away. They march boldly through the night and take the 5 armies by surprise. Imagine the sound of battle horns blowing. Imagine the army of Israel rushing into battle with a great shout. Imagine the sound of swords clashing. When the Israelites charge forward, God fills the faithless 5 armies with fear and they run away in a panic, but they don’t get far. Imagine the sky filling with dark clouds as God throws giant hailstones down on them. As the sun begins to set, though, the remaining enemy soldiers are close to escaping into the darkness. Joshua knows that if they get away, they’ll be back to fight another day. So he prays to God for a miracle."
+                  },
+                  {
+                    "type": "say",
+                    "content": "**Joshua:** Almighty God, make the sun stand still over Gibeon and stop the moon in its tracks."
+                  },
+                  {
+                    "type": "say",
+                    "content": "Imagine the surprise in the eyes of the 5 armies when the sun stands still in the sky for a full day and there is no darkness to escape into. Imagine the sun lighting up the battlefield until every one of the 5 armies has been totally defeated. Can you hear the men of Israel shout in celebration?"
+                  },
+                  {
+                    "type": "say",
+                    "content": "Quick — we should get back to the ITM before someone discovers that we don’t belong here. Imagine yourself stepping into the ITM and strapping into your seat. Destination: present day. *(ITM noises begin.)* We’ll be arriving home in 3, 2, 1…you can open your eyes now."
+                  },
+                  {
+                    "type": "do",
+                    "content": "Lights: Turn ON lights"
+                  },
+                  {
+                    "type": "play",
+                    "content": "“Big Bible Story Questions” graphic",
+                    "files": [
+                      {
+                        "file": "2_2 Bible Story Questions_Older.jpg",
+                        "url": "https://feeds.test/media-5",
+                        "mediaType": "image",
+                        "thumbnail": "https://feeds.test/media-5"
+                      },
+                      {
+                        "file": "2_2 Bible Story Questions_Young.jpg",
+                        "url": "https://feeds.test/media-7",
+                        "mediaType": "image",
+                        "thumbnail": "https://feeds.test/media-7"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "name": "BIG BIBLE STORY QUESTIONS",
+                "role": "lesson",
+                "items": [
+                  {
+                    "type": "do",
+                    "content": "At the end of the Bible story have the kids turn briefly to their small groups or neighbors and discuss the following questions: **For Younger Kids: What was your favorite part of the story to imagine? How did you imagine it? Why do you think God told Joshua not to be afraid? For Older Kids: What was your favorite part of the story to imagine? How did you imagine it? During the battle, why do you think the 5 armies were filled with fear while the army of Israel wasn’t?** After a few minutes, draw their attention back to the teaching area."
+                  },
+                  {
+                    "type": "do",
+                    "content": "Slide: “Imagination Time Machine” title graphic"
+                  },
+                  {
+                    "type": "do",
+                    "content": "Video: (Optional) Play “Journey Today Show” video (requires Premium subscription)"
+                  }
+                ]
+              },
+              {
+                "name": "BATTLING FEAR WITH FAITH",
+                "role": "lesson",
+                "items": [
+                  {
+                    "type": "say",
+                    "content": "Earlier today, I asked you what kind of things you’re afraid of. Did anyone say they were afraid of being outnumbered by 5 ferocious armies? *(Kids respond.)* No! But if you were Joshua, I’ll bet you would have been. When Joshua and the army of Israel started to feel afraid, what did God say to them? *(Take answer.)* He said, “Do not be afraid. I will give them over to you.” The army of Israel had faith in God’s power, so when fear attacked, it didn’t even put a dent in them. Let me show you what I’m talking about."
+                  },
+                  {
+                    "type": "say",
+                    "content": "*(Show the kids two empty plastic water bottles, one with no lid and one with its lid securely fastened.)* On the outside, both of these water bottles look the same, but on the inside, they’re different. *(Hold up the bottle with no lid.)* This bottle is like the 5 armies — it’s empty. There was no faith in them. *(Hold up the bottle with lid.)* This bottle is like the army of Israel. Although you can’t see it, it’s filled with faith in God. *(Set both bottles on a table. Put on a glove with the letters F-E-A-R written across the knuckles.)* When fear attacked the 5 armies, *(lay down the bottle with no cap and punch it with the F-E-A-R fist; hold the bottle up for kids to see)* it crushed them and they ran away. But when fear attacked the army of Israel, *(lay down the bottle with cap and repeat the above instructions)* it didn’t even put a dent in them and they fought bravely. *(Take off glove and set it aside.)*"
+                  }
+                ]
+              },
+              {
+                "name": "GOD HAS THE POWER TO SAVE US FROM OUR FEARS",
+                "role": "lesson",
+                "items": [
+                  {
+                    "type": "say",
+                    "content": "God saved the army of Israel from their fears and He saves us from our fears too. In fact, that’s what our Bible verse for today says. Let’s take a look together. *(Encourage kids to open their Bibles to Psalm 34:4. Be prepared to give younger kids more time and assistance in finding the verse. When ready, choose a kid to read the verse aloud or read it aloud yourself as the kids follow along.)*"
+                  },
+                  {
+                    "type": "play",
+                    "content": "“I looked to the Lord, and he answered me. He saved me from everything I was afraid of.” Psalm 34:4 (NIrV)",
+                    "files": [
+                      {
+                        "file": "2_2 Psalm 34_4.jpg",
+                        "url": "https://feeds.test/media-9",
+                        "mediaType": "image",
+                        "thumbnail": "https://feeds.test/media-9"
+                      },
+                      {
+                        "file": "2_2 Psalm 34_4.mp4",
+                        "url": "https://feeds.test/media-11",
+                        "mediaType": "video",
+                        "seconds": 30
+                      }
+                    ]
+                  },
+                  {
+                    "type": "say",
+                    "content": "Fear attacks all of us sometimes. Sometimes we’re afraid of things like \\_\\_\\_\\_\\_ *(reference the kid’s answers from the intro)*. But sometimes we’re afraid of even bigger things — like losing our friends, or being made fun of, or nightmares, or even death. Remember, though, when you have faith in God and look to Him, He can save you from your fears. God has the power to pour hail down from the clouds, He has the power to make the sun stand still in the sky, *(hold up water bottle with cap)* and He has the power to stop fear from crushing you. God has power over all things, so we can battle our fear with faith in Him."
+                  },
+                  {
+                    "type": "say",
+                    "content": "*(Sit down or kneel close to the kids.)* I want you to close your eyes and imagine one last thing. Imagine that you’re facing your fear, but you’re not alone — Jesus is standing right next to you, holding your hand. Imagine that He leans over to you and whispers in your ear. He says, “Do not be afraid. I am with you.” Now imagine your fear fading away until it’s gone. That’s what happens when we put our faith in Jesus."
+                  },
+                  {
+                    "type": "say",
+                    "content": "Close the Large Group time by praying for the kids in whatever way the Holy Spirit prompts you. Following the prayer, explain to the kids which of the Reflect and Respond Stations will be available. Remind them to move about the stations very quietly. Tell them they are free to respond to God in whatever way the Holy Spirit leads them, but if they need suggestions, some of the stations will give them ideas for how to pray, write, or draw. Give each child one “GO! Home” sheet and instruct them to take it with them to the stations. Place small group leaders at the different stations to quietly help the kids. The stations listed below are just the ones that have prompts that are specific to today’s lesson. For more instructions on how the Reflect and Respond Stations work as well as a full list of possible stations, see the “GO! Guide.”"
+                  },
+                  {
+                    "type": "do",
+                    "content": "Slide: “Imagination Time Machine” title graphic"
+                  },
+                  {
+                    "type": "do",
+                    "content": "Music: (Optional) Play quiet reflective music"
+                  },
+                  {
+                    "type": "say",
+                    "content": "**Prayer Station prompt:** Write a prayer telling God about a fear of yours. Ask Him to give you courage."
+                  },
+                  {
+                    "type": "say",
+                    "content": "**Journal Station prompt:** Write a song or poem to God. Tell God thank you for saving you from your fears."
+                  },
+                  {
+                    "type": "say",
+                    "content": "**Bible Station prompt:** Read it for yourself: Joshua 10:1–15. Draw a picture of the story or write to God your favorite part of the story. Tell Him why you liked it."
+                  },
+                  {
+                    "type": "say",
+                    "content": "**Art Station prompt:** Draw a picture of something you’re afraid of. While you’re drawing, ask Jesus to take that fear away. When finished, draw a large X over your picture to show that your fear is gone."
+                  }
+                ]
+              }
+            ]
+          },
+          "smallGroup": {
+            "source": "SG 2_2 THE SUN STANDS STILL.docx",
+            "sections": [
+              {
+                "name": "LEADER DEVOTIONAL",
+                "role": "prep",
+                "items": [
+                  {
+                    "type": "note",
+                    "content": "I was in my late twenties and working in the title industry as a closer for residential and commercial properties. Our company was sponsoring an all-day seminar for realtors, bankers, and lenders at a ritzy golf club. The day was going well and coming to a close when my boss, the owner of the company, asked me to wrap things up by talking about our company and thanking everyone for being there. Wait what?!! What just happened? I had about 20 minutes to pull together my thoughts on what I was going to say to 120+ people of importance in the big, fancy room? If you were to jump into my head at that moment you would have heard something like this. “I can’t! I’m afraid! What if I mess up? What if I don’t represent my company well? What if I forget what I want to say? I haven’t rehearsed. Ok God. Help me. Order my thoughts and give me courage. Give me the right words to say and give me peace. God, thank you for your help.” Thankfully, I wrapped up the seminar and it went well. I definitely attribute that small win to God!"
+                  },
+                  {
+                    "type": "note",
+                    "content": "We all have moments in our lives that we are afraid and fearful. It is what we do in those moments where our faith is tested. We can choose to live in fear or we can turn to Jesus and ask for a peace that only He can give. In Psalm 56:3–4 David says, “When I am afraid, I will trust in you. In God, whose word I praise, in God I trust, I will not be afraid…” So many men and women of faith in the Bible were afraid of the task that had been set before them. But they prayed. They trusted. They thanked God. I believe it’s a pattern that we can repeat."
+                  },
+                  {
+                    "type": "note",
+                    "content": "Is there something you are facing today that makes you afraid? A new job? A speaking engagement? Being alone? Fear of failure? I encourage you to ask God to help you with your fear. He hears you, He knows you, and He cares for you. Let Him show you His power at work in your life."
+                  },
+                  {
+                    "type": "note",
+                    "content": "Pray. Trust. Thank God."
+                  },
+                  {
+                    "type": "note",
+                    "content": "*Trisha Rindels*"
+                  },
+                  {
+                    "type": "note",
+                    "content": "GO! Contributor"
+                  }
+                ]
+              },
+              {
+                "name": "SMALL GROUP SKILL BUILDING",
+                "role": "prep",
+                "items": [
+                  {
+                    "type": "note",
+                    "content": "***Managing Small Group Materials***"
+                  },
+                  {
+                    "type": "note",
+                    "content": "As you’re probably aware, GO! small group activities often utilize a variety of materials. From paper to ping pong balls, there’s any number of items that you might have to juggle while keeping your kids engaged. Here are some tips to help keep you from dropping the ball:"
+                  },
+                  {
+                    "type": "note",
+                    "content": "**Be prepared.** If you’re reading the small group lesson for the first time while seated with a group of wide-eyed kids, you might be in for a wild ride. Always read the lesson before arriving and have a plan for when and how you’ll incorporate the accompanying materials."
+                  },
+                  {
+                    "type": "note",
+                    "content": "**Take inventory of your materials when you arrive.** No one’s perfect and occasionally you might be missing a material or there might not be enough materials for the number of kids you have. Take inventory as soon as you arrive so that you can catch mistakes early."
+                  },
+                  {
+                    "type": "note",
+                    "content": "**Familiarize yourself with the materials.** Sometimes the materials might look slightly different from how you imagined when you were reading the lesson at home. Take a look at the materials when you first arrive so there are no surprises during group time."
+                  },
+                  {
+                    "type": "note",
+                    "content": "**Don’t reveal the materials too early.** Kids can be easily distracted. Often, if you reveal or hand out materials too soon, the kids will become more interested in the material and miss your instructions. Fully deliver your instructions before handing out the materials. If necessary, pull out just one set of materials for demonstration purposes."
+                  },
+                  {
+                    "type": "note",
+                    "content": "**Let the kids help you.** If there are papers or other materials that need to be given to each kid in the group, put the kids to work. They love helping! Choose one or two kids and let them hand materials to the rest of the group."
+                  }
+                ]
+              },
+              {
+                "name": "IMAGINATION TIME MACHINE CONNECT ACTIVITY",
+                "role": "lesson",
+                "items": [
+                  {
+                    "type": "say",
+                    "content": "Are you all ready for another week of “Imagination Time Machine”? Today, we’re going to imagine again what it would be like to live in Bible times. Who remembers what story we imagined last week? *(Rahab Helps the Two Spies.)* Nice job! This week we get to imagine we’re in the middle of a huge battle, but first, I have a question for you. We’re going to answer it in a fun way, though."
+                  },
+                  {
+                    "type": "do",
+                    "content": "**Directions:** Tell the kids that they’ll get to choose who answers the question by tossing an imaginary object to each other. It could be something really small like a flopping fish, something really big like a car, something hot like a fireball, etc. After announcing the object of their choosing, a kid will pretend to throw the object to another kid, adjusting how they throw or catch based on the object. (For example, if it’s a refrigerator, the thrower might grunt when tossing it and the catcher might pretend to get crushed.) After answering the question, the catcher can toss a different object to another kid. Continue until everyone has had a chance to answer the question below."
+                  },
+                  {
+                    "type": "say",
+                    "content": "**Question:** If the sun didn’t go down for an entire 24-hour day, what would you do with the extra daylight?"
+                  }
+                ]
+              },
+              {
+                "name": "ADDITIONAL TIME ACTIVITY — THUMBS UP, THUMBS DOWN",
+                "role": "lesson",
+                "items": [
+                  {
+                    "type": "do",
+                    "content": "Simply ask the kids in your group to share one good thing that happened this week (thumbs up) and one not-so-good thing (thumbs down). This is a great way for your group to share celebrations and struggles with one another."
+                  }
+                ]
+              },
+              {
+                "name": "STORY QUESTIONS",
+                "role": "lesson",
+                "items": [
+                  {
+                    "type": "do",
+                    "content": "**Directions:** During the Large Group program, kids will be asked to turn briefly to their small group or neighbors and answer the following questions:"
+                  },
+                  {
+                    "type": "note",
+                    "content": "**For Younger Kids:**"
+                  },
+                  {
+                    "type": "say",
+                    "content": "What was your favorite part of the story to imagine? How did you imagine it?"
+                  },
+                  {
+                    "type": "say",
+                    "content": "Why do you think God told Joshua not to be afraid?"
+                  },
+                  {
+                    "type": "note",
+                    "content": "**For Older Kids:**"
+                  },
+                  {
+                    "type": "say",
+                    "content": "What was your favorite part of the story to imagine? How did you imagine it?"
+                  },
+                  {
+                    "type": "say",
+                    "content": "During the battle, why do you think the 5 armies were filled with fear while the army of Israel wasn’t?"
+                  }
+                ]
+              },
+              {
+                "name": "FEAR KNOT (Application Activity)",
+                "role": "lesson",
+                "items": [
+                  {
+                    "type": "say",
+                    "content": "We all get afraid sometimes, but God says “fear not.” We’re going to play a game right now that will help us think about how having faith in God can keep us from getting tangled up with fear."
+                  },
+                  {
+                    "type": "do",
+                    "content": "**Directions:** Tell your group to stand shoulder to shoulder in a tight circle. Choose a kid to go first. Ask them to share something that they are genuinely afraid of. After answering, have them reach across the circle and hold someone’s hand. Have the kid who received the hand holding share a fear, then reach across the circle with their free hand and hold someone else’s hand. Continue until every kid has shared a fear and all hands are being held. When finished, the kids will be in a tangled knot."
+                  },
+                  {
+                    "type": "say",
+                    "content": "This is what fear does to us — it puts us in a tangled knot. But God has the power to free us from the fear knot. Psalm 34:4 says, “I looked to the Lord, and he answered me. He saved me from everything I was afraid of.” Let’s see if we can get free from the fear knot."
+                  },
+                  {
+                    "type": "do",
+                    "content": "**Directions:** Challenge your group to untangle themselves and make a circle without letting go of each other’s hands. They’ll have to pass over and under one another’s arms to untangle the knot. Assist the kids only as needed. When finished, have the kids take a seat and ask the questions below. Afterwards, if time and interest permits, allow the kids to create more knots and attempt to get free."
+                  },
+                  {
+                    "type": "say",
+                    "content": "**Question:** How can having faith in God help you with your fear?"
+                  },
+                  {
+                    "type": "say",
+                    "content": "**Question:** God has power over all things! Does knowing that give you courage when you are afraid? Why or why not?"
+                  }
+                ]
+              },
+              {
+                "name": "RING-A-VERSE (Bible Memorization Activity)",
+                "role": "lesson",
+                "items": [
+                  {
+                    "type": "do",
+                    "content": "**Set up:** For each small group, cut the middle circle out of 8 paper plates. The end result should be 8 paper rings. On each ring, use a marker to write the 1/8th portion of today’s Bible verse."
+                  },
+                  {
+                    "type": "say",
+                    "content": "**“I looked | to the Lord, | and he | answered me. | He saved me | from everything | I was afraid of.” | Psalm 34:4 (NIrV)**"
+                  },
+                  {
+                    "type": "do",
+                    "content": "Next, for each group, use tape to create a “throw line” on the floor. Place a full water bottle (or something similar) on the floor approximately 5 feet beyond the line. Depending on the age and abilities of the kids, you may want to move the bottle further from or closer to the line."
+                  },
+                  {
+                    "type": "do",
+                    "content": "**Directions:** Have the kids place the 8 rings on the floor in order of the verse. For younger kids, you may need to assist. When the rings are in order, practice reading and reciting the verse as a group. When finished, turn the rings over and mix them up. On “go,” have the kids race to flip the rings back over, and take turns tossing them in the correct order over the water bottle. The kids may not step over the tape line. If they miss the bottle, they can quickly retrieve the ring, return to the line and try again. Time the kids to see how quickly they can toss all of the rings over the bottle in the correct order. When finished, have the group recite the verse. Repeat several times to see if the group can beat their previous time."
+                  },
+                  {
+                    "type": "say",
+                    "content": "**Question:** Has God ever saved you from something you were afraid of? Tell us about it."
+                  }
+                ]
+              },
+              {
+                "name": "PRAYER HUDDLE (Group Prayer Activity)",
+                "role": "lesson",
+                "items": [
+                  {
+                    "type": "do",
+                    "content": "**Directions:** Encourage everyone in your group to share general prayer requests or praises with one another. Ask the kids to share anything they are afraid of or if they have a situation where they need to ask God for faith in their time of fear. When kids are finished sharing, have them get on one knee and huddle in a circle with their arms around one another. Open the group in prayer. Allow the kids in the group to take turns praying aloud for themselves or for each other. When finished, close the group with a final prayer."
+                  }
+                ]
+              },
+              {
+                "name": "Pinterest Craft Ideas (Optional Craft Activities)",
+                "role": "lesson",
+                "items": [
+                  {
+                    "type": "say",
+                    "content": "In addition to the above activities, you can find curated craft ideas on our Pinterest board that connect with the lesson. These ideas provide creative inspiration for hands-on projects that reinforce the Bible story and/or Big Idea. Craft supplies are not included on the supply list."
+                  },
+                  {
+                    "type": "say",
+                    "content": "Unit 2 craft ideas can be found here."
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -48,19 +48,33 @@ function guideToInstructions(name: string, guide: GoCurriculumGuide, prefix: str
   return { name, items };
 }
 
-// "ELEMENTARY [PREMIUM]" → { group: "elementary", tier: "premium" }. Compared with case and punctuation stripped so
-// "VIDEO PLUS" matches a feed tag of "videoPlus".
-// ponytail: format guessed from one /oauth/me example — confirm against Go's full product list before relying on it
+// Memberships come from /oauth/me as memberpress.active_memberships: [{ id: 5399, title: "ELEMENTARY [PREMIUM]" }].
+// Known MemberPress product ids map to the catalogs and feed tier tag Go assigned them; anything else falls back to parsing
+// a "GROUP [TIER]" title. Tiers are compared with case and punctuation stripped, so "videoPlus" matches "videoplus".
+// An empty group (title fallback only) means the membership counts for every age group.
 interface GoMembership { group: string; tier: string; }
 const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
 
-// /oauth/me nests them as memberpress.active_memberships: [{ id: 5399, title: "ELEMENTARY [PREMIUM]" }]
+const MEMBERSHIP_IDS: Record<number, GoMembership[]> = {
+  486: [{ group: "preschool", tier: "basic" }],
+  5398: [{ group: "preschool", tier: "premium" }],
+  485: [{ group: "elementary", tier: "basic" }],
+  5399: [{ group: "elementary", tier: "premium" }],
+  7467: [{ group: "preschool", tier: "videoplus" }], // Topher Time Plus
+  7468: [{ group: "elementary", tier: "videoplus" }], // JTS Plus
+  7466: [{ group: "preschool", tier: "platinum" }, { group: "elementary", tier: "platinum" }],
+  5401: [{ group: "preschool", tier: "basic" }, { group: "elementary", tier: "basic" }],
+  5402: [{ group: "preschool", tier: "premium" }, { group: "elementary", tier: "premium" }]
+};
+
 export function parseMemberships(me: unknown): GoMembership[] {
   const body = me as { active_memberships?: unknown, memberpress?: { active_memberships?: unknown } } | null;
   const raw = body?.memberpress?.active_memberships ?? body?.active_memberships;
   const list = Array.isArray(raw) ? raw : raw ? [raw] : [];
   const result: GoMembership[] = [];
   for (const entry of list) {
+    const known = MEMBERSHIP_IDS[Number((entry as { id?: unknown })?.id)];
+    if (known) { result.push(...known); continue; }
     const title = typeof entry === "string" ? entry : (entry as { title?: string, name?: string })?.title || (entry as { name?: string })?.name;
     const match = typeof title === "string" ? /^(.*?)\s*\[([^\]]+)\]\s*$/.exec(title) : null;
     if (match) result.push({ group: normalize(match[1]), tier: normalize(match[2]) });

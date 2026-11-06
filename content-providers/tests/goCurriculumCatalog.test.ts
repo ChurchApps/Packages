@@ -12,13 +12,16 @@ setProviderSecret("gocurriculumFeeds", JSON.stringify({ elementary: ELEMENTARY, 
 const catalog = { catalog: [{ id: "faith-lab", name: "Faith Lab", lessons: [] }] };
 const goAuth = { access_token: "at", refresh_token: "rt", token_type: "Bearer", created_at: 0, expires_in: 3600, scope: "basic" } as ContentProviderAuthData;
 
+// a Basic Bundle member, so both age groups are open
+const BUNDLE_ME = { memberpress: { active_memberships: [{ id: 5401, title: "BASIC BUNDLE" }] } };
+
 // records every feed fetch; oauth/me always verifies
 function mockFetch(feed: (url: string) => { ok: boolean, json?: unknown }) {
   const realFetch = globalThis.fetch;
   const dropboxCalls: string[] = [];
   globalThis.fetch = (async (url: unknown) => {
     const u = String(url);
-    if (u.includes("gocurriculum.com/oauth/me")) return { ok: true, json: async () => ({}) } as Response;
+    if (u.includes("gocurriculum.com/oauth/me")) return { ok: true, json: async () => BUNDLE_ME } as Response;
     dropboxCalls.push(u);
     const res = feed(u);
     return { ok: res.ok, json: async () => res.json } as Response;
@@ -149,11 +152,11 @@ test("GoCurriculum hides tier-tagged playlist items from users without that tier
     const provider = new GoCurriculumProvider();
     provider.setCatalogLoader(async () => tagged);
     const as = (token: string) => ({ ...goAuth, access_token: token });
-    const titles = async (token: string) => (await provider.getPlaylist("/elementary/faith-lab/lesson-1", as(token)))?.map(f => f.title);
+    const titles = async (token: string) => (await provider.getPlaylist("/elementary/faith-lab/lesson-1", as(token)))?.map(f => f.title) || [];
 
     assert.deepEqual(await titles("basic"), ["Intro"]);
-    assert.deepEqual(await titles("none"), ["Intro"]);
-    assert.deepEqual(await titles("preschool"), ["Intro"], "a preschool membership doesn't unlock elementary");
+    assert.deepEqual(await titles("none"), [], "no membership opens nothing");
+    assert.deepEqual(await titles("preschool"), [], "a preschool membership doesn't open elementary");
     assert.deepEqual(await titles("premium"), ["Intro", "Topher Time"]);
     assert.deepEqual(await titles("videoplus"), ["Intro", "Topher Time"]);
 
@@ -209,6 +212,16 @@ test("GoCurriculum gates Go's tier-tagged export by each test account's membersh
       { elembasic: all.length, elempremium: all.length, platinum: all.length, basicbundle: all.length, premiumbundle: all.length });
     assert.deepEqual(await sees("elementary", ["prebasic", "prepremium", "tophertime", "none"]), { prebasic: 0, prepremium: 0, tophertime: 0, none: 0 });
     assert.deepEqual(await titles("elementary", "jtsplus"), ["Video Plus Extra"], "JTS Plus unlocks elementary videoPlus items only");
+
+    const groups = async (token: string) => (await provider.browse("/", { ...goAuth, access_token: token })).map(i => i.title);
+    assert.deepEqual(await groups("prebasic"), ["Preschool"]);
+    assert.deepEqual(await groups("tophertime"), ["Preschool"]);
+    assert.deepEqual(await groups("elembasic"), ["Elementary"]);
+    assert.deepEqual(await groups("jtsplus"), ["Elementary"]);
+    assert.deepEqual(await groups("platinum"), ["Elementary", "Preschool"]);
+    assert.deepEqual(await groups("none"), []);
+    assert.deepEqual(await provider.browse("/elementary", { ...goAuth, access_token: "prebasic" }), [], "a preschool member can't open elementary by path");
+    assert.deepEqual((await provider.getCatalog("elementary", { ...goAuth, access_token: "prebasic" }))?.catalog, [], "nor receive its catalog");
   } finally {
     globalThis.fetch = realFetch;
   }

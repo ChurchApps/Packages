@@ -13,7 +13,8 @@ import { GO_LOGO } from "./logo";
  * /{group}/{collection}/small-group/{lesson}, so Large Group paths and series order stay untouched.
  * Each group is a Go export fetched at runtime. Feed URLs are private: a server host supplies them with
  * setProviderSecret("gocurriculumFeeds", '{"elementary":"https://...","preschool":"https://..."}'); a device host calls
- * setCatalogLoader to fetch through its server instead. A valid gocurriculum.com login (WP OAuth Server plugin) gates all of it.
+ * setCatalogLoader to fetch through its server instead. A gocurriculum.com login (WP OAuth Server plugin) gates all of it, and
+ * each age group only opens for members whose memberships include it (see MEMBERSHIP_IDS).
  */
 const GROUPS = [
   { id: "elementary", name: "Elementary" },
@@ -82,8 +83,12 @@ export function parseMemberships(me: unknown): GoMembership[] {
   return result;
 }
 
-// untagged items are open to everyone; tagged ones need a membership in that tier for this age group
-// (a membership with no group prefix counts for every group)
+// a membership with no group (title fallback only) counts for every age group
+function hasGroup(groupId: string, memberships: GoMembership[]): boolean {
+  return memberships.some(m => !m.group || m.group === normalize(groupId));
+}
+
+// within an age group the member can open, untagged items are open; tagged ones need a membership in that tier for this group
 function canSee(item: GoCurriculumPlaylistItem, groupId: string, memberships: GoMembership[]): boolean {
   if (!item.tiers?.length) return true;
   const tiers = item.tiers.map(normalize);
@@ -162,6 +167,7 @@ export class GoCurriculumProvider extends BaseProvider {
   }
 
   private async getCollection(segments: string[], auth: ContentProviderAuthData): Promise<GoCurriculumCollection | undefined> {
+    if (!hasGroup(segments[0], this.membershipsFor(auth))) return undefined;
     const collection = (await this.getData(segments[0], auth))?.catalog.find(c => c.id === segments[1]);
     return collection && filterCollection(collection, segments[0], this.membershipsFor(auth));
   }
@@ -176,6 +182,8 @@ export class GoCurriculumProvider extends BaseProvider {
     const data = await this.getData(groupId, auth);
     if (!data) return null;
     const memberships = this.membershipsFor(auth);
+    // an empty catalog rather than null, so a device's loader treats the group as loaded instead of retrying it
+    if (!hasGroup(groupId, memberships)) return { ...data, catalog: [] };
     return { ...data, catalog: data.catalog.map(c => filterCollection(c, groupId, memberships)) };
   }
 
@@ -183,7 +191,7 @@ export class GoCurriculumProvider extends BaseProvider {
   readonly authTypes: AuthType[] = ["oauth_pkce"];
   readonly capabilities: ProviderCapabilities = { browse: true, playlist: true, instructions: true, mediaLicensing: false };
 
-  // any valid login unlocks untagged content; playlist items with `tiers` also need a matching active membership
+  // a valid login plus a membership for the age group opens it; playlist items with `tiers` also need a matching tier
   private async verifyAuth(auth?: ContentProviderAuthData | null): Promise<boolean> {
     const token = auth?.access_token;
     if (!token) return false;
@@ -205,7 +213,9 @@ export class GoCurriculumProvider extends BaseProvider {
     if (!auth || !(await this.verifyAuth(auth))) return [];
     const { segments, depth } = parsePath(path);
 
-    if (depth === 0) return GROUPS.map(g => createFolder(g.id, g.name, `/${g.id}`));
+    // only the age groups this member has a membership for
+    if (depth === 0) return GROUPS.filter(g => hasGroup(g.id, this.membershipsFor(auth))).map(g => createFolder(g.id, g.name, `/${g.id}`));
+    if (!hasGroup(segments[0], this.membershipsFor(auth))) return [];
     if (depth === 1) return ((await this.getData(segments[0], auth))?.catalog || []).map(c => createFolder(c.id, c.name, `/${segments[0]}/${c.id}`, c.thumbnail));
 
     const collection = await this.getCollection(segments, auth);

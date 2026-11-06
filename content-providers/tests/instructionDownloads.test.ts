@@ -97,7 +97,7 @@ const goCatalog = {
 
 test("Go Curriculum getInstructions maps resources to downloads and keeps the playlist as-is", async () => {
   const restore = mockFetch((url) => {
-    if (url.includes("/oauth/me")) return { ID: "1" };
+    if (url.includes("/oauth/me")) return { ID: "1", memberpress: { active_memberships: [{ id: 5401, title: "BASIC BUNDLE" }] } };
     return goCatalog;
   });
   try {

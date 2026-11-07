@@ -320,6 +320,7 @@
   "notes": {
     "comment": "comment",
     "comments": "comments",
+    "confirmDelete": "Delete this note? This cannot be undone.",
     "formatBold": "Bold",
     "formatBullets": "Bulleted list",
     "formatItalic": "Italic",

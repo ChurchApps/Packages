@@ -98,6 +98,7 @@ export function AddNote({ context, onCancel, ...props }: Props) {
 
   async function deleteNote() {
     if (!props.messageId) return;
+    if (!window.confirm(Locale.label("notes.confirmDelete", "Delete this note? This cannot be undone."))) return;
     await ApiHelper.delete(`/messages/${props.messageId}`, "MessagingApi");
     props.onUpdate();
   }

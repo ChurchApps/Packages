@@ -165,3 +165,22 @@ describe("renderMarkdownPreviewHtml", () => {
     expect(html).toContain("<code>code</code>");
   });
 });
+
+// ChurchAppsSupport#1474: notes and chat render through the light preview and rely on single line breaks.
+describe("renderMarkdownPreviewHtml breaks option", () => {
+  it("keeps a single newline as <br> when breaks is set", () => {
+    expect(renderMarkdownPreviewHtml("line one\nline two", { breaks: true })).toContain("<br>");
+  });
+
+  it("does not change the default output", () => {
+    expect(renderMarkdownPreviewHtml("line one\nline two")).not.toContain("<br>");
+  });
+
+  it("renders bold, italic and lists", () => {
+    const html = renderMarkdownPreviewHtml("**Reminder** for _Thursday_\n\n- milk\n- eggs\n\n1. one\n2. two", { breaks: true });
+    expect(html).toContain("<strong>Reminder</strong>");
+    expect(html).toContain("<em>Thursday</em>");
+    expect(html).toMatch(/<ul>[\s\S]*<li>eggs<\/li>[\s\S]*<\/ul>/);
+    expect(html).toMatch(/<ol>[\s\S]*<li>two<\/li>[\s\S]*<\/ol>/);
+  });
+});

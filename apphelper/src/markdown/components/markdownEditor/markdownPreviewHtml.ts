@@ -104,12 +104,12 @@ function stripUnsafeUrls(node: Element): void {
   if (xlink !== null && !isSafeHref(xlink)) node.removeAttribute("xlink:href");
 }
 
-export function renderMarkdownPreviewHtml(markdownString: string): string {
+export function renderMarkdownPreviewHtml(markdownString: string, options?: { breaks?: boolean }): string {
   const convertedText = getSpecialLinks(markdownString || "");
   let processedMarkdown = convertedText.replace(/__(.*?)__/g, (_m, t) => "<u>" + escapeHtml(t) + "</u>");
   processedMarkdown = processedMarkdown.replace(/```([\s\S]+?)```/g, (_m, t) => "<pre class=\"code-block\"><code>" + escapeHtml(t) + "</code></pre>");
   processedMarkdown = processedMarkdown.replace(/`([^`]+)`/g, (_m, t) => "<code>" + escapeHtml(t) + "</code>");
-  const html = markedInstance.parse(processedMarkdown || "", { async: false }) as string;
+  const html = markedInstance.parse(processedMarkdown || "", { async: false, breaks: !!options?.breaks }) as string;
   // The hook is added and removed around this one synchronous call so we never
   // change DOMPurify's behaviour for anything else in the host app.
   DOMPurify.addHook("afterSanitizeAttributes", stripUnsafeUrls);

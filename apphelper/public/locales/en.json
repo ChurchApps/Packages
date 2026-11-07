@@ -320,6 +320,10 @@
   "notes": {
     "comment": "comment",
     "comments": "comments",
+    "formatBold": "Bold",
+    "formatBullets": "Bulleted list",
+    "formatItalic": "Italic",
+    "formatNumbered": "Numbered list",
     "notes": "Notes",
     "notifyOff": "Notify Off",
     "notifyOn": "Notify On",

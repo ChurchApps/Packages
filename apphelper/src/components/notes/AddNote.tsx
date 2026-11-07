@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { ApiHelper, Locale, PersonHelper } from "../../helpers";
 import { ConversationStore } from "../../helpers/ConversationStore";
 import { SubscriptionManager } from "../../helpers/SubscriptionManager";
@@ -16,6 +16,7 @@ import {
   Icon
 } from "@mui/material";
 import { EmojiPicker } from "./EmojiPicker";
+import { useFormattingShortcuts } from "./FormattingPopup";
 import { ErrorMessages } from "../ErrorMessages";
 
 type Props = {
@@ -34,6 +35,11 @@ export function AddNote({ context, onCancel, ...props }: Props) {
   const [emojiAnchorEl, setEmojiAnchorEl] = useState<HTMLElement | null>(null);
   const headerText = props.messageId ? "Edit note" : "Add a note";
   const churchId = UserHelper.currentUserChurch?.church?.id || "";
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const { onKeyDown, popup } = useFormattingShortcuts(inputRef, message?.content || "", (content) => {
+    setErrors([]);
+    setMessage({ ...message, content });
+  });
 
   useEffect(() => {
     if (props.messageId) {
@@ -122,6 +128,8 @@ export function AddNote({ context, onCancel, ...props }: Props) {
               variant="standard"
               value={message?.content || ""}
               onChange={handleChange}
+              onKeyDown={onKeyDown}
+              inputRef={inputRef}
               disabled={isSubmitting}
               InputProps={{
                 disableUnderline: true,
@@ -140,6 +148,7 @@ export function AddNote({ context, onCancel, ...props }: Props) {
                 "&.Mui-focused": { borderColor: "primary.main" }
               })}
             />
+            {popup}
 
             <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>
               {props.messageId && (

@@ -5,6 +5,7 @@ import React, { useState, useEffect } from "react";
 import { DateHelper, Locale } from "../../helpers";
 import { MessageInterface, PersonInterface, UserContextInterface } from "@churchapps/helpers";
 import { PersonAvatar } from "../PersonAvatar";
+import { MarkdownPreviewLight } from "../../markdown/components/markdownEditor/MarkdownPreviewLight";
 
 interface Props {
   message: MessageInterface;
@@ -40,9 +41,9 @@ export const Note: React.FC<Props> = (props) => {
     return (
       <>
         {textWithoutUrls && (
-          <Typography variant="body2" sx={{ whiteSpace: "pre-wrap", mb: 0.5 }}>
-            {textWithoutUrls}
-          </Typography>
+          <Box sx={{ mb: 0.5, fontSize: "0.875rem", overflowWrap: "anywhere", "& p": { m: 0 }, "& p + p": { mt: 1 }, "& ul, & ol": { my: 0.5, pl: 2.5 } }} data-testid="note-content">
+            <MarkdownPreviewLight value={textWithoutUrls} breaks />
+          </Box>
         )}
         {imageMatches.map((url, i) => (
           <Box

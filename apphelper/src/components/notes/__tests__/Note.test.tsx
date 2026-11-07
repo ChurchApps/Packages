@@ -29,3 +29,24 @@ describe("Note", () => {
     container.remove();
   });
 });
+
+describe("Note formatting", () => {
+  it("renders markdown in the note text and keeps line breaks", async () => {
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+    const root = createRoot(container);
+    const message: any = { id: "MSG2", content: "**Reminder:** bring a Bible\nsee you\n\n- milk\n- eggs", timeSent: new Date(), personId: "PER2", person: { name: { display: "Donald Clark" } } };
+
+    await act(async () => {
+      root.render(<Note message={message} showEditNote={() => {}} context={{ person: { id: "PER1" } } as any} />);
+    });
+    const content = container.querySelector("[data-testid='note-content']") as HTMLElement;
+    expect(content.querySelector("strong")?.textContent).toBe("Reminder:");
+    expect(content.querySelector("br")).not.toBeNull();
+    expect(Array.from(content.querySelectorAll("li")).map((li) => li.textContent)).toEqual(["milk", "eggs"]);
+    expect(content.textContent).not.toContain("**");
+
+    act(() => root.unmount());
+    container.remove();
+  });
+});

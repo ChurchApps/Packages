@@ -2,12 +2,12 @@ import React from "react";
 import { Note } from "./Note";
 import { AddNote } from "./AddNote";
 import { DisplayBox, Loading } from "../";
-import { Locale } from "../../helpers";
+import { DateHelper, Locale } from "../../helpers";
 import { ConversationStore } from "../../helpers/ConversationStore";
 import { SubscriptionManager } from "../../helpers/SubscriptionManager";
 import { ConversationInterface, MessageInterface, UserContextInterface } from "@churchapps/helpers";
 import { SubscriptionToggle, filterVisibleMessages } from "./SubscriptionToggle";
-import { Box } from "@mui/material";
+import { Box, Icon, Stack, Typography } from "@mui/material";
 
 interface Props {
   conversationId: string;
@@ -16,7 +16,55 @@ interface Props {
   context: UserContextInterface;
   maxHeight?: any;
   refreshKey?: number;
+  // Shown only to viewers who can open the audit log: links "(edited)" and deleted-note markers to the record's note history.
+  historyLink?: string;
+  deletedNotes?: DeletedNoteInterface[];
 }
+
+export interface DeletedNoteInterface {
+  messageId?: string;
+  displayName?: string;
+  timeSent?: Date | string;
+  deletedAt?: Date | string;
+}
+
+const formatTime = (value?: Date | string) => {
+  if (!value) return "";
+  const d = new Date(value);
+  return isNaN(d.getTime()) ? "" : DateHelper.prettyDateTime(d);
+};
+
+// Greyed placeholder where a note was deleted. The old text stays in the audit log, never inline.
+const DeletedNote: React.FC<{ note: DeletedNoteInterface; historyLink?: string }> = ({ note, historyLink }) => {
+  const caption = Locale.label("notes.deletedNoteBy", "Note by {name}, {posted} · deleted {deleted}")
+    .replace("{name}", note.displayName || "")
+    .replace("{posted}", formatTime(note.timeSent))
+    .replace("{deleted}", formatTime(note.deletedAt));
+  return (
+    <Box
+      data-testid="deleted-note"
+      sx={{ display: "flex", gap: 2, mb: 2, p: 1, borderRadius: 1, opacity: 0.7, bgcolor: "action.hover", border: "1px dashed", borderColor: "divider" }}
+    >
+      <Icon sx={{ color: "text.secondary", width: 32, textAlign: "center" }}>delete_outline</Icon>
+      <Box sx={{ flex: 1 }}>
+        <Typography variant="subtitle2" color="text.secondary">{Locale.label("notes.deletedNote", "Deleted note")}</Typography>
+        <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+          <Typography variant="caption" color="text.secondary">{caption}</Typography>
+          {historyLink && (
+            <Typography variant="caption" component="a" href={historyLink} color="text.secondary" sx={{ textDecoration: "underline" }} data-testid="deleted-note-history-link">
+              {Locale.label("notes.viewHistory", "View history")}
+            </Typography>
+          )}
+        </Stack>
+      </Box>
+    </Box>
+  );
+};
+
+const timeOf = (value?: Date | string) => {
+  const t = value ? new Date(value).getTime() : NaN;
+  return isNaN(t) ? 0 : t;
+};
 
 export function Notes(props: Props) {
   const [messages, setMessages] = React.useState<MessageInterface[] | null>(null);
@@ -111,10 +159,13 @@ export function Notes(props: Props) {
 
   const getNotes = () => {
     if (!messages) return <Loading />;
-    if (visibleMessages.length === 0) return <></>;
-    return visibleMessages.map(m => (
-      <Note message={m} key={m.id} showEditNote={(id) => setEditMessageId(id ?? null)} context={props.context} />
-    ));
+    const deleted = props.deletedNotes || [];
+    if (visibleMessages.length === 0 && deleted.length === 0) return <></>;
+    const rows = [
+      ...visibleMessages.map(m => ({ time: timeOf(m.timeSent), el: <Note message={m} key={m.id} showEditNote={(id) => setEditMessageId(id ?? null)} context={props.context} historyLink={props.historyLink} /> })),
+      ...deleted.map((d, i) => ({ time: timeOf(d.timeSent), el: <DeletedNote note={d} historyLink={props.historyLink} key={"deleted-" + (d.messageId || i)} /> }))
+    ];
+    return rows.sort((a, b) => a.time - b.time).map(r => r.el);
   };
 
   const getNotesWrapper = () => {

@@ -321,6 +321,9 @@
     "comment": "comment",
     "comments": "comments",
     "confirmDelete": "Delete this note? This cannot be undone.",
+    "deletedNote": "Deleted note",
+    "deletedNoteBy": "Note by {name}, {posted} · deleted {deleted}",
+    "editedViewHistory": "(edited · view history)",
     "formatBold": "Bold",
     "formatBullets": "Bulleted list",
     "formatItalic": "Italic",
@@ -333,7 +336,8 @@
     "validate": {
       "content": "Please enter a note."
     },
-    "viewAll": "View all"
+    "viewAll": "View all",
+    "viewHistory": "View history"
   },
   "person": {
     "email": "Email",

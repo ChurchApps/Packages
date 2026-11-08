@@ -50,3 +50,36 @@ describe("Note formatting", () => {
     container.remove();
   });
 });
+
+// ChurchAppsSupport#1487: admins who can open the audit log get "(edited)" linked to the record's note history.
+describe("Note history link", () => {
+  const edited: any = { id: "MSG3", content: "Visit moved to Friday", timeSent: new Date("2026-11-01T10:00:00Z"), timeUpdated: new Date("2026-11-02T10:00:00Z"), personId: "PER2", person: { name: { display: "Donald Clark" } } };
+
+  const render = async (historyLink?: string) => {
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+    const root = createRoot(container);
+    await act(async () => {
+      root.render(<Note message={edited} showEditNote={() => {}} context={{ person: { id: "PER1" } } as any} historyLink={historyLink} />);
+    });
+    return { container, done: () => { act(() => root.unmount()); container.remove(); } };
+  };
+
+  it("keeps the plain (edited) caption without a history link", async () => {
+    const { container, done } = await render();
+    expect(container.textContent).toContain("(edited)");
+    expect(container.querySelector("[data-testid='note-history-link']")).toBeNull();
+    done();
+  });
+
+  it("links (edited) to the history when a link is given", async () => {
+    const link = "/settings/audit-log?module=messaging&entityType=note&entityId=PER2";
+    const { container, done } = await render(link);
+    const a = container.querySelector("[data-testid='note-history-link']") as HTMLAnchorElement;
+    expect(a).not.toBeNull();
+    expect(a.tagName).toBe("A");
+    expect(a.getAttribute("href")).toBe(link);
+    expect(a.textContent).toBe("(edited · view history)");
+    done();
+  });
+});

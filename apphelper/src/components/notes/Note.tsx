@@ -13,6 +13,7 @@ interface Props {
   context: UserContextInterface;
   isEditing?: boolean;
   hideEdit?: boolean;
+  historyLink?: string;
 }
 
 export const Note: React.FC<Props> = (props) => {
@@ -112,11 +113,17 @@ export const Note: React.FC<Props> = (props) => {
               <Typography variant="caption" color="text.secondary" title={displayDateTime} data-testid="note-timestamp">
                 {displayDateTime ? `${displayDateTime} · ${displayDuration}` : displayDuration}
               </Typography>
-              {isEdited && (
-                <Typography variant="caption" color="text.secondary">
-                  (edited)
-                </Typography>
-              )}
+              {isEdited && (props.historyLink
+                ? (
+                  <Typography variant="caption" component="a" href={props.historyLink} color="text.secondary" sx={{ textDecoration: "underline" }} data-testid="note-history-link">
+                    {Locale.label("notes.editedViewHistory", "(edited · view history)")}
+                  </Typography>
+                )
+                : (
+                  <Typography variant="caption" color="text.secondary">
+                    (edited)
+                  </Typography>
+                ))}
             </Stack>
             <Box>{renderMessageContent(message.content || "")}</Box>
           </Box>

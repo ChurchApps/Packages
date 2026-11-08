@@ -90,12 +90,23 @@ test("GoCurriculum uses the host catalog loader", async () => {
 
 test("GoCurriculum turns the Large and Small Group guides into instructions", async () => {
   const video = { file: "intro.mp4", url: "https://feeds.test/intro.mp4", mediaType: "video", seconds: 30 };
-  const guided = { catalog: [{ id: "faith-lab", name: "Faith Lab", lessons: [{
-    id: "lesson-1", name: "Lesson 1",
-    playlist: [{ title: "Intro Video", ...video }],
-    script: { sections: [{ name: "Opening", role: "lesson", items: [{ type: "play", content: "Play intro", files: [video] }, { type: "say", content: "*Welcome* everyone!" }] }] },
-    smallGroup: { sections: [{ name: "Story Questions", role: "lesson", items: [{ type: "do", content: "Ask the questions." }] }] }
-  }] }] };
+  const guided = {
+    catalog: [
+      {
+        id: "faith-lab",
+        name: "Faith Lab",
+        lessons: [
+          {
+            id: "lesson-1",
+            name: "Lesson 1",
+            playlist: [{ title: "Intro Video", ...video }],
+            script: { sections: [{ name: "Opening", role: "lesson", items: [{ type: "play", content: "Play intro", files: [video] }, { type: "say", content: "*Welcome* everyone!" }] }] },
+            smallGroup: { sections: [{ name: "Story Questions", role: "lesson", items: [{ type: "do", content: "Ask the questions." }] }] }
+          }
+        ]
+      }
+    ]
+  };
   const { restore } = mockFetch(() => ({ ok: false }));
   try {
     const provider = new GoCurriculumProvider();
@@ -138,10 +149,22 @@ test("GoCurriculum reads tiers from active_memberships", () => {
 test("GoCurriculum hides tier-tagged playlist items from users without that tier", async () => {
   const topher = { title: "Topher Time", file: "topher.mp4", url: "https://feeds.test/topher.mp4", tiers: ["videoPlus", "premium", "platinum"] };
   const intro = { title: "Intro", file: "intro.mp4", url: "https://feeds.test/intro.mp4" };
-  const tagged = { catalog: [{ id: "faith-lab", name: "Faith Lab", lessons: [{
-    id: "lesson-1", name: "Lesson 1", playlist: [intro, topher],
-    script: { sections: [{ name: "Opening", items: [{ type: "play", content: "Play Topher", files: [{ file: topher.file, url: topher.url }] }] }] }
-  }] }] };
+  const tagged = {
+    catalog: [
+      {
+        id: "faith-lab",
+        name: "Faith Lab",
+        lessons: [
+          {
+            id: "lesson-1",
+            name: "Lesson 1",
+            playlist: [intro, topher],
+            script: { sections: [{ name: "Opening", items: [{ type: "play", content: "Play Topher", files: [{ file: topher.file, url: topher.url }] }] }] }
+          }
+        ]
+      }
+    ]
+  };
   const realFetch = globalThis.fetch;
   globalThis.fetch = (async (_url: unknown, init?: RequestInit) => {
     const token = new URLSearchParams(String(init?.body)).get("access_token");

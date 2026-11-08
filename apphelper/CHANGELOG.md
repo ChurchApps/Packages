@@ -1,5 +1,16 @@
 # @churchapps/apphelper
 
+## 1.11.0
+
+### Minor Changes
+
+- b206315: `Notes` takes optional `historyLink` and `deletedNotes` props. With a `historyLink`, an edited note's "(edited)" caption links to it, and each `deletedNotes` entry renders a greyed "Deleted note" marker in time order (author, posted and deleted dates, "View history" link) without the old text. Adds the `DeletedNoteInterface` type and a `historyLink` prop on `Note`.
+- b1bf239: Notes and private messages now render `**bold**`, `_italic_`, `- bullets` and `1. numbered` lists (with line breaks kept), and the note box shows a Bold / Italic / Bullets / Numbered popup over highlighted text plus Ctrl/Cmd+B and Ctrl/Cmd+I. Adds `FormattingPopup`, `useFormattingShortcuts`, `applyFormat`, and a `breaks` prop on `MarkdownPreviewLight`.
+
+### Patch Changes
+
+- 08d5936: Notes box asks "Delete this note? This cannot be undone." before deleting a note
+
 ## 1.10.11
 
 ### Patch Changes

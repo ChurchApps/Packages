@@ -7,7 +7,7 @@ export interface StyleSet {
 export interface ElementInterface {
   id?: string;
   sectionId?: string;
-  parentId?: string;
+  parentId?: string | null;
   blockId?: string;
   elementType?: string;
   sort?: number;

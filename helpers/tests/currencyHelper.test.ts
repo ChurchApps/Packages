@@ -55,6 +55,18 @@ test("formatCurrencyWithLocale renders amount with the currency's symbol, not it
   assert.ok(eur.includes("€"), eur);
 });
 
+test("formatCurrencyWithLocale puts a leading symbol right against the amount", () => {
+  assert.equal(CurrencyHelper.formatCurrencyWithLocale(2, "usd"), "$2.00");
+  assert.equal(CurrencyHelper.formatCurrencyWithLocale(-1234.5, "usd"), "-$1,234.50");
+  assert.equal(CurrencyHelper.formatCurrencyWithLocale(2, "gbp"), "£2.00");
+  assert.equal(CurrencyHelper.formatCurrencyWithLocale(2, "cad"), "C$2.00");
+});
+
+test("formatCurrencyWithLocale keeps the space after a letter symbol", () => {
+  assert.equal(CurrencyHelper.formatCurrencyWithLocale(2, "eur"), "€2.00");
+  assert.match(CurrencyHelper.formatCurrencyWithLocale(2, "chf"), /CHF[\s\u00a0\u202f]2/);
+});
+
 test("convertAmount returns the input amount unchanged when currencies match or the rate is missing", () => {
   CurrencyHelper.rates = {};
   assert.equal(CurrencyHelper.convertAmount(50, "usd", "USD"), 50);

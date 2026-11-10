@@ -58,8 +58,12 @@ export class CurrencyHelper {
     });
 
     // replace the currency code with the symbol
-    const formattedAmount = formatter.format(amount);
-    return formattedAmount.replace(normalizedCurrency, symbol);
+    const formattedAmount = formatter.format(amount).replace(normalizedCurrency, symbol);
+    // A code is followed by a space ("USD 2.00"); a sign like $ or C$ sits right against the number ("$2.00").
+    // Letter symbols (SEK, CHF) and symbols after the number ("2,00 €") keep their space.
+    if (/[A-Za-z]$/.test(symbol)) return formattedAmount;
+    const escaped = symbol.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return formattedAmount.replace(new RegExp("^([-\u2212]?)" + escaped + "[\\s\u00a0\u202f]+"), "$1" + symbol);
   }
 
   static getCurrencySymbol(currency?: string) {

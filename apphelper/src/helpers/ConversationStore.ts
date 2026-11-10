@@ -106,6 +106,8 @@ export class ConversationStore {
     const messages = existing.messages ? [...existing.messages] : [];
     const idx = messages.findIndex(m => m.id === message.id);
     const merged: MessageInterface = idx >= 0 ? { ...messages[idx], ...message } : { ...message };
+    // A just-saved message can arrive without timeSent; stamp it so it sorts last and shows its time.
+    if (!merged.timeSent) merged.timeSent = new Date();
     if (!merged.person && merged.personId) {
       const cached = ConversationStore.peopleCache.get(merged.personId);
       if (cached) merged.person = cached;

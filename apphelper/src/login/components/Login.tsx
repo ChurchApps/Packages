@@ -264,15 +264,21 @@ export const Login: React.FC<Props> = ({ mainContainerCssProps = {}, ...props })
 				  zIndex: 1,
 				  backgroundColor: "#f9fafb",
 				  borderTop: "1px solid #e5e7eb",
-				  padding: "16px",
+				  // Side padding keeps the links clear of a floating help bubble in
+				  // either bottom corner; wrapping stacks the items on phone widths
+				  // instead of letting them run into each other.
+				  padding: "12px 72px",
 				  display: "flex",
+				  flexWrap: "wrap",
 				  justifyContent: "center",
 				  alignItems: "center",
-				  gap: "24px",
+				  columnGap: "24px",
+				  rowGap: "8px",
+				  textAlign: "center",
 				  fontSize: "14px",
 				  color: "#6b7280"
         }}>
-          <span style={{ marginRight: "8px" }}>Ministry that's supported, not sold</span>
+          <span>Ministry that's supported, not sold</span>
           <a
             href="https://churchapps.org/partner"
             target="_blank"

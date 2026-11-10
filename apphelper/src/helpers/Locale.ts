@@ -144,7 +144,7 @@ export class Locale {
         "addCard": "Add Card",
         "confirmDelete": "Are you sure you wish to delete this payment method?",
         "deleted": "Payment method deleted.",
-        "noMethod": "No payment methods. Add a payment method to make a donation.",
+        "noSavedMethods": "No saved payment methods.",
         "verify": "Verify Account"
       },
       "page": {

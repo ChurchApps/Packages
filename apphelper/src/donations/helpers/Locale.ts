@@ -133,7 +133,7 @@ export class Locale {
         "addCard": "Add Card",
         "confirmDelete": "Are you sure you wish to delete this payment method?",
         "deleted": "Payment method deleted.",
-        "noMethod": "No payment methods. Add a payment method to make a donation.",
+        "noSavedMethods": "No saved payment methods.",
         "verify": "Verify Account"
       },
       "preview": {
@@ -323,8 +323,13 @@ export class Locale {
   }
 
   // Keep the old method for backward compatibility
-  static label(key: string): string {
-    return this.t(key);
+  static label(key: string, fallback?: string): string {
+    const translation = this.t(key);
+    // If translation equals the key, it means no translation was found
+    if (translation === key && fallback) {
+      return fallback;
+    }
+    return translation;
   }
 
   // Helper method to check if i18n is initialized

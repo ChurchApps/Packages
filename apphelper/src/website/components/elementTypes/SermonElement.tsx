@@ -9,6 +9,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { ApiHelper, DateHelper } from "../../..";
 import { AppearanceHelper } from "../../..";
 import { Loading } from "../../..";
+import { Locale } from "../../..";
 import type { PlaylistInterface, SermonInterface } from "@churchapps/helpers";
 import { ElementInterface } from "../../helpers";
 import { EnvironmentHelper } from "../../helpers/EnvironmentHelper";
@@ -74,7 +75,7 @@ export const SermonElement = ({ churchId, appearance, element }: Props) => {
       return (
         <div>
           <Button size="small" startIcon={<ArrowBackIcon />} sx={{ borderRadius: 3, marginBottom: 1 }} onClick={() => { setActiveVideo(undefined); setIsActive("playlists"); }}>
-            Back
+            {Locale.label("sermon.back", "Back")}
           </Button>
           <div className="videoWrapper">
             <iframe src={activeVideo.videoUrl.replace("controls=0", "controls=1")} allowFullScreen style={{ border: 0 }} />
@@ -155,7 +156,7 @@ export const SermonElement = ({ churchId, appearance, element }: Props) => {
           }}
           data-testid="sermon-playlists-button"
         >
-          Playlists
+          {Locale.label("sermon.playlists", "Playlists")}
         </Button>
         {activePlaylist?.title && (
           <Button

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { ApiHelper } from "@churchapps/helpers";
 import type { PaymentGateway } from "../helpers";
+import { Locale } from "../helpers";
 import { getPaymentProvider, pickDefaultGateway } from "../providers";
 import { Box, Typography } from "@mui/material";
 import type { PaperProps } from "@mui/material/Paper";
@@ -49,7 +50,7 @@ export const NonAuthDonation: React.FC<Props> = ({ mainContainerCssProps, showHe
       {showHeader && (
         <Box sx={{ mb: 2 }}>
           <Typography variant="h5" component="h2" gutterBottom>
-            Donate
+            {Locale.label("donation.donationForm.donate", "Donate")}
           </Typography>
         </Box>
       )}
@@ -68,7 +69,7 @@ export const NonAuthDonation: React.FC<Props> = ({ mainContainerCssProps, showHe
       />
       <Box sx={{ marginTop: "15px", fontSize: "14px" }}>
         <a href="/mobile/donate" style={{ color: "#1976d2" }}>
-          Login to manage existing donations
+          {Locale.label("donation.donationForm.loginToManage", "Login to manage existing donations")}
         </a>
       </Box>
     </Box>

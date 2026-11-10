@@ -34,7 +34,10 @@ export const NonAuthDonationWrapper: React.FC<Props> = (props) => {
   // Don't render until initialized to avoid API errors
   if (!initialized) return null;
 
-  if (!siteKey) {
+  // Same flag the guest donation forms honour to skip the captcha (dev/test).
+  const bypassRecaptcha = typeof process !== "undefined" && process.env?.NEXT_PUBLIC_BYPASS_RECAPTCHA === "true";
+
+  if (!siteKey && !bypassRecaptcha) {
     return (
       <Box sx={{ p: 3 }}>
         <Typography color="error">

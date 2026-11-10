@@ -1,5 +1,11 @@
 # @churchapps/helpers
 
+## 2.15.2
+
+### Patch Changes
+
+- 1a61ed2: Types match what the Api sends: FormSubmissionInterface has submissionDate, revisionDate and revisedBy; QuestionInterface.choices and PersonInterface.formSubmissions are arrays (not one-element tuples); PlanItemInterface and website ElementInterface parentId allow null
+
 ## 2.15.1
 
 ### Patch Changes

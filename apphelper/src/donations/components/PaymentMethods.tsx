@@ -150,7 +150,7 @@ export const PaymentMethods: React.FC<Props> = (props) => {
           </TableBody>
         </Table>
       );
-    } else return <div>{Locale.label("donation.paymentMethods.noMethod")}</div>;
+    } else return <div>{Locale.label("donation.paymentMethods.noSavedMethods", "No saved payment methods.")}</div>;
   };
 
   const provider = gateway ? getPaymentProvider(gateway.provider) : undefined;

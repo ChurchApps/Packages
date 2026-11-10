@@ -507,7 +507,7 @@ const MultiGatewayDonationInner: React.FC<Props> = (props) => {
                         ))}
                         {paymentProvider.capabilities.memberNewCard && (
                           <MenuItem value="__new__">
-                            <Icon sx={{ mr: 1, fontSize: 18 }}>add_circle</Icon> Enter new card
+                            <Icon sx={{ mr: 1, fontSize: 18 }}>add_circle</Icon> {Locale.label("donation.donationForm.enterNewCard", "Enter new card")}
                           </MenuItem>
                         )}
                       </Select>
@@ -524,7 +524,7 @@ const MultiGatewayDonationInner: React.FC<Props> = (props) => {
                           <FormGroup sx={{ mt: 1 }}>
                             <FormControlLabel
                               control={<Checkbox checked={saveCard} onChange={(e) => setSaveCard(e.target.checked)} />}
-                              label="Save this card for future donations"
+                              label={Locale.label("donation.donationForm.saveCard", "Save this card for future donations")}
                             />
                           </FormGroup>
                         )}

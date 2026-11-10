@@ -75,10 +75,12 @@
       "cover": "I'll generously add {} to cover the transaction fees so you can keep 100% of my donation.",
       "donate": "Donate",
       "editRecurring": "Edit Recurring Donation",
+      "enterNewCard": "Enter new card",
       "fees": "Transaction fees of {} are applied.",
       "frequency": "Frequency",
       "fund": "Fund",
       "funds": "Funds",
+      "loginToManage": "Login to manage existing donations",
       "make": "Make a Donation",
       "makeRecurring": "Make a Recurring Donation",
       "method": "Method",
@@ -88,6 +90,7 @@
       "preview": "Preview Donation",
       "quarterly": "Quarterly",
       "recurringUpdated": "Recurring donation updated.",
+      "saveCard": "Save this card for future donations",
       "startDate": "Start Date",
       "thankYou": "Thank you for your donation!",
       "tooLow": "Donation amount must be greater than $0.50",
@@ -146,7 +149,7 @@
       "addCard": "Add Card",
       "confirmDelete": "Are you sure you wish to delete this payment method?",
       "deleted": "Payment method deleted.",
-      "noMethod": "No Method",
+      "noSavedMethods": "No saved payment methods.",
       "verify": "Verify Account"
     },
     "paypal": {
@@ -390,6 +393,10 @@
       "zip": "Zip/Postal code cannot be blank."
     },
     "zip": "Zip / Postal Code"
+  },
+  "sermon": {
+    "back": "Back",
+    "playlists": "Playlists"
   },
   "stockPhotos": {
     "photoBy": "Photo by:",

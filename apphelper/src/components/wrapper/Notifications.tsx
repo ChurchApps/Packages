@@ -9,6 +9,7 @@ import {
   Paper,
   List,
   ListItem,
+  ListItemButton,
   ListItemAvatar,
   ListItemText,
   Avatar,
@@ -28,7 +29,7 @@ import {
   ClearAll as ClearAllIcon
 } from "@mui/icons-material";
 import { NotificationInterface, UserContextInterface } from "@churchapps/helpers";
-import { DateHelper } from "../../helpers";
+import { DateHelper, Locale } from "../../helpers";
 
 const isSafeLink = (url: string) => /^(https?:\/\/|\/(?![/\\]))/i.test(url.replace(/\s/g, ""));
 
@@ -37,6 +38,8 @@ interface Props {
   context: UserContextInterface;
   onNavigate: (url: string) => void;
   onUpdate: () => void;
+  /** Hide the panel's own "Notifications" heading, e.g. when a surrounding dialog already shows it as its title. */
+  hideTitle?: boolean;
 }
 
 export const Notifications: React.FC<Props> = (props) => {
@@ -68,7 +71,7 @@ export const Notifications: React.FC<Props> = (props) => {
 
   const handleClearAll = async () => {
     if (notifications.length === 0) return;
-    if (!window.confirm("Clear all notifications?")) return;
+    if (!window.confirm(Locale.label("wrapper.clearAllNotificationsConfirm", "Clear all notifications?"))) return;
     setNotifications([]);
     try {
       await ApiHelper.delete("/notifications/my", "MessagingApi");
@@ -122,16 +125,18 @@ export const Notifications: React.FC<Props> = (props) => {
     }
   };
 
+  const deleteLabel = Locale.label("wrapper.deleteNotification", "Delete notification");
+
   const getNotificationList = () => {
     if (notifications.length === 0) {
       return (
         <Box id="notifications-empty" sx={{ textAlign: "center", py: 4 }}>
           <NotificationsIcon sx={{ fontSize: 48, color: "grey.400", mb: 2 }} />
           <Typography variant="h6" color="textSecondary">
-            No notifications
+            {Locale.label("wrapper.noNotifications", "No notifications")}
           </Typography>
           <Typography variant="body2" color="textSecondary">
-            You're all caught up!
+            {Locale.label("wrapper.allCaughtUp", "You're all caught up!")}
           </Typography>
         </Box>
       );
@@ -146,96 +151,101 @@ export const Notifications: React.FC<Props> = (props) => {
 
           return (
             <React.Fragment key={notification.id}>
+              {/* The row's main click target and its Delete / View Details buttons are siblings, never nested buttons. */}
               <ListItem
-                id={`notification-item-${notification.id}`}
-                component="button"
-                onClick={() => handleClick(notification)}
+                data-testid={`notification-row-${notification.id}`}
+                disablePadding
                 sx={{
-                  // A <button> otherwise shows the browser's black text, unreadable in dark mode.
+                  flexDirection: "column",
+                  alignItems: "stretch",
                   color: "text.primary",
-                  width: "100%",
-                  textAlign: "left",
-                  border: 0,
-                  font: "inherit",
-                  alignItems: "flex-start",
-                  py: 2,
-                  cursor: "pointer",
                   bgcolor: isUnread ? "action.hover" : "transparent",
                   "&:hover": { bgcolor: "action.hover" },
                   borderRadius: 1,
                   mb: 0.5
                 }}
               >
-                <ListItemAvatar>
-                  <Avatar
+                <Box sx={{ display: "flex", alignItems: "flex-start" }}>
+                  <ListItemButton
+                    id={`notification-item-${notification.id}`}
+                    onClick={() => handleClick(notification)}
                     sx={{
-                      bgcolor: isUnread ? "primary.main" : "grey.400",
-                      width: 48,
-                      height: 48
+                      color: "text.primary",
+                      alignItems: "flex-start",
+                      py: 2,
+                      pr: 1,
+                      borderRadius: 1,
+                      "&:hover": { bgcolor: "transparent" }
                     }}
                   >
-                    {getNotificationIcon(notification.contentType || "")}
-                  </Avatar>
-                </ListItemAvatar>
-                <ListItemText
-                  primary={
-                    <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
-                      <Typography
-                        variant="body1"
+                    <ListItemAvatar>
+                      <Avatar
                         sx={{
-                          fontWeight: isUnread ? 600 : 400,
-                          flex: 1,
-                          pr: 1
+                          bgcolor: isUnread ? "primary.main" : "grey.400",
+                          width: 48,
+                          height: 48
                         }}
                       >
-                        {notification.message}
-                      </Typography>
-                      <Stack direction="row" alignItems="center" spacing={1}>
-                        {isUnread && (
-                          <Chip
-                            size="small"
-                            label="New"
-                            color="primary"
-                            sx={{ height: 20, fontSize: "0.7rem" }}
-                          />
-                        )}
-                        <Typography variant="caption" color="textSecondary">
-                          {displayDuration}
-                        </Typography>
-                        <Tooltip title="Delete notification">
-                          <IconButton
-                            size="small"
-                            aria-label="Delete notification"
-                            data-testid={`notification-delete-${notification.id}`}
-                            onClick={(e) => handleDelete(notification, e)}
-                            sx={{ p: 0.5 }}
+                        {getNotificationIcon(notification.contentType || "")}
+                      </Avatar>
+                    </ListItemAvatar>
+                    <ListItemText
+                      primary={
+                        <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+                          <Typography
+                            variant="body1"
+                            sx={{
+                              fontWeight: isUnread ? 600 : 400,
+                              flex: 1,
+                              pr: 1
+                            }}
                           >
-                            <DeleteOutlineIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      </Stack>
-                    </Stack>
-                  }
-                  secondary={
-                    notification.link && isSafeLink(notification.link) && (
-                      <Box sx={{ mt: 1 }}>
-                        <IconButton
-                          size="small"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openLink(notification);
-                          }}
-                          sx={{ p: 0.5 }}
-                        >
-                          <OpenInNewIcon fontSize="small" />
-                          <Typography variant="caption" sx={{ ml: 0.5 }}>
-                            View Details
+                            {notification.message}
                           </Typography>
-                        </IconButton>
-                      </Box>
-                    )
-                  }
-                />
+                          <Stack direction="row" alignItems="center" spacing={1}>
+                            {isUnread && (
+                              <Chip
+                                size="small"
+                                label={Locale.label("wrapper.newBadge", "New")}
+                                color="primary"
+                                sx={{ height: 20, fontSize: "0.7rem" }}
+                              />
+                            )}
+                            <Typography variant="caption" color="textSecondary">
+                              {displayDuration}
+                            </Typography>
+                          </Stack>
+                        </Stack>
+                      }
+                    />
+                  </ListItemButton>
+                  <Box sx={{ pt: 2, pr: 1, flexShrink: 0 }}>
+                    <Tooltip title={deleteLabel}>
+                      <IconButton
+                        size="small"
+                        aria-label={deleteLabel}
+                        data-testid={`notification-delete-${notification.id}`}
+                        onClick={(e) => handleDelete(notification, e)}
+                        sx={{ p: 0.5 }}
+                      >
+                        <DeleteOutlineIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
+                </Box>
+                {notification.link && isSafeLink(notification.link) && (
+                  <Box sx={{ pl: 11, pb: 1.5, mt: -1 }}>
+                    <Button
+                      size="small"
+                      color="inherit"
+                      startIcon={<OpenInNewIcon fontSize="small" />}
+                      onClick={() => openLink(notification)}
+                      sx={{ textTransform: "none", color: "text.secondary", py: 0.25 }}
+                    >
+                      {Locale.label("wrapper.viewDetails", "View Details")}
+                    </Button>
+                  </Box>
+                )}
               </ListItem>
               {index < notifications.length - 1 && <Divider variant="inset" component="li" />}
             </React.Fragment>
@@ -248,24 +258,28 @@ export const Notifications: React.FC<Props> = (props) => {
 
   return (
     <Paper id="notifications-panel" elevation={0} sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
-      <Box id="notifications-header" sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
-        <Stack direction="row" justifyContent="space-between" alignItems="center">
-          <Typography variant="h6" component="h2">
-            Notifications
-          </Typography>
-          {notifications.length > 0 && (
-            <Button
-              id="notifications-clear-all"
-              data-testid="notifications-clear-all"
-              size="small"
-              startIcon={<ClearAllIcon />}
-              onClick={handleClearAll}
-            >
-              Clear All
-            </Button>
-          )}
-        </Stack>
-      </Box>
+      {(!props.hideTitle || notifications.length > 0) && (
+        <Box id="notifications-header" sx={{ p: 2, borderBottom: 1, borderColor: "divider" }}>
+          <Stack direction="row" justifyContent={props.hideTitle ? "flex-end" : "space-between"} alignItems="center">
+            {!props.hideTitle && (
+              <Typography variant="h6" component="h2">
+                {Locale.label("wrapper.notifications", "Notifications")}
+              </Typography>
+            )}
+            {notifications.length > 0 && (
+              <Button
+                id="notifications-clear-all"
+                data-testid="notifications-clear-all"
+                size="small"
+                startIcon={<ClearAllIcon />}
+                onClick={handleClearAll}
+              >
+                {Locale.label("wrapper.clearAll", "Clear All")}
+              </Button>
+            )}
+          </Stack>
+        </Box>
+      )}
 
       <Box id="notifications-content" sx={{ flex: 1, overflow: "auto" }}>
         {isLoading ? (

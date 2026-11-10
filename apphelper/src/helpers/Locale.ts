@@ -213,8 +213,8 @@ export class Locale {
         "monthlyOnNth": "Monthly on the {ordinal} {day}",
         "monthlyOptionAria": "Select monthly recurrence option",
         "never": "Never",
-        "occurrences": "Occurances",
-        "occurrencesAria": "Number of recurrence occurrances",
+        "occurrences": "Occurrences",
+        "occurrencesAria": "Number of recurrence occurrences",
         "on": "On",
         "ordinal": {
           "first": "first",
@@ -355,8 +355,14 @@ export class Locale {
       "discussions": "Support Forum"
     },
     "wrapper": {
+      "allCaughtUp": "You're all caught up!",
       "chatWith": "Chat with",
+      "clearAll": "Clear All",
+      "clearAllNotificationsConfirm": "Clear all notifications?",
       "deleteChurch": "Delete",
+      "deleteNotification": "Delete notification",
+      "newBadge": "New",
+      "noNotifications": "No notifications",
       "logout": "Logout",
       "messages": "Messages",
       "newPrivateMessage": "New Private Message",
@@ -368,7 +374,8 @@ export class Locale {
       "support": "Support",
       "sureRemoveChurch": "Are you sure you wish to delete this church? You no longer will be a member of {}.",
       "switchApp": "Switch App",
-      "switchChurch": "Switch Church"
+      "switchChurch": "Switch Church",
+      "viewDetails": "View Details"
     }
   };
 

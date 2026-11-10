@@ -8,6 +8,7 @@ import {
   Stack,
   List,
   ListItem,
+  ListItemButton,
   ListItemAvatar,
   ListItemText,
   Typography,
@@ -20,7 +21,7 @@ import {
 import { Add as AddIcon, ChatBubbleOutline as ChatIcon, DeleteOutline as DeleteOutlineIcon } from "@mui/icons-material";
 import { PersonAvatar } from "../PersonAvatar";
 import { PrivateMessageInterface, UserContextInterface } from "@churchapps/helpers";
-import { ArrayHelper, DateHelper } from "../../helpers";
+import { ArrayHelper, DateHelper, Locale } from "../../helpers";
 import { PrivateMessageDetails } from "./PrivateMessageDetails";
 import { NewPrivateMessage } from "./NewPrivateMessage";
 
@@ -28,6 +29,8 @@ interface Props {
   context: UserContextInterface;
   refreshKey: number;
   onUpdate: () => void;
+  /** Hide the panel's own "Messages" heading, e.g. when a surrounding dialog already shows it as its title. */
+  hideTitle?: boolean;
 }
 
 // Create a persistent store for PrivateMessages state that survives component re-renders
@@ -319,48 +322,61 @@ export const PrivateMessages: React.FC<Props> = React.memo((props) => {
           const isFromOtherPerson = pm.fromPersonId !== props.context.person.id;
 
           return (
-            <Box key={pm.id} sx={{ px: 2, py: 0.5 }}>
-              <ListItem
-                component="button"
+            // The row's main click target and its Delete button are siblings, never nested buttons.
+            <ListItem
+              key={pm.id}
+              disablePadding
+              sx={{
+                width: "auto",
+                mx: 2,
+                my: 0.5,
+                alignItems: "flex-start",
+                color: "text.primary",
+                bgcolor: isUnread
+                  ? "rgba(25, 118, 210, 0.04)"
+                  : "background.paper",
+                border: isUnread
+                  ? "1px solid rgba(25, 118, 210, 0.12)"
+                  : "1px solid transparent",
+                borderRadius: 3,
+                boxShadow: "0 1px 3px rgba(0, 0, 0, 0.02)",
+                transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+                transform: "translateY(0)",
+                "&:hover": {
+                  bgcolor: isUnread
+                    ? "rgba(25, 118, 210, 0.06)"
+                    : "rgba(0, 0, 0, 0.02)",
+                  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.08)",
+                  transform: "translateY(-1px)",
+                  borderColor: "rgba(0, 0, 0, 0.06)"
+                },
+                "&:active": {
+                  transform: "translateY(0)",
+                  boxShadow: "0 2px 6px rgba(0, 0, 0, 0.06)"
+                },
+                position: "relative",
+                overflow: "hidden",
+                "&::before": isUnread ? {
+                  content: '""',
+                  position: "absolute",
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: 4,
+                  bgcolor: "primary.main",
+                  borderRadius: "0 2px 2px 0"
+                } : {}
+              }}
+            >
+              <ListItemButton
+                data-testid={`conversation-item-${pm.id}`}
                 onClick={() => privateMessagesStateStore.setSelectedMessage(pm)}
                 sx={{
                   alignItems: "flex-start",
                   p: 3,
-                  cursor: "pointer",
-                  bgcolor: isUnread
-                    ? "rgba(25, 118, 210, 0.04)"
-                    : "background.paper",
-                  border: isUnread
-                    ? "1px solid rgba(25, 118, 210, 0.12)"
-                    : "1px solid transparent",
-                  borderRadius: 3,
-                  boxShadow: "0 1px 3px rgba(0, 0, 0, 0.02)",
-                  transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
-                  transform: "translateY(0)",
-                  "&:hover": {
-                    bgcolor: isUnread
-                      ? "rgba(25, 118, 210, 0.06)"
-                      : "rgba(0, 0, 0, 0.02)",
-                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.08)",
-                    transform: "translateY(-1px)",
-                    borderColor: "rgba(0, 0, 0, 0.06)"
-                  },
-                  "&:active": {
-                    transform: "translateY(0)",
-                    boxShadow: "0 2px 6px rgba(0, 0, 0, 0.06)"
-                  },
-                  position: "relative",
-                  overflow: "hidden",
-                  "&::before": isUnread ? {
-                    content: '""',
-                    position: "absolute",
-                    left: 0,
-                    top: 0,
-                    bottom: 0,
-                    width: 4,
-                    bgcolor: "primary.main",
-                    borderRadius: "0 2px 2px 0"
-                  } : {}
+                  pr: 1,
+                  color: "text.primary",
+                  "&:hover": { bgcolor: "transparent" }
                 }}
               >
                 <ListItemAvatar sx={{ mr: 2 }}>
@@ -464,21 +480,21 @@ export const PrivateMessages: React.FC<Props> = React.memo((props) => {
                     />
                   </Box>
                 )}
-                <Box sx={{ ml: 1, display: "flex", alignItems: "flex-start", pt: 0.25 }}>
-                  <Tooltip title="Delete conversation">
-                    <IconButton
-                      size="small"
-                      aria-label="Delete conversation"
-                      data-testid={`conversation-delete-${pm.id}`}
-                      onClick={(e) => handleDeleteConversation(pm, e)}
-                      sx={{ p: 0.5 }}
-                    >
-                      <DeleteOutlineIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
-                </Box>
-              </ListItem>
-            </Box>
+              </ListItemButton>
+              <Box sx={{ pr: 2, pt: 3.25, display: "flex", alignItems: "flex-start", flexShrink: 0 }}>
+                <Tooltip title="Delete conversation">
+                  <IconButton
+                    size="small"
+                    aria-label="Delete conversation"
+                    data-testid={`conversation-delete-${pm.id}`}
+                    onClick={(e) => handleDeleteConversation(pm, e)}
+                    sx={{ p: 0.5 }}
+                  >
+                    <DeleteOutlineIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+            </ListItem>
           );
         })}
       </List>
@@ -511,14 +527,14 @@ export const PrivateMessages: React.FC<Props> = React.memo((props) => {
       }}>
         <Stack direction="row" justifyContent="space-between" alignItems="center">
           <Box>
-            <Typography variant="h5" component="h1" sx={{
+            {!props.hideTitle && <Typography variant="h5" component="h1" sx={{
               fontWeight: 700,
               color: "text.primary",
               letterSpacing: "-0.02em",
               mb: 0.5
             }}>
-              Messages
-            </Typography>
+              {Locale.label("wrapper.messages", "Messages")}
+            </Typography>}
             <Typography variant="body2" sx={{
               color: "text.secondary",
               fontWeight: 500
@@ -530,6 +546,7 @@ export const PrivateMessages: React.FC<Props> = React.memo((props) => {
             </Typography>
           </Box>
           <IconButton
+            aria-label={Locale.label("wrapper.newPrivateMessage", "New Private Message")}
             onClick={() => privateMessagesStateStore.setInAddMode(true)}
             sx={{
               bgcolor: "primary.main",

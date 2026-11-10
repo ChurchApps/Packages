@@ -66,6 +66,13 @@ describe("Login footer clearance", () => {
     expect(inline.replace(/\s/g, "")).toContain("z-index:1");
   });
 
+  it("wraps its items and keeps side padding so they don't overlap on phone widths", () => {
+    mountLogin(true);
+    const inline = (document.getElementById("login-footer")!.getAttribute("style") || "").replace(/\s/g, "");
+    expect(inline).toContain("flex-wrap:wrap");
+    expect(inline).toContain("padding:12px72px");
+  });
+
   it("publishes the footer height as a CSS variable while mounted", () => {
     mountLogin(true);
     const footer = document.getElementById("login-footer") as HTMLElement;

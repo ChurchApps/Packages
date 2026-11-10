@@ -52,6 +52,9 @@ export interface FormSubmissionInterface {
   contentId?: string;
   churchId?: string;
   submittedBy?: string;
+  submissionDate?: Date;
+  revisionDate?: Date;
+  revisedBy?: string;
   form?: FormInterface;
   answers?: AnswerInterface[];
   questions?: QuestionInterface[];
@@ -185,7 +188,7 @@ export interface PersonInterface {
   grade?: string;
   graduationDate?: string;
   employer?: string;
-  formSubmissions?: [FormSubmissionInterface];
+  formSubmissions?: FormSubmissionInterface[];
   child?: boolean;
   inactiveReason?: string;
   inactiveDate?: Date;
@@ -208,7 +211,7 @@ export interface QuestionInterface {
   placeholder?: string;
   description?: string;
   required?: boolean;
-  choices?: [{ value?: string; text?: string }];
+  choices?: { value?: string; text?: string }[];
 }
 export interface ServiceInterface {
   id?: string;

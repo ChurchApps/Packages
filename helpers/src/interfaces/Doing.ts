@@ -201,7 +201,7 @@ export interface PlanItemContentInterface {
 export interface PlanItemInterface {
   id?: string;
   planId?: string;
-  parentId?: string;
+  parentId?: string | null;
   sort?: number;
   itemType?: string;
   relatedId?: string;

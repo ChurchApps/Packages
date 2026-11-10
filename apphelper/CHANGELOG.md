@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 1.11.3
+
+### Patch Changes
+
+- 4a15668: Fix the login footer overlapping on phones, translate leftover donation and sermon labels, show "No saved payment methods." when a member has none, and stop the guest donation form reporting a missing reCAPTCHA key when the captcha is bypassed.
+
 ## 1.11.2
 
 ### Patch Changes

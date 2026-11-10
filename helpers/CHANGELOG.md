@@ -1,5 +1,11 @@
 # @churchapps/helpers
 
+## 2.15.1
+
+### Patch Changes
+
+- 3d1ca8e: formatCurrencyWithLocale puts a leading currency sign right against the amount ("$2.00", not "$ 2.00")
+
 ## 2.15.0
 
 ### Minor Changes

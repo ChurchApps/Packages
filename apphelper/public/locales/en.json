@@ -218,8 +218,8 @@
       "monthlyOnNth": "Monthly on the {ordinal} {day}",
       "monthlyOptionAria": "Select monthly recurrence option",
       "never": "Never",
-      "occurrences": "Occurances",
-      "occurrencesAria": "Number of recurrence occurrances",
+      "occurrences": "Occurrences",
+      "occurrencesAria": "Number of recurrence occurrences",
       "on": "On",
       "ordinal": {
         "first": "first",
@@ -411,15 +411,21 @@
     "required": "This field is required"
   },
   "wrapper": {
+    "allCaughtUp": "You're all caught up!",
     "chatWith": "Chat with",
+    "clearAll": "Clear All",
+    "clearAllNotificationsConfirm": "Clear all notifications?",
     "currentChurch": "Current church",
     "deleteChurch": "Delete",
+    "deleteNotification": "Delete notification",
     "editAccount": "Edit Account",
     "editChurchProfile": "Edit Church Profile",
     "editProfile": "Edit Profile",
     "logout": "Logout",
     "messages": "Messages",
+    "newBadge": "New",
     "newPrivateMessage": "New Private Message",
+    "noNotifications": "No notifications",
     "notifications": "Notifications",
     "privateConversation": "Private Conversation",
     "privateMessage": "Private Message",
@@ -428,6 +434,7 @@
     "support": "Support",
     "sureRemoveChurch": "Are you sure you wish to delete this church? You no longer will be a member of {}.",
     "switchApp": "Switch App",
-    "switchChurch": "Switch Church"
+    "switchChurch": "Switch Church",
+    "viewDetails": "View Details"
   }
 }

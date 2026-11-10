@@ -240,6 +240,7 @@ const UserMenuContent: React.FC<Props> = React.memo((props) => {
       <>
         <Dialog
           id="private-messages-modal"
+          aria-labelledby="private-messages-title"
           open={showPM}
           onClose={() => {
             modalStateStore.setShowPM(false);
@@ -266,12 +267,13 @@ const UserMenuContent: React.FC<Props> = React.memo((props) => {
               minHeight: 0
             }}
           >
-            <PrivateMessages context={props.context} refreshKey={currentRefreshKey} onUpdate={stableOnUpdate} />
+            <PrivateMessages hideTitle context={props.context} refreshKey={currentRefreshKey} onUpdate={stableOnUpdate} />
           </DialogContent>
         </Dialog>
 
         <Dialog
           id="notifications-modal"
+          aria-labelledby="notifications-title"
           open={showNotifications}
           onClose={() => {
             modalStateStore.setShowNotifications(false);
@@ -281,7 +283,7 @@ const UserMenuContent: React.FC<Props> = React.memo((props) => {
         >
           <DialogTitle id="notifications-title">{getLabel("wrapper.notifications", "Notifications")}</DialogTitle>
           <DialogContent>
-            <Notifications context={props.context} appName={props.appName} onUpdate={props.loadCounts} onNavigate={(url) => { modalStateStore.setShowNotifications(false); props.onNavigate(url); }} />
+            <Notifications hideTitle context={props.context} appName={props.appName} onUpdate={props.loadCounts} onNavigate={(url) => { modalStateStore.setShowNotifications(false); props.onNavigate(url); }} />
           </DialogContent>
         </Dialog>
       </>

@@ -150,8 +150,7 @@
       "confirmDelete": "Sigur doriți să ștergeți această metodă de plată?",
       "deleted": "Metodă de plată ștearsă.",
       "noSavedMethods": "Nu există metode de plată salvate.",
-      "verify": "Verifică contul",
-      "noMethod": "No Method"
+      "verify": "Verifică contul"
     },
     "paypal": {
       "approved": "Plata PayPal a fost aprobată. Alegeți Donează pentru a finaliza donația.",

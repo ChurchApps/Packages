@@ -48,6 +48,10 @@ describe("Locale.supportedLanguages", () => {
     expect(supported).toContain(map("pl-PL"));
   });
 
+  it("includes Romanian so ro browsers get the ro locale files", () => {
+    expect(supported).toContain(map("ro-RO"));
+  });
+
   // zh-TW is the one supported language with no file of its own; it falls back to zh.
   it("ships a locale file for every supported language", () => {
     const files = readdirSync(localeDir);

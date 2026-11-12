@@ -1,5 +1,13 @@
 # @churchapps/apphelper
 
+## 1.11.4
+
+### Patch Changes
+
+- 52385b6: Form payment questions now work for churches whose gateway is Paystack, PayPal or Kingdom Funding, instead of saying "Online payment is not available for this church". Only Stripe was supported before.
+- a2c280f: Notes formatting buttons now sit in a row under the text box while it has focus, instead of a popup above the selection that a phone's Copy / Select All menu covers.
+- 4a4a569: Romanian (`ro`) is a supported language and `ro.json` is filled in.
+
 ## 1.11.3
 
 ### Patch Changes

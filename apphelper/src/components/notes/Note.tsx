@@ -42,7 +42,8 @@ export const Note: React.FC<Props> = (props) => {
     return (
       <>
         {textWithoutUrls && (
-          <Box sx={{ mb: 0.5, fontSize: "0.875rem", overflowWrap: "anywhere", "& p": { m: 0 }, "& p + p": { mt: 1 }, "& ul, & ol": { my: 0.5, pl: 2.5 } }} data-testid="note-content">
+          // "&&" outranks DisplayBox's "& li { list-style-type: none }" so bullets and numbers show inside a notes panel.
+          <Box sx={{ mb: 0.5, fontSize: "0.875rem", overflowWrap: "anywhere", "& p": { m: 0 }, "& p + p": { mt: 1 }, "&& ul, && ol": { my: 0.5, pl: 2.5 }, "&& ul > li": { listStyleType: "disc", mb: 0 }, "&& ol > li": { listStyleType: "decimal", mb: 0 } }} data-testid="note-content">
             <MarkdownPreviewLight value={textWithoutUrls} breaks />
           </Box>
         )}

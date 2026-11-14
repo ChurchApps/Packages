@@ -57,3 +57,24 @@ export function applyFormat(value: string, start: number, end: number, kind: For
   if (kind === "italic") return wrap(text, s, e, "_");
   return prefixLines(text, s, e, kind);
 }
+
+const LIST_ITEM = /^(?:([-*]) |(\d+)\. )/;
+
+// Enter inside a list line: start the next item ("- " or the next number), or end the list when the item is empty.
+// Returns null when the caret is not past a list marker, so Enter inserts a plain newline.
+export function continueList(value: string, caret: number): FormatResult | null {
+  const text = value || "";
+  const lineStart = text.lastIndexOf("\n", caret - 1) + 1;
+  const nextBreak = text.indexOf("\n", caret);
+  const lineEnd = nextBreak === -1 ? text.length : nextBreak;
+  const match = LIST_ITEM.exec(text.slice(lineStart, lineEnd));
+  if (!match || caret < lineStart + match[0].length) return null;
+  if (text.slice(lineStart + match[0].length, lineEnd).trim() === "") {
+    const newValue = text.slice(0, lineStart) + text.slice(lineEnd);
+    return { value: newValue, start: lineStart, end: lineStart };
+  }
+  const marker = match[1] ? `${match[1]} ` : `${parseInt(match[2], 10) + 1}. `;
+  const insert = "\n" + marker;
+  const pos = caret + insert.length;
+  return { value: text.slice(0, caret) + insert + text.slice(caret), start: pos, end: pos };
+}

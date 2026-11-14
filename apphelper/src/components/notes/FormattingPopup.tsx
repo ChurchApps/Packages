@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Icon, IconButton, Paper } from "@mui/material";
 import { Locale } from "../../helpers";
-import { applyFormat, FormatKind } from "./formatSelection";
+import { applyFormat, continueList, FormatKind } from "./formatSelection";
 
 type TextareaRef = React.RefObject<HTMLTextAreaElement | HTMLInputElement | null>;
 
@@ -72,17 +72,27 @@ export function FormattingPopup({ textareaRef, value, onChange }: Props) {
   );
 }
 
-// Ctrl/Cmd+B and Ctrl/Cmd+I for a plain text box, plus the format row.
+// Ctrl/Cmd+B and Ctrl/Cmd+I for a plain text box, Enter continuing a list, plus the format row.
 export function useFormattingShortcuts(textareaRef: TextareaRef, value: string, onChange: (value: string) => void) {
   const format = useApplyFormat(textareaRef, value, onChange);
 
   const onKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !(e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) && !e.nativeEvent.isComposing) {
+      const el = textareaRef.current;
+      if (!el || el.selectionStart !== el.selectionEnd) return;
+      const result = continueList(value || "", el.selectionStart ?? 0);
+      if (!result) return;
+      e.preventDefault();
+      onChange(result.value);
+      requestAnimationFrame(() => el.setSelectionRange(result.start, result.end));
+      return;
+    }
     if (!(e.ctrlKey || e.metaKey) || e.altKey || e.shiftKey) return;
     const key = e.key.toLowerCase();
     if (key !== "b" && key !== "i") return;
     e.preventDefault();
     format(key === "b" ? "bold" : "italic");
-  }, [format]);
+  }, [format, textareaRef, value, onChange]);
 
   const popup = <FormattingPopup textareaRef={textareaRef} value={value} onChange={onChange} />;
   return { onKeyDown, popup };

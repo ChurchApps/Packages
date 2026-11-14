@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyFormat } from "../formatSelection";
+import { applyFormat, continueList } from "../formatSelection";
 
 // ChurchAppsSupport#1474: Bold / Italic / Bullets / Numbered for plain note and chat boxes.
 describe("applyFormat", () => {
@@ -42,3 +42,30 @@ describe("applyFormat", () => {
     expect(applyFormat("1. a\n2. b", 0, 9, "bullets").value).toBe("- a\n- b");
   });
 });
+
+// ChurchAppsSupport#1575: Enter at the end of a list line starts the next item.
+describe("continueList", () => {
+  it("adds the next bullet after a bullet line", () => {
+    expect(continueList("- milk", 6)).toEqual({ value: "- milk\n- ", start: 9, end: 9 });
+    expect(continueList("* milk", 6)).toEqual({ value: "* milk\n* ", start: 9, end: 9 });
+  });
+
+  it("increments the number after a numbered line", () => {
+    expect(continueList("Shopping\n1. milk\n2. eggs", 24)).toEqual({ value: "Shopping\n1. milk\n2. eggs\n3. ", start: 28, end: 28 });
+  });
+
+  it("splits the line when the caret is mid-item", () => {
+    expect(continueList("- milkeggs", 6)).toEqual({ value: "- milk\n- eggs", start: 9, end: 9 });
+  });
+
+  it("ends the list on Enter in an empty item", () => {
+    expect(continueList("- milk\n- ", 9)).toEqual({ value: "- milk\n", start: 7, end: 7 });
+    expect(continueList("1. milk\n2. ", 11)).toEqual({ value: "1. milk\n", start: 8, end: 8 });
+  });
+
+  it("leaves plain lines and the marker itself alone", () => {
+    expect(continueList("Hello", 5)).toBeNull();
+    expect(continueList("- milk", 1)).toBeNull();
+  });
+});
+

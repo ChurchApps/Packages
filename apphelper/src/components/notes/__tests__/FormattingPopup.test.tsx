@@ -73,4 +73,32 @@ describe("useFormattingShortcuts", () => {
     act(() => root.unmount());
     container.remove();
   });
+
+  // ChurchAppsSupport#1575
+  it("Enter on a list line starts the next item and Shift+Enter does not", async () => {
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+    const root = createRoot(container);
+    await act(async () => { root.render(<Box />); });
+    const textarea = container.querySelector("textarea") as HTMLTextAreaElement;
+
+    await act(async () => {
+      textarea.focus();
+      textarea.setSelectionRange(0, 0);
+    });
+    await act(async () => { (container.querySelector("[aria-label='Bulleted list']") as HTMLButtonElement).click(); });
+    await act(async () => { await new Promise((r) => requestAnimationFrame(r)); });
+    textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+    let enter = new KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true });
+    await act(async () => { textarea.dispatchEvent(enter); });
+    expect(enter.defaultPrevented).toBe(true);
+    expect(textarea.value).toBe("- Hello world\n- ");
+
+    enter = new KeyboardEvent("keydown", { key: "Enter", shiftKey: true, bubbles: true, cancelable: true });
+    await act(async () => { textarea.dispatchEvent(enter); });
+    expect(enter.defaultPrevented).toBe(false);
+
+    act(() => root.unmount());
+    container.remove();
+  });
 });

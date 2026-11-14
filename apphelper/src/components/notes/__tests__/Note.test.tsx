@@ -3,6 +3,7 @@ import React, { act } from "react";
 import { createRoot } from "react-dom/client";
 import { DateHelper } from "@churchapps/helpers";
 import { Note } from "../Note";
+import { DisplayBox } from "../../DisplayBox";
 
 (globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -83,3 +84,27 @@ describe("Note history link", () => {
     done();
   });
 });
+
+// ChurchAppsSupport#1575: notes sit in a DisplayBox, whose content styles hide every li's marker.
+describe("Note lists inside a DisplayBox", () => {
+  it("shows bullets and numbers", async () => {
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+    const root = createRoot(container);
+    const message: any = { id: "MSG3", content: "- milk\n- eggs\n\n1. first\n2. second", timeSent: new Date(), personId: "PER2", person: { name: { display: "Donald Clark" } } };
+
+    await act(async () => {
+      root.render(<DisplayBox headerText="Notes"><Note message={message} showEditNote={() => {}} context={{ person: { id: "PER1" } } as any} /></DisplayBox>);
+    });
+    const content = container.querySelector("[data-testid='note-content']") as HTMLElement;
+    const bullet = content.querySelector("ul > li") as HTMLElement;
+    const numbered = content.querySelector("ol > li") as HTMLElement;
+    expect(getComputedStyle(bullet).listStyleType).toBe("disc");
+    expect(getComputedStyle(numbered).listStyleType).toBe("decimal");
+    expect(getComputedStyle(content.querySelector("ul") as HTMLElement).paddingLeft).not.toBe("0px");
+
+    act(() => root.unmount());
+    container.remove();
+  });
+});
+

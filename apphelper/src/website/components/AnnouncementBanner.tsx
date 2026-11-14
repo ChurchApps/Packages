@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 export interface AnnouncementConfig {
   text: string;
@@ -41,12 +41,24 @@ const withinWindow = (start?: string, end?: string) => {
   return true;
 };
 
+// A dismissal hides the bar for a day; a changed announcement has a new key and shows at once.
+const DISMISS_MS = 24 * 60 * 60 * 1000;
+
+const isDismissed = (key: string) => {
+  try {
+    const until = Number(window.localStorage.getItem(key));
+    if (until > Date.now()) return true;
+    if (until) window.localStorage.removeItem(key);
+  } catch { /* localStorage may be unavailable */ }
+  return false;
+};
+
 export const AnnouncementBanner: React.FC<AnnouncementBannerProps> = ({ config, onDismiss }) => {
   const storageKey = dismissKey(config?.text || "");
-  const [dismissed, setDismissed] = useState(() => {
-    if (typeof window === "undefined") return false;
-    try { return window.sessionStorage.getItem(storageKey) === "1"; } catch { return false; }
-  });
+  const [dismissed, setDismissed] = useState(false);
+
+  // Read storage after mount so the client's first render matches the server's.
+  useEffect(() => { setDismissed(isDismissed(storageKey)); }, [storageKey]);
 
   if (!config?.text) return null;
   if (!withinWindow(config.startDate, config.endDate)) return null;
@@ -54,7 +66,7 @@ export const AnnouncementBanner: React.FC<AnnouncementBannerProps> = ({ config, 
 
   const textColor = config.textColor || "#ffffff";
   const dismiss = () => {
-    try { window.sessionStorage.setItem(storageKey, "1"); } catch { /* sessionStorage may be unavailable */ }
+    try { window.localStorage.setItem(storageKey, String(Date.now() + DISMISS_MS)); } catch { /* localStorage may be unavailable */ }
     setDismissed(true);
     onDismiss?.();
   };

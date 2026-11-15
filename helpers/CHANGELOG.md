@@ -1,5 +1,11 @@
 # @churchapps/helpers
 
+## 2.16.0
+
+### Minor Changes
+
+- d59e15b: Remove the unreleased HymnInterface and HymnVerseInterface; the Hymns feature was dropped.
+
 ## 2.15.2
 
 ### Patch Changes

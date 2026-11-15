@@ -1,5 +1,12 @@
 # @churchapps/apphelper
 
+## 1.11.5
+
+### Patch Changes
+
+- 09416c0: Announcement bar: wrap long text on phones, sit below drawers, and hide for one day after dismissal (localStorage, read after mount so hydration matches) instead of for the whole session.
+- f1aa499: Notes: bullets and numbers show inside a notes panel (DisplayBox no longer hides them), and Enter on a list line starts the next item; Enter on an empty item ends the list.
+
 ## 1.11.4
 
 ### Patch Changes

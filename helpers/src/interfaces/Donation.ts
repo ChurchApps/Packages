@@ -22,6 +22,8 @@ export interface DonationInterface {
   method?: string;
   methodDetails?: string;
   notes?: string;
+  // Donor-facing memo, printed on giving statements and receipts. notes stays internal.
+  memo?: string;
   enteredBy?: string;
   status?: DonationStatus;
   person?: PersonInterface;

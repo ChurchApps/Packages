@@ -42,7 +42,16 @@ const isLocalPath = (url: string) => /^\/(?![/\\])/.test(url.replace(/[\t\n\r]/g
 
 const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssProps, ...props }) => {
   const [welcomeBackName, setWelcomeBackName] = React.useState("");
-  const [pendingAutoLogin, setPendingAutoLogin] = React.useState(false);
+  // Decide up front, as init does, whether a saved jwt will sign the user in. Drawing the
+  // email/password form for even one frame on a refresh leaves Safari's password popover behind.
+  const [pendingAutoLogin, setPendingAutoLogin] = React.useState(() => {
+    if (props.auth) return false;
+    if (typeof window === "undefined") return !!props.jwt;
+    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+    if (hashParams.get("mfaToken")) return false;
+    if (new URLSearchParams(window.location.search).get("action")) return false;
+    return !!(hashParams.get("jwt") || props.jwt);
+  });
   const [errors, setErrors] = React.useState<string[]>([]);
   const [cookies, setCookie] = useCookies(["jwt", "name", "email", "lastChurchId"]);
   const [showForgot, setShowForgot] = React.useState(false);

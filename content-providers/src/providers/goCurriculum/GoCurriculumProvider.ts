@@ -128,13 +128,13 @@ export class GoCurriculumProvider extends BaseProvider {
   private readonly verifiedTokens = new Map<string, GoMembership[]>();
 
   readonly id = "gocurriculum";
-  readonly name = "Go Curriculum";
+  readonly name = "GO! Curriculum";
 
   readonly logos: ProviderLogos = { light: GO_LOGO, dark: GO_LOGO };
 
   readonly config: ContentProviderConfig = {
     id: "gocurriculum",
-    name: "Go Curriculum",
+    name: "GO! Curriculum",
     apiBase: "https://gocurriculum.com",
     oauthBase: "https://gocurriculum.com/oauth",
     clientId: "Rdrvz9jz9nTNf8rCsbpuAgVLdoWHZmcjdmmrP0Bw",

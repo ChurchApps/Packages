@@ -51,6 +51,14 @@ test("getAvailableProviders lists implemented + coming-soon and filters by id", 
   assert.equal(filtered.length, 2);
 });
 
+test("GO! Curriculum is listed under the partner's brand name", () => {
+  const provider = getProvider("gocurriculum");
+  assert.ok(provider);
+  assert.equal(provider.name, "GO! Curriculum");
+  assert.equal(getProviderConfig("gocurriculum")?.name, "GO! Curriculum");
+  assert.equal(getAvailableProviders(["gocurriculum"])[0]?.name, "GO! Curriculum");
+});
+
 test("every provider satisfies the IProvider shape", () => {
   for (const provider of getAllProviders()) {
     assert.equal(typeof provider.id, "string");

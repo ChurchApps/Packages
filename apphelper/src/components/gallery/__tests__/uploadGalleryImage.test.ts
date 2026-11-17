@@ -22,6 +22,7 @@ describe("uploadGalleryImage", () => {
     await uploadGalleryImage("1", dataUrl);
     expect(postPresignedFile).toHaveBeenCalledTimes(1);
     expect(post).toHaveBeenCalledTimes(1);
+    expect(post).toHaveBeenCalledWith("/gallery/requestUpload", expect.objectContaining({ fileName: expect.stringMatching(/\.png$/) }), "ContentApi");
   });
 
   // Self-hosted installs store files on disk and get no presigned slot back.
@@ -29,7 +30,8 @@ describe("uploadGalleryImage", () => {
     post.mockResolvedValueOnce({}).mockResolvedValueOnce({ key: "c1/gallery/1/1.jpg" });
     await uploadGalleryImage("1", dataUrl);
     expect(postPresignedFile).not.toHaveBeenCalled();
-    expect(post).toHaveBeenLastCalledWith("/gallery/upload", expect.objectContaining({ folder: "1", contentType: "image/png", fileContents: dataUrl }), "ContentApi");
+    expect(post).toHaveBeenNthCalledWith(1, "/gallery/requestUpload", expect.objectContaining({ fileName: expect.stringMatching(/\.png$/) }), "ContentApi");
+    expect(post).toHaveBeenLastCalledWith("/gallery/upload", expect.objectContaining({ folder: "1", contentType: "image/png", fileContents: dataUrl, fileName: expect.stringMatching(/\.png$/) }), "ContentApi");
   });
 
   it("fails when the API does not store the image either", async () => {

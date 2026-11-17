@@ -105,6 +105,8 @@ export class AwsHelper {
   }
 
   static async S3Copy(oldKey: string, newKey: string): Promise<void> {
+    if (oldKey.startsWith("/")) oldKey = oldKey.substring(1);
+    if (newKey.startsWith("/")) newKey = newKey.substring(1);
     const acl = s3ObjectAcl(inferContentTypeFromKey(newKey));
     const command = new CopyObjectCommand({
       Bucket: EnvironmentBase.s3Bucket,

@@ -1,6 +1,5 @@
 "use client";
 
-import { FileHelper } from "@churchapps/helpers";
 import { ApiHelper } from "../../helpers";
 import { Locale } from "../../helpers";
 import { CommonEnvironmentHelper } from "@churchapps/helpers";
@@ -8,6 +7,7 @@ import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, FormCon
 import React, { lazy, Suspense, useState } from "react";
 import { TabPanel } from "../TabPanel";
 import { StockPhotos } from "./StockPhotos";
+import { uploadGalleryImage } from "./uploadGalleryImage";
 
 const ImageEditor = lazy(() => import("../ImageEditor").then(m => ({ default: m.ImageEditor })));
 
@@ -37,20 +37,7 @@ export const GalleryModal: React.FC<Props> = (props: Props) => {
     }
 
     try {
-      const fileName = Math.floor(Date.now() / 1000).toString() + ".jpg";
-      const blob = FileHelper.dataURLtoBlob(dataUrl);
-      const file = new File([blob], fileName, { type: blob.type || "image/jpeg" });
-
-      const params = { folder: aspectRatio.toString(), fileName };
-
-      const presigned = await ApiHelper.post("/gallery/requestUpload", params, "ContentApi");
-      const doUpload = presigned.key !== undefined;
-
-      if (doUpload) {
-        await FileHelper.postPresignedFile(presigned, file, () => { });
-      } else {
-        console.warn("Upload failed - no presigned key received");
-      }
+      await uploadGalleryImage(aspectRatio.toString(), dataUrl);
 
       setTabIndex(0);
       loadData();

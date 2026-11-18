@@ -1,5 +1,15 @@
 # @churchapps/content-providers
 
+## 0.17.0
+
+### Minor Changes
+
+- e07ef27: Add the Awana (Brite) provider: device-flow sign-in, courses → units → lessons, media as the playlist and documents as downloads. Defaults to Awana's dev environment; call `setEnvironment("staging" | "prod")` once those endpoints are live.
+
+### Patch Changes
+
+- c30c061: Rename the GO! Curriculum provider to match the partner's branding.
+
 ## 0.16.1
 
 ### Patch Changes

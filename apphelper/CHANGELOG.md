@@ -1,5 +1,13 @@
 # @churchapps/apphelper
 
+## 1.11.6
+
+### Patch Changes
+
+- d925510: GalleryModal: when the API returns no presigned S3 slot (self-hosted installs on disk storage), post the image to `/gallery/upload` instead of silently dropping it. Name the upload from the image type (`.png` from the image editor) so disk storage serves it with the right Content-Type.
+- 2873810: LoginPage: don't draw the email and password fields while a saved jwt signs the user in, so a refresh no longer leaves Safari's saved-password popover on the page.
+- 99ec618: Notifications: "View Details" and task/assignment links open on the configured B1 and B1 Admin roots (`CommonEnvironmentHelper.B1Root` / `B1AdminRoot`) instead of hardcoded `<subDomain>.b1.church` and `admin.b1.church`, so self-hosted installs link to their own domain.
+
 ## 1.11.5
 
 ### Patch Changes

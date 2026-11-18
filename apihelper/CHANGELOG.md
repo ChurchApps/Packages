@@ -1,5 +1,11 @@
 # @churchapps/apihelper
 
+## 1.1.5
+
+### Patch Changes
+
+- 39885ea: S3Copy strips a leading slash from its keys like the other S3 helpers, so moving a pending profile photo no longer fails with NoSuchKey.
+
 ## 1.1.4
 
 ### Patch Changes

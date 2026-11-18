@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { ApiHelper } from "@churchapps/helpers";
+import { ApiHelper, CommonEnvironmentHelper } from "@churchapps/helpers";
 import {
   Box,
   Stack,
@@ -85,8 +85,9 @@ export const Notifications: React.FC<Props> = (props) => {
   const getAppUrl = (appName:string) => {
     switch (appName) {
       case props.appName.toLowerCase(): return "";
-      case "b1admin": return "https://admin.b1.church";
-      case "b1": return "https://" + props.context.userChurch.church.subDomain + ".b1.church";
+      // Use the configured roots so self-hosted installs link to their own domain.
+      case "b1admin": return (CommonEnvironmentHelper.B1AdminRoot || "https://admin.b1.church").replace(/\/$/, "");
+      case "b1": return (CommonEnvironmentHelper.B1Root || "https://{key}.b1.church").replace("{key}", props.context.userChurch.church.subDomain || "").replace(/\/$/, "");
       default: return "";
     }
   };

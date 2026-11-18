@@ -18,6 +18,7 @@ export { toAuthData, authIsExpired } from "./helpers/TokenHelper";
 export { BaseProvider } from "./providers/BaseProvider";
 
 export { APlayProvider } from "./providers/aPlay";
+export { AwanaProvider, type AwanaEnvironment, type AwanaLibrary, type AwanaFileSet } from "./providers/awana";
 export { SignPresenterProvider } from "./providers/signPresenter";
 export { LessonsChurchProvider } from "./providers/lessonsChurch";
 export { B1ChurchProvider } from "./providers/b1Church";

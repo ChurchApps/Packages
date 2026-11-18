@@ -1,6 +1,7 @@
 import { IProvider, ProviderInfo, ProviderLogos } from "../interfaces";
 import { registerProvider, getProvider, getAllProviders } from "./registry";
 import { APlayProvider } from "./aPlay";
+import { AwanaProvider } from "./awana";
 import { B1ChurchProvider } from "./b1Church";
 import { DropboxProvider } from "./dropbox";
 import { GoCurriculumProvider } from "./goCurriculum";
@@ -26,14 +27,6 @@ interface UnimplementedProvider {
 
 const unimplementedProviders: UnimplementedProvider[] = [
   {
-    id: "awana",
-    name: "Awana",
-    logos: {
-      light: "https://www.awana.org/wp-content/uploads/2025/04/awana-logo-black.svg",
-      dark: "https://www.awana.org/wp-content/uploads/2025/04/awana-logo-white.svg"
-    }
-  },
-  {
     id: "iteachchurch",
     name: "iTeachChurch",
     logos: {
@@ -54,6 +47,7 @@ const unimplementedProviders: UnimplementedProvider[] = [
 function initializeProviders() {
   const providers: IProvider[] = [
     new APlayProvider(),
+    new AwanaProvider(),
     new B1ChurchProvider(),
     new DropboxProvider(),
     new GoCurriculumProvider(),

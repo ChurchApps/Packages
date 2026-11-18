@@ -1,5 +1,11 @@
 # @churchapps/helpers
 
+## 2.16.1
+
+### Patch Changes
+
+- a0a763f: DonationInterface: add `memo`, the donor-facing text printed on giving statements and receipts, kept separate from the internal `notes`.
+
 ## 2.16.0
 
 ### Minor Changes

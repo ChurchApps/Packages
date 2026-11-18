@@ -71,14 +71,22 @@ jobs:
       - run: yarn build
 
       # Idempotent: publishes only versions not already on the registry, so a rerun after a partial failure is safe.
+      # One package failing (for example ENEEDAUTH when its npmjs.com trusted publisher is not set up) does not
+      # stop the others; the step fails at the end and names what did not publish.
       - name: Publish
         run: |
+          failed=""
           for dir in helpers apihelper apphelper content-providers integration-sdk texting; do
             name=$(node -p "require('./$dir/package.json').name")
             version=$(node -p "require('./$dir/package.json').version")
             if npm view "$name@$version" version >/dev/null 2>&1; then
               echo "$name@$version already published"
-            else
-              (cd "$dir" && npm publish --provenance --access public --ignore-scripts)
+            elif ! (cd "$dir" && npm publish --provenance --access public --ignore-scripts); then
+              echo "::error::$name@$version did not publish"
+              failed="$failed $name@$version"
             fi
           done
+          if [ -n "$failed" ]; then
+            echo "Failed to publish:$failed"
+            exit 1
+          fi

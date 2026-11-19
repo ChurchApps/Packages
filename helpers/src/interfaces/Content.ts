@@ -31,6 +31,7 @@ export interface SermonInterface {
   videoType?: string;
   videoData?: string;
   videoUrl?: string;
+  audioUrl?: string;
   title?: string;
   description?: string;
   publishDate?: Date;

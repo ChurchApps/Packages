@@ -75,10 +75,12 @@
       "cover": "Sagana akong magdaragdag ng {} upang mabayaran ang mga bayarin sa transaksyon upang mapanatili mo ang 100% ng aking donasyon.",
       "donate": "Mag-donate",
       "editRecurring": "I-edit ang Paulit-ulit na Donasyon",
+      "enterNewCard": "Maglagay ng bagong card",
       "fees": "Inilapat ang mga bayarin sa transaksyon ng {}.",
       "frequency": "Dalas",
       "fund": "Pondo",
       "funds": "Mga pondo",
+      "loginToManage": "Mag-log in para pamahalaan ang mga kasalukuyang donasyon",
       "make": "Magbigay ng Donasyon",
       "makeRecurring": "Gumawa ng Paulit-ulit na Donasyon",
       "method": "Pamamaraan",
@@ -88,6 +90,7 @@
       "preview": "Silipin ang Donasyon",
       "quarterly": "quarterly",
       "recurringUpdated": "Na-update ang umuulit na donasyon.",
+      "saveCard": "I-save ang card na ito para sa mga susunod na donasyon",
       "startDate": "Petsa ng Pagsisimula",
       "thankYou": "Salamat sa iyong donasyon!",
       "tooLow": "Ang halaga ng donasyon ay dapat na higit sa $0.50",
@@ -146,7 +149,7 @@
       "addCard": "Magdagdag ng Card",
       "confirmDelete": "Sigurado ka bang gusto mong tanggalin ang paraan ng pagbabayad na ito?",
       "deleted": "Ang paraan ng pagbabayad ay tinanggal.",
-      "noMethod": "No Method",
+      "noSavedMethods": "Walang naka-save na paraan ng pagbabayad.",
       "verify": "I-verify ang Account"
     },
     "paypal": {
@@ -267,6 +270,10 @@
     "forgot": "Nakalimutan ang password",
     "goLogin": "Go to Login",
     "login": "Mag log in",
+    "mfaCode": "Code",
+    "mfaInstructions": "Ilagay ang 6-digit na code mula sa iyong authenticator app, o isa sa iyong mga backup code.",
+    "mfaInvalid": "Hindi gumana ang code na iyon. Pakisubukang muli.",
+    "mfaTitle": "Two-Factor na Pag-sign In",
     "noAcc": "Wala ka pang account?",
     "noAccountFound": "Walang account na natagpuan sa email na iyon. Mangyaring magparehistro upang magpatuloy.",
     "or": "or",
@@ -320,6 +327,14 @@
   "notes": {
     "comment": "komento",
     "comments": "mga komento",
+    "confirmDelete": "Burahin ang talang ito? Hindi na ito maibabalik.",
+    "deletedNote": "Binurang tala",
+    "deletedNoteBy": "Tala ni {name}, {posted} · binura {deleted}",
+    "editedViewHistory": "(na-edit · tingnan ang kasaysayan)",
+    "formatBold": "Bold",
+    "formatBullets": "Listahang may bullet",
+    "formatItalic": "Italic",
+    "formatNumbered": "Listahang may numero",
     "notes": "Mga Tala",
     "notifyOff": "Notify Off",
     "notifyOn": "Notify On",
@@ -328,7 +343,8 @@
     "validate": {
       "content": "Mangyaring maglagay ng tala."
     },
-    "viewAll": "View all"
+    "viewAll": "View all",
+    "viewHistory": "Tingnan ang kasaysayan"
   },
   "person": {
     "email": "Email",
@@ -382,6 +398,10 @@
     },
     "zip": "Zip / Postal Code"
   },
+  "sermon": {
+    "back": "Bumalik",
+    "playlists": "Mga Playlist"
+  },
   "stockPhotos": {
     "photoBy": "Larawan ni:",
     "providedBy": "Mga stock na larawan na ibinigay ni"
@@ -402,15 +422,21 @@
     "required": "Kinakailangan ang field na ito"
   },
   "wrapper": {
+    "allCaughtUp": "Nakita mo na ang lahat!",
     "chatWith": "Chat with",
+    "clearAll": "I-clear Lahat",
+    "clearAllNotificationsConfirm": "I-clear ang lahat ng notification?",
     "currentChurch": "Kasalukuyang simbahan",
     "deleteChurch": "Delete",
+    "deleteNotification": "Burahin ang notification",
     "editAccount": "I-edit ang Account",
     "editChurchProfile": "I-edit ang Profile sa Simbahan",
     "editProfile": "I-edit ang Profile",
     "logout": "Logout",
     "messages": "Messages",
+    "newBadge": "Bago",
     "newPrivateMessage": "Bagong Pribadong Mensahe",
+    "noNotifications": "Walang notification",
     "notifications": "Notifications",
     "privateConversation": "Private Conversation",
     "privateMessage": "Pribadong Mensahe",
@@ -419,6 +445,7 @@
     "support": "Support",
     "sureRemoveChurch": "Are you sure you wish to delete this church? You no longer will be a member of {}.",
     "switchApp": "Switch App",
-    "switchChurch": "Switch Church"
+    "switchChurch": "Switch Church",
+    "viewDetails": "Tingnan ang Detalye"
   }
 }

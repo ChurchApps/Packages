@@ -75,10 +75,12 @@
       "cover": "İşlem ücretlerini karşılamak için {} ekleyerek bağışınızın %100'ünü tutmanızı sağlayacağım.",
       "donate": "Bağış Yap",
       "editRecurring": "Tekrarlayan Bağışı Düzenle",
+      "enterNewCard": "Yeni kart girin",
       "fees": "{} işlem ücretleri uygulanır.",
       "frequency": "Frekans",
       "fund": "Fon",
       "funds": "Fonlar",
+      "loginToManage": "Mevcut bağışları yönetmek için giriş yapın",
       "make": "Bağış Yap",
       "makeRecurring": "Tekrarlayan Bağış Yap",
       "method": "Yöntem",
@@ -88,6 +90,7 @@
       "preview": "Bağış Önizlemesi",
       "quarterly": "Üç Aylık",
       "recurringUpdated": "Tekrarlayan bağış güncellendi.",
+      "saveCard": "Bu kartı gelecekteki bağışlar için kaydet",
       "startDate": "Başlangıç Tarihi",
       "thankYou": "Bağışınız için teşekkür ederiz!",
       "tooLow": "Bağış tutarı 0,50 USD'den fazla olmalıdır",
@@ -146,7 +149,7 @@
       "addCard": "Kart Ekle",
       "confirmDelete": "Bu ödeme yöntemini silmek istediğinizden emin misiniz?",
       "deleted": "Ödeme yöntemi silindi.",
-      "noMethod": "No Method",
+      "noSavedMethods": "Kayıtlı ödeme yöntemi yok.",
       "verify": "Hesabı Doğrula"
     },
     "paypal": {
@@ -267,6 +270,10 @@
     "forgot": "Şifremi Unuttum",
     "goLogin": "Go to Login",
     "login": "Giriş Yap",
+    "mfaCode": "Kod",
+    "mfaInstructions": "Kimlik doğrulama uygulamanızdaki 6 haneli kodu veya yedek kodlarınızdan birini girin.",
+    "mfaInvalid": "Bu kod çalışmadı. Lütfen tekrar deneyin.",
+    "mfaTitle": "İki Adımlı Giriş",
     "noAcc": "Hesabınız yok mu?",
     "noAccountFound": "Bu e-posta ile hesap bulunamadı. Devam etmek için lütfen kayıt olun.",
     "or": "or",
@@ -320,6 +327,14 @@
   "notes": {
     "comment": "yorum",
     "comments": "yorumlar",
+    "confirmDelete": "Bu not silinsin mi? Bu işlem geri alınamaz.",
+    "deletedNote": "Silinmiş not",
+    "deletedNoteBy": "{name} notu, {posted} · silindi {deleted}",
+    "editedViewHistory": "(düzenlendi · geçmişi görüntüle)",
+    "formatBold": "Kalın",
+    "formatBullets": "Madde işaretli liste",
+    "formatItalic": "İtalik",
+    "formatNumbered": "Numaralı liste",
     "notes": "Notlar",
     "notifyOff": "Notify Off",
     "notifyOn": "Notify On",
@@ -328,7 +343,8 @@
     "validate": {
       "content": "Lütfen bir not girin."
     },
-    "viewAll": "View all"
+    "viewAll": "View all",
+    "viewHistory": "Geçmişi görüntüle"
   },
   "person": {
     "email": "Email",
@@ -382,6 +398,10 @@
     },
     "zip": "Posta Kodu / Posta Kodu"
   },
+  "sermon": {
+    "back": "Geri",
+    "playlists": "Çalma listeleri"
+  },
   "stockPhotos": {
     "photoBy": "Fotoğraf:",
     "providedBy": "Stok fotoğraflar tarafından sağlanmıştır"
@@ -402,15 +422,21 @@
     "required": "Bu alan zorunludur"
   },
   "wrapper": {
+    "allCaughtUp": "Hepsini gördünüz!",
     "chatWith": "Chat with",
+    "clearAll": "Tümünü Temizle",
+    "clearAllNotificationsConfirm": "Tüm bildirimler temizlensin mi?",
     "currentChurch": "Mevcut kilise",
     "deleteChurch": "Delete",
+    "deleteNotification": "Bildirimi sil",
     "editAccount": "Hesabı Düzenle",
     "editChurchProfile": "Kilise Profilini Düzenle",
     "editProfile": "Profili Düzenle",
     "logout": "Logout",
     "messages": "Messages",
+    "newBadge": "Yeni",
     "newPrivateMessage": "Yeni Özel Mesaj",
+    "noNotifications": "Bildirim yok",
     "notifications": "Notifications",
     "privateConversation": "Private Conversation",
     "privateMessage": "Özel Mesaj",
@@ -419,6 +445,7 @@
     "support": "Support",
     "sureRemoveChurch": "Are you sure you wish to delete this church? You no longer will be a member of {}.",
     "switchApp": "Switch App",
-    "switchChurch": "Switch Church"
+    "switchChurch": "Switch Church",
+    "viewDetails": "Ayrıntıları Görüntüle"
   }
 }

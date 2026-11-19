@@ -75,10 +75,12 @@
       "cover": "سأضيف {} بسخاء لتغطية رسوم المعاملات حتى تحتفظ بنسبة 100٪ من تبرعي.",
       "donate": "تبرع",
       "editRecurring": "تعديل التبرع المتكرر",
+      "enterNewCard": "أدخل بطاقة جديدة",
       "fees": "يتم تطبيق رسوم معاملات {}.",
       "frequency": "التكرار",
       "fund": "صندوق",
       "funds": "الأموال",
+      "loginToManage": "سجّل الدخول لإدارة التبرعات الحالية",
       "make": "تقديم تبرع",
       "makeRecurring": "تقديم تبرع متكرر",
       "method": "الطريقة",
@@ -88,6 +90,7 @@
       "preview": "معاينة التبرع",
       "quarterly": "ربع سنوي",
       "recurringUpdated": "تم تحديث التبرع المتكرر.",
+      "saveCard": "احفظ هذه البطاقة للتبرعات المستقبلية",
       "startDate": "تاريخ البداية",
       "thankYou": "شكراً لتبرعك!",
       "tooLow": "يجب أن يكون مبلغ التبرع أكثر من 0.50 دولار",
@@ -146,7 +149,7 @@
       "addCard": "إضافة بطاقة",
       "confirmDelete": "هل أنت متأكد من رغبتك في حذف طريقة الدفع هذه؟",
       "deleted": "تم حذف طريقة الدفع.",
-      "noMethod": "No Method",
+      "noSavedMethods": "لا توجد طرق دفع محفوظة.",
       "verify": "التحقق من الحساب"
     },
     "paypal": {
@@ -267,6 +270,10 @@
     "forgot": "هل نسيت كلمة المرور",
     "goLogin": "Go to Login",
     "login": "تسجيل الدخول",
+    "mfaCode": "الرمز",
+    "mfaInstructions": "أدخل الرمز المكوّن من 6 أرقام من تطبيق المصادقة، أو أحد رموزك الاحتياطية.",
+    "mfaInvalid": "لم يعمل هذا الرمز. يرجى المحاولة مرة أخرى.",
+    "mfaTitle": "تسجيل الدخول بخطوتين",
     "noAcc": "ليس لديك حساب؟",
     "noAccountFound": "لم يتم العثور على حساب بهذا البريد الإلكتروني. يرجى التسجيل للمتابعة.",
     "or": "or",
@@ -320,6 +327,14 @@
   "notes": {
     "comment": "تعليق",
     "comments": "تعليقات",
+    "confirmDelete": "هل تريد حذف هذه الملاحظة؟ لا يمكن التراجع عن ذلك.",
+    "deletedNote": "ملاحظة محذوفة",
+    "deletedNoteBy": "ملاحظة من {name}، {posted} · حُذفت {deleted}",
+    "editedViewHistory": "(معدّلة · عرض السجل)",
+    "formatBold": "غامق",
+    "formatBullets": "قائمة نقطية",
+    "formatItalic": "مائل",
+    "formatNumbered": "قائمة مرقمة",
     "notes": "ملاحظات",
     "notifyOff": "Notify Off",
     "notifyOn": "Notify On",
@@ -328,7 +343,8 @@
     "validate": {
       "content": "يرجى إدخال ملاحظة."
     },
-    "viewAll": "View all"
+    "viewAll": "View all",
+    "viewHistory": "عرض السجل"
   },
   "person": {
     "email": "البريد الإلكتروني",
@@ -382,6 +398,10 @@
     },
     "zip": "الرمز البريدي"
   },
+  "sermon": {
+    "back": "رجوع",
+    "playlists": "قوائم التشغيل"
+  },
   "stockPhotos": {
     "photoBy": "الصورة بواسطة:",
     "providedBy": "صور المخزون المقدمة من قبل"
@@ -402,15 +422,21 @@
     "required": "هذا الحقل مطلوب"
   },
   "wrapper": {
+    "allCaughtUp": "لقد اطلعت على كل شيء!",
     "chatWith": "Chat with",
+    "clearAll": "مسح الكل",
+    "clearAllNotificationsConfirm": "هل تريد مسح جميع الإشعارات؟",
     "currentChurch": "الكنيسة الحالية",
     "deleteChurch": "Delete",
+    "deleteNotification": "حذف الإشعار",
     "editAccount": "تعديل الحساب",
     "editChurchProfile": "تعديل ملف الكنيسة الشخصي",
     "editProfile": "تعديل الملف الشخصي",
     "logout": "Logout",
     "messages": "Messages",
+    "newBadge": "جديد",
     "newPrivateMessage": "رسالة خاصة جديدة",
+    "noNotifications": "لا توجد إشعارات",
     "notifications": "Notifications",
     "privateConversation": "Private Conversation",
     "privateMessage": "رسالة خاصة",
@@ -419,6 +445,7 @@
     "support": "Support",
     "sureRemoveChurch": "Are you sure you wish to delete this church? You no longer will be a member of {}.",
     "switchApp": "Switch App",
-    "switchChurch": "Switch Church"
+    "switchChurch": "Switch Church",
+    "viewDetails": "عرض التفاصيل"
   }
 }

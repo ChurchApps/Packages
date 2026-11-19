@@ -75,10 +75,12 @@
       "cover": "Saya akan dengan murah hati menambahkan {} untuk menutup biaya transaksi sehingga Anda dapat menyimpan 100% dari donasi saya.",
       "donate": "Donasi",
       "editRecurring": "Edit Donasi Berulang",
+      "enterNewCard": "Masukkan kartu baru",
       "fees": "Biaya transaksi {} diterapkan.",
       "frequency": "Frekuensi",
       "fund": "Dana",
       "funds": "Dana",
+      "loginToManage": "Masuk untuk mengelola donasi yang ada",
       "make": "Buat Donasi",
       "makeRecurring": "Buat Donasi Berulang",
       "method": "Metode",
@@ -88,6 +90,7 @@
       "preview": "Pratinjau Donasi",
       "quarterly": "Triwulanan",
       "recurringUpdated": "Donasi berulang diperbarui.",
+      "saveCard": "Simpan kartu ini untuk donasi berikutnya",
       "startDate": "Tanggal Mulai",
       "thankYou": "Terima kasih atas donasi Anda!",
       "tooLow": "Jumlah donasi harus lebih besar dari $0,50",
@@ -146,7 +149,7 @@
       "addCard": "Tambah Kartu",
       "confirmDelete": "Apakah Anda yakin ingin menghapus metode pembayaran ini?",
       "deleted": "Metode pembayaran dihapus.",
-      "noMethod": "No Method",
+      "noSavedMethods": "Tidak ada metode pembayaran tersimpan.",
       "verify": "Verifikasi Akun"
     },
     "paypal": {
@@ -267,6 +270,10 @@
     "forgot": "Lupa Kata Sandi",
     "goLogin": "Go to Login",
     "login": "Masuk",
+    "mfaCode": "Kode",
+    "mfaInstructions": "Masukkan kode 6 digit dari aplikasi autentikator Anda, atau salah satu kode cadangan Anda.",
+    "mfaInvalid": "Kode tersebut tidak berhasil. Silakan coba lagi.",
+    "mfaTitle": "Masuk Dua Langkah",
     "noAcc": "Tidak punya akun?",
     "noAccountFound": "Tidak ada akun yang ditemukan dengan email tersebut. Silakan daftar untuk melanjutkan.",
     "or": "or",
@@ -320,6 +327,14 @@
   "notes": {
     "comment": "komentar",
     "comments": "komentar",
+    "confirmDelete": "Hapus catatan ini? Tindakan ini tidak dapat dibatalkan.",
+    "deletedNote": "Catatan dihapus",
+    "deletedNoteBy": "Catatan oleh {name}, {posted} · dihapus {deleted}",
+    "editedViewHistory": "(diedit · lihat riwayat)",
+    "formatBold": "Tebal",
+    "formatBullets": "Daftar berpoin",
+    "formatItalic": "Miring",
+    "formatNumbered": "Daftar bernomor",
     "notes": "Catatan",
     "notifyOff": "Notify Off",
     "notifyOn": "Notify On",
@@ -328,7 +343,8 @@
     "validate": {
       "content": "Silakan masukkan catatan."
     },
-    "viewAll": "View all"
+    "viewAll": "View all",
+    "viewHistory": "Lihat riwayat"
   },
   "person": {
     "email": "Email",
@@ -382,6 +398,10 @@
     },
     "zip": "Kode Pos"
   },
+  "sermon": {
+    "back": "Kembali",
+    "playlists": "Daftar putar"
+  },
   "stockPhotos": {
     "photoBy": "Foto oleh:",
     "providedBy": "Foto stok disediakan oleh"
@@ -402,15 +422,21 @@
     "required": "Kolom ini wajib diisi"
   },
   "wrapper": {
+    "allCaughtUp": "Semua sudah Anda lihat!",
     "chatWith": "Chat with",
+    "clearAll": "Hapus Semua",
+    "clearAllNotificationsConfirm": "Hapus semua notifikasi?",
     "currentChurch": "Gereja saat ini",
     "deleteChurch": "Delete",
+    "deleteNotification": "Hapus notifikasi",
     "editAccount": "Edit Akun",
     "editChurchProfile": "Edit Profil Gereja",
     "editProfile": "Edit Profil",
     "logout": "Logout",
     "messages": "Messages",
+    "newBadge": "Baru",
     "newPrivateMessage": "Pesan Pribadi Baru",
+    "noNotifications": "Tidak ada notifikasi",
     "notifications": "Notifications",
     "privateConversation": "Private Conversation",
     "privateMessage": "Pesan Pribadi",
@@ -419,6 +445,7 @@
     "support": "Support",
     "sureRemoveChurch": "Are you sure you wish to delete this church? You no longer will be a member of {}.",
     "switchApp": "Switch App",
-    "switchChurch": "Switch Church"
+    "switchChurch": "Switch Church",
+    "viewDetails": "Lihat Detail"
   }
 }

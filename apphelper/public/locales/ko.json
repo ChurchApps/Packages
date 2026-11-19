@@ -75,10 +75,12 @@
       "cover": "귀하가 제 기부금을 100% 유지할 수 있도록 거래 수수료를 충당하기 위해 {}를 아낌없이 추가하겠습니다.",
       "donate": "기부",
       "editRecurring": "반복 기부 편집",
+      "enterNewCard": "새 카드 입력",
       "fees": "{}의 거래 수수료가 적용됩니다.",
       "frequency": "빈도",
       "fund": "축적",
       "funds": "자금",
+      "loginToManage": "기존 헌금을 관리하려면 로그인하세요",
       "make": "기부 해주세요",
       "makeRecurring": "정기 기부하기",
       "method": "방법",
@@ -88,6 +90,7 @@
       "preview": "미리보기 기부",
       "quarterly": "계간지",
       "recurringUpdated": "정기 기부가 업데이트되었습니다.",
+      "saveCard": "향후 헌금을 위해 이 카드 저장",
       "startDate": "시작일",
       "thankYou": "기부해 주셔서 감사합니다!",
       "tooLow": "기부 금액은 $0.50보다 커야 합니다.",
@@ -146,7 +149,7 @@
       "addCard": "카드 추가",
       "confirmDelete": "이 결제 수단을 삭제하시겠습니까?",
       "deleted": "결제 수단이 삭제되었습니다.",
-      "noMethod": "No Method",
+      "noSavedMethods": "저장된 결제 수단이 없습니다.",
       "verify": "계정 확인"
     },
     "paypal": {
@@ -267,6 +270,10 @@
     "forgot": "비밀번호를 잊으 셨나요",
     "goLogin": "Go to Login",
     "login": "로그인",
+    "mfaCode": "코드",
+    "mfaInstructions": "인증 앱의 6자리 코드 또는 백업 코드 중 하나를 입력하세요.",
+    "mfaInvalid": "코드가 올바르지 않습니다. 다시 시도해 주세요.",
+    "mfaTitle": "2단계 로그인",
     "noAcc": "계정이 없으신가요?",
     "noAccountFound": "해당 이메일로 등록된 계정이 없습니다. 계속하려면 등록해 주세요.",
     "or": "or",
@@ -320,6 +327,14 @@
   "notes": {
     "comment": "논평",
     "comments": "코멘트",
+    "confirmDelete": "이 메모를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
+    "deletedNote": "삭제된 메모",
+    "deletedNoteBy": "{name}의 메모, {posted} · {deleted} 삭제됨",
+    "editedViewHistory": "(수정됨 · 기록 보기)",
+    "formatBold": "굵게",
+    "formatBullets": "글머리 기호 목록",
+    "formatItalic": "기울임꼴",
+    "formatNumbered": "번호 매기기 목록",
     "notes": "노트",
     "notifyOff": "Notify Off",
     "notifyOn": "Notify On",
@@ -328,7 +343,8 @@
     "validate": {
       "content": "메모를 입력하세요."
     },
-    "viewAll": "View all"
+    "viewAll": "View all",
+    "viewHistory": "기록 보기"
   },
   "person": {
     "email": "이메일",
@@ -382,6 +398,10 @@
     },
     "zip": "우편번호"
   },
+  "sermon": {
+    "back": "뒤로",
+    "playlists": "재생 목록"
+  },
   "stockPhotos": {
     "photoBy": "의 사진:",
     "providedBy": "스톡 사진 제공:"
@@ -402,15 +422,21 @@
     "required": "이 필드는 필수입니다"
   },
   "wrapper": {
+    "allCaughtUp": "모두 확인했습니다!",
     "chatWith": "Chat with",
+    "clearAll": "모두 지우기",
+    "clearAllNotificationsConfirm": "모든 알림을 지우시겠습니까?",
     "currentChurch": "현재 교회",
     "deleteChurch": "Delete",
+    "deleteNotification": "알림 삭제",
     "editAccount": "계정 편집",
     "editChurchProfile": "교회 프로필 편집",
     "editProfile": "프로필 편집",
     "logout": "Logout",
     "messages": "Messages",
+    "newBadge": "새 알림",
     "newPrivateMessage": "새 비공개 메시지",
+    "noNotifications": "알림이 없습니다",
     "notifications": "Notifications",
     "privateConversation": "Private Conversation",
     "privateMessage": "사신",
@@ -419,6 +445,7 @@
     "support": "Support",
     "sureRemoveChurch": "Are you sure you wish to delete this church? You no longer will be a member of {}.",
     "switchApp": "Switch App",
-    "switchChurch": "Switch Church"
+    "switchChurch": "Switch Church",
+    "viewDetails": "세부 정보 보기"
   }
 }

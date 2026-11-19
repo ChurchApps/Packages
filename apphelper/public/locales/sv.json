@@ -75,10 +75,12 @@
       "cover": "Jag lägger gärna till {} för att täcka transaktionsavgifterna så att ni kan behålla 100 % av min donation.",
       "donate": "Donera",
       "editRecurring": "Redigera återkommande donation",
+      "enterNewCard": "Ange nytt kort",
       "fees": "Transaktionsavgifter på {} tillkommer.",
       "frequency": "Frekvens",
       "fund": "Fond",
       "funds": "Fonder",
+      "loginToManage": "Logga in för att hantera befintliga gåvor",
       "make": "Gör en donation",
       "makeRecurring": "Gör en återkommande donation",
       "method": "Metod",
@@ -88,6 +90,7 @@
       "preview": "Förhandsgranska donation",
       "quarterly": "Kvartalsvis",
       "recurringUpdated": "Återkommande donation uppdaterad.",
+      "saveCard": "Spara detta kort för framtida gåvor",
       "startDate": "Startdatum",
       "thankYou": "Tack för din donation!",
       "tooLow": "Donationsbeloppet måste vara större än $0,50",
@@ -146,7 +149,7 @@
       "addCard": "Lägg till kort",
       "confirmDelete": "Är du säker på att du vill radera denna betalningsmetod?",
       "deleted": "Betalningsmetod raderad.",
-      "noMethod": "No Method",
+      "noSavedMethods": "Inga sparade betalningsmetoder.",
       "verify": "Verifiera konto"
     },
     "paypal": {
@@ -267,6 +270,10 @@
     "forgot": "Glömt lösenord",
     "goLogin": "Go to Login",
     "login": "Logga in",
+    "mfaCode": "Kod",
+    "mfaInstructions": "Ange den 6-siffriga koden från din autentiseringsapp eller en av dina reservkoder.",
+    "mfaInvalid": "Den koden fungerade inte. Försök igen.",
+    "mfaTitle": "Tvåstegsinloggning",
     "noAcc": "Har du inget konto?",
     "noAccountFound": "Inget konto hittades med den e-postadressen. Registrera dig för att fortsätta.",
     "or": "or",
@@ -320,6 +327,14 @@
   "notes": {
     "comment": "kommentar",
     "comments": "kommentarer",
+    "confirmDelete": "Ta bort den här anteckningen? Det går inte att ångra.",
+    "deletedNote": "Borttagen anteckning",
+    "deletedNoteBy": "Anteckning av {name}, {posted} · borttagen {deleted}",
+    "editedViewHistory": "(redigerad · visa historik)",
+    "formatBold": "Fet",
+    "formatBullets": "Punktlista",
+    "formatItalic": "Kursiv",
+    "formatNumbered": "Numrerad lista",
     "notes": "Anteckningar",
     "notifyOff": "Notify Off",
     "notifyOn": "Notify On",
@@ -328,7 +343,8 @@
     "validate": {
       "content": "Vänligen ange en anteckning."
     },
-    "viewAll": "View all"
+    "viewAll": "View all",
+    "viewHistory": "Visa historik"
   },
   "person": {
     "email": "E-post",
@@ -382,6 +398,10 @@
     },
     "zip": "Postnummer"
   },
+  "sermon": {
+    "back": "Tillbaka",
+    "playlists": "Spellistor"
+  },
   "stockPhotos": {
     "photoBy": "Foto av:",
     "providedBy": "Stockfoton tillhandahålls av"
@@ -402,15 +422,21 @@
     "required": "Detta fält är obligatoriskt"
   },
   "wrapper": {
+    "allCaughtUp": "Du är helt ikapp!",
     "chatWith": "Chat with",
+    "clearAll": "Rensa alla",
+    "clearAllNotificationsConfirm": "Rensa alla aviseringar?",
     "currentChurch": "Nuvarande kyrka",
     "deleteChurch": "Delete",
+    "deleteNotification": "Ta bort avisering",
     "editAccount": "Redigera konto",
     "editChurchProfile": "Redigera kyrkprofil",
     "editProfile": "Redigera profil",
     "logout": "Logout",
     "messages": "Messages",
+    "newBadge": "Ny",
     "newPrivateMessage": "Nytt privat meddelande",
+    "noNotifications": "Inga aviseringar",
     "notifications": "Notifications",
     "privateConversation": "Private Conversation",
     "privateMessage": "Privat meddelande",
@@ -419,6 +445,7 @@
     "support": "Support",
     "sureRemoveChurch": "Are you sure you wish to delete this church? You no longer will be a member of {}.",
     "switchApp": "Switch App",
-    "switchChurch": "Switch Church"
+    "switchChurch": "Switch Church",
+    "viewDetails": "Visa detaljer"
   }
 }

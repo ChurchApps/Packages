@@ -75,10 +75,12 @@
       "cover": "Я щедро добавлю {}, чтобы покрыть комиссию за транзакцию, чтобы вы могли сохранить 100 % моего пожертвования.",
       "donate": "Пожертвовать",
       "editRecurring": "Изменить регулярное пожертвование",
+      "enterNewCard": "Введите новую карту",
       "fees": "Взимается комиссия за транзакцию в размере {}.",
       "frequency": "Частота",
       "fund": "Фонд",
       "funds": "Фонды",
+      "loginToManage": "Войдите, чтобы управлять существующими пожертвованиями",
       "make": "Сделать пожертвование",
       "makeRecurring": "Сделайте регулярное пожертвование",
       "method": "Метод",
@@ -88,6 +90,7 @@
       "preview": "Предварительный просмотр пожертвования",
       "quarterly": "Ежеквартальный",
       "recurringUpdated": "Регулярное пожертвование обновлено.",
+      "saveCard": "Сохранить эту карту для будущих пожертвований",
       "startDate": "Дата начала",
       "thankYou": "Благодарим за пожертвование!",
       "tooLow": "Сумма пожертвования должна быть больше 0,50 доллара США.",
@@ -146,7 +149,7 @@
       "addCard": "Добавить карту",
       "confirmDelete": "Вы уверены, что хотите удалить этот способ оплаты?",
       "deleted": "Способ оплаты удален.",
-      "noMethod": "No Method",
+      "noSavedMethods": "Нет сохранённых способов оплаты.",
       "verify": "подтвердить учетную запись"
     },
     "paypal": {
@@ -267,6 +270,10 @@
     "forgot": "Забыли пароль",
     "goLogin": "Go to Login",
     "login": "Авторизоваться",
+    "mfaCode": "Код",
+    "mfaInstructions": "Введите 6-значный код из приложения-аутентификатора или один из резервных кодов.",
+    "mfaInvalid": "Этот код не подошёл. Попробуйте ещё раз.",
+    "mfaTitle": "Двухфакторный вход",
     "noAcc": "Нет учетной записи?",
     "noAccountFound": "Учетная запись с таким адресом электронной почты не найдена. Пожалуйста, зарегистрируйтесь, чтобы продолжить.",
     "or": "or",
@@ -320,6 +327,14 @@
   "notes": {
     "comment": "комментарий",
     "comments": "Комментарии",
+    "confirmDelete": "Удалить эту заметку? Это действие нельзя отменить.",
+    "deletedNote": "Удалённая заметка",
+    "deletedNoteBy": "Заметка от {name}, {posted} · удалена {deleted}",
+    "editedViewHistory": "(изменено · посмотреть историю)",
+    "formatBold": "Жирный",
+    "formatBullets": "Маркированный список",
+    "formatItalic": "Курсив",
+    "formatNumbered": "Нумерованный список",
     "notes": "Примечания",
     "notifyOff": "Notify Off",
     "notifyOn": "Notify On",
@@ -328,7 +343,8 @@
     "validate": {
       "content": "Пожалуйста, введите примечание."
     },
-    "viewAll": "View all"
+    "viewAll": "View all",
+    "viewHistory": "Посмотреть историю"
   },
   "person": {
     "email": "Электронная почта",
@@ -382,6 +398,10 @@
     },
     "zip": "Почтовый индекс"
   },
+  "sermon": {
+    "back": "Назад",
+    "playlists": "Плейлисты"
+  },
   "stockPhotos": {
     "photoBy": "Фото:",
     "providedBy": "Стоковые фотографии предоставлены"
@@ -402,15 +422,21 @@
     "required": "Это поле обязательно для заполнения"
   },
   "wrapper": {
+    "allCaughtUp": "Вы всё просмотрели!",
     "chatWith": "Chat with",
+    "clearAll": "Очистить все",
+    "clearAllNotificationsConfirm": "Очистить все уведомления?",
     "currentChurch": "Текущая церковь",
     "deleteChurch": "Delete",
+    "deleteNotification": "Удалить уведомление",
     "editAccount": "Редактировать аккаунт",
     "editChurchProfile": "Редактировать профиль в церкви",
     "editProfile": "Редактировать профиль",
     "logout": "Logout",
     "messages": "Messages",
+    "newBadge": "Новое",
     "newPrivateMessage": "Новое личное сообщение",
+    "noNotifications": "Нет уведомлений",
     "notifications": "Notifications",
     "privateConversation": "Private Conversation",
     "privateMessage": "Личное сообщение",
@@ -419,6 +445,7 @@
     "support": "Support",
     "sureRemoveChurch": "Are you sure you wish to delete this church? You no longer will be a member of {}.",
     "switchApp": "Switch App",
-    "switchChurch": "Switch Church"
+    "switchChurch": "Switch Church",
+    "viewDetails": "Подробнее"
   }
 }

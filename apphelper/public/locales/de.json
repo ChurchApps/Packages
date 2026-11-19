@@ -75,10 +75,12 @@
       "cover": "Ich füge großzügig {} hinzu, um die Transaktionsgebühren zu decken, damit Sie 100 % meiner Spende behalten können.",
       "donate": "Spenden",
       "editRecurring": "Bearbeiten Sie die wiederkehrende Spende",
+      "enterNewCard": "Neue Karte eingeben",
       "fees": "Es fallen Transaktionsgebühren von {} an.",
       "frequency": "Frequenz",
       "fund": "Fonds",
       "funds": "Mittel",
+      "loginToManage": "Anmelden, um bestehende Spenden zu verwalten",
       "make": "Spenden",
       "makeRecurring": "Machen Sie eine wiederkehrende Spende",
       "method": "Methode",
@@ -88,6 +90,7 @@
       "preview": "Vorschau der Spende",
       "quarterly": "Vierteljährlich",
       "recurringUpdated": "Wiederkehrende Spende aktualisiert.",
+      "saveCard": "Diese Karte für zukünftige Spenden speichern",
       "startDate": "Startdatum",
       "thankYou": "Vielen Dank für Ihre Spende!",
       "tooLow": "Der Spendenbetrag muss mehr als 0,50 $ betragen",
@@ -146,7 +149,7 @@
       "addCard": "Karte hinzufügen",
       "confirmDelete": "Sind Sie sicher, dass Sie diese Zahlungsmethode löschen möchten?",
       "deleted": "Zahlungsmethode gelöscht.",
-      "noMethod": "No Method",
+      "noSavedMethods": "Keine gespeicherten Zahlungsmethoden.",
       "verify": "Konto überprüfen"
     },
     "paypal": {
@@ -267,6 +270,10 @@
     "forgot": "Passwort vergessen",
     "goLogin": "Go to Login",
     "login": "Anmeldung",
+    "mfaCode": "Code",
+    "mfaInstructions": "Geben Sie den 6-stelligen Code aus Ihrer Authentifizierungs-App oder einen Ihrer Backup-Codes ein.",
+    "mfaInvalid": "Dieser Code hat nicht funktioniert. Bitte versuchen Sie es erneut.",
+    "mfaTitle": "Zwei-Faktor-Anmeldung",
     "noAcc": "Sie haben noch kein Konto?",
     "noAccountFound": "Mit dieser E-Mail wurde kein Konto gefunden. Bitte registrieren Sie sich, um fortzufahren.",
     "or": "or",
@@ -320,6 +327,14 @@
   "notes": {
     "comment": "Kommentar",
     "comments": "Kommentare",
+    "confirmDelete": "Diese Notiz löschen? Dies kann nicht rückgängig gemacht werden.",
+    "deletedNote": "Gelöschte Notiz",
+    "deletedNoteBy": "Notiz von {name}, {posted} · gelöscht {deleted}",
+    "editedViewHistory": "(bearbeitet · Verlauf anzeigen)",
+    "formatBold": "Fett",
+    "formatBullets": "Aufzählung",
+    "formatItalic": "Kursiv",
+    "formatNumbered": "Nummerierte Liste",
     "notes": "Anmerkungen",
     "notifyOff": "Notify Off",
     "notifyOn": "Notify On",
@@ -328,7 +343,8 @@
     "validate": {
       "content": "Bitte geben Sie eine Notiz ein."
     },
-    "viewAll": "View all"
+    "viewAll": "View all",
+    "viewHistory": "Verlauf anzeigen"
   },
   "person": {
     "email": "Email",
@@ -382,6 +398,10 @@
     },
     "zip": "Postleitzahl"
   },
+  "sermon": {
+    "back": "Zurück",
+    "playlists": "Playlists"
+  },
   "stockPhotos": {
     "photoBy": "Foto von:",
     "providedBy": "Archivfotos bereitgestellt von"
@@ -402,15 +422,21 @@
     "required": "Dieses Feld ist erforderlich"
   },
   "wrapper": {
+    "allCaughtUp": "Sie sind auf dem neuesten Stand!",
     "chatWith": "Chat with",
+    "clearAll": "Alle löschen",
+    "clearAllNotificationsConfirm": "Alle Benachrichtigungen löschen?",
     "currentChurch": "Aktuelle Gemeinde",
     "deleteChurch": "Delete",
+    "deleteNotification": "Benachrichtigung löschen",
     "editAccount": "Konto bearbeiten",
     "editChurchProfile": "Gemeindeprofil bearbeiten",
     "editProfile": "Profil bearbeiten",
     "logout": "Logout",
     "messages": "Messages",
+    "newBadge": "Neu",
     "newPrivateMessage": "Neue private Nachricht",
+    "noNotifications": "Keine Benachrichtigungen",
     "notifications": "Notifications",
     "privateConversation": "Private Conversation",
     "privateMessage": "Private Nachricht",
@@ -419,6 +445,7 @@
     "support": "Support",
     "sureRemoveChurch": "Are you sure you wish to delete this church? You no longer will be a member of {}.",
     "switchApp": "Switch App",
-    "switchChurch": "Switch Church"
+    "switchChurch": "Switch Church",
+    "viewDetails": "Details anzeigen"
   }
 }

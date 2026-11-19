@@ -75,10 +75,12 @@
       "cover": "Jeg tilføjer gerne {} for at dække transaktionsgebyrerne, så du kan beholde 100% af min donation.",
       "donate": "Doner",
       "editRecurring": "Rediger tilbagevendende donation",
+      "enterNewCard": "Indtast nyt kort",
       "fees": "Transaktionsgebyrer på {} anvendes.",
       "frequency": "Frekvens",
       "fund": "Fond",
       "funds": "Fonde",
+      "loginToManage": "Log ind for at administrere eksisterende donationer",
       "make": "Foretag en donation",
       "makeRecurring": "Foretag en tilbagevendende donation",
       "method": "Metode",
@@ -88,6 +90,7 @@
       "preview": "Forhåndsvisning af donation",
       "quarterly": "Kvartalsvis",
       "recurringUpdated": "Tilbagevendende donation opdateret.",
+      "saveCard": "Gem dette kort til fremtidige donationer",
       "startDate": "Startdato",
       "thankYou": "Tak for din donation!",
       "tooLow": "Donationsbeløb skal være større end $0,50",
@@ -146,7 +149,7 @@
       "addCard": "Tilføj kort",
       "confirmDelete": "Er du sikker på, at du vil slette denne betalingsmetode?",
       "deleted": "Betalingsmetode slettet.",
-      "noMethod": "No Method",
+      "noSavedMethods": "Ingen gemte betalingsmetoder.",
       "verify": "Verificer konto"
     },
     "paypal": {
@@ -267,6 +270,10 @@
     "forgot": "Glemt adgangskode",
     "goLogin": "Go to Login",
     "login": "Log ind",
+    "mfaCode": "Kode",
+    "mfaInstructions": "Indtast den 6-cifrede kode fra din godkendelsesapp eller en af dine backupkoder.",
+    "mfaInvalid": "Den kode virkede ikke. Prøv igen.",
+    "mfaTitle": "Totrinslogin",
     "noAcc": "Har du ikke en konto?",
     "noAccountFound": "Ingen konto blev fundet med denne e-mail. Registrer dig for at fortsætte.",
     "or": "or",
@@ -320,6 +327,14 @@
   "notes": {
     "comment": "kommentar",
     "comments": "kommentarer",
+    "confirmDelete": "Slet denne note? Det kan ikke fortrydes.",
+    "deletedNote": "Slettet note",
+    "deletedNoteBy": "Note af {name}, {posted} · slettet {deleted}",
+    "editedViewHistory": "(redigeret · vis historik)",
+    "formatBold": "Fed",
+    "formatBullets": "Punktopstilling",
+    "formatItalic": "Kursiv",
+    "formatNumbered": "Nummereret liste",
     "notes": "Noter",
     "notifyOff": "Notify Off",
     "notifyOn": "Notify On",
@@ -328,7 +343,8 @@
     "validate": {
       "content": "Indtast venligst en note."
     },
-    "viewAll": "View all"
+    "viewAll": "View all",
+    "viewHistory": "Vis historik"
   },
   "person": {
     "email": "E-mail",
@@ -382,6 +398,10 @@
     },
     "zip": "Postnummer"
   },
+  "sermon": {
+    "back": "Tilbage",
+    "playlists": "Afspilningslister"
+  },
   "stockPhotos": {
     "photoBy": "Foto af:",
     "providedBy": "Stockfotos leveret af"
@@ -402,15 +422,21 @@
     "required": "Dette felt er påkrævet"
   },
   "wrapper": {
+    "allCaughtUp": "Du er helt opdateret!",
     "chatWith": "Chat with",
+    "clearAll": "Ryd alle",
+    "clearAllNotificationsConfirm": "Ryd alle notifikationer?",
     "currentChurch": "Nuværende kirke",
     "deleteChurch": "Delete",
+    "deleteNotification": "Slet notifikation",
     "editAccount": "Rediger konto",
     "editChurchProfile": "Rediger kirkeprofil",
     "editProfile": "Rediger profil",
     "logout": "Logout",
     "messages": "Messages",
+    "newBadge": "Ny",
     "newPrivateMessage": "Ny privat besked",
+    "noNotifications": "Ingen notifikationer",
     "notifications": "Notifications",
     "privateConversation": "Private Conversation",
     "privateMessage": "Privat besked",
@@ -419,6 +445,7 @@
     "support": "Support",
     "sureRemoveChurch": "Are you sure you wish to delete this church? You no longer will be a member of {}.",
     "switchApp": "Switch App",
-    "switchChurch": "Switch Church"
+    "switchChurch": "Switch Church",
+    "viewDetails": "Vis detaljer"
   }
 }

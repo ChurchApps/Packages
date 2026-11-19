@@ -75,10 +75,12 @@
       "cover": "Lisään mukaansa {} lahjoitukseen, jotta voit säilyttää 100 % lahjoituksestani.",
       "donate": "Lahjoita",
       "editRecurring": "Muokkaa toistuvaa lahjoitusta",
+      "enterNewCard": "Syötä uusi kortti",
       "fees": "Transaktiomaksut {}: ssa käytetään.",
       "frequency": "Tiheys",
       "fund": "Rahasto",
       "funds": "Rahastot",
+      "loginToManage": "Kirjaudu sisään hallitaksesi olemassa olevia lahjoituksia",
       "make": "Tee lahjoitus",
       "makeRecurring": "Tee toistuva lahjoitus",
       "method": "Menetelmä",
@@ -88,6 +90,7 @@
       "preview": "Esikatsele lahjoitus",
       "quarterly": "Neljännesvuosittain",
       "recurringUpdated": "Toistuva lahjoitus päivitetty.",
+      "saveCard": "Tallenna tämä kortti tulevia lahjoituksia varten",
       "startDate": "Alkamispäivä",
       "thankYou": "Kiitos lahjoituksestasi!",
       "tooLow": "Lahjoituksen summan on oltava yli 0,50 dollaria",
@@ -146,7 +149,7 @@
       "addCard": "Lisää kortti",
       "confirmDelete": "Haluatko varmasti poistaa tämän maksutavan?",
       "deleted": "Maksutapa poistettu.",
-      "noMethod": "No Method",
+      "noSavedMethods": "Ei tallennettuja maksutapoja.",
       "verify": "Vahvista tili"
     },
     "paypal": {
@@ -267,6 +270,10 @@
     "forgot": "Unohditko salasanan",
     "goLogin": "Go to Login",
     "login": "Kirjaudu sisään",
+    "mfaCode": "Koodi",
+    "mfaInstructions": "Syötä todennussovelluksesi 6-numeroinen koodi tai jokin varakoodeistasi.",
+    "mfaInvalid": "Koodi ei toiminut. Yritä uudelleen.",
+    "mfaTitle": "Kaksivaiheinen kirjautuminen",
     "noAcc": "Eikö sinulla ole tiliä?",
     "noAccountFound": "Tällä sähköpostilla ei löytynyt tiliä. Jatka rekisteröitymällä.",
     "or": "or",
@@ -320,6 +327,14 @@
   "notes": {
     "comment": "kommentti",
     "comments": "kommentit",
+    "confirmDelete": "Poistetaanko tämä muistiinpano? Toimintoa ei voi kumota.",
+    "deletedNote": "Poistettu muistiinpano",
+    "deletedNoteBy": "Muistiinpano: {name}, {posted} · poistettu {deleted}",
+    "editedViewHistory": "(muokattu · näytä historia)",
+    "formatBold": "Lihavointi",
+    "formatBullets": "Luettelomerkit",
+    "formatItalic": "Kursiivi",
+    "formatNumbered": "Numeroitu luettelo",
     "notes": "Muistiinpanot",
     "notifyOff": "Notify Off",
     "notifyOn": "Notify On",
@@ -328,7 +343,8 @@
     "validate": {
       "content": "Kirjoita muistiinpano."
     },
-    "viewAll": "View all"
+    "viewAll": "View all",
+    "viewHistory": "Näytä historia"
   },
   "person": {
     "email": "Sähköposti",
@@ -382,6 +398,10 @@
     },
     "zip": "Postinumero"
   },
+  "sermon": {
+    "back": "Takaisin",
+    "playlists": "Soittolistat"
+  },
   "stockPhotos": {
     "photoBy": "Kuva tekijältä:",
     "providedBy": "Pörssikuvat toimittajalta"
@@ -402,15 +422,21 @@
     "required": "Tämä kenttä on pakollinen"
   },
   "wrapper": {
+    "allCaughtUp": "Olet ajan tasalla!",
     "chatWith": "Chat with",
+    "clearAll": "Tyhjennä kaikki",
+    "clearAllNotificationsConfirm": "Tyhjennetäänkö kaikki ilmoitukset?",
     "currentChurch": "Nykyinen seurakunta",
     "deleteChurch": "Delete",
+    "deleteNotification": "Poista ilmoitus",
     "editAccount": "Muokkaa tiliä",
     "editChurchProfile": "Muokkaa seurakuntaprofiilia",
     "editProfile": "Muokkaa profiilia",
     "logout": "Logout",
     "messages": "Messages",
+    "newBadge": "Uusi",
     "newPrivateMessage": "Uusi yksityinen viesti",
+    "noNotifications": "Ei ilmoituksia",
     "notifications": "Notifications",
     "privateConversation": "Private Conversation",
     "privateMessage": "Yksityinen viesti",
@@ -419,6 +445,7 @@
     "support": "Support",
     "sureRemoveChurch": "Are you sure you wish to delete this church? You no longer will be a member of {}.",
     "switchApp": "Switch App",
-    "switchChurch": "Switch Church"
+    "switchChurch": "Switch Church",
+    "viewDetails": "Näytä tiedot"
   }
 }

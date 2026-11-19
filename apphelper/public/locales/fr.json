@@ -75,10 +75,12 @@
       "cover": "J'ajouterai généreusement {} pour couvrir les frais de transaction afin que vous puissiez conserver 100 % de mon don.",
       "donate": "Faire un don",
       "editRecurring": "Modifier un don récurrent",
+      "enterNewCard": "Saisir une nouvelle carte",
       "fees": "Des frais de transaction de {} sont appliqués.",
       "frequency": "Fréquence",
       "fund": "Fonds",
       "funds": "Fonds",
+      "loginToManage": "Connectez-vous pour gérer les dons existants",
       "make": "Faire un don",
       "makeRecurring": "Faire un don récurrent",
       "method": "Méthode",
@@ -88,6 +90,7 @@
       "preview": "Aperçu du don",
       "quarterly": "Trimestriel",
       "recurringUpdated": "Don récurrent mis à jour.",
+      "saveCard": "Enregistrer cette carte pour les dons futurs",
       "startDate": "Date de début",
       "thankYou": "Merci pour votre don!",
       "tooLow": "Le montant du don doit être supérieur à 0,50 $",
@@ -146,7 +149,7 @@
       "addCard": "Ajouter une carte",
       "confirmDelete": "Êtes-vous sûr de vouloir supprimer ce mode de paiement ?",
       "deleted": "Mode de paiement supprimé.",
-      "noMethod": "No Method",
+      "noSavedMethods": "Aucun moyen de paiement enregistré.",
       "verify": "vérifier le compte"
     },
     "paypal": {
@@ -267,6 +270,10 @@
     "forgot": "Mot de passe oublié",
     "goLogin": "Go to Login",
     "login": "Se connecter",
+    "mfaCode": "Code",
+    "mfaInstructions": "Saisissez le code à 6 chiffres de votre application d'authentification ou l'un de vos codes de secours.",
+    "mfaInvalid": "Ce code n'a pas fonctionné. Veuillez réessayer.",
+    "mfaTitle": "Connexion à deux facteurs",
     "noAcc": "Vous n'avez pas de compte ?",
     "noAccountFound": "Aucun compte n'a été trouvé avec cet e-mail. Veuillez vous inscrire pour continuer.",
     "or": "or",
@@ -320,6 +327,14 @@
   "notes": {
     "comment": "commentaire",
     "comments": "commentaires",
+    "confirmDelete": "Supprimer cette note ? Cette action est irréversible.",
+    "deletedNote": "Note supprimée",
+    "deletedNoteBy": "Note de {name}, {posted} · supprimée {deleted}",
+    "editedViewHistory": "(modifiée · voir l'historique)",
+    "formatBold": "Gras",
+    "formatBullets": "Liste à puces",
+    "formatItalic": "Italique",
+    "formatNumbered": "Liste numérotée",
     "notes": "Remarques",
     "notifyOff": "Notify Off",
     "notifyOn": "Notify On",
@@ -328,7 +343,8 @@
     "validate": {
       "content": "Veuillez saisir une note."
     },
-    "viewAll": "View all"
+    "viewAll": "View all",
+    "viewHistory": "Voir l'historique"
   },
   "person": {
     "email": "E-mail",
@@ -382,6 +398,10 @@
     },
     "zip": "Zip / code postal"
   },
+  "sermon": {
+    "back": "Retour",
+    "playlists": "Playlists"
+  },
   "stockPhotos": {
     "photoBy": "Photo par:",
     "providedBy": "Photos d'archives fournies par"
@@ -402,15 +422,21 @@
     "required": "Ce champ est obligatoire"
   },
   "wrapper": {
+    "allCaughtUp": "Vous êtes à jour !",
     "chatWith": "Chat with",
+    "clearAll": "Tout effacer",
+    "clearAllNotificationsConfirm": "Effacer toutes les notifications ?",
     "currentChurch": "Église actuelle",
     "deleteChurch": "Delete",
+    "deleteNotification": "Supprimer la notification",
     "editAccount": "Modifier le compte",
     "editChurchProfile": "Modifier le profil d'église",
     "editProfile": "Modifier le profil",
     "logout": "Logout",
     "messages": "Messages",
+    "newBadge": "Nouveau",
     "newPrivateMessage": "Nouveau message privé",
+    "noNotifications": "Aucune notification",
     "notifications": "Notifications",
     "privateConversation": "Private Conversation",
     "privateMessage": "Message privé",
@@ -419,6 +445,7 @@
     "support": "Support",
     "sureRemoveChurch": "Are you sure you wish to delete this church? You no longer will be a member of {}.",
     "switchApp": "Switch App",
-    "switchChurch": "Switch Church"
+    "switchChurch": "Switch Church",
+    "viewDetails": "Voir les détails"
   }
 }

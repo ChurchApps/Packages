@@ -75,10 +75,12 @@
       "cover": "Štedro pridám {} na pokrytie poplatkov za transakciu, aby ste si mohli ponechať 100% svojej donácie.",
       "donate": "Darovať",
       "editRecurring": "Upraviť pravideľnú donáciu",
+      "enterNewCard": "Zadajte novú kartu",
       "fees": "Aplikujú sa poplatky za transakciu {}.",
       "frequency": "Frekvencia",
       "fund": "Fond",
       "funds": "Fondy",
+      "loginToManage": "Prihláste sa na správu existujúcich darov",
       "make": "Darovať",
       "makeRecurring": "Urobiť pravideľnú donáciu",
       "method": "Metóda",
@@ -88,6 +90,7 @@
       "preview": "Náhľad donácie",
       "quarterly": "Štvrťročne",
       "recurringUpdated": "Pravidelná donácia aktualizovaná.",
+      "saveCard": "Uložiť túto kartu pre budúce dary",
       "startDate": "Dátum začatia",
       "thankYou": "Ďakujeme za vašu donáciu!",
       "tooLow": "Suma donácie musí byť väčšia ako 0,50 USD",
@@ -146,7 +149,7 @@
       "addCard": "Pridať kartu",
       "confirmDelete": "Ste si istí, že chcete odstrániť túto spôsob platby?",
       "deleted": "Spôsob platby odstránený.",
-      "noMethod": "No Method",
+      "noSavedMethods": "Žiadne uložené platobné metódy.",
       "verify": "Overiť účet"
     },
     "paypal": {
@@ -267,6 +270,10 @@
     "forgot": "Zabudli ste heslo",
     "goLogin": "Go to Login",
     "login": "Prihlásiť sa",
+    "mfaCode": "Kód",
+    "mfaInstructions": "Zadajte 6-miestny kód z overovacej aplikácie alebo jeden zo svojich záložných kódov.",
+    "mfaInvalid": "Tento kód nefungoval. Skúste to znova.",
+    "mfaTitle": "Dvojfázové prihlásenie",
     "noAcc": "Nemáte účet?",
     "noAccountFound": "Pre tento e-mail sa nenašiel žiadny účet. Pokračujte registráciou.",
     "or": "or",
@@ -320,6 +327,14 @@
   "notes": {
     "comment": "komentár",
     "comments": "komentáre",
+    "confirmDelete": "Odstrániť túto poznámku? Túto akciu nemožno vrátiť späť.",
+    "deletedNote": "Odstránená poznámka",
+    "deletedNoteBy": "Poznámka od {name}, {posted} · odstránená {deleted}",
+    "editedViewHistory": "(upravené · zobraziť históriu)",
+    "formatBold": "Tučné",
+    "formatBullets": "Zoznam s odrážkami",
+    "formatItalic": "Kurzíva",
+    "formatNumbered": "Číslovaný zoznam",
     "notes": "Poznámky",
     "notifyOff": "Notify Off",
     "notifyOn": "Notify On",
@@ -328,7 +343,8 @@
     "validate": {
       "content": "Prosím zadajte poznámku."
     },
-    "viewAll": "View all"
+    "viewAll": "View all",
+    "viewHistory": "Zobraziť históriu"
   },
   "person": {
     "email": "Email",
@@ -382,6 +398,10 @@
     },
     "zip": "PSČ / Poštové smerovacie číslo"
   },
+  "sermon": {
+    "back": "Späť",
+    "playlists": "Zoznamy skladieb"
+  },
   "stockPhotos": {
     "photoBy": "Fotografia od:",
     "providedBy": "Archívne fotografie poskytuje"
@@ -402,15 +422,21 @@
     "required": "Toto pole je povinné"
   },
   "wrapper": {
+    "allCaughtUp": "Všetko máte prečítané!",
     "chatWith": "Chat with",
+    "clearAll": "Vymazať všetko",
+    "clearAllNotificationsConfirm": "Vymazať všetky upozornenia?",
     "currentChurch": "Aktuálny zbor",
     "deleteChurch": "Delete",
+    "deleteNotification": "Odstrániť upozornenie",
     "editAccount": "Upraviť účet",
     "editChurchProfile": "Upraviť profil v zbore",
     "editProfile": "Upraviť profil",
     "logout": "Logout",
     "messages": "Messages",
+    "newBadge": "Nové",
     "newPrivateMessage": "Nová súkromná správa",
+    "noNotifications": "Žiadne upozornenia",
     "notifications": "Notifications",
     "privateConversation": "Private Conversation",
     "privateMessage": "Súkromná správa",
@@ -419,6 +445,7 @@
     "support": "Support",
     "sureRemoveChurch": "Are you sure you wish to delete this church? You no longer will be a member of {}.",
     "switchApp": "Switch App",
-    "switchChurch": "Switch Church"
+    "switchChurch": "Switch Church",
+    "viewDetails": "Zobraziť podrobnosti"
   }
 }

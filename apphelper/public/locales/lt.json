@@ -75,10 +75,12 @@
       "cover": "Su malonumi pridėsiu {} operacijos mokesčiams padengti, kad galėtumėte išsaugoti 100% mano aukos.",
       "donate": "Aukoti",
       "editRecurring": "Redaguoti pasikartojančią auką",
+      "enterNewCard": "Įveskite naują kortelę",
       "fees": "Taikomos operacijos mokesčiai {}.",
       "frequency": "Dažnumas",
       "fund": "Fondas",
       "funds": "Fondai",
+      "loginToManage": "Prisijunkite, kad galėtumėte tvarkyti esamas aukas",
       "make": "Padaryk auką",
       "makeRecurring": "Padaryk pasikartojančią auką",
       "method": "Metodas",
@@ -88,6 +90,7 @@
       "preview": "Peržiūrėti auką",
       "quarterly": "Kas ketvirtį",
       "recurringUpdated": "Pasikartojanti auka atnaujinta.",
+      "saveCard": "Išsaugoti šią kortelę būsimoms aukoms",
       "startDate": "Pradžios data",
       "thankYou": "Ačiū už auką!",
       "tooLow": "Aukos suma turi būti didesnė nei 0,50 USD",
@@ -146,7 +149,7 @@
       "addCard": "Pridėti kortelę",
       "confirmDelete": "Ar tikrai norite ištrinti šį mokėjimo būdą?",
       "deleted": "Mokėjimo būdas ištrintas.",
-      "noMethod": "No Method",
+      "noSavedMethods": "Nėra išsaugotų mokėjimo būdų.",
       "verify": "Patvirtinti sąskaitą"
     },
     "paypal": {
@@ -267,6 +270,10 @@
     "forgot": "Pamiršote slaptažodį",
     "goLogin": "Go to Login",
     "login": "Prisijungti",
+    "mfaCode": "Kodas",
+    "mfaInstructions": "Įveskite 6 skaitmenų kodą iš autentifikavimo programėlės arba vieną iš atsarginių kodų.",
+    "mfaInvalid": "Šis kodas netiko. Bandykite dar kartą.",
+    "mfaTitle": "Dviejų veiksnių prisijungimas",
     "noAcc": "Neturite sąskaitos?",
     "noAccountFound": "No account was found with that email. Please register to continue.",
     "or": "or",
@@ -320,6 +327,14 @@
   "notes": {
     "comment": "komentaras",
     "comments": "komentarai",
+    "confirmDelete": "Ištrinti šią pastabą? Šio veiksmo negalima atšaukti.",
+    "deletedNote": "Ištrinta pastaba",
+    "deletedNoteBy": "{name} pastaba, {posted} · ištrinta {deleted}",
+    "editedViewHistory": "(redaguota · peržiūrėti istoriją)",
+    "formatBold": "Paryškintas",
+    "formatBullets": "Ženklinamasis sąrašas",
+    "formatItalic": "Kursyvas",
+    "formatNumbered": "Numeruotas sąrašas",
     "notes": "Pastabos",
     "notifyOff": "Notify Off",
     "notifyOn": "Notify On",
@@ -328,7 +343,8 @@
     "validate": {
       "content": "Prašome įvesti pastabą."
     },
-    "viewAll": "View all"
+    "viewAll": "View all",
+    "viewHistory": "Peržiūrėti istoriją"
   },
   "person": {
     "email": "El. paštas",
@@ -382,6 +398,10 @@
     },
     "zip": "Pašto kodas"
   },
+  "sermon": {
+    "back": "Atgal",
+    "playlists": "Grojaraščiai"
+  },
   "stockPhotos": {
     "photoBy": "Nuotrauka iš:",
     "providedBy": "Akcijų nuotraukos teikia"
@@ -402,15 +422,21 @@
     "required": "Šis laukas yra privalomas"
   },
   "wrapper": {
+    "allCaughtUp": "Viską peržiūrėjote!",
     "chatWith": "Chat with",
+    "clearAll": "Išvalyti viską",
+    "clearAllNotificationsConfirm": "Išvalyti visus pranešimus?",
     "currentChurch": "Dabartinė bažnyčia",
     "deleteChurch": "Delete",
+    "deleteNotification": "Ištrinti pranešimą",
     "editAccount": "Redaguoti paskyrą",
     "editChurchProfile": "Redaguoti bažnyčios profilį",
     "editProfile": "Redaguoti profilį",
     "logout": "Logout",
     "messages": "Messages",
+    "newBadge": "Nauja",
     "newPrivateMessage": "Nauja privati žinutė",
+    "noNotifications": "Pranešimų nėra",
     "notifications": "Notifications",
     "privateConversation": "Private Conversation",
     "privateMessage": "Privati žinutė",
@@ -419,6 +445,7 @@
     "support": "Support",
     "sureRemoveChurch": "Are you sure you wish to delete this church? You no longer will be a member of {}.",
     "switchApp": "Switch App",
-    "switchChurch": "Switch Church"
+    "switchChurch": "Switch Church",
+    "viewDetails": "Peržiūrėti išsamiau"
   }
 }

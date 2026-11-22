@@ -75,10 +75,12 @@
       "cover": "Tôi sẽ thêm {} một cách rộng rãi để chi trả phí giao dịch để bạn có thể giữ 100% quyên góp của bạn.",
       "donate": "Quyên góp",
       "editRecurring": "Chỉnh sửa quyên góp định kỳ",
+      "enterNewCard": "Nhập thẻ mới",
       "fees": "Áp dụng phí giao dịch {}.",
       "frequency": "Tần suất",
       "fund": "Quỹ",
       "funds": "Quỹ",
+      "loginToManage": "Đăng nhập để quản lý các khoản dâng hiến hiện có",
       "make": "Quyên góp",
       "makeRecurring": "Thực hiện quyên góp định kỳ",
       "method": "Phương pháp",
@@ -88,6 +90,7 @@
       "preview": "Xem trước quyên góp",
       "quarterly": "Hàng quý",
       "recurringUpdated": "Đã cập nhật quyên góp định kỳ.",
+      "saveCard": "Lưu thẻ này cho các lần dâng hiến sau",
       "startDate": "Ngày bắt đầu",
       "thankYou": "Cảm ơn bạn vì quyên góp!",
       "tooLow": "Số tiền quyên góp phải lớn hơn $0,50",
@@ -146,7 +149,7 @@
       "addCard": "Thêm thẻ",
       "confirmDelete": "Bạn có chắc chắn muốn xóa phương thức thanh toán này không?",
       "deleted": "Đã xóa phương thức thanh toán.",
-      "noMethod": "No Method",
+      "noSavedMethods": "Không có phương thức thanh toán đã lưu.",
       "verify": "Xác minh tài khoản"
     },
     "paypal": {
@@ -267,6 +270,10 @@
     "forgot": "Quên mật khẩu",
     "goLogin": "Go to Login",
     "login": "Đăng nhập",
+    "mfaCode": "Mã",
+    "mfaInstructions": "Nhập mã 6 chữ số từ ứng dụng xác thực của bạn hoặc một trong các mã dự phòng.",
+    "mfaInvalid": "Mã đó không hợp lệ. Vui lòng thử lại.",
+    "mfaTitle": "Đăng nhập hai bước",
     "noAcc": "Không có tài khoản?",
     "noAccountFound": "Không tìm thấy tài khoản nào với email đó. Vui lòng đăng ký để tiếp tục.",
     "or": "or",
@@ -320,6 +327,14 @@
   "notes": {
     "comment": "bình luận",
     "comments": "bình luận",
+    "confirmDelete": "Xóa ghi chú này? Thao tác này không thể hoàn tác.",
+    "deletedNote": "Ghi chú đã xóa",
+    "deletedNoteBy": "Ghi chú của {name}, {posted} · đã xóa {deleted}",
+    "editedViewHistory": "(đã chỉnh sửa · xem lịch sử)",
+    "formatBold": "Đậm",
+    "formatBullets": "Danh sách dấu đầu dòng",
+    "formatItalic": "Nghiêng",
+    "formatNumbered": "Danh sách đánh số",
     "notes": "Ghi chú",
     "notifyOff": "Notify Off",
     "notifyOn": "Notify On",
@@ -328,7 +343,8 @@
     "validate": {
       "content": "Vui lòng nhập ghi chú."
     },
-    "viewAll": "View all"
+    "viewAll": "View all",
+    "viewHistory": "Xem lịch sử"
   },
   "person": {
     "email": "Email",
@@ -382,6 +398,10 @@
     },
     "zip": "Mã bưu chính / Mã bưu chính"
   },
+  "sermon": {
+    "back": "Quay lại",
+    "playlists": "Danh sách phát"
+  },
   "stockPhotos": {
     "photoBy": "Ảnh của:",
     "providedBy": "Ảnh kho được cung cấp bởi"
@@ -402,15 +422,21 @@
     "required": "Trường này là bắt buộc"
   },
   "wrapper": {
+    "allCaughtUp": "Bạn đã xem hết!",
     "chatWith": "Chat with",
+    "clearAll": "Xóa tất cả",
+    "clearAllNotificationsConfirm": "Xóa tất cả thông báo?",
     "currentChurch": "Hội thánh hiện tại",
     "deleteChurch": "Delete",
+    "deleteNotification": "Xóa thông báo",
     "editAccount": "Chỉnh sửa tài khoản",
     "editChurchProfile": "Chỉnh sửa hồ sơ hội thánh",
     "editProfile": "Chỉnh sửa hồ sơ",
     "logout": "Logout",
     "messages": "Messages",
+    "newBadge": "Mới",
     "newPrivateMessage": "Tin nhắn riêng tư mới",
+    "noNotifications": "Không có thông báo",
     "notifications": "Notifications",
     "privateConversation": "Private Conversation",
     "privateMessage": "Tin nhắn riêng tư",
@@ -419,6 +445,7 @@
     "support": "Support",
     "sureRemoveChurch": "Are you sure you wish to delete this church? You no longer will be a member of {}.",
     "switchApp": "Switch App",
-    "switchChurch": "Switch Church"
+    "switchChurch": "Switch Church",
+    "viewDetails": "Xem chi tiết"
   }
 }

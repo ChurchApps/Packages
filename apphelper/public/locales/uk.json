@@ -75,10 +75,12 @@
       "cover": "Я щедро додам {} для покриття комісій транзакцій, щоб ви могли зберегти 100% своєї пожертви.",
       "donate": "Пожертвувати",
       "editRecurring": "Редагувати періодичну пожертву",
+      "enterNewCard": "Введіть нову картку",
       "fees": "Застосовуються комісії за транзакції {}.",
       "frequency": "Частота",
       "fund": "Фонд",
       "funds": "Фонди",
+      "loginToManage": "Увійдіть, щоб керувати наявними пожертвами",
       "make": "Зробити пожертву",
       "makeRecurring": "Зробити періодичну пожертву",
       "method": "Метод",
@@ -88,6 +90,7 @@
       "preview": "Попередній перегляд пожертви",
       "quarterly": "Поквартально",
       "recurringUpdated": "Періодичну пожертву оновлено.",
+      "saveCard": "Зберегти цю картку для майбутніх пожертв",
       "startDate": "Дата початку",
       "thankYou": "Дякуємо за вашу пожертву!",
       "tooLow": "Сума пожертви повинна бути більша за $0,50",
@@ -146,7 +149,7 @@
       "addCard": "Додати карту",
       "confirmDelete": "Ви впевнені, що хочете видалити цей спосіб оплати?",
       "deleted": "Спосіб оплати видалено.",
-      "noMethod": "No Method",
+      "noSavedMethods": "Немає збережених способів оплати.",
       "verify": "Перевірити рахунок"
     },
     "paypal": {
@@ -267,6 +270,10 @@
     "forgot": "Забув пароль",
     "goLogin": "Go to Login",
     "login": "Вхід",
+    "mfaCode": "Код",
+    "mfaInstructions": "Введіть 6-значний код із застосунку автентифікації або один із резервних кодів.",
+    "mfaInvalid": "Цей код не спрацював. Спробуйте ще раз.",
+    "mfaTitle": "Двофакторний вхід",
     "noAcc": "Немаєте облікового запису?",
     "noAccountFound": "Обліковий запис із цією електронною адресою не знайдено. Зареєструйтеся, щоб продовжити.",
     "or": "or",
@@ -320,6 +327,14 @@
   "notes": {
     "comment": "коментар",
     "comments": "коментарі",
+    "confirmDelete": "Видалити цю нотатку? Цю дію не можна скасувати.",
+    "deletedNote": "Видалена нотатка",
+    "deletedNoteBy": "Нотатка від {name}, {posted} · видалено {deleted}",
+    "editedViewHistory": "(змінено · переглянути історію)",
+    "formatBold": "Жирний",
+    "formatBullets": "Маркований список",
+    "formatItalic": "Курсив",
+    "formatNumbered": "Нумерований список",
     "notes": "Примітки",
     "notifyOff": "Notify Off",
     "notifyOn": "Notify On",
@@ -328,7 +343,8 @@
     "validate": {
       "content": "Будь ласка, введіть примітку."
     },
-    "viewAll": "View all"
+    "viewAll": "View all",
+    "viewHistory": "Переглянути історію"
   },
   "person": {
     "email": "Email",
@@ -382,6 +398,10 @@
     },
     "zip": "Поштовий індекс / Поштовий код"
   },
+  "sermon": {
+    "back": "Назад",
+    "playlists": "Плейлисти"
+  },
   "stockPhotos": {
     "photoBy": "Фото від:",
     "providedBy": "Стокові фотографії надані"
@@ -402,15 +422,21 @@
     "required": "Це поле є обов'язковим"
   },
   "wrapper": {
+    "allCaughtUp": "Ви все переглянули!",
     "chatWith": "Chat with",
+    "clearAll": "Очистити все",
+    "clearAllNotificationsConfirm": "Очистити всі сповіщення?",
     "currentChurch": "Поточна церква",
     "deleteChurch": "Delete",
+    "deleteNotification": "Видалити сповіщення",
     "editAccount": "Редагувати обліковий запис",
     "editChurchProfile": "Редагувати профіль у церкві",
     "editProfile": "Редагувати профіль",
     "logout": "Logout",
     "messages": "Messages",
+    "newBadge": "Нове",
     "newPrivateMessage": "Нове приватне повідомлення",
+    "noNotifications": "Немає сповіщень",
     "notifications": "Notifications",
     "privateConversation": "Private Conversation",
     "privateMessage": "Приватне повідомлення",
@@ -419,6 +445,7 @@
     "support": "Support",
     "sureRemoveChurch": "Are you sure you wish to delete this church? You no longer will be a member of {}.",
     "switchApp": "Switch App",
-    "switchChurch": "Switch Church"
+    "switchChurch": "Switch Church",
+    "viewDetails": "Докладніше"
   }
 }

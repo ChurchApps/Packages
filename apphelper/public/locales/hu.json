@@ -75,10 +75,12 @@
       "cover": "Szívesen hozzáadok {} a tranzakciós díjak fedezésére, így az adományzás 100% -á marad.",
       "donate": "Adományzás",
       "editRecurring": "Ismétlődő adományzás szerkesztése",
+      "enterNewCard": "Új kártya megadása",
       "fees": "Tranzakciós díjak {} alkalmazódnak.",
       "frequency": "Gyakorisá",
       "fund": "Alap",
       "funds": "Alapok",
+      "loginToManage": "Jelentkezzen be a meglévő adományok kezeléséhez",
       "make": "Adományzás",
       "makeRecurring": "Ismétlődő adományzás",
       "method": "Módszer",
@@ -88,6 +90,7 @@
       "preview": "Adományzás előnézete",
       "quarterly": "Negyedévente",
       "recurringUpdated": "Ismétlődő adományzás frissítve.",
+      "saveCard": "Kártya mentése a jövőbeli adományokhoz",
       "startDate": "Kezdés dátuma",
       "thankYou": "Köszönjük az adományzást!",
       "tooLow": "Az adományzás összegének több mint 0,50 dollárnak kell lennie",
@@ -146,7 +149,7 @@
       "addCard": "Kártya hozzáadása",
       "confirmDelete": "Biztosan szeretné törölni ezt a fizetési módszert?",
       "deleted": "Fizetési módszer törlésre.",
-      "noMethod": "No Method",
+      "noSavedMethods": "Nincsenek mentett fizetési módok.",
       "verify": "Számla ellenőrzése"
     },
     "paypal": {
@@ -267,6 +270,10 @@
     "forgot": "Elfelejtette a jelszavát",
     "goLogin": "Go to Login",
     "login": "Bejelentkezés",
+    "mfaCode": "Kód",
+    "mfaInstructions": "Adja meg a hitelesítő alkalmazás 6 jegyű kódját vagy valamelyik tartalékkódját.",
+    "mfaInvalid": "Ez a kód nem működött. Kérjük, próbálja újra.",
+    "mfaTitle": "Kétlépcsős bejelentkezés",
     "noAcc": "Nem rendelkezik fiókkal?",
     "noAccountFound": "Ezzel az e-mail címmel nem található fiók. Regisztráljon a folytatáshoz.",
     "or": "or",
@@ -320,6 +327,14 @@
   "notes": {
     "comment": "hozzászólás",
     "comments": "hozzászólások",
+    "confirmDelete": "Törli ezt a jegyzetet? Ez nem vonható vissza.",
+    "deletedNote": "Törölt jegyzet",
+    "deletedNoteBy": "{name} jegyzete, {posted} · törölve {deleted}",
+    "editedViewHistory": "(szerkesztve · előzmények megtekintése)",
+    "formatBold": "Félkövér",
+    "formatBullets": "Felsorolás",
+    "formatItalic": "Dőlt",
+    "formatNumbered": "Számozott lista",
     "notes": "Megjegyzések",
     "notifyOff": "Notify Off",
     "notifyOn": "Notify On",
@@ -328,7 +343,8 @@
     "validate": {
       "content": "Kérjük, adjon meg egy megjegyzést."
     },
-    "viewAll": "View all"
+    "viewAll": "View all",
+    "viewHistory": "Előzmények megtekintése"
   },
   "person": {
     "email": "E-mail",
@@ -382,6 +398,10 @@
     },
     "zip": "Irányítószám"
   },
+  "sermon": {
+    "back": "Vissza",
+    "playlists": "Lejátszási listák"
+  },
   "stockPhotos": {
     "photoBy": "Foto által:",
     "providedBy": "Készletfotók által biztosítva"
@@ -402,15 +422,21 @@
     "required": "Ez a mező kötelező"
   },
   "wrapper": {
+    "allCaughtUp": "Mindent megnézett!",
     "chatWith": "Chat with",
+    "clearAll": "Összes törlése",
+    "clearAllNotificationsConfirm": "Törli az összes értesítést?",
     "currentChurch": "Jelenlegi gyülekezet",
     "deleteChurch": "Delete",
+    "deleteNotification": "Értesítés törlése",
     "editAccount": "Fiók szerkesztése",
     "editChurchProfile": "Gyülekezeti profil szerkesztése",
     "editProfile": "Profil szerkesztése",
     "logout": "Logout",
     "messages": "Messages",
+    "newBadge": "Új",
     "newPrivateMessage": "Új személyes üzenet",
+    "noNotifications": "Nincsenek értesítések",
     "notifications": "Notifications",
     "privateConversation": "Private Conversation",
     "privateMessage": "Személyes üzenet",
@@ -419,6 +445,7 @@
     "support": "Support",
     "sureRemoveChurch": "Are you sure you wish to delete this church? You no longer will be a member of {}.",
     "switchApp": "Switch App",
-    "switchChurch": "Switch Church"
+    "switchChurch": "Switch Church",
+    "viewDetails": "Részletek megtekintése"
   }
 }

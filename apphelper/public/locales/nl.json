@@ -75,10 +75,12 @@
       "cover": "Ik voeg graag {} toe om de transactiekosten te dekken, zodat u 100% van mijn donatie behoudt.",
       "donate": "Doneren",
       "editRecurring": "Terugkerende donatie bewerken",
+      "enterNewCard": "Nieuwe kaart invoeren",
       "fees": "Transactiekosten van {} worden toegepast.",
       "frequency": "Frequentie",
       "fund": "Fonds",
       "funds": "Fondsen",
+      "loginToManage": "Log in om bestaande donaties te beheren",
       "make": "Een donatie doen",
       "makeRecurring": "Een terugkerende donatie doen",
       "method": "Methode",
@@ -88,6 +90,7 @@
       "preview": "Donatie voorbeeld",
       "quarterly": "Per kwartaal",
       "recurringUpdated": "Terugkerende donatie bijgewerkt.",
+      "saveCard": "Deze kaart opslaan voor toekomstige donaties",
       "startDate": "Startdatum",
       "thankYou": "Bedankt voor uw donatie!",
       "tooLow": "Donatiebedrag moet hoger zijn dan $0,50",
@@ -146,7 +149,7 @@
       "addCard": "Kaart toevoegen",
       "confirmDelete": "Weet u zeker dat u deze betaalmethode wilt verwijderen?",
       "deleted": "Betaalmethode verwijderd.",
-      "noMethod": "No Method",
+      "noSavedMethods": "Geen opgeslagen betaalmethoden.",
       "verify": "Rekening verifiëren"
     },
     "paypal": {
@@ -267,6 +270,10 @@
     "forgot": "Wachtwoord vergeten",
     "goLogin": "Go to Login",
     "login": "Inloggen",
+    "mfaCode": "Code",
+    "mfaInstructions": "Voer de 6-cijferige code uit je authenticator-app in, of een van je back-upcodes.",
+    "mfaInvalid": "Die code werkte niet. Probeer het opnieuw.",
+    "mfaTitle": "Inloggen in twee stappen",
     "noAcc": "Heeft u geen account?",
     "noAccountFound": "Er is geen account gevonden met dat e-mailadres. Registreer om door te gaan.",
     "or": "or",
@@ -320,6 +327,14 @@
   "notes": {
     "comment": "opmerking",
     "comments": "opmerkingen",
+    "confirmDelete": "Deze notitie verwijderen? Dit kan niet ongedaan worden gemaakt.",
+    "deletedNote": "Verwijderde notitie",
+    "deletedNoteBy": "Notitie van {name}, {posted} · verwijderd {deleted}",
+    "editedViewHistory": "(bewerkt · geschiedenis bekijken)",
+    "formatBold": "Vet",
+    "formatBullets": "Lijst met opsommingstekens",
+    "formatItalic": "Cursief",
+    "formatNumbered": "Genummerde lijst",
     "notes": "Notities",
     "notifyOff": "Notify Off",
     "notifyOn": "Notify On",
@@ -328,7 +343,8 @@
     "validate": {
       "content": "Voer een notitie in."
     },
-    "viewAll": "View all"
+    "viewAll": "View all",
+    "viewHistory": "Geschiedenis bekijken"
   },
   "person": {
     "email": "E-mail",
@@ -382,6 +398,10 @@
     },
     "zip": "Postcode"
   },
+  "sermon": {
+    "back": "Terug",
+    "playlists": "Afspeellijsten"
+  },
   "stockPhotos": {
     "photoBy": "Foto door:",
     "providedBy": "Stockfoto's geleverd door"
@@ -402,15 +422,21 @@
     "required": "Dit veld is verplicht"
   },
   "wrapper": {
+    "allCaughtUp": "Je bent helemaal bij!",
     "chatWith": "Chat with",
+    "clearAll": "Alles wissen",
+    "clearAllNotificationsConfirm": "Alle meldingen wissen?",
     "currentChurch": "Huidige kerk",
     "deleteChurch": "Delete",
+    "deleteNotification": "Melding verwijderen",
     "editAccount": "Account bewerken",
     "editChurchProfile": "Kerkprofiel bewerken",
     "editProfile": "Profiel bewerken",
     "logout": "Logout",
     "messages": "Messages",
+    "newBadge": "Nieuw",
     "newPrivateMessage": "Nieuw privébericht",
+    "noNotifications": "Geen meldingen",
     "notifications": "Notifications",
     "privateConversation": "Private Conversation",
     "privateMessage": "Privébericht",
@@ -419,6 +445,7 @@
     "support": "Support",
     "sureRemoveChurch": "Are you sure you wish to delete this church? You no longer will be a member of {}.",
     "switchApp": "Switch App",
-    "switchChurch": "Switch Church"
+    "switchChurch": "Switch Church",
+    "viewDetails": "Details bekijken"
   }
 }

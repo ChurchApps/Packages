@@ -75,10 +75,12 @@
       "cover": "取引手数料をカバーするために喜んで {} を追加して、寄付の 100% を保つことができます。",
       "donate": "寄付する",
       "editRecurring": "定期的な寄付を編集",
+      "enterNewCard": "新しいカードを入力",
       "fees": "取引手数料 {} が適用されます。",
       "frequency": "頻度",
       "fund": "ファンド",
       "funds": "ファンド",
+      "loginToManage": "既存の寄付を管理するにはログインしてください",
       "make": "寄付をする",
       "makeRecurring": "定期的な寄付をする",
       "method": "方法",
@@ -88,6 +90,7 @@
       "preview": "寄付をプレビュー",
       "quarterly": "四半期ごと",
       "recurringUpdated": "定期的な寄付が更新されました。",
+      "saveCard": "今後の寄付のためにこのカードを保存する",
       "startDate": "開始日",
       "thankYou": "ご寄付ありがとうございます!",
       "tooLow": "寄付額は $0.50 より大きい必要があります",
@@ -146,7 +149,7 @@
       "addCard": "カードを追加",
       "confirmDelete": "この支払い方法を削除してもよろしいですか?",
       "deleted": "支払い方法が削除されました。",
-      "noMethod": "支払い方法なし",
+      "noSavedMethods": "保存された支払い方法はありません。",
       "verify": "アカウントを確認"
     },
     "paypal": {
@@ -267,6 +270,10 @@
     "forgot": "パスワードをお忘れですか",
     "goLogin": "Go to Login",
     "login": "ログイン",
+    "mfaCode": "コード",
+    "mfaInstructions": "認証アプリの6桁のコード、またはバックアップコードのいずれかを入力してください。",
+    "mfaInvalid": "そのコードは無効でした。もう一度お試しください。",
+    "mfaTitle": "2段階認証サインイン",
     "noAcc": "アカウントがありませんか?",
     "noAccountFound": "そのメールアドレスのアカウントが見つかりませんでした。続行するには登録してください。",
     "or": "または",
@@ -320,6 +327,14 @@
   "notes": {
     "comment": "コメント",
     "comments": "コメント",
+    "confirmDelete": "このメモを削除しますか？この操作は元に戻せません。",
+    "deletedNote": "削除されたメモ",
+    "deletedNoteBy": "{name}のメモ、{posted} · {deleted}に削除",
+    "editedViewHistory": "（編集済み · 履歴を表示）",
+    "formatBold": "太字",
+    "formatBullets": "箇条書き",
+    "formatItalic": "斜体",
+    "formatNumbered": "番号付きリスト",
     "notes": "ノート",
     "notifyOff": "通知オフ",
     "notifyOn": "通知オン",
@@ -328,7 +343,8 @@
     "validate": {
       "content": "ノートを入力してください。"
     },
-    "viewAll": "View all"
+    "viewAll": "View all",
+    "viewHistory": "履歴を表示"
   },
   "person": {
     "email": "メール",
@@ -382,6 +398,10 @@
     },
     "zip": "郵便番号"
   },
+  "sermon": {
+    "back": "戻る",
+    "playlists": "プレイリスト"
+  },
   "stockPhotos": {
     "photoBy": "写真撮影:",
     "providedBy": "ストック写真の提供"
@@ -402,15 +422,21 @@
     "required": "この項目は必須です"
   },
   "wrapper": {
+    "allCaughtUp": "すべて確認済みです！",
     "chatWith": "Chat with",
+    "clearAll": "すべてクリア",
+    "clearAllNotificationsConfirm": "すべての通知をクリアしますか？",
     "currentChurch": "現在の教会",
     "deleteChurch": "Delete",
+    "deleteNotification": "通知を削除",
     "editAccount": "アカウントを編集",
     "editChurchProfile": "教会プロフィールを編集",
     "editProfile": "プロフィールを編集",
     "logout": "Logout",
     "messages": "Messages",
+    "newBadge": "新着",
     "newPrivateMessage": "新しいプライベート メッセージ",
+    "noNotifications": "通知はありません",
     "notifications": "Notifications",
     "privateConversation": "プライベートな会話",
     "privateMessage": "プライベート メッセージ",
@@ -419,6 +445,7 @@
     "support": "Support",
     "sureRemoveChurch": "Are you sure you wish to delete this church? You no longer will be a member of {}.",
     "switchApp": "Switch App",
-    "switchChurch": "Switch Church"
+    "switchChurch": "Switch Church",
+    "viewDetails": "詳細を表示"
   }
 }

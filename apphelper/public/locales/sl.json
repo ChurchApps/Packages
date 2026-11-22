@@ -75,10 +75,12 @@
       "cover": "Gostoljubno dodajam {} za kritje provizij za transakcije, da lahko ohranite 100% svoje donacije.",
       "donate": "Doniraj",
       "editRecurring": "Uredi ponavljajočo se donacijo",
+      "enterNewCard": "Vnesite novo kartico",
       "fees": "Uporabljajo se provizije za transakcije {}.",
       "frequency": "Pogostost",
       "fund": "Sklad",
       "funds": "Sredstva",
+      "loginToManage": "Prijavite se za upravljanje obstoječih darov",
       "make": "Naredi donacijo",
       "makeRecurring": "Naredi ponavljajočo se donacijo",
       "method": "Metoda",
@@ -88,6 +90,7 @@
       "preview": "Predogled donacije",
       "quarterly": "Četrtletno",
       "recurringUpdated": "Ponavljajoča se donacija je bila posodobljena.",
+      "saveCard": "Shrani to kartico za prihodnje darove",
       "startDate": "Datum začetka",
       "thankYou": "Hvala za vašo donacijo!",
       "tooLow": "Znesek donacije mora biti večji od 0,50 USD",
@@ -146,7 +149,7 @@
       "addCard": "Dodaj kartico",
       "confirmDelete": "Ali ste prepričani, da želite izbrisati ta način plačila?",
       "deleted": "Način plačila izbrisan.",
-      "noMethod": "No Method",
+      "noSavedMethods": "Ni shranjenih načinov plačila.",
       "verify": "Preveri račun"
     },
     "paypal": {
@@ -267,6 +270,10 @@
     "forgot": "Ste pozabili geslo",
     "goLogin": "Go to Login",
     "login": "Prijava",
+    "mfaCode": "Koda",
+    "mfaInstructions": "Vnesite 6-mestno kodo iz aplikacije za preverjanje pristnosti ali eno od rezervnih kod.",
+    "mfaInvalid": "Ta koda ni delovala. Poskusite znova.",
+    "mfaTitle": "Dvostopenjska prijava",
     "noAcc": "Nimate računa?",
     "noAccountFound": "Račun s tem e-poštnim naslovom ni bil najden. Registrirajte se za nadaljevanje.",
     "or": "or",
@@ -320,6 +327,14 @@
   "notes": {
     "comment": "komentar",
     "comments": "komentarji",
+    "confirmDelete": "Želite izbrisati to opombo? Tega ni mogoče razveljaviti.",
+    "deletedNote": "Izbrisana opomba",
+    "deletedNoteBy": "Opomba: {name}, {posted} · izbrisano {deleted}",
+    "editedViewHistory": "(urejeno · prikaži zgodovino)",
+    "formatBold": "Krepko",
+    "formatBullets": "Seznam z oznakami",
+    "formatItalic": "Ležeče",
+    "formatNumbered": "Oštevilčen seznam",
     "notes": "Opombe",
     "notifyOff": "Notify Off",
     "notifyOn": "Notify On",
@@ -328,7 +343,8 @@
     "validate": {
       "content": "Prosim vnesite opombo."
     },
-    "viewAll": "View all"
+    "viewAll": "View all",
+    "viewHistory": "Prikaži zgodovino"
   },
   "person": {
     "email": "Email",
@@ -382,6 +398,10 @@
     },
     "zip": "Poštna številka / Poštni kod"
   },
+  "sermon": {
+    "back": "Nazaj",
+    "playlists": "Seznami predvajanja"
+  },
   "stockPhotos": {
     "photoBy": "Fotografija od:",
     "providedBy": "Arhivne fotografije zagotavlja"
@@ -402,15 +422,21 @@
     "required": "To polje je obvezno"
   },
   "wrapper": {
+    "allCaughtUp": "Vse ste pregledali!",
     "chatWith": "Chat with",
+    "clearAll": "Počisti vse",
+    "clearAllNotificationsConfirm": "Želite počistiti vsa obvestila?",
     "currentChurch": "Trenutna cerkev",
     "deleteChurch": "Delete",
+    "deleteNotification": "Izbriši obvestilo",
     "editAccount": "Uredi račun",
     "editChurchProfile": "Uredi cerkveni profil",
     "editProfile": "Uredi profil",
     "logout": "Logout",
     "messages": "Messages",
+    "newBadge": "Novo",
     "newPrivateMessage": "Novo zasebno sporočilo",
+    "noNotifications": "Ni obvestil",
     "notifications": "Notifications",
     "privateConversation": "Private Conversation",
     "privateMessage": "Zasebno sporočilo",
@@ -419,6 +445,7 @@
     "support": "Support",
     "sureRemoveChurch": "Are you sure you wish to delete this church? You no longer will be a member of {}.",
     "switchApp": "Switch App",
-    "switchChurch": "Switch Church"
+    "switchChurch": "Switch Church",
+    "viewDetails": "Prikaži podrobnosti"
   }
 }

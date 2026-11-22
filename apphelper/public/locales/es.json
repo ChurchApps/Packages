@@ -75,10 +75,12 @@
       "cover": "Generosamente agregaré {} para cubrir las tarifas de transacción para que pueda mantener el 100% de mi donación.",
       "donate": "Donar",
       "editRecurring": "Editar Donación Recurrente",
+      "enterNewCard": "Introducir nueva tarjeta",
       "fees": "Se aplican tarifas de transacción de {}.",
       "frequency": "Frecuencia",
       "fund": "Fondo",
       "funds": "Fondos",
+      "loginToManage": "Inicia sesión para administrar las donaciones existentes",
       "make": "Hacer una Donación",
       "makeRecurring": "Hacer una Donación Recurrente",
       "method": "Método",
@@ -88,6 +90,7 @@
       "preview": "Vista Previa de la Donación",
       "quarterly": "Trimestral",
       "recurringUpdated": "Donación recurrente actualizada.",
+      "saveCard": "Guardar esta tarjeta para futuras donaciones",
       "startDate": "Fecha de Inicio",
       "thankYou": "¡Gracias por su donación!",
       "tooLow": "La cantidad de la donación debe ser mayor a $0.50",
@@ -146,7 +149,7 @@
       "addCard": "Agregar Tarjeta",
       "confirmDelete": "¿Está seguro de que desea eliminar este método de pago?",
       "deleted": "Método de pago eliminado.",
-      "noMethod": "No Method",
+      "noSavedMethods": "No hay métodos de pago guardados.",
       "verify": "Verificar Cuenta"
     },
     "paypal": {
@@ -267,6 +270,10 @@
     "forgot": "Olvidó la Contraseña",
     "goLogin": "Go to Login",
     "login": "Iniciar Sesión",
+    "mfaCode": "Código",
+    "mfaInstructions": "Introduce el código de 6 dígitos de tu aplicación de autenticación o uno de tus códigos de respaldo.",
+    "mfaInvalid": "Ese código no funcionó. Inténtalo de nuevo.",
+    "mfaTitle": "Inicio de sesión en dos pasos",
     "noAcc": "¿No tiene una cuenta?",
     "noAccountFound": "No se encontró ninguna cuenta con ese correo electrónico. Por favor regístrese para continuar.",
     "or": "or",
@@ -320,6 +327,14 @@
   "notes": {
     "comment": "comentario",
     "comments": "comentarios",
+    "confirmDelete": "¿Eliminar esta nota? Esta acción no se puede deshacer.",
+    "deletedNote": "Nota eliminada",
+    "deletedNoteBy": "Nota de {name}, {posted} · eliminada {deleted}",
+    "editedViewHistory": "(editada · ver historial)",
+    "formatBold": "Negrita",
+    "formatBullets": "Lista con viñetas",
+    "formatItalic": "Cursiva",
+    "formatNumbered": "Lista numerada",
     "notes": "Notas",
     "notifyOff": "Notify Off",
     "notifyOn": "Notify On",
@@ -328,7 +343,8 @@
     "validate": {
       "content": "Por favor ingrese una nota."
     },
-    "viewAll": "View all"
+    "viewAll": "View all",
+    "viewHistory": "Ver historial"
   },
   "person": {
     "email": "Correo Electrónico",
@@ -382,6 +398,10 @@
     },
     "zip": "Código Postal"
   },
+  "sermon": {
+    "back": "Atrás",
+    "playlists": "Listas de reproducción"
+  },
   "stockPhotos": {
     "photoBy": "Foto por:",
     "providedBy": "Fotos de stock proporcionadas por"
@@ -402,15 +422,21 @@
     "required": "Este campo es obligatorio"
   },
   "wrapper": {
+    "allCaughtUp": "¡Estás al día!",
     "chatWith": "Chat with",
+    "clearAll": "Borrar todo",
+    "clearAllNotificationsConfirm": "¿Borrar todas las notificaciones?",
     "currentChurch": "Iglesia actual",
     "deleteChurch": "Delete",
+    "deleteNotification": "Eliminar notificación",
     "editAccount": "Editar cuenta",
     "editChurchProfile": "Editar perfil de la iglesia",
     "editProfile": "Editar perfil",
     "logout": "Logout",
     "messages": "Messages",
+    "newBadge": "Nuevo",
     "newPrivateMessage": "Nuevo Mensaje Privado",
+    "noNotifications": "No hay notificaciones",
     "notifications": "Notifications",
     "privateConversation": "Private Conversation",
     "privateMessage": "Mensaje Privado",
@@ -419,6 +445,7 @@
     "support": "Support",
     "sureRemoveChurch": "Are you sure you wish to delete this church? You no longer will be a member of {}.",
     "switchApp": "Switch App",
-    "switchChurch": "Switch Church"
+    "switchChurch": "Switch Church",
+    "viewDetails": "Ver detalles"
   }
 }

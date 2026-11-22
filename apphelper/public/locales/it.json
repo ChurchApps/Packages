@@ -75,10 +75,12 @@
       "cover": "Aggiungerò generosamente {} per coprire le commissioni di transazione in modo che tu possa trattenere il 100% della mia donazione.",
       "donate": "Donare",
       "editRecurring": "Modifica donazione ricorrente",
+      "enterNewCard": "Inserisci una nuova carta",
       "fees": "Vengono applicate commissioni di transazione di {}.",
       "frequency": "Frequenza",
       "fund": "Finanziare",
       "funds": "Fondi",
+      "loginToManage": "Accedi per gestire le donazioni esistenti",
       "make": "Fai una donazione",
       "makeRecurring": "Fai una donazione ricorrente",
       "method": "Metodo",
@@ -88,6 +90,7 @@
       "preview": "Anteprima della donazione",
       "quarterly": "Trimestrale",
       "recurringUpdated": "Donazione ricorrente aggiornata.",
+      "saveCard": "Salva questa carta per le donazioni future",
       "startDate": "Data d'inizio",
       "thankYou": "Grazie per la vostra donazione!",
       "tooLow": "L'importo della donazione deve essere superiore a $ 0,50",
@@ -146,7 +149,7 @@
       "addCard": "Aggiungi carta",
       "confirmDelete": "Sei sicuro di voler eliminare questo metodo di pagamento?",
       "deleted": "Metodo di pagamento eliminato.",
-      "noMethod": "No Method",
+      "noSavedMethods": "Nessun metodo di pagamento salvato.",
       "verify": "Verifica Account"
     },
     "paypal": {
@@ -267,6 +270,10 @@
     "forgot": "Ha dimenticato la password",
     "goLogin": "Go to Login",
     "login": "Login",
+    "mfaCode": "Codice",
+    "mfaInstructions": "Inserisci il codice a 6 cifre dalla tua app di autenticazione o uno dei tuoi codici di backup.",
+    "mfaInvalid": "Quel codice non ha funzionato. Riprova.",
+    "mfaTitle": "Accesso a due fattori",
     "noAcc": "Non hai un account?",
     "noAccountFound": "Nessun account trovato con questa e-mail. Registrati per continuare.",
     "or": "or",
@@ -320,6 +327,14 @@
   "notes": {
     "comment": "commento",
     "comments": "Commenti",
+    "confirmDelete": "Eliminare questa nota? L'operazione non può essere annullata.",
+    "deletedNote": "Nota eliminata",
+    "deletedNoteBy": "Nota di {name}, {posted} · eliminata {deleted}",
+    "editedViewHistory": "(modificata · visualizza cronologia)",
+    "formatBold": "Grassetto",
+    "formatBullets": "Elenco puntato",
+    "formatItalic": "Corsivo",
+    "formatNumbered": "Elenco numerato",
     "notes": "Appunti",
     "notifyOff": "Notify Off",
     "notifyOn": "Notify On",
@@ -328,7 +343,8 @@
     "validate": {
       "content": "Inserisci una nota."
     },
-    "viewAll": "View all"
+    "viewAll": "View all",
+    "viewHistory": "Visualizza cronologia"
   },
   "person": {
     "email": "E-mail",
@@ -382,6 +398,10 @@
     },
     "zip": "Zip / Codice postale"
   },
+  "sermon": {
+    "back": "Indietro",
+    "playlists": "Playlist"
+  },
   "stockPhotos": {
     "photoBy": "Fotografato da:",
     "providedBy": "Foto d'archivio fornite da"
@@ -402,15 +422,21 @@
     "required": "Questo campo è obbligatorio"
   },
   "wrapper": {
+    "allCaughtUp": "Sei aggiornato!",
     "chatWith": "Chat with",
+    "clearAll": "Cancella tutto",
+    "clearAllNotificationsConfirm": "Cancellare tutte le notifiche?",
     "currentChurch": "Chiesa attuale",
     "deleteChurch": "Delete",
+    "deleteNotification": "Elimina notifica",
     "editAccount": "Modifica account",
     "editChurchProfile": "Modifica profilo della chiesa",
     "editProfile": "Modifica profilo",
     "logout": "Logout",
     "messages": "Messages",
+    "newBadge": "Nuovo",
     "newPrivateMessage": "Nuovo messaggio privato",
+    "noNotifications": "Nessuna notifica",
     "notifications": "Notifications",
     "privateConversation": "Private Conversation",
     "privateMessage": "Messaggio privato",
@@ -419,6 +445,7 @@
     "support": "Support",
     "sureRemoveChurch": "Are you sure you wish to delete this church? You no longer will be a member of {}.",
     "switchApp": "Switch App",
-    "switchChurch": "Switch Church"
+    "switchChurch": "Switch Church",
+    "viewDetails": "Visualizza dettagli"
   }
 }

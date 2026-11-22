@@ -75,10 +75,12 @@
       "cover": "Acrescentarei generosamente {} para cobrir as taxas de transação para que você possa ficar com 100% da minha doação.",
       "donate": "Doar",
       "editRecurring": "Editar doação recorrente",
+      "enterNewCard": "Inserir novo cartão",
       "fees": "São aplicadas taxas de transação de {}.",
       "frequency": "Frequência",
       "fund": "Fundo",
       "funds": "Fundos",
+      "loginToManage": "Entre para gerenciar as doações existentes",
       "make": "Faça uma doação",
       "makeRecurring": "Faça uma doação recorrente",
       "method": "Método",
@@ -88,6 +90,7 @@
       "preview": "Visualizar doação",
       "quarterly": "Trimestral",
       "recurringUpdated": "Doação recorrente atualizada.",
+      "saveCard": "Salvar este cartão para doações futuras",
       "startDate": "Data de início",
       "thankYou": "Obrigado por sua doação!",
       "tooLow": "O valor da doação deve ser superior a US$ 0,50",
@@ -146,7 +149,7 @@
       "addCard": "Adicionar cartão",
       "confirmDelete": "Tem certeza de que deseja excluir esta forma de pagamento?",
       "deleted": "Forma de pagamento excluída.",
-      "noMethod": "No Method",
+      "noSavedMethods": "Nenhum método de pagamento salvo.",
       "verify": "Verificar conta"
     },
     "paypal": {
@@ -267,6 +270,10 @@
     "forgot": "Esqueceu sua senha",
     "goLogin": "Go to Login",
     "login": "Conecte-se",
+    "mfaCode": "Código",
+    "mfaInstructions": "Digite o código de 6 dígitos do seu aplicativo autenticador ou um dos seus códigos de backup.",
+    "mfaInvalid": "Esse código não funcionou. Tente novamente.",
+    "mfaTitle": "Login em duas etapas",
     "noAcc": "Não tem uma conta?",
     "noAccountFound": "Nenhuma conta foi encontrada com esse e-mail. Por favor, registre-se para continuar.",
     "or": "or",
@@ -320,6 +327,14 @@
   "notes": {
     "comment": "Comente",
     "comments": "comentários",
+    "confirmDelete": "Excluir esta nota? Esta ação não pode ser desfeita.",
+    "deletedNote": "Nota excluída",
+    "deletedNoteBy": "Nota de {name}, {posted} · excluída {deleted}",
+    "editedViewHistory": "(editada · ver histórico)",
+    "formatBold": "Negrito",
+    "formatBullets": "Lista com marcadores",
+    "formatItalic": "Itálico",
+    "formatNumbered": "Lista numerada",
     "notes": "Notas",
     "notifyOff": "Notify Off",
     "notifyOn": "Notify On",
@@ -328,7 +343,8 @@
     "validate": {
       "content": "Por favor, insira uma observação."
     },
-    "viewAll": "View all"
+    "viewAll": "View all",
+    "viewHistory": "Ver histórico"
   },
   "person": {
     "email": "E-mail",
@@ -382,6 +398,10 @@
     },
     "zip": "CEP / Código Postal"
   },
+  "sermon": {
+    "back": "Voltar",
+    "playlists": "Playlists"
+  },
   "stockPhotos": {
     "photoBy": "Foto por:",
     "providedBy": "Fotos de estoque fornecidas por"
@@ -402,15 +422,21 @@
     "required": "Este campo é obrigatório"
   },
   "wrapper": {
+    "allCaughtUp": "Você está em dia!",
     "chatWith": "Chat with",
+    "clearAll": "Limpar tudo",
+    "clearAllNotificationsConfirm": "Limpar todas as notificações?",
     "currentChurch": "Igreja atual",
     "deleteChurch": "Delete",
+    "deleteNotification": "Excluir notificação",
     "editAccount": "Editar conta",
     "editChurchProfile": "Editar perfil da igreja",
     "editProfile": "Editar perfil",
     "logout": "Logout",
     "messages": "Messages",
+    "newBadge": "Novo",
     "newPrivateMessage": "Nova Mensagem Privada",
+    "noNotifications": "Nenhuma notificação",
     "notifications": "Notifications",
     "privateConversation": "Private Conversation",
     "privateMessage": "Mensagem privada",
@@ -419,6 +445,7 @@
     "support": "Support",
     "sureRemoveChurch": "Are you sure you wish to delete this church? You no longer will be a member of {}.",
     "switchApp": "Switch App",
-    "switchChurch": "Switch Church"
+    "switchChurch": "Switch Church",
+    "viewDetails": "Ver detalhes"
   }
 }

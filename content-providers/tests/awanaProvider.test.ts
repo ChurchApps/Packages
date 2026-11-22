@@ -12,7 +12,10 @@ const DEV = "https://awanabritedev.wpengine.com/wp-json/content/v1";
 const library = {
   courses: [
     {
-      id: 7, name: "Elementary", image: "https://x/elem.png", is_free: false,
+      id: 7,
+      name: "Elementary",
+      image: "https://x/elem.png",
+      is_free: false,
       units: [
         { id: 46, name: "Patriarchs", image: "https://x/patriarchs.jpg", is_free: false, is_sample: false, has_files: true, lessons: [{ id: 389, name: "Abraham and Lot", description: "Genesis 13", is_sample: false, chapters: [] }] },
         { id: 47, name: "Exodus", is_free: false, is_sample: false, has_files: false, lessons: [{ id: 400, name: "Moses", chapters: [] }] }
@@ -22,7 +25,10 @@ const library = {
 };
 
 const lesson = {
-  id: 389, name: "Abraham and Lot", description: "Genesis 13", is_sample: false,
+  id: 389,
+  name: "Abraham and Lot",
+  description: "Genesis 13",
+  is_sample: false,
   files: [
     { id: 1, name: "Intro Video", group: "Audio & Video", type: "video", mime: "video/mp4", size: 36749649, url: "https://x/intro.mp4" },
     { id: 2, name: "Books Of The Bible Song", group: "Audio & Video", type: "audio", mime: "audio/mpeg", size: 2969776, url: "https://x/song.mp3" },

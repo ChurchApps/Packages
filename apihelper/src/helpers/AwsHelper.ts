@@ -31,6 +31,8 @@ export class AwsHelper {
         const response = await send(new GetParameterCommand({ Name: parameterName, WithDecryption: true }));
         return response?.Parameter?.Value || "";
       } catch (e) {
+        // A parameter that does not exist is an answer, not a fault: retrying it only delays the cold start.
+        if ((e as { name?: string })?.name === "ParameterNotFound") return "";
         lastError = e;
         if (attempt < attempts) await new Promise((resolve) => setTimeout(resolve, baseDelayMs * 2 ** (attempt - 1)));
       }

@@ -40,3 +40,22 @@ test("readParameter returns the value on the first try without retrying", async 
   assert.equal(await AwsHelper.readParameter("/prod/x", send, { attempts: 3, baseDelayMs: 1 }), "secret");
   assert.equal(calls, 1);
 });
+
+// Api prod 2026-11-18..21: the Api keeps one connection string per module, so /prod/API/connectionString
+// (read by EnvironmentBase on every cold start) does not exist. Retrying ParameterNotFound added ~1.4s
+// of backoff to each cold start and logged ~5,200 errors in three days. Not found is an answer, not a fault.
+test("readParameter does not retry or log a parameter that does not exist", async () => {
+  const errors: string[] = [];
+  const original = console.error;
+  console.error = (...args: any[]) => { errors.push(args.map(String).join(" ")); };
+  try {
+    let calls = 0;
+    const send = async (_cmd: any) => { calls++; throw Object.assign(new Error("UnknownError"), { name: "ParameterNotFound" }); };
+    const value = await AwsHelper.readParameter("/prod/API/connectionString", send, { attempts: 4, baseDelayMs: 1 });
+    assert.equal(value, "");
+    assert.equal(calls, 1);
+    assert.equal(errors.length, 0);
+  } finally {
+    console.error = original;
+  }
+});

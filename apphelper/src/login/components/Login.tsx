@@ -13,6 +13,7 @@ interface Props {
 	setShowForgot: (showForgot: boolean) => void,
 	setErrors: (errors: string[]) => void;
 	onRegisterClick?: (email: string) => void;
+	onEmailCodeClick?: (email: string) => void;
 	mainContainerCssProps?: PaperProps;
 	defaultEmail?: string;
 	defaultPassword?: string;
@@ -213,6 +214,18 @@ export const Login: React.FC<Props> = ({ mainContainerCssProps = {}, ...props })
             <SsoButtons />
 
             <div id="login-links" style={{ textAlign: "center", display: "flex", flexDirection: "column", gap: "8px" }}>
+              {props.onEmailCodeClick && (
+                <button
+                  id="email-code-link"
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); props.onEmailCodeClick?.(email); }}
+                  style={{ background: "none", border: "none", color: "#3b82f6", fontSize: "14px", cursor: "pointer", textDecoration: "none" }}
+                  onMouseOver={(e) => e.currentTarget.style.textDecoration = "underline"}
+                  onMouseOut={(e) => e.currentTarget.style.textDecoration = "none"}
+                >
+                  {Locale.label("login.emailCode")}
+                </button>
+              )}
               <button
                 id="forgot-password-link"
                 type="button"

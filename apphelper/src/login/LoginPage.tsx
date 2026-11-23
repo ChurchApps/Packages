@@ -13,6 +13,7 @@ import { Alert, PaperProps } from "@mui/material";
 import { Login } from "./components/Login";
 import { LoginSetPassword } from "./components/LoginSetPassword";
 import { MfaCode } from "./components/MfaCode";
+import { EmailCode } from "./components/EmailCode";
 import ga4 from "react-ga4";
 
 interface Props {
@@ -55,6 +56,7 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
   const [errors, setErrors] = React.useState<string[]>([]);
   const [cookies, setCookie] = useCookies(["jwt", "name", "email", "lastChurchId"]);
   const [showForgot, setShowForgot] = React.useState(false);
+  const [emailCodeFor, setEmailCodeFor] = React.useState<string | null>(null);
   const [showRegister, setShowRegister] = React.useState(false);
   const [showSelectModal, setShowSelectModal] = React.useState(false);
   const [loginResponse, setLoginResponse] = React.useState<LoginResponseInterface | null>(null);
@@ -294,11 +296,11 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
     }
   };
 
-  const login = async (data: any) => {
+  const login = async (data: any, path = "/users/login") => {
     setErrors([]);
     setIsSubmitting(true);
     try {
-      const resp: LoginResponseInterface = await ApiHelper.postAnonymous("/users/login", data, "MembershipApi");
+      const resp: LoginResponseInterface = await ApiHelper.postAnonymous(path, data, "MembershipApi");
       setIsSubmitting(false);
       if (resp.mfaRequired) {
         setPendingAutoLogin(false);
@@ -312,6 +314,7 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
       setPendingAutoLogin(false);
       setWelcomeBackName("");
       if (data.mfaToken) setErrors([e?.message === "Too many requests" ? e.message : Locale.label("login.mfaInvalid")]);
+      else if (data.code) setErrors([e?.message === "Too many requests" ? e.message : Locale.label("login.validate.emailCode")]);
       else if (!data.jwt) handleLoginErrors([e.toString()], data.email);
       setIsSubmitting(false);
     }
@@ -340,7 +343,8 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
   const handleCodeVerified = (authGuid: string, email?: string) => { setVerifiedAuth(authGuid); if (email) setVerifiedEmail(email); setShowForgot(false); setShowRegister(false); };
 
   const getInputBox = () => {
-    if (mfaToken) return <MfaCode isSubmitting={isSubmitting} submit={(code) => login({ mfaToken, mfaCode: code })} cancel={() => { setMfaToken(""); setErrors([]); }} />;
+    if (mfaToken) return <MfaCode isSubmitting={isSubmitting} submit={(code) => login({ mfaToken, mfaCode: code })} cancel={() => { setMfaToken(""); setEmailCodeFor(null); setErrors([]); }} />;
+    if (emailCodeFor !== null) return <EmailCode defaultEmail={emailCodeFor} isSubmitting={isSubmitting} submit={(email, code) => login({ email, code, appName: props.appName }, "/users/loginWithCode")} loginCallback={() => { setEmailCodeFor(null); setErrors([]); }} />;
     if (verifiedAuth) return (<LoginSetPassword setErrors={setErrors} setShowForgot={setShowForgot} isSubmitting={isSubmitting} auth={verifiedAuth} email={verifiedEmail} login={login} appName={props.appName || ""} appUrl={cleanAppUrl() || ""} />);
     if (showRegister) {
       return (
@@ -350,7 +354,7 @@ const LoginPageContent: React.FC<Props> = ({ showLogo = true, loginContainerCssP
       );
     } else if (showForgot) return (<Forgot registerCallback={handleRegisterCallback} loginCallback={handleLoginCallback} onVerified={handleCodeVerified} />);
     else if (props.auth) return (<LoginSetPassword setErrors={setErrors} setShowForgot={setShowForgot} isSubmitting={isSubmitting} auth={props.auth} login={login} appName={props.appName || ""} appUrl={cleanAppUrl() || ""} />);
-    else return <Login setShowRegister={setShowRegister} setShowForgot={setShowForgot} setErrors={setErrors} isSubmitting={isSubmitting} login={login} mainContainerCssProps={loginContainerCssProps} defaultEmail={props.defaultEmail} defaultPassword={props.defaultPassword} showFooter={props.showFooter} onRegisterClick={(email) => { setRegistrationData({ email }); }} />;
+    else return <Login setShowRegister={setShowRegister} setShowForgot={setShowForgot} setErrors={setErrors} isSubmitting={isSubmitting} login={login} mainContainerCssProps={loginContainerCssProps} defaultEmail={props.defaultEmail} defaultPassword={props.defaultPassword} showFooter={props.showFooter} onRegisterClick={(email) => { setRegistrationData({ email }); }} onEmailCodeClick={(email) => { setErrors([]); setEmailCodeFor(email); }} />;
   };
 
 	React.useEffect(init, []); //eslint-disable-line

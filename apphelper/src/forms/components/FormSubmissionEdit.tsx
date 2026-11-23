@@ -53,6 +53,7 @@ export const FormSubmissionEdit: React.FC<Props> = ({ showHeader = true, noBackg
     if (fs.questions !== null && fs.questions !== undefined) {
       fs.answers = fs.answers || [];
       for (let i = 0; i < fs.questions.length; i++) {
+        if (fs.questions[i].fieldType === "Heading") continue;
         const answer: AnswerInterface = { questionId: fs.questions[i].id, value: "" };
         fs.answers.push(answer);
       }
@@ -105,7 +106,7 @@ export const FormSubmissionEdit: React.FC<Props> = ({ showHeader = true, noBackg
       for (let i = 0; i < formSubmission.questions.length; i++) {
         const q = formSubmission.questions[i];
         const answer = getAnswer(q.id || "");
-        if (q.required) {
+        if (q.required && q.fieldType !== "Heading") {
           if (answer === null || answer.value === null || answer.value === "") errors.push((q.title || "Field") + " " + Locale.label("formSubmissionEdit.isRequired"));
         }
       }

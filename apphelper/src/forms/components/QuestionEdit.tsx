@@ -4,6 +4,9 @@ import React from "react";
 // import { MuiTelInput } from "mui-tel-input"; // Temporarily disabled due to MUI v7 compatibility
 import { AnswerInterface, QuestionInterface } from "@churchapps/helpers";
 import { Checkbox, Select, MenuItem, SelectChangeEvent, FormControl, InputLabel, TextField, FormLabel, FormGroup, FormControlLabel, Box, Typography } from "@mui/material";
+import { MarkdownPreviewLight } from "../../markdown/components/markdownEditor/MarkdownPreviewLight";
+
+export const markdownDescriptionSx = { "& p": { my: 0 }, "& p + p, & ul, & ol": { mt: 1, mb: 0 }, "& ul, & ol": { pl: 3 } };
 
 // Labels are bold, so the outlined border's notch (sized from a hidden copy of the label in its legend) must be bold too or the line runs through the label.
 const boldLabelSx = { "& .MuiOutlinedInput-notchedOutline legend": { fontWeight: "bold" } };
@@ -36,7 +39,7 @@ export const QuestionEdit = React.forwardRef<any, Props>(({ noBackground = false
 
   const q = props.question;
   const description = q.description
-    ? <Typography variant="body2" color="text.secondary" className="question-description" sx={{ mt: 0.5, whiteSpace: "pre-wrap" }}>{q.description}</Typography>
+    ? <Typography component="div" variant="body2" color="text.secondary" className="question-description" sx={{ mt: 0.5, ...markdownDescriptionSx }}><MarkdownPreviewLight value={q.description} breaks /></Typography>
     : null;
 
   if (q.fieldType === "Heading") return <><h5>{q.title}</h5>{description}</>;

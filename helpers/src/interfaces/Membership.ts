@@ -212,6 +212,12 @@ export interface QuestionInterface {
   description?: string;
   required?: boolean;
   choices?: { value?: string; text?: string }[];
+  showIf?: QuestionConditionInterface | null;
+}
+// Show the question only when an earlier question is answered (empty value) or answered with this choice.
+export interface QuestionConditionInterface {
+  questionId?: string;
+  value?: string;
 }
 export interface ServiceInterface {
   id?: string;

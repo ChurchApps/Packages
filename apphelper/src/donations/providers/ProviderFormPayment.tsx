@@ -130,14 +130,14 @@ export const ProviderFormPayment = forwardRef<FormPaymentHandle, Props>((props, 
     if (provider.finalizeResult) {
       try {
         const fin = await provider.finalizeResult(results);
-        if (fin.requiresAction) return fin.success ? { paymentSuccessful: true, name, errors: [] as string[] } : fail([fin.error || "Payment was not successful."]);
+        if (fin.requiresAction) return fin.success ? { paymentSuccessful: true, name, errors: [] as string[], captchaPass: captchaPass.current } : fail([fin.error || "Payment was not successful."]);
         results = fin.result;
       } catch (e: any) {
         return fail([e?.message || "Payment was not successful."]);
       }
     }
 
-    if (results?.status && OK_STATUSES.includes(results.status)) return { paymentSuccessful: true, name, errors: [] as string[] };
+    if (results?.status && OK_STATUSES.includes(results.status)) return { paymentSuccessful: true, name, errors: [] as string[], captchaPass: captchaPass.current };
     return fail([results?.raw?.message || results?.error || results?.message || "Payment was not successful."]);
   };
 

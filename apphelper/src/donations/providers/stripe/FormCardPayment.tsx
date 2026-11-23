@@ -74,7 +74,7 @@ const FormCardPaymentInner = forwardRef<FormPaymentHandle, FormPaymentProps>((pr
         return { paymentSuccessful: false, name: "", errors: cardSavedRes.errors || [] };
       }
 
-      return { paymentSuccessful: true, name: person?.name?.display || "", errors: [] as string[] };
+      return { paymentSuccessful: true, name: person?.name?.display || "", errors: [] as string[], captchaPass: captchaPass.current };
     } catch (err) {
       if (isGuest) resetCaptcha();
       const errorMessage = "An error occurred while processing your payment.";

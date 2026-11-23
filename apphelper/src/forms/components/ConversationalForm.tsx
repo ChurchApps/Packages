@@ -14,6 +14,7 @@ interface Props {
   setErrors: (errors: string[]) => void;
   isSubmitting: boolean;
   onSubmit: () => void;
+  lastStepFooter?: React.ReactNode;
 }
 
 const singleLineTypes = [
@@ -100,6 +101,7 @@ export const ConversationalForm: React.FC<Props> = (props) => {
         )}
       </Box>
 
+      {isLast && props.lastStepFooter}
       <ErrorMessages errors={props.errors} />
 
       <Box sx={{ mt: 3, display: "flex", flexDirection: "column", alignItems: "center", gap: 1.5 }}>

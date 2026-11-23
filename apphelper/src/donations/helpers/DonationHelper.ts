@@ -23,6 +23,17 @@ export class DonationHelper {
     return firstPart + "_" + intervalType;
   }
 
+  // ApiHelper throws the raw response body as the message; pull out the Api's { error, code }.
+  static parseApiError(err: unknown): { error?: string, code?: string } {
+    const message = err instanceof Error ? err.message : typeof err === "string" ? err : "";
+    try {
+      const body = JSON.parse(message);
+      return body && typeof body === "object" ? { error: body.error, code: body.code } : {};
+    } catch {
+      return {};
+    }
+  }
+
   static normalizeProvider(provider: string): string {
     return provider?.toLowerCase() || "";
   }

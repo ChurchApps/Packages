@@ -149,6 +149,8 @@
       "addCard": "Add Card",
       "confirmDelete": "Are you sure you wish to delete this payment method?",
       "deleted": "Payment method deleted.",
+      "deleteFailed": "Failed to delete payment method. Please try again.",
+      "inUse": "This payment method is used by a recurring gift. Move the gift to another payment method, then delete this one.",
       "noSavedMethods": "No saved payment methods.",
       "verify": "Verify Account"
     },

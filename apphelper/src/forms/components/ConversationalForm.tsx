@@ -3,6 +3,8 @@
 import React from "react";
 import { Box, Button, LinearProgress, Link, Typography } from "@mui/material";
 import { ErrorMessages } from "./ErrorMessages";
+import { markdownDescriptionSx } from "./QuestionEdit";
+import { MarkdownPreviewLight } from "../../markdown/components/markdownEditor/MarkdownPreviewLight";
 import { Locale } from "../helpers";
 import { AnswerInterface, QuestionInterface } from "@churchapps/helpers";
 
@@ -92,7 +94,7 @@ export const ConversationalForm: React.FC<Props> = (props) => {
           {question.title}
         </Typography>
         {question.fieldType === "Heading" && question.description && (
-          <Typography variant="body1" sx={{ mb: 2, textAlign: "center", color: "text.secondary", whiteSpace: "pre-wrap" }}>{question.description}</Typography>
+          <Typography component="div" variant="body1" sx={{ mb: 2, textAlign: "center", color: "text.secondary", ...markdownDescriptionSx }}><MarkdownPreviewLight value={question.description} breaks /></Typography>
         )}
         {question.fieldType !== "Heading" && (
           <Box sx={{ "& .MuiInputLabel-root": { display: "none" }, "& fieldset legend": { display: "none" } }}>

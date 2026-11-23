@@ -65,6 +65,8 @@ export const KingdomFundingNonAuthDonationInner: React.FC<Props> = ({ mainContai
     const fundId = getUrlParam("fundId");
     const amount = getUrlParam("amount");
     setSearchParams({ fundId, amount });
+    // ?recurring=1 on a giving link starts on Recurring; the toggle stays visible so the donor can switch back.
+    if (DonationHelper.isRecurringLinkValue(getUrlParam("recurring"))) setDonationType("recurring");
 
     ApiHelper.get("/funds/churchId/" + props.churchId, "GivingApi").then((data: any) => {
       setFunds(data);

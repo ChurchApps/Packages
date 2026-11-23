@@ -35,4 +35,16 @@ export class DonationHelper {
     return gateways.find(g => this.isProvider(g.provider, provider));
   }
 
+  // Giving links can carry ?recurring=1 so the form opens with Recurring selected; the donor can still switch to one-time.
+  static isRecurringLinkValue(value: string | null | undefined): boolean {
+    const v = (value || "").trim().toLowerCase();
+    return v === "1" || v === "true" || v === "yes";
+  }
+
+  static isRecurringLink(search?: string): boolean {
+    const query = search ?? (typeof window !== "undefined" ? window.location.search : "");
+    if (!query) return false;
+    return this.isRecurringLinkValue(new URLSearchParams(query).get("recurring"));
+  }
+
 }

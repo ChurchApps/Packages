@@ -1,5 +1,15 @@
 # @churchapps/helpers
 
+## 2.17.0
+
+### Minor Changes
+
+- 0d793de: Funds can carry an optional `description` (`FundInterface.description`). The giving form and fund giving links show it as plain text under the selected fund.
+
+### Patch Changes
+
+- 5cfaeb2: SermonInterface: add `audioUrl`, the sermon's podcast audio file that the Api already returns and the church podcast feed uses as the episode enclosure.
+
 ## 2.16.1
 
 ### Patch Changes

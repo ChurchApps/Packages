@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { DisplayBox, Loading } from "../..";
 import { ApiHelper, UserHelper } from "@churchapps/helpers";
-import { Locale, SavedPaymentMethod, PaymentGateway } from "../helpers";
+import { DonationHelper, Locale, SavedPaymentMethod, PaymentGateway } from "../helpers";
 import { getPaymentProvider, pickDefaultGateway } from "../providers";
 import type { MemberEntryHandle } from "../providers";
 import { PersonInterface, Permissions } from "@churchapps/helpers";
@@ -45,7 +45,9 @@ export const PaymentMethods: React.FC<Props> = (props) => {
         props.dataUpdate(Locale.label("donation.paymentMethods.deleted"));
       }).catch((err: any) => {
         console.error("Failed to delete payment method:", err);
-        alert("Failed to delete payment method. Please try again.");
+        const apiError = DonationHelper.parseApiError(err);
+        if (apiError.code === "payment_method_in_use") alert(Locale.label("donation.paymentMethods.inUse", apiError.error));
+        else alert(Locale.label("donation.paymentMethods.deleteFailed"));
       });
     }
   };

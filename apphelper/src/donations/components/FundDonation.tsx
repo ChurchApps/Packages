@@ -41,9 +41,11 @@ export const FundDonation: React.FC<Props> = (props) => {
     props.updatedFunction(fd, props.index);
   };
 
+  const description = props.funds.find((f) => f.id === props.fundDonation.fundId)?.description?.trim();
+
   return (
     <>
-      <Grid container spacing={1} alignItems="center" sx={{ mb: 2 }}>
+      <Grid container spacing={1} alignItems="center" sx={{ mb: description ? 1 : 2 }}>
         <Grid size={{ xs: (props.removeFunction && props.hideFundSelect) ? 10 : 12, md: props.hideFundSelect ? (props.removeFunction ? 11 : 12) : 5 }}>
           <TextField fullWidth name="amount" label={Locale.label("donation.fundDonations.amount")} type="number" disabled={props.params?.amount && props.params.amount !== ""} aria-label="amount" lang="en-150" value={props.fundDonation.amount || ""} onChange={handleChange} InputProps={{ startAdornment: <Icon><Typography>{props.currency ? CurrencyHelper.getCurrencySymbol(props.currency) : "$"}</Typography></Icon> }} />
         </Grid>
@@ -65,6 +67,9 @@ export const FundDonation: React.FC<Props> = (props) => {
           </Grid>
         )}
       </Grid>
+      {description && (
+        <Typography variant="body2" color="text.secondary" data-testid="fund-description" sx={{ mb: 2, whiteSpace: "pre-line" }}>{description}</Typography>
+      )}
     </>
   );
 };

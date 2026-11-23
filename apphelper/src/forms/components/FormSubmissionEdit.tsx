@@ -1,13 +1,16 @@
 "use client";
 
 /// <reference types="react" />
-import React, { useRef } from "react";
+import React, { useCallback, useRef } from "react";
+import ReCAPTCHA from "react-google-recaptcha";
+import { Box } from "@mui/material";
 import { ErrorMessages, InputBox, QuestionEdit } from "./";
 import { ConversationalForm } from "./ConversationalForm";
 import { Locale } from "../helpers";
 import { AnswerInterface, FormSubmissionInterface, QuestionInterface } from "@churchapps/helpers";
 import { ApiHelper, UniqueIdHelper } from "../..";
 import { FormPaymentQuestion } from "../../donations/components/FormPaymentQuestion";
+import { GuestCaptcha } from "../../donations/helpers/GuestCaptcha";
 
 interface Props {
 	addFormId: string,
@@ -29,6 +32,15 @@ export const FormSubmissionEdit: React.FC<Props> = ({ showHeader = true, noBackg
   const [errors, setErrors] = React.useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = React.useState<boolean>(false);
   const paymentRef = useRef<any>(null);
+  const [paymentShown, setPaymentShown] = React.useState(false);
+  const setPaymentHandle = useCallback((handle: any) => { paymentRef.current = handle; setPaymentShown(!!handle); }, []);
+
+  // Signed-out submitters must pass the captcha; a payment question's own captcha stands in for it.
+  const bypassRecaptcha = typeof process !== "undefined" && process.env?.NEXT_PUBLIC_BYPASS_RECAPTCHA === "true";
+  const recaptchaSiteKey = (typeof process !== "undefined" && process.env?.NEXT_PUBLIC_GOOGLE_RECAPTCHA_SITE_KEY) || "";
+  const showCaptcha = !ApiHelper.isAuthenticated && !bypassRecaptcha && !paymentShown;
+  const captchaRef = useRef<ReCAPTCHA>(null);
+  const [captchaPass, setCaptchaPass] = React.useState("");
 
   const getDeleteFunction = () => (!UniqueIdHelper.isMissing(formSubmission?.id)) ? handleDelete : undefined;
   const handleDelete = () => {
@@ -85,7 +97,7 @@ export const FormSubmissionEdit: React.FC<Props> = ({ showHeader = true, noBackg
         noBackground={noBackground}
         churchId={props.churchId}
         onPaymentRequired={(question) => (
-          <FormPaymentQuestion churchId={props.churchId || ""} question={question} ref={paymentRef} />
+          <FormPaymentQuestion churchId={props.churchId || ""} question={question} ref={setPaymentHandle} />
         )}
       />
     );
@@ -114,12 +126,29 @@ export const FormSubmissionEdit: React.FC<Props> = ({ showHeader = true, noBackg
     return errors;
   };
 
+  const handleCaptchaChange = (value: string | null) => {
+    if (!value) { setCaptchaPass(""); return; }
+    GuestCaptcha.verify(value, props.churchId || "")
+      .then((result) => setCaptchaPass(result.pass))
+      .catch(() => setCaptchaPass(""));
+  };
+
+  const resetCaptcha = () => {
+    setCaptchaPass("");
+    captchaRef.current?.reset();
+  };
+
   const handleSave = async () => {
     if (!formSubmission) return;
     setIsSubmitting(true);
     const errors = validate();
+    if (errors.length === 0 && showCaptcha && !captchaPass) {
+      errors.push(Locale.label("formSubmissionEdit.captchaRequired"));
+      setErrors(errors);
+    }
     if (errors.length === 0) {
       const promises: Promise<any>[] = [];
+      let pass = showCaptcha ? captchaPass : "";
 
       if (formSubmission.questions) {
         for (let i = 0; i < formSubmission.questions.length; i++) {
@@ -131,20 +160,25 @@ export const FormSubmissionEdit: React.FC<Props> = ({ showHeader = true, noBackg
               setIsSubmitting(false);
               return;
             }
+            pass = paymentResult.captchaPass || pass;
           }
         }
       }
 
       const fs = { ...formSubmission };
       (fs as any).submissionDate = new Date();
-      promises.push(ApiHelper.post("/formsubmissions", [fs], "MembershipApi"));
+      promises.push(ApiHelper.post("/formsubmissions", [GuestCaptcha.withPass(fs, pass)], "MembershipApi"));
 
       Promise.all(promises).then((results) => {
         setIsSubmitting(false);
         const savedSubmission: FormSubmissionInterface | undefined = results?.[0]?.[0];
         if (savedSubmission?.id) setFormSubmission((prev) => prev ? { ...prev, id: savedSubmission.id } : prev);
         props.updatedFunction(savedSubmission);
-      }).catch(() => {
+      }).catch((e) => {
+        if (String(e?.message || "").includes("Captcha verification required")) {
+          resetCaptcha();
+          setErrors([Locale.label("formSubmissionEdit.captchaRequired")]);
+        }
         setIsSubmitting(false);
       });
     } else {
@@ -170,6 +204,12 @@ export const FormSubmissionEdit: React.FC<Props> = ({ showHeader = true, noBackg
 
   if (!formSubmission) return null;
 
+  const captcha = showCaptcha && (
+    <Box sx={{ mt: 2, display: "flex", justifyContent: "center" }} data-testid="form-captcha">
+      <ReCAPTCHA sitekey={recaptchaSiteKey} ref={captchaRef} onChange={handleCaptchaChange} onExpired={() => setCaptchaPass("")} onErrored={() => setCaptchaPass("")} />
+    </Box>
+  );
+
   if (props.displayMode === "conversational" && (formSubmission.questions?.length || 0) > 0) {
     return (
       <ConversationalForm
@@ -180,6 +220,7 @@ export const FormSubmissionEdit: React.FC<Props> = ({ showHeader = true, noBackg
         setErrors={setErrors}
         isSubmitting={isSubmitting}
         onSubmit={handleSave}
+        lastStepFooter={captcha}
       />
     );
   }
@@ -198,6 +239,7 @@ export const FormSubmissionEdit: React.FC<Props> = ({ showHeader = true, noBackg
     >
       <ErrorMessages errors={errors} />
       {getQuestions()}
+      {captcha}
     </InputBox>
   );
 };

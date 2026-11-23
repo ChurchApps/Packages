@@ -1,5 +1,15 @@
 # @churchapps/apphelper
 
+## 1.13.0
+
+### Minor Changes
+
+- 63567d0: Login: add "Email me a code" sign-in. The member enters their email, gets a 6-digit code, and is signed in with it (two-factor accounts still get the authenticator step). Needs the Api `/membership/users/requestLoginCode` and `/membership/users/loginWithCode` endpoints.
+
+### Patch Changes
+
+- 9b47fc7: Saved payment methods: when the Api refuses to delete a method because a recurring gift is charged to it, tell the member to move the gift to another method first instead of showing a generic error.
+
 ## 1.12.0
 
 ### Minor Changes

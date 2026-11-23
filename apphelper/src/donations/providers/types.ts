@@ -114,7 +114,8 @@ export interface MethodEditFormProps {
 }
 
 export interface FormPaymentHandle {
-  handlePayment(): Promise<{ paymentSuccessful: boolean; name?: string; errors: string[] }>;
+  // captchaPass: the guest's pass from the widget's own captcha, reused for the form submission.
+  handlePayment(): Promise<{ paymentSuccessful: boolean; name?: string; errors: string[]; captchaPass?: string }>;
   questionId?: string;
 }
 

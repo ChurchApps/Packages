@@ -16,7 +16,10 @@ const { questions, get, post } = vi.hoisted(() => {
 
 vi.mock("@churchapps/helpers", async (importOriginal) => {
   const actual: any = await importOriginal();
-  return { ...actual, ApiHelper: { ...actual.ApiHelper, get, post } };
+  // Signed in, so the signed-out captcha step stays out of these tests.
+  const ApiHelper = { ...actual.ApiHelper, get, post };
+  Object.defineProperty(ApiHelper, "isAuthenticated", { get: () => true });
+  return { ...actual, ApiHelper };
 });
 
 import { FormSubmissionEdit } from "../FormSubmissionEdit";

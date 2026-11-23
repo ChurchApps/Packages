@@ -59,6 +59,7 @@ export class Locale {
     // Form submission
     "formSubmissionEdit": {
       "back": "Back",
+      "captchaRequired": "Please complete the reCAPTCHA verification",
       "confirmDelete": "Are you sure you wish to delete this form data?",
       "continue": "Continue",
       "editForm": "Edit Form",

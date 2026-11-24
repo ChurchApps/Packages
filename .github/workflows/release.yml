@@ -14,6 +14,8 @@ concurrency:
 permissions:
   contents: write
   id-token: write
+  pull-requests: write
+  actions: write
 
 env:
   YARN_ENABLE_HARDENED_MODE: "1"
@@ -53,27 +55,48 @@ jobs:
 
       - run: yarn install --immutable
 
+      # main only takes changes through a pull request, so the version bump cannot be
+      # pushed from here. Pending changesets are versioned on the version-packages
+      # branch and offered as a "Version packages" PR; merging that PR runs this
+      # workflow again with nothing pending, and that run publishes.
       - name: Version pending changesets
+        id: version
         env:
+          GH_TOKEN: ${{ github.token }}
           YARN_ENABLE_IMMUTABLE_INSTALLS: "false"
         run: |
           if ! ls .changeset/*.md 2>/dev/null | grep -qv README.md; then
             echo "No pending changesets."
             exit 0
           fi
+          echo "pending=true" >> "$GITHUB_OUTPUT"
           yarn version-packages
           git config user.name "github-actions[bot]"
           git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git checkout -B version-packages
           git add -A
           git commit -m "Version packages"
-          git push
+          git push --force origin version-packages
+          git checkout --quiet "$GITHUB_SHA"
+          if [ -z "$(gh pr list --head version-packages --state open --json number --jq '.[].number')" ]; then
+            gh pr create --base main --head version-packages --title "Version packages" \
+              --body "Pending changesets versioned by the Release workflow. Merging this PR publishes the new versions." \
+              || echo "::warning::Could not open the PR. Open it by hand: ${{ github.server_url }}/${{ github.repository }}/compare/main...version-packages"
+          fi
+          # A PR opened with GITHUB_TOKEN gets no pull_request runs, but workflow_dispatch
+          # is exempt, so start the required checks on the branch directly.
+          gh workflow run polinrider-scan.yml --ref version-packages || true
+          gh workflow run ci.yml --ref version-packages || true
+          echo "::notice::Changesets were versioned on the version-packages branch. Merge the Version packages PR to publish."
 
-      - run: yarn build
+      - if: steps.version.outputs.pending != 'true'
+        run: yarn build
 
       # Idempotent: publishes only versions not already on the registry, so a rerun after a partial failure is safe.
       # One package failing (for example ENEEDAUTH when its npmjs.com trusted publisher is not set up) does not
       # stop the others; the step fails at the end and names what did not publish.
       - name: Publish
+        if: steps.version.outputs.pending != 'true'
         run: |
           failed=""
           for dir in helpers apihelper apphelper content-providers integration-sdk texting; do

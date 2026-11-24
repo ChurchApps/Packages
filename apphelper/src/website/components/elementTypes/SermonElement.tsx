@@ -63,6 +63,15 @@ export const SermonElement = ({ churchId, appearance, element }: Props) => {
 
   const thumbFor = (item: SermonInterface) => item.thumbnail || AppearanceHelper.getLogo(appearance, "/images/logo.png", "/images/logo.png", "#FFF");
 
+  const renderAudio = (item: SermonInterface) => (
+    <div className="sermonAudio">
+      <img src={item.thumbnail || activePlaylist?.thumbnail || thumbFor(item)} alt={item.title} loading="lazy" />
+      <h2>{item.title}</h2>
+      <audio controls autoPlay preload="none" src={item.audioUrl} data-testid="sermon-audio" />
+      {item.description && <p>{item.description}</p>}
+    </div>
+  );
+
   const playVideo = (item: SermonInterface) => {
     setActiveVideo(item);
     setIsActive("video");
@@ -71,15 +80,17 @@ export const SermonElement = ({ churchId, appearance, element }: Props) => {
   if (isLoading) return <Loading />;
 
   if (layout !== "browse") {
-    if (isActive === "video" && activeVideo?.videoUrl) {
+    if (isActive === "video" && (activeVideo?.videoUrl || activeVideo?.audioUrl)) {
       return (
         <div>
           <Button size="small" startIcon={<ArrowBackIcon />} sx={{ borderRadius: 3, marginBottom: 1 }} onClick={() => { setActiveVideo(undefined); setIsActive("playlists"); }}>
             {Locale.label("sermon.back", "Back")}
           </Button>
-          <div className="videoWrapper">
-            <iframe src={activeVideo.videoUrl.replace("controls=0", "controls=1")} allowFullScreen style={{ border: 0 }} />
-          </div>
+          {activeVideo.videoUrl ? (
+            <div className="videoWrapper">
+              <iframe src={activeVideo.videoUrl.replace("controls=0", "controls=1")} allowFullScreen style={{ border: 0 }} />
+            </div>
+          ) : renderAudio(activeVideo)}
         </div>
       );
     }
@@ -266,6 +277,7 @@ export const SermonElement = ({ churchId, appearance, element }: Props) => {
             />
           </div>
         )}
+        {isActive === "video" && activeVideo && !activeVideo.videoUrl && activeVideo.audioUrl && renderAudio(activeVideo)}
       </div>
     </>
   );

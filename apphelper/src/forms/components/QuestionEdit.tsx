@@ -46,11 +46,12 @@ export const QuestionEdit = React.forwardRef<any, Props>(({ noBackground = false
   else {
     let input;
     const choiceOptions = [];
+    const selectedChoices = props.answer?.value ? props.answer.value.split(",") : [];
     if (q.choices !== undefined && q.choices !== null) {
       if (q.fieldType === "Multiple Choice") {
         for (let i = 0; i < q.choices.length; i++) choiceOptions.push(<MenuItem key={q.choices[i].value} value={q.choices[i].value}>{q.choices[i].text}</MenuItem>);
       } else if (q.fieldType === "Checkbox") {
-        for (let i = 0; i < q.choices.length; i++) choiceOptions.push(<FormControlLabel key={q.choices[i].value} label={q.choices[i].text} control={<Checkbox onChange={handleCheck} name={q.choices[i].value} />} />);
+        for (let i = 0; i < q.choices.length; i++) choiceOptions.push(<FormControlLabel key={q.choices[i].value} label={q.choices[i].text} control={<Checkbox onChange={handleCheck} name={q.choices[i].value} checked={selectedChoices.includes(q.choices[i].value || "")} />} />);
       }
     }
 

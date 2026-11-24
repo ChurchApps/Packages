@@ -6,7 +6,7 @@ import ReCAPTCHA from "react-google-recaptcha";
 import { Box } from "@mui/material";
 import { ErrorMessages, InputBox, QuestionEdit } from "./";
 import { ConversationalForm } from "./ConversationalForm";
-import { Locale } from "../helpers";
+import { Locale, QuestionVisibility } from "../helpers";
 import { AnswerInterface, FormSubmissionInterface, QuestionInterface } from "@churchapps/helpers";
 import { ApiHelper, UniqueIdHelper } from "../..";
 import { FormPaymentQuestion } from "../../donations/components/FormPaymentQuestion";
@@ -104,25 +104,18 @@ export const FormSubmissionEdit: React.FC<Props> = ({ showHeader = true, noBackg
     );
   };
 
-  const getQuestions = () => {
-    const result: React.ReactElement[] = [];
-    if (formSubmission?.questions !== undefined && formSubmission?.questions !== null) {
-      for (let i = 0; i < formSubmission.questions.length; i++) result.push(renderQuestion(formSubmission.questions[i]));
-    }
-    return result;
-  };
+  const getVisibleQuestions = () => QuestionVisibility.visibleQuestions(formSubmission?.questions || [], getAnswer);
+
+  const getQuestions = () => getVisibleQuestions().map(renderQuestion);
 
   const validate = () => {
     const errors: string[] = [];
-    if (formSubmission?.questions !== undefined && formSubmission?.questions !== null) {
-      for (let i = 0; i < formSubmission.questions.length; i++) {
-        const q = formSubmission.questions[i];
-        const answer = getAnswer(q.id || "");
-        if (q.required && q.fieldType !== "Heading") {
-          if (answer === null || answer.value === null || answer.value === "") errors.push((q.title || "Field") + " " + Locale.label("formSubmissionEdit.isRequired"));
-        }
+    getVisibleQuestions().forEach((q) => {
+      const answer = getAnswer(q.id || "");
+      if (q.required && q.fieldType !== "Heading") {
+        if (answer === null || answer.value === null || answer.value === "") errors.push((q.title || "Field") + " " + Locale.label("formSubmissionEdit.isRequired"));
       }
-    }
+    });
     setErrors(errors);
     return errors;
   };
@@ -151,9 +144,10 @@ export const FormSubmissionEdit: React.FC<Props> = ({ showHeader = true, noBackg
       const promises: Promise<any>[] = [];
       let pass = showCaptcha ? captchaPass : "";
 
+      const visibleQuestions = getVisibleQuestions();
       if (formSubmission.questions) {
-        for (let i = 0; i < formSubmission.questions.length; i++) {
-          const q = formSubmission.questions[i];
+        for (let i = 0; i < visibleQuestions.length; i++) {
+          const q = visibleQuestions[i];
           if (q.fieldType === "Payment" && paymentRef.current) {
             const paymentResult = await paymentRef.current.handlePayment();
             if (!paymentResult.paymentSuccessful) {
@@ -166,7 +160,8 @@ export const FormSubmissionEdit: React.FC<Props> = ({ showHeader = true, noBackg
         }
       }
 
-      const fs = { ...formSubmission };
+      const visibleIds = visibleQuestions.map((q) => q.id);
+      const fs = { ...formSubmission, answers: (formSubmission.answers || []).filter((a) => visibleIds.includes(a.questionId)) };
       (fs as any).submissionDate = new Date();
       promises.push(ApiHelper.post("/formsubmissions", [GuestCaptcha.withPass(fs, pass)], "MembershipApi"));
 
@@ -214,7 +209,7 @@ export const FormSubmissionEdit: React.FC<Props> = ({ showHeader = true, noBackg
   if (props.displayMode === "conversational" && (formSubmission.questions?.length || 0) > 0) {
     return (
       <ConversationalForm
-        questions={formSubmission.questions || []}
+        questions={getVisibleQuestions()}
         getAnswer={getAnswer}
         renderInput={renderQuestion}
         errors={errors}

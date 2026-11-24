@@ -40,6 +40,7 @@ export interface DonationSummaryDonation {
 export interface FundInterface {
   id: string;
   name: string;
+  description?: string | null;
   taxDeductible?: boolean;
   amount?: number;
   visible?: boolean;

@@ -23,6 +23,17 @@ export class DonationHelper {
     return firstPart + "_" + intervalType;
   }
 
+  // ApiHelper throws the raw response body as the message; pull out the Api's { error, code }.
+  static parseApiError(err: unknown): { error?: string, code?: string } {
+    const message = err instanceof Error ? err.message : typeof err === "string" ? err : "";
+    try {
+      const body = JSON.parse(message);
+      return body && typeof body === "object" ? { error: body.error, code: body.code } : {};
+    } catch {
+      return {};
+    }
+  }
+
   static normalizeProvider(provider: string): string {
     return provider?.toLowerCase() || "";
   }
@@ -33,6 +44,18 @@ export class DonationHelper {
 
   static findGatewayByProvider(gateways: any[], provider: string): any {
     return gateways.find(g => this.isProvider(g.provider, provider));
+  }
+
+  // Giving links can carry ?recurring=1 so the form opens with Recurring selected; the donor can still switch to one-time.
+  static isRecurringLinkValue(value: string | null | undefined): boolean {
+    const v = (value || "").trim().toLowerCase();
+    return v === "1" || v === "true" || v === "yes";
+  }
+
+  static isRecurringLink(search?: string): boolean {
+    const query = search ?? (typeof window !== "undefined" ? window.location.search : "");
+    if (!query) return false;
+    return this.isRecurringLinkValue(new URLSearchParams(query).get("recurring"));
   }
 
 }

@@ -1,5 +1,28 @@
 # @churchapps/apphelper
 
+## 1.13.0
+
+### Minor Changes
+
+- 63567d0: Login: add "Email me a code" sign-in. The member enters their email, gets a 6-digit code, and is signed in with it (two-factor accounts still get the authenticator step). Needs the Api `/membership/users/requestLoginCode` and `/membership/users/loginWithCode` endpoints.
+
+### Patch Changes
+
+- 9b47fc7: Saved payment methods: when the Api refuses to delete a method because a recurring gift is charged to it, tell the member to move the gift to another method first instead of showing a generic error.
+
+## 1.12.0
+
+### Minor Changes
+
+- 3f487e6: Forms: question descriptions render as Markdown (bold, italic, lists, links), and Heading questions no longer create an empty answer or count as required when a form is submitted.
+- 0d793de: Funds can carry an optional `description` (`FundInterface.description`). The giving form and fund giving links show it as plain text under the selected fund.
+- 6c60088: Donations: a giving link with `?recurring=1` opens the guest and member donation forms with Recurring selected. The donor still sees both options and can switch to a one-time gift before paying. Adds `DonationHelper.isRecurringLink` / `isRecurringLinkValue`.
+
+### Patch Changes
+
+- 9b8763d: Login locales include the two-factor sign-in labels, and the other apphelper locales pick up the strings that were only in English.
+- bcf014a: FormSubmissionEdit: signed-out submitters check a reCAPTCHA before submitting, and the submission carries the `captchaPass` from `/donate/captcha-verify`. Forms with a payment question reuse the payment block's captcha instead of showing a second one. `FormPaymentHandle.handlePayment` now also returns that `captchaPass`, and `ConversationalForm` takes a `lastStepFooter`.
+
 ## 1.11.6
 
 ### Patch Changes

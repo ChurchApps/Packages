@@ -363,6 +363,11 @@ const MultiGatewayDonationInner: React.FC<Props> = (props) => {
     }, 500);
   }, [donation, funds, gateway, selectedGatewayObj?.id, selectedGateway, getTransactionFee]);
 
+  // ?recurring=1 on a giving link starts on Recurring; the donor still sees both buttons and can switch.
+  useEffect(() => {
+    if (DonationHelper.isRecurringLink()) setDonationType("recurring");
+  }, []);
+
   useEffect(() => {
     loadFunds();
   }, [loadFunds]);

@@ -13,7 +13,7 @@ const { get, post } = vi.hoisted(() => ({
 
 vi.mock("@churchapps/helpers", async (importOriginal) => {
   const actual: any = await importOriginal();
-  // Signed in, so the signed-out captcha step stays out of these tests.
+  // Signed in, so the signed-out captcha does not block the submit.
   const ApiHelper = { ...actual.ApiHelper, get, post };
   Object.defineProperty(ApiHelper, "isAuthenticated", { get: () => true });
   return { ...actual, ApiHelper };
@@ -56,8 +56,8 @@ describe("Heading questions", () => {
     });
     expect(container.textContent).toContain("About you");
 
-    const buttons = Array.from(container.querySelectorAll("button"));
-    await act(async () => { buttons[buttons.length - 1].click(); });
+    const submit = Array.from(container.querySelectorAll("button")).find((b) => b.textContent === "Submit")!;
+    await act(async () => { submit.click(); });
 
     expect(post).toHaveBeenCalledTimes(1);
     const submission = post.mock.calls[0][1][0];

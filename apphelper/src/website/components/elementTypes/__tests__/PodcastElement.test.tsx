@@ -10,7 +10,7 @@ const FEED = {
   description: "Weekly conversations from Grace Community Church.",
   image: "https://cdn.example.com/artwork.png",
   episodes: [
-    { guid: "ep-2", title: "Walking Through Ruth", pubDate: "2026-09-05T12:00:00.000Z", description: "Donald Clark opens the book of Ruth.", audioUrl: "https://cdn.example.com/audio/ep-2.mp3", audioType: "audio/mpeg", duration: 2853, image: "https://cdn.example.com/ep-2.png", episodeNumber: 2 },
+    { guid: "ep-2", title: "Walking Through Ruth", pubDate: "2026-09-05T12:00:00.000Z", description: "Donald Clark opens the book of Ruth.", audioUrl: "https://cdn.example.com/audio/ep-2.mp3", audioType: "audio/mpeg", duration: 2853, image: "https://cdn.example.com/ep-2.png", episodeNumber: 2, link: "https://grace.b1.church/sermons/ep-2" },
     { guid: "ep-1", title: "Welcome to the Podcast", pubDate: "2026-08-29T12:00:00.000Z", description: "Our very first episode.", audioUrl: "https://cdn.example.com/audio/ep-1.mp3", audioType: "audio/mpeg", duration: 1800, image: "", episodeNumber: 1 },
     { guid: "ep-0", title: "Trailer", pubDate: "", description: "", audioUrl: "https://cdn.example.com/audio/trailer.mp3", audioType: "audio/mpeg", duration: 0, image: "", episodeNumber: null }
   ]
@@ -72,6 +72,50 @@ describe("PodcastElement", () => {
     const el = await mount({ feedUrl: "https://api.churchapps.org/content/sermons/rss/CHU00000001?siteUrl=x" });
     const download = el.querySelector('[data-testid="podcast-download"]');
     expect(download?.getAttribute("href")).toBe("https://api.churchapps.org/content/sermons/public/download/CHU00000001/ep-2");
+  });
+
+  // ChurchAppsSupport#1696: each episode can be shared alongside Download.
+  it("shares an episode's page link, falling back to its audio file", async () => {
+    vi.spyOn(ApiHelper, "getAnonymous").mockResolvedValue(FEED);
+    const share = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal("navigator", { ...navigator, share });
+    try {
+      const el = await mount({ feedUrl: "https://feeds.example.com/podcast.xml" });
+      const buttons = el.querySelectorAll<HTMLButtonElement>('[data-testid="podcast-share"]');
+      expect(buttons).toHaveLength(el.querySelectorAll('[data-testid="podcast-download"]').length);
+      expect(buttons[0].textContent).toBe("Share");
+
+      await act(async () => { buttons[0].click(); });
+      expect(share).toHaveBeenCalledWith({ title: "Walking Through Ruth", text: "Check out this episode: \"Walking Through Ruth\" https://grace.b1.church/sermons/ep-2", url: "https://grace.b1.church/sermons/ep-2" });
+
+      await act(async () => { buttons[1].click(); });
+      expect(share).toHaveBeenLastCalledWith(expect.objectContaining({ url: "https://cdn.example.com/audio/ep-1.mp3" }));
+      expect(el.querySelector('[data-testid="podcast-share-status"]')).toBeNull();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("copies the episode link where the browser cannot share", async () => {
+    vi.spyOn(ApiHelper, "getAnonymous").mockResolvedValue(FEED);
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal("navigator", { clipboard: { writeText } });
+    try {
+      const el = await mount({ feedUrl: "https://feeds.example.com/podcast.xml" });
+      await act(async () => { el.querySelector<HTMLButtonElement>('[data-testid="podcast-share"]')!.click(); });
+      expect(writeText).toHaveBeenCalledWith("Check out this episode: \"Walking Through Ruth\" https://grace.b1.church/sermons/ep-2");
+      const status = el.querySelectorAll('[data-testid="podcast-share-status"]');
+      expect(status).toHaveLength(1);
+      expect(status[0].textContent).toBe("Link copied");
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("leaves Share out of the editor preview", async () => {
+    vi.spyOn(ApiHelper, "getAnonymous").mockResolvedValue(FEED);
+    const el = await mount({ feedUrl: "https://feeds.example.com/podcast.xml" }, () => {});
+    expect(el.querySelector('[data-testid="podcast-share"]')).toBeNull();
   });
 
   it("honors itemCount and the date/description toggles", async () => {

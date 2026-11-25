@@ -37,3 +37,4 @@ export * from "./EnvironmentHelper";
 export * from "./interfaces";
 export * from "./StreamingServiceHelper";
 export * from "./AnimationHelper";
+export * from "./shareLink";

@@ -47,6 +47,14 @@ const formatDuration = (seconds: number) => {
   return m + " min";
 };
 
+// The church's own sermon feed (Api /sermons/rss/<churchId>) uses sermon ids as guids, so its episodes download
+// through the Api redirect. Relaying them through /api/podcast/download hit the website's request time limit.
+const downloadHref = (feedUrl: string, guid: string) => {
+  const own = feedUrl.split("?")[0].match(/^(https?:\/\/.+\/sermons)\/rss\/([A-Za-z0-9_-]+)\/?$/i);
+  if (own) return own[1] + "/public/download/" + own[2] + "/" + encodeURIComponent(guid);
+  return "/api/podcast/download?url=" + encodeURIComponent(feedUrl) + "&guid=" + encodeURIComponent(guid);
+};
+
 // Episode list pulled from an external podcast RSS feed (separate from the church's own sermons).
 // The Api proxies and normalizes the feed (/content/podcast/feed) because third-party feeds rarely send CORS headers.
 export const PodcastElement = ({ element, onEdit }: Props) => {
@@ -128,7 +136,7 @@ export const PodcastElement = ({ element, onEdit }: Props) => {
                 {ep.audioUrl && (
                   <>
                     <audio className="podcastAudio" controls preload="none" src={ep.audioUrl} data-testid="podcast-audio">{ep.audioType ? <source src={ep.audioUrl} type={ep.audioType} /> : null}</audio>
-                    {!onEdit && ep.guid && <a className="podcastDownload" data-testid="podcast-download" href={"/api/podcast/download?url=" + encodeURIComponent(feedUrl) + "&guid=" + encodeURIComponent(ep.guid)} aria-label={"Download " + (ep.title || "episode")}>Download</a>}
+                    {!onEdit && ep.guid && <a className="podcastDownload" data-testid="podcast-download" href={downloadHref(feedUrl, ep.guid)} aria-label={"Download " + (ep.title || "episode")}>Download</a>}
                   </>
                 )}
               </div>

@@ -66,6 +66,14 @@ describe("PodcastElement", () => {
     expect(episodes[2].id).toBe("ep-1");
   });
 
+  // ChurchAppsSupport#1696: the relay was cut off on long sermons, so the church's own feed links to the Api redirect.
+  it("links the church's own sermon feed downloads to the Api redirect", async () => {
+    vi.spyOn(ApiHelper, "getAnonymous").mockResolvedValue(FEED);
+    const el = await mount({ feedUrl: "https://api.churchapps.org/content/sermons/rss/CHU00000001?siteUrl=x" });
+    const download = el.querySelector('[data-testid="podcast-download"]');
+    expect(download?.getAttribute("href")).toBe("https://api.churchapps.org/content/sermons/public/download/CHU00000001/ep-2");
+  });
+
   it("honors itemCount and the date/description toggles", async () => {
     vi.spyOn(ApiHelper, "getAnonymous").mockResolvedValue(FEED);
     const el = await mount({ feedUrl: "https://feeds.example.com/podcast.xml", itemCount: "1", showDates: "false", showDescriptions: "false" });

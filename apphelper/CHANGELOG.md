@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 1.15.1
+
+### Patch Changes
+
+- 19efdb0: Podcast element downloads from the church's own sermon feed link to the Api download redirect instead of the website relay, which cut long sermons off.
+
 ## 1.15.0
 
 ### Minor Changes

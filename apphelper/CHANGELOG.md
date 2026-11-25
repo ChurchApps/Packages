@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 1.15.0
+
+### Minor Changes
+
+- 72baab1: Form payment questions with the CustomAmount option let the respondent enter the amount; zero submits the form without a charge.
+
 ## 1.14.1
 
 ### Patch Changes

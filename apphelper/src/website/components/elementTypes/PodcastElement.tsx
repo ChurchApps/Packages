@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ApiHelper, DateHelper } from "../../..";
 import { ElementInterface, SectionInterface } from "../../helpers";
+import { shareLink } from "../../helpers/shareLink";
 
 interface PodcastEpisode {
   guid: string;
@@ -66,6 +67,21 @@ export const PodcastElement = ({ element, onEdit }: Props) => {
 
   const [feed, setFeed] = useState<PodcastFeed | null>(null);
   const [error, setError] = useState<string>("");
+  const [shareStatus, setShareStatus] = useState<{ guid: string; text: string } | null>(null);
+  const shareTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => () => { if (shareTimer.current) clearTimeout(shareTimer.current); }, []);
+
+  // Shares the episode's page when the feed has one (the church's own feed links to the sermon page), else its audio file.
+  const handleShare = async (ep: PodcastEpisode) => {
+    const url = ep.link || ep.audioUrl;
+    const result = await shareLink({ title: ep.title, text: `Check out this episode: "${ep.title}" ${url}`, url });
+    const text = result === "copied" ? "Link copied" : result === "failed" ? "Unable to share" : "";
+    if (!text) return;
+    setShareStatus({ guid: ep.guid, text });
+    if (shareTimer.current) clearTimeout(shareTimer.current);
+    shareTimer.current = setTimeout(() => setShareStatus(null), 3000);
+  };
 
   useEffect(() => {
     if (!feedUrl) { setFeed(null); setError(""); return; }
@@ -136,7 +152,13 @@ export const PodcastElement = ({ element, onEdit }: Props) => {
                 {ep.audioUrl && (
                   <>
                     <audio className="podcastAudio" controls preload="none" src={ep.audioUrl} data-testid="podcast-audio">{ep.audioType ? <source src={ep.audioUrl} type={ep.audioType} /> : null}</audio>
-                    {!onEdit && ep.guid && <a className="podcastDownload" data-testid="podcast-download" href={downloadHref(feedUrl, ep.guid)} aria-label={"Download " + (ep.title || "episode")}>Download</a>}
+                    {!onEdit && ep.guid && (
+                      <div className="podcastActions">
+                        <a className="podcastDownload" data-testid="podcast-download" href={downloadHref(feedUrl, ep.guid)} aria-label={"Download " + (ep.title || "episode")}>Download</a>
+                        <button type="button" className="podcastShare" data-testid="podcast-share" aria-label={"Share " + (ep.title || "episode")} onClick={() => handleShare(ep)}>Share</button>
+                        {shareStatus?.guid === ep.guid && <span className="podcastShareStatus" role="status" data-testid="podcast-share-status">{shareStatus.text}</span>}
+                      </div>
+                    )}
                   </>
                 )}
               </div>

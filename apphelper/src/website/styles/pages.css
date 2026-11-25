@@ -932,7 +932,10 @@ code {
 .podcastMetaSep { padding: 0 2px; }
 .podcastEpisodeDesc { font-size: 0.9rem; opacity: 0.85; margin: 6px 0 0; white-space: pre-line; }
 .podcastAudio { display: block; width: 100%; max-width: 640px; margin-top: 10px; }
-.podcastDownload { display: inline-block; margin-top: 6px; font-size: 0.9rem; }
+.podcastActions { display: flex; gap: 12px; align-items: center; margin-top: 6px; }
+.podcastDownload { font-size: 0.9rem; }
+.podcastShare { background: none; border: 0; padding: 0; font: inherit; font-size: 0.9rem; color: inherit; text-decoration: underline; cursor: pointer; }
+.podcastShareStatus { font-size: 0.85rem; opacity: 0.7; }
 .podcastEmpty { padding: 12px; border: 1px dashed #bbb; border-radius: 4px; opacity: 0.8; }
 
 /* campaignProgress */

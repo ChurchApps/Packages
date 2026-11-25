@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 1.14.1
+
+### Patch Changes
+
+- 63e0142: Website Sermons element plays audio-only sermons (podcast imports) with an audio player instead of showing nothing when clicked.
+
 ## 1.14.0
 
 ### Minor Changes

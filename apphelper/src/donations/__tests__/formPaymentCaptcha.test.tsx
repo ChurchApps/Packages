@@ -44,11 +44,11 @@ describe("form payment block (guest)", () => {
   });
   afterEach(() => container?.remove());
 
-  const render = async () => {
+  const render = async (q: any = question) => {
     const ref = createRef<FormPaymentHandle>();
     container = document.createElement("div");
     document.body.appendChild(container);
-    await act(async () => { createRoot(container).render(<FormCardPayment ref={ref} churchId="CHU1" question={question} gateway={gateway} />); });
+    await act(async () => { createRoot(container).render(<FormCardPayment ref={ref} churchId="CHU1" question={q} gateway={gateway} />); });
     await flush();
     const inputs = container.querySelectorAll("input");
     await act(async () => { type(inputs[0], "donald@example.com"); type(inputs[1], "Donald"); type(inputs[2], "Clark"); });
@@ -76,5 +76,16 @@ describe("form payment block (guest)", () => {
     const body = (url: string) => post.mock.calls.find((c) => c[0] === url)?.[1];
     expect(body("/paymentmethods/addcard")).toMatchObject({ captchaPass: "PASS1" });
     expect(body("/donate/charge")).toMatchObject({ captchaPass: "PASS1" });
+  });
+
+  it("charges the amount the respondent enters when the question allows it", async () => {
+    const ref = await render({ ...question, choices: [...question.choices, { text: "CustomAmount", value: "true" }] });
+    const amount = container.querySelector('[data-testid="form-payment-amount"]') as HTMLInputElement;
+    expect(amount.value).toBe("25");
+    await act(async () => { type(amount, "40"); (container.querySelector('[data-testid="recaptcha"]') as HTMLButtonElement).click(); });
+    await flush();
+    const result = await act(() => ref.current!.handlePayment());
+    expect(result.paymentSuccessful).toBe(true);
+    expect(post.mock.calls.find((c) => c[0] === "/donate/charge")?.[1]).toMatchObject({ amount: 40, funds: [{ id: "F1", amount: 40 }] });
   });
 });

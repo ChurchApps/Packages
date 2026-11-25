@@ -2,7 +2,7 @@
 
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react";
 import ReCAPTCHA from "react-google-recaptcha";
-import { Box, Grid, TextField } from "@mui/material";
+import { Box, Grid, InputAdornment, TextField } from "@mui/material";
 import { ApiHelper, CurrencyHelper, UserHelper } from "@churchapps/helpers";
 import type { ChurchInterface } from "@churchapps/helpers";
 import { Locale } from "../helpers";
@@ -25,7 +25,11 @@ export const ProviderFormPayment = forwardRef<FormPaymentHandle, Props>((props, 
   const [firstName, setFirstName] = useState<string>((isAuthed && UserHelper.user?.firstName) || "");
   const [lastName, setLastName] = useState<string>((isAuthed && UserHelper.user?.lastName) || "");
   const [church, setChurch] = useState<ChurchInterface>();
-  const amount = Number(props.question.choices?.find(c => c.text === "Amount")?.value || 0);
+  const fixedAmount = props.question.choices?.find(c => c.text === "Amount")?.value || "";
+  // With CustomAmount the admin's amount is only a suggestion; zero or blank submits the form without a charge.
+  const customAmount = props.question.choices?.find(c => c.text === "CustomAmount")?.value === "true";
+  const [enteredAmount, setEnteredAmount] = useState<string>(fixedAmount);
+  const amount = Number((customAmount ? enteredAmount : fixedAmount) || 0);
   const fundId = props.question.choices?.find(c => c.text === "FundId")?.value || "";
   const currency = (gateway?.currency || "usd").toLowerCase();
 
@@ -86,7 +90,8 @@ export const ProviderFormPayment = forwardRef<FormPaymentHandle, Props>((props, 
     if (!email) result.push(Locale.label("donation.donationForm.validate.email"));
     if (result.length === 0 && !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) result.push(Locale.label("donation.donationForm.validate.validEmail"));
     if (result.length === 0 && isGuest && captchaResponse !== "success") result.push("Please complete the reCAPTCHA verification");
-    if (result.length === 0 && (!amount || amount <= 0)) result.push(Locale.label("donation.donationForm.validate.amount"));
+    if (result.length === 0 && customAmount && (isNaN(amount) || amount < 0)) result.push(Locale.label("donation.donationForm.validate.negativeAmount"));
+    if (result.length === 0 && !customAmount && (!amount || amount <= 0)) result.push(Locale.label("donation.donationForm.validate.amount"));
     return result;
   };
 
@@ -96,6 +101,10 @@ export const ProviderFormPayment = forwardRef<FormPaymentHandle, Props>((props, 
   };
 
   const handlePayment = async () => {
+    if (customAmount && amount === 0) {
+      if (isGuest && captchaResponse !== "success") return { paymentSuccessful: false, name: "", errors: ["Please complete the reCAPTCHA verification"] };
+      return { paymentSuccessful: true, name: "", errors: [] as string[], captchaPass: captchaPass.current };
+    }
     const errors = validate();
     if (errors.length > 0) return { paymentSuccessful: false, name: "", errors };
     if (!entryRef.current) return { paymentSuccessful: false, name: "", errors: ["Payment processing unavailable"] };
@@ -160,7 +169,9 @@ export const ProviderFormPayment = forwardRef<FormPaymentHandle, Props>((props, 
         <TextField {...fieldProps} label={Locale.label("person.lastName")} value={lastName} onChange={(e) => setLastName(e.target.value)} disabled={isAuthed && (UserHelper.user?.lastName || "") !== ""} />
       </Grid>
       <Grid size={12}>
-        <Box sx={{ backgroundColor: "white", padding: 1.5, borderRadius: 1, color: "gray", fontWeight: "bold", fontSize: 18 }}>{CurrencyHelper.getCurrencySymbol(currency)} {amount}</Box>
+        {customAmount
+          ? <TextField {...fieldProps} required={false} type="number" label={Locale.label("donation.fundDonations.amount")} value={enteredAmount} onChange={(e) => setEnteredAmount(e.target.value)} inputProps={{ min: 0, step: "0.01", "data-testid": "form-payment-amount" }} InputProps={{ startAdornment: <InputAdornment position="start">{CurrencyHelper.getCurrencySymbol(currency)}</InputAdornment> }} />
+          : <Box sx={{ backgroundColor: "white", padding: 1.5, borderRadius: 1, color: "gray", fontWeight: "bold", fontSize: 18 }}>{CurrencyHelper.getCurrencySymbol(currency)} {amount}</Box>}
       </Grid>
       {isGuest && !bypassRecaptcha && (
         <Grid size={12}>

@@ -85,3 +85,69 @@ describe("form payment question with a non-Stripe gateway", () => {
     expect(post).not.toHaveBeenCalledWith("/donate/charge", expect.anything(), "GivingApi");
   });
 });
+
+describe("form payment question where the respondent chooses the amount", () => {
+  const customQuestion: any = { id: "Q2", fieldType: "Payment", choices: [{ text: "FundId", value: "F1" }, { text: "Amount", value: "50" }, { text: "CustomAmount", value: "true" }] };
+  let container: HTMLDivElement;
+  beforeEach(() => {
+    [get, getAnonymous, post, postAnonymous, openPaystackPopup].forEach((m) => m.mockReset());
+    getAnonymous.mockResolvedValue({ gateways: [{ id: "G2", provider: "Paystack", publicKey: "pk_test_ps", currency: "GHS" }] });
+    get.mockResolvedValue({ id: "CHU2", name: "Accra", subDomain: "accra" });
+    post.mockImplementation((url: string) => {
+      if (url === "/donate/charge") return Promise.resolve({ status: "succeeded" });
+      return Promise.resolve({ id: "P1", name: { display: "Ama Mensah" }, contactInfo: { email: "ama@example.com" } });
+    });
+    postAnonymous.mockResolvedValue({ response: "human", pass: "PASS1" });
+    openPaystackPopup.mockResolvedValue({ reference: "ref_123" });
+  });
+  afterEach(() => container?.remove());
+
+  const render = async (q: any = customQuestion) => {
+    const ref = createRef<FormPaymentHandle>();
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    await act(async () => { createRoot(container).render(<FormPaymentQuestion ref={ref} churchId="CHU2" question={q} />); });
+    await flush();
+    const inputs = container.querySelectorAll("input");
+    await act(async () => { type(inputs[0], "ama@example.com"); type(inputs[1], "Ama"); type(inputs[2], "Mensah"); });
+    await act(async () => { (container.querySelector('[data-testid="recaptcha"]') as HTMLButtonElement).click(); });
+    await flush();
+    return ref;
+  };
+  const amountInput = () => container.querySelector('[data-testid="form-payment-amount"]') as HTMLInputElement;
+
+  it("prefills the suggested amount and charges what the respondent enters", async () => {
+    const ref = await render();
+    expect(amountInput()).not.toBeNull();
+    expect(amountInput().value).toBe("50");
+    await act(async () => { type(amountInput(), "40"); });
+    const result = await act(() => ref.current!.handlePayment());
+    expect(result.paymentSuccessful).toBe(true);
+    const charge = post.mock.calls.find((c) => c[0] === "/donate/charge")?.[1];
+    expect(charge).toMatchObject({ amount: 40, funds: [{ id: "F1", amount: 40 }] });
+  });
+
+  it("submits without a charge when the respondent enters 0", async () => {
+    const ref = await render();
+    await act(async () => { type(amountInput(), "0"); });
+    const result = await act(() => ref.current!.handlePayment());
+    expect(result).toMatchObject({ paymentSuccessful: true, captchaPass: "PASS1" });
+    expect(openPaystackPopup).not.toHaveBeenCalled();
+    expect(post).not.toHaveBeenCalledWith("/donate/charge", expect.anything(), "GivingApi");
+    expect(post).not.toHaveBeenCalledWith("/people/loadOrCreate", expect.anything(), "MembershipApi");
+  });
+
+  it("refuses a negative amount", async () => {
+    const ref = await render();
+    await act(async () => { type(amountInput(), "-5"); });
+    const result = await act(() => ref.current!.handlePayment());
+    expect(result.paymentSuccessful).toBe(false);
+    expect(result.errors.join(" ")).toMatch(/negative/i);
+    expect(post).not.toHaveBeenCalledWith("/donate/charge", expect.anything(), "GivingApi");
+  });
+
+  it("keeps a fixed-amount question read-only", async () => {
+    await render(question);
+    expect(amountInput()).toBeNull();
+  });
+});

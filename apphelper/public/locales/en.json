@@ -100,6 +100,7 @@
         "email": "Please enter your email address.",
         "firstName": "Please enter your first name.",
         "lastName": "Please enter your last name.",
+        "negativeAmount": "Amount cannot be negative.",
         "validEmail": "Please enter a valid email address."
       },
       "walletFailed": "Wallet payment could not be completed. Please try again.",

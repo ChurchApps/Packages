@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Typography, Breadcrumbs, Button, Grid, Card, CardContent, Box } from "@mui/material";
 import FolderCopyIcon from "@mui/icons-material/FolderCopy";
 import TopicIcon from "@mui/icons-material/Topic";
@@ -13,6 +13,7 @@ import { Locale } from "../../..";
 import type { PlaylistInterface, SermonInterface } from "@churchapps/helpers";
 import { ElementInterface } from "../../helpers";
 import { EnvironmentHelper } from "../../helpers/EnvironmentHelper";
+import { shareLink } from "../../helpers/shareLink";
 
 interface Props {
   churchId: string;
@@ -28,6 +29,8 @@ export const SermonElement = ({ churchId, appearance, element }: Props) => {
   const [sermons, setSermons] = useState<SermonInterface[]>([]);
   const [activeSermons, setActiveSermons] = useState<SermonInterface[]>([]);
   const [activeVideo, setActiveVideo] = useState<SermonInterface>();
+  const [shareStatus, setShareStatus] = useState<string>("");
+  const shareTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const answers: any = element?.answers || {};
   const layout = (answers.layout as string) || "browse";
@@ -48,6 +51,8 @@ export const SermonElement = ({ churchId, appearance, element }: Props) => {
     });
   }, [churchId]);
 
+  useEffect(() => () => { if (shareTimer.current) clearTimeout(shareTimer.current); }, []);
+
   const getFilteredData = (id?: string) => {
     if (!id) return;
     const filteredData = sermons.filter((item) => item.playlistId === id);
@@ -63,11 +68,29 @@ export const SermonElement = ({ churchId, appearance, element }: Props) => {
 
   const thumbFor = (item: SermonInterface) => item.thumbnail || AppearanceHelper.getLogo(appearance, "/images/logo.png", "/images/logo.png", "#FFF");
 
+  // Uploaded sermon audio is private in S3, so downloads go through the Api redirect that signs the link.
+  const downloadHref = (item: SermonInterface) => ApiHelper.getConfig("ContentApi")?.url + "/sermons/public/download/" + churchId + "/" + item.id;
+
+  const handleShare = async (item: SermonInterface) => {
+    const url = window.location.origin + "/sermons/" + item.id;
+    const result = await shareLink({ title: item.title || "", text: `Check out this sermon: "${item.title}" ${url}`, url });
+    const text = result === "copied" ? Locale.label("sermon.linkCopied", "Link copied") : result === "failed" ? Locale.label("sermon.unableToShare", "Unable to share") : "";
+    if (!text) return;
+    setShareStatus(text);
+    if (shareTimer.current) clearTimeout(shareTimer.current);
+    shareTimer.current = setTimeout(() => setShareStatus(""), 3000);
+  };
+
   const renderAudio = (item: SermonInterface) => (
     <div className="sermonAudio">
       <img src={item.thumbnail || activePlaylist?.thumbnail || thumbFor(item)} alt={item.title} loading="lazy" />
       <h2>{item.title}</h2>
       <audio controls autoPlay preload="none" src={item.audioUrl} data-testid="sermon-audio" />
+      <div className="podcastActions">
+        <a className="podcastDownload" data-testid="sermon-download" href={downloadHref(item)} aria-label={Locale.label("sermon.download", "Download") + " " + (item.title || "")}>{Locale.label("sermon.download", "Download")}</a>
+        <button type="button" className="podcastShare" data-testid="sermon-share" aria-label={Locale.label("sermon.share", "Share") + " " + (item.title || "")} onClick={() => handleShare(item)}>{Locale.label("sermon.share", "Share")}</button>
+        {shareStatus && <span className="podcastShareStatus" role="status" data-testid="sermon-share-status">{shareStatus}</span>}
+      </div>
       {item.description && <p>{item.description}</p>}
     </div>
   );

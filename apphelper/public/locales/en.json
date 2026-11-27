@@ -410,7 +410,11 @@
   },
   "sermon": {
     "back": "Back",
-    "playlists": "Playlists"
+    "download": "Download",
+    "linkCopied": "Link copied",
+    "playlists": "Playlists",
+    "share": "Share",
+    "unableToShare": "Unable to share"
   },
   "stockPhotos": {
     "photoBy": "Photo by:",

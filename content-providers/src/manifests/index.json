@@ -1,0 +1,18 @@
+{
+  "engine": 1,
+  "providers": [
+    { "id": "awana", "manifest": "providers/awana.json" },
+    { "id": "cbn", "manifest": "providers/cbn.json" },
+    { "id": "signpresenter", "manifest": "providers/signpresenter.json" },
+    {
+      "id": "iteachchurch",
+      "comingSoon": true,
+      "name": "iTeachChurch",
+      "logos": {
+        "light": "https://iteachchurch.com/wp-content/uploads/2022/05/iTeachChurch_Artboard-1-copy-3@2x.png",
+        "dark": "https://iteachchurch.com/wp-content/uploads/2022/05/iTeachChurch_Artboard-1-copy-3@2x.png"
+      }
+    },
+    { "id": "ministrystuff", "comingSoon": true, "name": "MinistryStuff", "logos": { "light": "", "dark": "" } }
+  ]
+}

@@ -46,13 +46,36 @@ const plan = await provider.getPresentations(serviceId);
 - **PlanningCenterProvider** - Planning Center Services (browse only)
 - **BibleProjectProvider** - Bible Project videos
 - **APlayProvider** - A.Play media library
-- **SignPresenterProvider** - Sign Presenter playlists
 - **DropboxProvider** - Media files from a Dropbox account
 - **JesusFilmProvider** - Jesus Film Project (Arclight API)
-- **CbnProvider** - CBN Superbook curriculum
 - **HighVoltageKidsProvider** - High Voltage Kids curriculum (static catalog)
 - **LifeChurchProvider** - Life.Church kids curriculum (static catalog)
 - **FreeShowProvider** - FreeShow shows discovered on the local network (mocked announcements playlist)
+
+### JSON Manifest Providers
+
+Awana, CBN and SignPresenter have no provider code. Each one is a JSON manifest in `src/manifests/providers/`, run by the generic `ManifestProvider`. `src/manifests/index.json` lists the manifest providers and the "coming soon" entries.
+
+To add a provider that fits the existing building blocks, write a manifest and add it to the index. No code is needed. A manifest declares:
+
+- **Identity:** `id`, `name`, `logos`, `capabilities`, and `hosts`. `hosts` lists every host the provider may call; requests to any other host are refused.
+- **Auth:** `oauthBase`, `clientId`, `scopes`, plus `pkce` and/or `deviceFlow` (`json` or Keycloak-style `form` encoding). A client secret can only be a `"secret:<name>"` reference, resolved from `setProviderSecret` at runtime.
+- **Environments:** named value sets read as `{env.*}` in URLs. Hosts switch with `provider.setEnvironment(name)`.
+- **Tree:** nested groups. A group is either fixed `static` entries or a `request` + `items` list mapped to folders. Its `children` are the next level; its `leaf` loads the files.
+- **Leaf:** a `request`, `from` steps to flatten nested lists, `vars`, a `playlist` file mapping with a `where` filter, optional `downloads`, an instructions `title`, and a `fallback` leaf for when the first list is empty.
+- **Options:** `cache` (per-token response cache) and `verifyPaths` (every path segment must exist in its parent's list).
+
+Field values are expressions in a small sandboxed language: paths (`item.name`, `segments[1]`, `parents[0].image`), `+ == != && || ?? ! ?:`, and whitelisted functions (`list`, `trim`, `str`, `isMedia`, `mediaType`, `wpThumb`, `oneOf`). Nothing is evaluated as JavaScript. See `src/manifest/types.ts` for the full format.
+
+Hosts can load more providers at runtime from a hosted index. Every file must pass the host's signature check; built-in code providers can't be replaced:
+
+```typescript
+import { loadProviderIndex } from "@churchapps/content-providers";
+
+const { loaded, skipped } = await loadProviderIndex("https://example.org/providers/index.json", {
+  verify: (body, url) => verifySignature(body, url) // e.g. Ed25519 against a key built into the app
+});
+```
 
 ### Create a Custom Provider
 
@@ -64,7 +87,7 @@ class MyProvider extends BaseProvider {
   // Every declared authType/capability must be backed by its IProvider methods (enforced by
   // tests/contentProviders.test.ts):
   //   oauth_pkce   -> generateCodeVerifier / buildAuthUrl / buildAuthUrlFromChallenge / exchangeCodeForTokens
-  //                   (OAuthHelper implements the standard flow; delegate to it like SignPresenterProvider)
+  //                   (OAuthHelper implements the standard flow; delegate to it like APlayProvider)
   //   device_flow  -> initiateDeviceFlow / pollDeviceFlowToken (see DeviceFlowHelper)
   //   form_login   -> performLogin
   //   network_discovery -> discoverInstances

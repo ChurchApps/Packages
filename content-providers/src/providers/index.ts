@@ -1,7 +1,6 @@
-import { IProvider, ProviderInfo, ProviderLogos } from "../interfaces";
+import { IProvider, ProviderInfo } from "../interfaces";
 import { registerProvider, getProvider, getAllProviders } from "./registry";
 import { APlayProvider } from "./aPlay";
-import { AwanaProvider } from "./awana";
 import { B1ChurchProvider } from "./b1Church";
 import { DropboxProvider } from "./dropbox";
 import { GoCurriculumProvider } from "./goCurriculum";
@@ -12,42 +11,15 @@ import { HighVoltageKidsProvider } from "./highVoltage";
 import { LessonsChurchProvider } from "./lessonsChurch";
 import { LifeChurchProvider } from "./lifeChurch";
 import { PlanningCenterProvider } from "./planningCenter";
-import { SignPresenterProvider } from "./signPresenter";
 import { JesusFilmProvider } from "./jesusFilm";
-import { CbnProvider } from "./cbn";
 import { FreeShowProvider } from "./freeShow";
+import { createBundledProviders, getComingSoonEntries } from "../manifest/loader";
 
 export { getProvider, getAllProviders, registerProvider } from "./registry";
-
-interface UnimplementedProvider {
-  id: string;
-  name: string;
-  logos: ProviderLogos;
-}
-
-const unimplementedProviders: UnimplementedProvider[] = [
-  {
-    id: "iteachchurch",
-    name: "iTeachChurch",
-    logos: {
-      light: "https://iteachchurch.com/wp-content/uploads/2022/05/iTeachChurch_Artboard-1-copy-3@2x.png",
-      dark: "https://iteachchurch.com/wp-content/uploads/2022/05/iTeachChurch_Artboard-1-copy-3@2x.png"
-    }
-  },
-  {
-    id: "ministrystuff",
-    name: "MinistryStuff",
-    logos: {
-      light: "",
-      dark: ""
-    }
-  }
-];
 
 function initializeProviders() {
   const providers: IProvider[] = [
     new APlayProvider(),
-    new AwanaProvider(),
     new B1ChurchProvider(),
     new DropboxProvider(),
     new GoCurriculumProvider(),
@@ -59,9 +31,9 @@ function initializeProviders() {
     new LessonsChurchProvider(),
     new LifeChurchProvider(),
     new PlanningCenterProvider(),
-    new SignPresenterProvider(),
-    new CbnProvider(),
-    new FreeShowProvider()
+    new FreeShowProvider(),
+    // Providers defined by JSON manifests (src/manifests); hosts can add more at runtime with loadProviderIndex.
+    ...createBundledProviders()
   ];
   for (const provider of providers) registerProvider(provider);
 }
@@ -90,10 +62,10 @@ export function getAvailableProviders(ids?: string[]): ProviderInfo[] {
   }));
 
   // Coming soon providers
-  const comingSoon: ProviderInfo[] = unimplementedProviders.map((p) => ({
+  const comingSoon: ProviderInfo[] = getComingSoonEntries().map((p) => ({
     id: p.id,
-    name: p.name,
-    logos: p.logos,
+    name: p.name || p.id,
+    logos: p.logos || { light: "", dark: "" },
     implemented: false,
     requiresAuth: false,
     authTypes: [],

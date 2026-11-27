@@ -1,0 +1,77 @@
+{
+  "engine": 1,
+  "id": "signpresenter",
+  "name": "SignPresenter",
+  "logos": {
+    "light": "https://signpresenter.com/files/shared/images/logo.png",
+    "dark": "https://signpresenter.com/files/shared/images/logo.png"
+  },
+  "hosts": ["api.signpresenter.com"],
+  "requiresAuth": true,
+  "capabilities": { "browse": true, "playlist": true, "instructions": true, "mediaLicensing": false },
+  "apiBase": "https://api.signpresenter.com",
+  "auth": {
+    "oauthBase": "https://api.signpresenter.com/oauth",
+    "clientId": "lessonsscreen-tv",
+    "scopes": ["openid", "profile", "content"],
+    "pkce": true,
+    "deviceFlow": { "endpoint": "/device/authorize" }
+  },
+  "tree": [
+    {
+      "static": [{ "id": "playlists-root", "segment": "playlists", "title": "Playlists" }],
+      "children": [
+        {
+          "request": "/content/playlists",
+          "items": "list(response, 'data', 'playlists')",
+          "folder": { "id": "item.id", "title": "item.name", "thumbnail": "item.image" },
+          "leaf": {
+            "request": "/v2/playlists/{segments[1]}",
+            "from": [
+              { "list": "list(response, 'data', 'messages')", "as": "msg" },
+              { "list": "msg.slides", "as": "slide" }
+            ],
+            "vars": {
+              "url": "trim(slide.data.url)",
+              "kind": "!url ? null : slide.type == 'image' ? 'image' : (slide.type == 'video' || slide.type == 'stream') ? 'video' : (slide.type == 'web' && isMedia(url)) ? mediaType(url) : null"
+            },
+            "playlist": {
+              "where": "kind",
+              "file": {
+                "id": "segments[1] + '-' + index.msg + '-' + index.slide",
+                "title": "msg.name",
+                "url": "url",
+                "mediaType": "kind",
+                "thumbnail": "msg.thumbnail",
+                "seconds": "slide.seconds",
+                "loop": "slide.data.loop",
+                "downloadUrl": "url"
+              }
+            },
+            "title": "parent.name || 'Playlist'",
+            "instructions": { "section": "segments[1] + '-section'", "header": "segments[1] + '-header'" },
+            "fallback": {
+              "request": "/content/playlists/{segments[1]}/messages",
+              "from": [{ "list": "list(response, 'data', 'messages')", "as": "msg" }],
+              "vars": { "url": "trim(msg.url) || trim(msg.thumbnail) || trim(msg.image)" },
+              "playlist": {
+                "where": "url",
+                "file": {
+                  "id": "msg.id",
+                  "title": "msg.name",
+                  "url": "url",
+                  "mediaType": "mediaType(url, msg.mediaType)",
+                  "thumbnail": "msg.thumbnail || msg.image",
+                  "seconds": "msg.seconds",
+                  "downloadUrl": "url"
+                }
+              },
+              "title": "parent.name || 'Playlist'",
+              "instructions": { "section": "segments[1] + '-section'", "header": "segments[1] + '-header'" }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

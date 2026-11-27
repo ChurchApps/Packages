@@ -1,9 +1,15 @@
 import { test, afterEach } from "node:test";
 import assert from "node:assert/strict";
 
-import { AwanaProvider } from "../src/providers/awana";
+import { ManifestProvider } from "../src/manifest/ManifestProvider";
+import awanaManifest from "../src/manifests/providers/awana.json";
 import { setProviderSecret } from "../src/helpers/ProviderSecrets";
 import { ContentProviderAuthData } from "../src/interfaces";
+
+// Awana is defined by its JSON manifest; methods like setEnvironment are attached from the manifest at runtime.
+const AwanaProvider = class extends ManifestProvider {
+  constructor() { super(awanaManifest); }
+} as unknown as new () => any;
 
 const auth: ContentProviderAuthData = { access_token: "at", refresh_token: "rt", token_type: "Bearer", created_at: 0, expires_in: 60, scope: "" };
 const DEV = "https://awanabritedev.wpengine.com/wp-json/content/v1";

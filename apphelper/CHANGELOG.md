@@ -1,5 +1,11 @@
 # @churchapps/apphelper
 
+## 1.15.3
+
+### Patch Changes
+
+- e0f962b: Sermons element: audio-only sermons get Download and Share under the player, like the Podcast element.
+
 ## 1.15.2
 
 ### Patch Changes

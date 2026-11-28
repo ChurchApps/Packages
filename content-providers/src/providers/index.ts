@@ -1,13 +1,15 @@
 import { ProviderInfo } from "../interfaces";
-import { registerProvider, getProvider, getAllProviders } from "./registry";
+import { batchProviderUpdates, registerProvider, getProvider, getAllProviders } from "./registry";
 import { createBundledProviders, getComingSoonEntries } from "../manifest/loader";
 
 export { getProvider, getAllProviders, registerProvider, unregisterProvider, onProvidersChanged, type ProvidersChangedListener } from "./registry";
 
-// Every provider comes from a JSON manifest listed in src/manifests/index.json. Hosts can add or update providers at
-// runtime with loadProviderIndex.
+// Every provider is loaded dynamically from src/manifests/index.json. Hosts can sync new/updated
+// configs from a web server at launch with syncProviders() or loadProviderIndex().
 function initializeProviders() {
-  for (const provider of createBundledProviders()) registerProvider(provider);
+  batchProviderUpdates(() => {
+    for (const provider of createBundledProviders()) registerProvider(provider);
+  });
 }
 
 initializeProviders();

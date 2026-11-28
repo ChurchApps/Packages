@@ -8,24 +8,40 @@ import {
   networkInstanceToAuth as genericNetworkInstanceToAuth,
   authToNetworkInstance
 } from "./helpers/NetworkDiscoveryHelper";
-import freeShowManifest from "./manifests/providers/freeshow.json";
+import { getProvider } from "./providers/registry";
 
-const freeShowDiscovery = freeShowManifest.networkDiscovery as NetworkDiscoveryConfig;
+const FALLBACK_FREESHOW_DISCOVERY: NetworkDiscoveryConfig = {
+  serviceType: "_freeshow._udp",
+  defaultPort: 5506,
+  groupBy: "lastDashSegment",
+  nameTemplate: "FreeShow ({ip})",
+  scope: "freeshow",
+  probe: { method: "POST", path: "/", body: { action: "get_projects" }, expect: { action: "get_projects" }, timeoutMs: 2000 }
+};
 
-/** Default FreeShow REST port (read from freeshow.json). */
-export const FREESHOW_REST_PORT = freeShowDiscovery.defaultPort;
+function getFreeShowDiscovery(): { config: NetworkDiscoveryConfig; name: string } {
+  const provider = getProvider("freeshow") as ManifestProvider | null;
+  return {
+    config: provider?.manifest?.networkDiscovery ?? FALLBACK_FREESHOW_DISCOVERY,
+    name: provider?.name ?? "FreeShow"
+  };
+}
+
+/** Default FreeShow REST port. */
+export const FREESHOW_REST_PORT = 5506;
 
 export type FreeShowDiscoverer = NetworkDiscoverer;
 export { authToNetworkInstance };
 
 /** Turn a discovered LAN instance into a saved network auth record (defaults scope to "freeshow"). */
-export function networkInstanceToAuth(instance: NetworkInstance, scope = freeShowDiscovery.scope || "freeshow"): ContentProviderAuthData {
+export function networkInstanceToAuth(instance: NetworkInstance, scope = "freeshow"): ContentProviderAuthData {
   return genericNetworkInstanceToAuth(instance, scope);
 }
 
-/** Resolve FreeShow mDNS records via the generic NetworkDiscoveryHelper and freeshow.json's discovery config. */
+/** Resolve FreeShow mDNS records via the generic NetworkDiscoveryHelper and the active FreeShow manifest config. */
 export function freeShowServicesToInstances(services: MdnsService[], port = FREESHOW_REST_PORT): Promise<NetworkInstance[]> {
-  return resolveMdnsServices(services, freeShowDiscovery, { port, providerName: freeShowManifest.name });
+  const { config, name } = getFreeShowDiscovery();
+  return resolveMdnsServices(services, config, { port, providerName: name });
 }
 
 export type FreeShowProvider = ManifestProvider & {

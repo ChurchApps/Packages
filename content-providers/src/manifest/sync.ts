@@ -1,5 +1,5 @@
 import { batchProviderUpdates, registerProvider, unregisterProvider } from "../providers/registry";
-import { createProvider, setComingSoonEntries } from "./loader";
+import { createProvider, loadManifestDatasets, setComingSoonEntries } from "./loader";
 import { MANIFEST_ENGINE_VERSION, ProviderIndex, ProviderIndexEntry } from "./types";
 import { validateIndex } from "./validate";
 
@@ -286,28 +286,19 @@ export async function syncProviders(options: SyncProvidersOptions): Promise<Sync
 
       try {
         const res = await downloadText(manifestUrl);
-        if (entry.sha256) {
-          const digest = await sha256Hex(res.text);
-          if (digest && digest !== entry.sha256.toLowerCase()) throw new Error(`SHA-256 mismatch for ${manifestUrl}`);
+        const digest = await sha256Hex(res.text);
+        if (entry.sha256 && digest && digest !== entry.sha256.toLowerCase()) {
+          throw new Error(`SHA-256 mismatch for ${manifestUrl}`);
         }
         const manifest = JSON.parse(res.text);
-        const datasets: Record<string, unknown> = {};
-        const declared = (manifest as { datasets?: Record<string, unknown> })?.datasets;
-        if (declared && typeof declared === "object") {
-          for (const [name, ref] of Object.entries(declared)) {
-            if (typeof ref === "string") {
-              if (ref.includes("..")) throw new Error(`dataset "${name}" must not contain ".."`);
-              const dsUrl = new URL(ref, manifestUrl).toString();
-              const dsRes = await downloadText(dsUrl);
-              datasets[name] = JSON.parse(dsRes.text);
-            } else if (ref && typeof ref === "object") {
-              datasets[name] = ref;
-            }
-          }
-        }
+        const datasets = await loadManifestDatasets(manifest, async ref => {
+          const dsUrl = new URL(ref, manifestUrl).toString();
+          const dsRes = await downloadText(dsUrl);
+          return JSON.parse(dsRes.text);
+        });
         const provider = createProvider(manifest, datasets);
         if (provider.id !== entry.id) throw new Error(`manifest id "${provider.id}" doesn't match the index`);
-        nextProviders[entry.id] = { id: entry.id, manifestUrl, version: entry.version, sha256: entry.sha256, manifest, datasets };
+        nextProviders[entry.id] = { id: entry.id, manifestUrl, version: entry.version, sha256: entry.sha256 ?? digest ?? undefined, manifest, datasets };
         activeIds.add(entry.id);
         updated.push(entry.id);
       } catch (e) {

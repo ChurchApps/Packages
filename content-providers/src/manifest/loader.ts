@@ -1,52 +1,9 @@
 import { IProvider } from "../interfaces";
-import { registerProvider } from "../providers/registry";
+import { batchProviderUpdates, registerProvider } from "../providers/registry";
+import { loadBundledManifests } from "./bundled";
 import { ManifestProvider } from "./ManifestProvider";
 import { MANIFEST_ENGINE_VERSION, ProviderIndexEntry } from "./types";
 import { validateIndex } from "./validate";
-import bundledIndex from "../manifests/index.json";
-import aplay from "../manifests/providers/aplay.json";
-import awana from "../manifests/providers/awana.json";
-import b1church from "../manifests/providers/b1church.json";
-import bibleproject from "../manifests/providers/bibleproject.json";
-import cbn from "../manifests/providers/cbn.json";
-import dropbox from "../manifests/providers/dropbox.json";
-import freeshow from "../manifests/providers/freeshow.json";
-import gocurriculum from "../manifests/providers/gocurriculum.json";
-import googledrive from "../manifests/providers/googledrive.json";
-import highvoltagekids from "../manifests/providers/highvoltagekids.json";
-import jesusfilm from "../manifests/providers/jesusfilm.json";
-import lessonschurch from "../manifests/providers/lessonschurch.json";
-import lifechurch from "../manifests/providers/lifechurch.json";
-import onedrive from "../manifests/providers/onedrive.json";
-import planningcenter from "../manifests/providers/planningcenter.json";
-import signpresenter from "../manifests/providers/signpresenter.json";
-
-import bibleprojectData from "../manifests/providers/data/bibleproject.json";
-import highvoltagekidsData from "../manifests/providers/data/highvoltagekids.json";
-import lifechurchData from "../manifests/providers/data/lifechurch.json";
-
-/** Manifests and their datasets shipped inside the package, keyed by their path relative to index.json. */
-const BUNDLED: Record<string, unknown> = {
-  "providers/aplay.json": aplay,
-  "providers/awana.json": awana,
-  "providers/b1church.json": b1church,
-  "providers/bibleproject.json": bibleproject,
-  "providers/cbn.json": cbn,
-  "providers/dropbox.json": dropbox,
-  "providers/freeshow.json": freeshow,
-  "providers/gocurriculum.json": gocurriculum,
-  "providers/googledrive.json": googledrive,
-  "providers/highvoltagekids.json": highvoltagekids,
-  "providers/jesusfilm.json": jesusfilm,
-  "providers/lessonschurch.json": lessonschurch,
-  "providers/lifechurch.json": lifechurch,
-  "providers/onedrive.json": onedrive,
-  "providers/planningcenter.json": planningcenter,
-  "providers/signpresenter.json": signpresenter,
-  "providers/data/bibleproject.json": bibleprojectData,
-  "providers/data/highvoltagekids.json": highvoltagekidsData,
-  "providers/data/lifechurch.json": lifechurchData
-};
 
 /** "providers/x.json" + "data/x.json" → "providers/data/x.json" */
 function beside(manifestPath: string, relative: string): string {
@@ -55,7 +12,7 @@ function beside(manifestPath: string, relative: string): string {
 }
 
 /** Load a manifest's external datasets with `read`, leaving inline datasets untouched. */
-async function loadDatasets(manifest: unknown, read: (pathOrUrl: string) => Promise<unknown> | unknown): Promise<Record<string, unknown>> {
+export async function loadManifestDatasets(manifest: unknown, read: (pathOrUrl: string) => Promise<unknown> | unknown): Promise<Record<string, unknown>> {
   const datasets: Record<string, unknown> = {};
   const declared = (manifest as { datasets?: Record<string, unknown> })?.datasets;
   if (!declared || typeof declared !== "object") return datasets;
@@ -82,17 +39,18 @@ export function setComingSoonEntries(entries: ProviderIndexEntry[]): void {
   comingSoon = entries;
 }
 
-/** Build every provider from the bundled JSON manifests. A broken bundled manifest is a build bug, so this throws. */
+/** Build every provider listed in `src/manifests/index.json`. A broken bundled manifest is a build bug, so this throws. */
 export function createBundledProviders(): IProvider[] {
-  const index = validateIndex(bundledIndex);
+  const bundled = loadBundledManifests();
+  const index = validateIndex(bundled.index);
   comingSoon = index.providers.filter(p => p.comingSoon);
   return index.providers.filter(p => p.manifest).map(entry => {
-    const manifest = BUNDLED[entry.manifest!];
+    const manifest = bundled.files[entry.manifest!];
     if (!manifest) throw new Error(`Bundled provider index lists ${entry.manifest}, which isn't bundled`);
     const datasets: Record<string, unknown> = {};
     for (const [name, ref] of Object.entries((manifest as { datasets?: Record<string, unknown> }).datasets || {})) {
       if (typeof ref === "string") {
-        const data = BUNDLED[beside(entry.manifest!, ref)];
+        const data = bundled.files[beside(entry.manifest!, ref)];
         if (data === undefined) throw new Error(`${entry.manifest} needs ${ref}, which isn't bundled`);
         datasets[name] = data;
       } else if (ref && typeof ref === "object") {
@@ -167,7 +125,7 @@ export async function loadProviderFromUrl(manifestUrl: string, options: LoadProv
   }
   const doFetch = options.fetch ?? fetch;
   const manifest = await downloadJson(manifestUrl, doFetch, options.verify);
-  const datasets = await loadDatasets(manifest, ref => downloadJson(new URL(ref, manifestUrl).toString(), doFetch, options.verify));
+  const datasets = await loadManifestDatasets(manifest, ref => downloadJson(new URL(ref, manifestUrl).toString(), doFetch, options.verify));
   const provider = createProvider(manifest, datasets);
   if (options.register !== false) registerProvider(provider);
   return provider;
@@ -186,20 +144,24 @@ export async function loadProviderIndex(indexUrl: string, options: LoadProviderI
   if (index.engine > MANIFEST_ENGINE_VERSION) throw new Error(`Provider index needs engine ${index.engine}; this build supports ${MANIFEST_ENGINE_VERSION}`);
 
   const result: LoadProviderIndexResult = { loaded: [], skipped: [] };
+  const ready: IProvider[] = [];
   for (const entry of index.providers) {
     if (!entry.manifest) continue;
     try {
       const manifestUrl = new URL(entry.manifest, indexUrl).toString();
       const manifest = await downloadJson(manifestUrl, doFetch, options.verify);
-      const datasets = await loadDatasets(manifest, ref => downloadJson(new URL(ref, manifestUrl).toString(), doFetch, options.verify));
+      const datasets = await loadManifestDatasets(manifest, ref => downloadJson(new URL(ref, manifestUrl).toString(), doFetch, options.verify));
       const provider = createProvider(manifest, datasets);
       if (provider.id !== entry.id) throw new Error(`manifest id "${provider.id}" doesn't match the index`);
-      registerProvider(provider);
+      ready.push(provider);
       result.loaded.push(entry.id);
     } catch (e) {
       result.skipped.push({ id: entry.id, reason: (e as Error).message });
     }
   }
-  comingSoon = index.providers.filter(p => p.comingSoon);
+  batchProviderUpdates(() => {
+    for (const provider of ready) registerProvider(provider);
+    comingSoon = index.providers.filter(p => p.comingSoon);
+  });
   return result;
 }

@@ -2,7 +2,7 @@ import { IProvider } from "../interfaces";
 import { batchProviderUpdates, registerProvider } from "../providers/registry";
 import { loadBundledManifests } from "./bundled";
 import { ManifestProvider } from "./ManifestProvider";
-import { MANIFEST_ENGINE_VERSION, ProviderIndexEntry } from "./types";
+import { MANIFEST_ENGINE_VERSION, ProviderIndexEntry, ProviderManifest } from "./types";
 import { validateIndex } from "./validate";
 
 /** "providers/x.json" + "data/x.json" → "providers/data/x.json" */
@@ -114,6 +114,30 @@ async function downloadJson(url: string, doFetch: typeof fetch, verify?: (body: 
   return JSON.parse(body);
 }
 
+export interface FetchedProviderConfig {
+  manifest: ProviderManifest;
+  datasets: Record<string, unknown>;
+  provider: ManifestProvider;
+}
+
+/**
+ * Download a single provider config JSON file from an HTTPS URL (along with any referenced datasets),
+ * validate it, optionally register it, and return both the live provider and the raw manifest/datasets
+ * so apps can persist custom providers for offline use.
+ */
+export async function fetchProviderConfig(manifestUrl: string, options: LoadProviderOptions): Promise<FetchedProviderConfig> {
+  if (!manifestUrl.startsWith("https://")) throw new Error("Provider manifest must be served over https");
+  if (typeof options?.verify !== "function" && !options?.allowUnverified) {
+    throw new Error("fetchProviderConfig needs a verify function (or allowUnverified: true)");
+  }
+  const doFetch = options.fetch ?? fetch;
+  const manifest = await downloadJson(manifestUrl, doFetch, options.verify);
+  const datasets = await loadManifestDatasets(manifest, ref => downloadJson(new URL(ref, manifestUrl).toString(), doFetch, options.verify));
+  const provider = createProvider(manifest, datasets);
+  if (options.register !== false) registerProvider(provider);
+  return { manifest: provider.manifest, datasets, provider };
+}
+
 /**
  * Download a single provider config JSON file from an HTTPS URL (along with any referenced datasets),
  * validate it, and register it in the provider registry.
@@ -123,11 +147,7 @@ export async function loadProviderFromUrl(manifestUrl: string, options: LoadProv
   if (typeof options?.verify !== "function" && !options?.allowUnverified) {
     throw new Error("loadProviderFromUrl needs a verify function (or allowUnverified: true)");
   }
-  const doFetch = options.fetch ?? fetch;
-  const manifest = await downloadJson(manifestUrl, doFetch, options.verify);
-  const datasets = await loadManifestDatasets(manifest, ref => downloadJson(new URL(ref, manifestUrl).toString(), doFetch, options.verify));
-  const provider = createProvider(manifest, datasets);
-  if (options.register !== false) registerProvider(provider);
+  const { provider } = await fetchProviderConfig(manifestUrl, options);
   return provider;
 }
 

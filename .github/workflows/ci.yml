@@ -34,3 +34,6 @@ jobs:
 
       - name: Test integration-sdk
         run: yarn workspace @churchapps/integration-sdk test
+
+      - name: Test content-providers
+        run: yarn workspace @churchapps/content-providers test

@@ -42,12 +42,19 @@ const instructions = await provider.getInstructions?.('/lessons/p1/s1/l1/v1');
 
 ### Adding a New Provider by Publishing a Config File (Online Sync + Offline Support)
 
-All 16 built-in providers (`aplay`, `awana`, `b1church`, `bibleproject`, `cbn`, `dropbox`, `freeshow`, `gocurriculum`, `googledrive`, `highvoltagekids`, `jesusfilm`, `lessonschurch`, `lifechurch`, `onedrive`, `planningcenter`, `signpresenter`) are pure JSON manifests in `src/manifests/providers/`, listed in `src/manifests/index.json`. Static catalogs ship beside them in `src/manifests/providers/data/` (or can be inlined inside a manifest).
+All built-in providers (`aplay`, `b1church`, `bibleproject`, `cbn`, `dropbox`, `freeshow`, `gocurriculum`, `googledrive`, `highvoltagekids`, `jesusfilm`, `lessonschurch`, `lifechurch`, `onedrive`, `planningcenter`, `signpresenter`, plus `awana.json` ready to enable) are pure JSON manifests in `src/manifests/providers/`, indexed by `src/manifests/index.json`. Static catalogs ship beside them in `src/manifests/providers/data/` (or can be inlined inside a manifest).
 
-Zero TypeScript code and zero app republishing are needed to add or update a provider. Host your `index.json` + provider `.json` files on any HTTPS web server (run `yarn export:manifests` to generate a ready-to-upload `dist/manifests/` folder with SHA-256 hashes), and call `syncProviders` on app launch:
+> **Want to create your own custom provider (or have an AI agent build one)?** Read [CUSTOM_PROVIDERS.md](./CUSTOM_PROVIDERS.md) for the complete schema, expression language, starter templates, validation commands, and FreePlay "Add Provider" hosting checklist.
+
+Zero TypeScript code and zero app republishing are needed to add or update a provider. The official manifest index is published automatically to `DEFAULT_MANIFEST_INDEX_URL` (`https://churchapps.github.io/Packages/providers/v1/index.json`) whenever `src/manifests/` changes on `main`, or you can host your own `dist/manifests/` folder (`yarn export:manifests`) on any HTTPS web server and call `syncProviders` on app launch:
 
 ```typescript
-import { syncProviders, onProvidersChanged, getAvailableProviders } from "@churchapps/content-providers";
+import {
+  DEFAULT_MANIFEST_INDEX_URL,
+  syncProviders,
+  onProvidersChanged,
+  getAvailableProviders
+} from "@churchapps/content-providers";
 
 // Re-render UI automatically whenever cached or newly downloaded providers arrive
 const unsubscribe = onProvidersChanged(() => {
@@ -60,7 +67,7 @@ const unsubscribe = onProvidersChanged(() => {
 // 3. Saves updates back to storage for future offline launches
 // 4. Never throws if offline — seamlessly falls back to cached or bundled configs
 const result = await syncProviders({
-  indexUrl: "https://content.churchapps.org/providers/index.json",
+  indexUrl: DEFAULT_MANIFEST_INDEX_URL,
   // Optional in browsers (defaults to localStorage). Pass AsyncStorage in React Native or a custom adapter in Node:
   storage: myStorageAdapter,
   // Optional Ed25519 signature check for every downloaded file:
@@ -69,7 +76,14 @@ const result = await syncProviders({
 });
 ```
 
-You can also hydrate cached providers explicitly without touching the network (`hydrateCachedProviders`), clear the cache (`clearProviderCache`), load a single remote manifest (`loadProviderFromUrl`), or register a parsed JSON object directly (`registerProviderFromConfig`).
+You can also hydrate cached providers explicitly without touching the network (`hydrateCachedProviders`), clear the cache (`clearProviderCache`), load a single remote manifest (`loadProviderFromUrl` or `fetchProviderConfig` when you also want the raw manifest + datasets for offline persistence), or register a parsed JSON object directly (`registerProviderFromConfig`).
+
+### Publishing Updates
+
+- **Manifest-only updates (new/updated `.json` providers, no app or npm update required):**
+  Edit files in `src/manifests/` (e.g. add a provider to `src/manifests/index.json`) and merge to `main`. `.github/workflows/publish-manifests.yml` automatically validates every manifest, computes SHA-256 digests via `yarn export:manifests`, and publishes `providers/v1/` (you can also trigger it manually from the Actions tab or export locally with `yarn export:manifests`).
+- **npm package updates:**
+  Run `yarn changeset` at the workspace root, commit the changeset with your edits, merge your PR to `main`, and merge the auto-created `Version packages` PR. `.github/workflows/release.yml` builds (`tsup && yarn export:manifests`) and publishes to npm automatically via trusted publishing (OIDC).
 
 ### Fixed Shared Subsystems
 

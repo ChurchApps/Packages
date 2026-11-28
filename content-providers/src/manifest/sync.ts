@@ -5,6 +5,9 @@ import { validateIndex } from "./validate";
 
 export const DEFAULT_CACHE_KEY = "churchapps:content-providers:cache:v1";
 
+/** Default hosted provider index published automatically from ChurchApps/Packages. */
+export const DEFAULT_MANIFEST_INDEX_URL = "https://churchapps.github.io/Packages/providers/v1/index.json";
+
 /**
  * Minimal key-value storage interface for persisting downloaded provider configs for offline use.
  * Compatible with browser `localStorage`, React Native `AsyncStorage`, or a custom file/SQLite adapter.

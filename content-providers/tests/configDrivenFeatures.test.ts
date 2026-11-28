@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import {
   ManifestProvider,
+  fetchProviderConfig,
   loadProviderFromUrl,
   registerProviderFromConfig,
   unregisterProvider,
@@ -12,6 +13,7 @@ import {
   setProviderSecret,
   setMdnsScanner
 } from "../src/index";
+import awanaManifest from "../src/manifests/providers/awana.json";
 import { ContentProviderAuthData } from "../src/interfaces";
 
 const realFetch = globalThis.fetch;
@@ -207,11 +209,40 @@ test("DeviceFlowHelper works directly with provider.config for form-encoded prov
     return new Response(JSON.stringify({ device_code: "dc", user_code: "1234", verification_uri: "https://sso/d", expires_in: 600 }));
   }) as typeof fetch;
 
-  const awana = getProvider("awana")!;
+  const awana = new ManifestProvider(awanaManifest);
   const res = await new DeviceFlowHelper().initiateDeviceFlow(awana.config);
   assert.equal(res?.user_code, "1234");
   assert.equal(calls[0].contentType, "application/x-www-form-urlencoded");
   assert.equal(new URLSearchParams(calls[0].body).get("client_secret"), "awana-sec");
+});
+
+test("fetchProviderConfig returns manifest, datasets, and live provider for offline persistence", async () => {
+  const remoteManifest = {
+    engine: 1,
+    id: "remote-single",
+    name: "Remote Single",
+    logos: { light: "", dark: "" },
+    hosts: ["cdn.example.com"],
+    requiresAuth: false,
+    capabilities: { browse: true, playlist: false, instructions: false, mediaLicensing: false },
+    apiBase: "https://cdn.example.com",
+    datasets: { catalog: "data/catalog.json" },
+    routes: [{ path: "/", browse: "map(datasets.catalog, i => file(i.id, i.title, i.url))" }]
+  };
+  const files: Record<string, unknown> = {
+    "https://cdn.example.com/custom.json": remoteManifest,
+    "https://cdn.example.com/data/catalog.json": [{ id: "v1", title: "Clip", url: "https://cdn.example.com/v1.mp4" }]
+  };
+  const mockFetch = (async (url: unknown) => {
+    const body = files[String(url)];
+    return body ? new Response(JSON.stringify(body)) : new Response("", { status: 404 });
+  }) as typeof fetch;
+
+  const fetched = await fetchProviderConfig("https://cdn.example.com/custom.json", { allowUnverified: true, fetch: mockFetch });
+  assert.equal(fetched.manifest.id, "remote-single");
+  assert.deepEqual(fetched.datasets, { catalog: [{ id: "v1", title: "Clip", url: "https://cdn.example.com/v1.mp4" }] });
+  assert.equal(getProvider("remote-single"), fetched.provider);
+  assert.equal((await fetched.provider.browse("/")).length, 1);
 });
 
 test("structured manifest functions with sequential let bindings validate and run cleanly", () => {

@@ -43,14 +43,17 @@ export { validateManifest, validateIndex } from "./manifest/validate";
 export {
   createProvider,
   registerProviderFromConfig,
+  fetchProviderConfig,
   loadProviderFromUrl,
   loadProviderIndex,
+  type FetchedProviderConfig,
   type LoadProviderOptions,
   type LoadProviderIndexOptions,
   type LoadProviderIndexResult
 } from "./manifest/loader";
 export {
   DEFAULT_CACHE_KEY,
+  DEFAULT_MANIFEST_INDEX_URL,
   createMemoryStorage,
   hydrateCachedProviders,
   clearProviderCache,

@@ -6,10 +6,6 @@
       "manifest": "providers/aplay.json"
     },
     {
-      "id": "awana",
-      "manifest": "providers/awana.json"
-    },
-    {
       "id": "b1church",
       "manifest": "providers/b1church.json"
     },

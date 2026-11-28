@@ -24,10 +24,7 @@ export { validateManifest, validateIndex } from "./manifest/validate";
 export { loadProviderIndex, createProvider, type LoadProviderIndexOptions, type LoadProviderIndexResult } from "./manifest/loader";
 export { MANIFEST_ENGINE_VERSION, type ProviderManifest, type ManifestAuth, type ManifestGroup, type ManifestLeaf, type ManifestFileMapping, type ProviderIndex, type ProviderIndexEntry } from "./manifest/types";
 
-export { APlayProvider } from "./providers/aPlay";
-export { LessonsChurchProvider } from "./providers/lessonsChurch";
 export { B1ChurchProvider } from "./providers/b1Church";
-export { JesusFilmProvider } from "./providers/jesusFilm";
 export { FreeShowProvider } from "./providers/freeShow";
 export { GoCurriculumProvider, type GoCurriculumCatalogLoader, type GoCurriculumData } from "./providers/goCurriculum";
 export {

@@ -283,7 +283,9 @@ function checkRoutes(c: Checker, m: ProviderManifest) {
     });
     const names = new Set([...GLOBALS, "path", "segments", "params"]);
     checkSteps(c, `${at}.load`, r.load, names, m);
-    for (const op of ["browse", "playlist", "instructions"] as const) if (r[op] !== undefined) checkOperation(c, `${at}.${op}`, r[op]!, names, m);
+    for (const op of ["browse", "playlist", "instructions"] as const) {
+      if (r[op] !== undefined) checkOperation(c, `${at}.${op}`, r[op]!, op === "playlist" ? new Set([...names, "resolution"]) : names, m);
+    }
   });
 }
 
@@ -330,7 +332,7 @@ export function validateManifest(value: unknown): ProviderManifest {
   for (const key of ["browse", "playlist", "instructions", "mediaLicensing"] as const) {
     if (typeof m.capabilities?.[key] !== "boolean") c.fail(`capabilities.${key}`, "must be a boolean");
   }
-  if (m.capabilities?.mediaLicensing && !builtIn) c.fail("capabilities.mediaLicensing", "needs a built-in implementation");
+  if (m.capabilities?.mediaLicensing && !builtIn && !m.methods?.checkMediaLicense) c.fail("capabilities.mediaLicensing", "needs a checkMediaLicense method");
 
   if (m.environments !== undefined) {
     const names = Object.keys(m.environments);

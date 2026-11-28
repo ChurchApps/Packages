@@ -1,9 +1,15 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { LessonsChurchProvider } from "../src/providers/lessonsChurch/LessonsChurchProvider";
+import { ManifestProvider } from "../src/manifest/ManifestProvider";
+import lessonsChurchManifest from "../src/manifests/providers/lessonschurch.json";
 import { GoCurriculumProvider } from "../src/providers/goCurriculum/GoCurriculumProvider";
 import { ContentProviderAuthData } from "../src/interfaces";
+
+// Lessons.church is defined by its JSON manifest.
+const LessonsChurchProvider = class extends ManifestProvider {
+  constructor() { super(lessonsChurchManifest); }
+} as unknown as new () => any;
 
 function mockFetch(handler: (url: string) => unknown) {
   const realFetch = globalThis.fetch;

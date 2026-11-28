@@ -64,6 +64,7 @@ const regex = (pattern: unknown, flags: unknown) => {
 };
 const compare = (mode: unknown) => (a: unknown, b: unknown): number => {
   if (mode === "number") return Number(a) - Number(b);
+  if (mode === "raw") return str(a) < str(b) ? -1 : str(a) > str(b) ? 1 : 0;
   if (mode === "natural") return str(a).localeCompare(str(b), undefined, { numeric: true, sensitivity: "base" });
   return str(a).localeCompare(str(b));
 };
@@ -113,7 +114,7 @@ export const FUNCTIONS: Record<string, (...args: unknown[]) => unknown> = {
   flatMap: (list, fn) => arr(list).flatMap((x, i) => { const r = call(fn, x, i); return Array.isArray(r) ? r : [r]; }),
   flat: (list) => arr(list).flat(),
   reduce: (list, fn, init) => arr(list).reduce((acc, x, i) => call(fn, acc, x, i), init),
-  /** Sort a copy by key: mode "text" (default), "natural" (numbers inside text, case-insensitive) or "number". */
+  /** Sort a copy by key: mode "text" (default, locale-aware), "natural" (numbers inside text, case-insensitive), "number" or "raw" (plain code-unit order). */
   sortBy: (list, fn, mode, desc) => {
     const cmp = compare(mode);
     return [...arr(list)].sort((a, b) => (desc ? -1 : 1) * cmp(call(fn, a), call(fn, b)));
@@ -174,6 +175,13 @@ export const FUNCTIONS: Record<string, (...args: unknown[]) => unknown> = {
     }
   },
   encode: (v) => encodeURIComponent(str(v)),
+  decode: (v) => {
+    try {
+      return decodeURIComponent(str(v));
+    } catch {
+      return str(v);
+    }
+  },
   /** Set query parameters on a URL; a null value removes that parameter. */
   urlParams: (url, params) => {
     try {

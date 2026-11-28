@@ -112,12 +112,12 @@ export class ManifestRuntime {
   }
 
   /** Run one operation of the route matching `path`. Returns undefined when no route or operation matches. */
-  async runRoute(op: "browse" | "playlist" | "instructions", path: string | null | undefined, auth: ContentProviderAuthData | null | undefined): Promise<unknown> {
+  async runRoute(op: "browse" | "playlist" | "instructions", path: string | null | undefined, auth: ContentProviderAuthData | null | undefined, extra: Scope = {}): Promise<unknown> {
     const match = this.routeFor(path);
     const operation = match?.route[op];
     if (!match || operation === undefined) return undefined;
     const memo: Memo = new Map();
-    const scope: Scope = { ...this.globals(auth), ...match.scope };
+    const scope: Scope = { ...this.globals(auth), ...match.scope, ...extra };
     if (match.route.load) {
       const loaded = await this.runSteps(match.route.load, scope, auth, memo);
       if (loaded.done) return loaded.value;

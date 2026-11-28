@@ -1,6 +1,28 @@
 import { ContentItem, ContentFile, FeedVenueInterface, InstructionItem, VenueActionsResponseInterface } from "../../interfaces";
 import { detectMediaType } from "../../utils";
-import { normalizeItemType, getEmbedUrl } from "../lessonsChurch/LessonsChurchConverters";
+
+/** Lessons.church plan item types → generic instruction item types. */
+export function normalizeItemType(type?: string): string | undefined {
+  if (type === "lessonSection") return "section";
+  if (type === "lessonAction") return "action";
+  if (type === "lessonAddOn") return "action";
+  return type;
+}
+
+/** Embed page for a Lessons.church action, add-on or section. */
+export function getEmbedUrl(apiType?: string, relatedId?: string): string | undefined {
+  if (!relatedId) return undefined;
+  const baseUrl = "https://lessons.church";
+  switch (apiType) {
+    case "action":
+    case "lessonAction": return `${baseUrl}/embed/action/${relatedId}`;
+    case "addon":
+    case "lessonAddOn": return `${baseUrl}/embed/addon/${relatedId}`;
+    case "section":
+    case "lessonSection": return `${baseUrl}/embed/section/${relatedId}`;
+    default: return undefined;
+  }
+}
 import { B1Ministry, B1PlanType, B1Plan, B1PlanItem } from "./B1ChurchTypes";
 
 export function ministryToFolder(ministry: B1Ministry): ContentItem {

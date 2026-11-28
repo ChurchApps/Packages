@@ -378,9 +378,9 @@ export class ManifestProvider extends ConfiguredProvider {
     return this.listGroups(resolved.target.groups, path || "", resolved, auth, memo);
   }
 
-  private async getPlaylistImpl(path: string, auth?: ContentProviderAuthData | null): Promise<ContentFile[] | null> {
+  private async getPlaylistImpl(path: string, auth?: ContentProviderAuthData | null, resolution?: number): Promise<ContentFile[] | null> {
     if (this.manifest.routes) {
-      const files = normalizeFiles(await this.runtime.runRoute("playlist", path, auth));
+      const files = normalizeFiles(await this.runtime.runRoute("playlist", path, auth, { resolution: resolution ?? null }));
       return files.length > 0 ? files : null;
     }
     const result = await this.leafFor(path, auth, false);

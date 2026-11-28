@@ -50,6 +50,18 @@ export {
   type LoadProviderIndexResult
 } from "./manifest/loader";
 export {
+  DEFAULT_CACHE_KEY,
+  createMemoryStorage,
+  hydrateCachedProviders,
+  clearProviderCache,
+  syncProviders,
+  type ProviderCacheStorage,
+  type HydrateCacheOptions,
+  type HydrateCacheResult,
+  type SyncProvidersOptions,
+  type SyncProvidersResult
+} from "./manifest/sync";
+export {
   MANIFEST_ENGINE_VERSION,
   type ProviderManifest,
   type ManifestAuth,
@@ -86,6 +98,8 @@ export {
   getAllProviders,
   registerProvider,
   unregisterProvider,
+  onProvidersChanged,
   getProviderConfig,
-  getAvailableProviders
+  getAvailableProviders,
+  type ProvidersChangedListener
 } from "./providers";

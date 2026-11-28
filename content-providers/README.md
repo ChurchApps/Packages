@@ -40,28 +40,36 @@ const playlist = await provider.getPlaylist?.('/lessons/p1/s1/l1/v1');
 const instructions = await provider.getInstructions?.('/lessons/p1/s1/l1/v1');
 ```
 
-### Adding a New Provider by Downloading a Config File
+### Adding a New Provider by Publishing a Config File (Online Sync + Offline Support)
 
 All 16 built-in providers (`aplay`, `awana`, `b1church`, `bibleproject`, `cbn`, `dropbox`, `freeshow`, `gocurriculum`, `googledrive`, `highvoltagekids`, `jesusfilm`, `lessonschurch`, `lifechurch`, `onedrive`, `planningcenter`, `signpresenter`) are pure JSON manifests in `src/manifests/providers/`, listed in `src/manifests/index.json`. Static catalogs ship beside them in `src/manifests/providers/data/` (or can be inlined inside a manifest).
 
-Zero TypeScript code is needed to add or update a provider. Hosts can download a single provider config file or a full provider index at runtime:
+Zero TypeScript code and zero app republishing are needed to add or update a provider. Host your `index.json` + provider `.json` files on any HTTPS web server (run `yarn export:manifests` to generate a ready-to-upload `dist/manifests/` folder with SHA-256 hashes), and call `syncProviders` on app launch:
 
 ```typescript
-import { loadProviderFromUrl, loadProviderIndex, registerProviderFromConfig } from "@churchapps/content-providers";
+import { syncProviders, onProvidersChanged, getAvailableProviders } from "@churchapps/content-providers";
 
-// 1. Download and register a single provider config file over HTTPS
-const provider = await loadProviderFromUrl("https://example.org/providers/my-provider.json", {
-  verify: (body, url) => verifySignature(body, url) // e.g. Ed25519 against a key built into the app
+// Re-render UI automatically whenever cached or newly downloaded providers arrive
+const unsubscribe = onProvidersChanged(() => {
+  setProviders(getAvailableProviders());
 });
 
-// 2. Or load a whole remote index (adds new providers and updates bundled ones)
-const { loaded, skipped } = await loadProviderIndex("https://example.org/providers/index.json", {
-  verify: (body, url) => verifySignature(body, url)
+// Call once on app launch:
+// 1. Immediately restores the last downloaded configs from storage (works offline!)
+// 2. Checks the server for new/updated JSON configs (uses ETag + sha256 to skip unchanged files)
+// 3. Saves updates back to storage for future offline launches
+// 4. Never throws if offline — seamlessly falls back to cached or bundled configs
+const result = await syncProviders({
+  indexUrl: "https://content.churchapps.org/providers/index.json",
+  // Optional in browsers (defaults to localStorage). Pass AsyncStorage in React Native or a custom adapter in Node:
+  storage: myStorageAdapter,
+  // Optional Ed25519 signature check for every downloaded file:
+  verify: (body, url) => verifySignature(body, url),
+  timeoutMs: 8000
 });
-
-// 3. Or register an already-parsed JSON config (or JSON string) directly
-registerProviderFromConfig(manifestJson);
 ```
+
+You can also hydrate cached providers explicitly without touching the network (`hydrateCachedProviders`), clear the cache (`clearProviderCache`), load a single remote manifest (`loadProviderFromUrl`), or register a parsed JSON object directly (`registerProviderFromConfig`).
 
 ### Fixed Shared Subsystems
 

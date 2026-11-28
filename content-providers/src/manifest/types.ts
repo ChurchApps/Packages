@@ -224,6 +224,10 @@ export interface ProviderIndexEntry {
   id: string;
   /** Path or HTTPS URL of the provider's manifest. */
   manifest?: string;
+  /** Optional version string or content hash so apps only re-download manifests that changed. */
+  version?: string;
+  /** Optional lowercase hex SHA-256 digest of the manifest file for incremental sync and integrity checks. */
+  sha256?: string;
   /** Listed as "coming soon" with no implementation. */
   comingSoon?: boolean;
   name?: string;

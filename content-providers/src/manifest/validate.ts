@@ -507,7 +507,7 @@ export function validateIndex(value: unknown): ProviderIndex {
   else {
     index.providers.forEach((p, i) => {
       const at = `providers[${i}]`;
-      c.keys(at, p, new Set(["id", "manifest", "comingSoon", "name", "logos"]));
+      c.keys(at, p, new Set(["id", "manifest", "version", "sha256", "comingSoon", "name", "logos"]));
       if (typeof p?.id !== "string" || !ID_PATTERN.test(p.id)) c.fail(`${at}.id`, "must be lowercase letters, digits and dashes");
       if (!p?.manifest === !p?.comingSoon) c.fail(at, "needs exactly one of manifest or comingSoon");
       if (p?.manifest !== undefined) {
@@ -515,6 +515,8 @@ export function validateIndex(value: unknown): ProviderIndex {
         const isRel = typeof p.manifest === "string" && !p.manifest.includes("..") && !/^\w+:/.test(p.manifest);
         if (!isRemote && !isRel) c.fail(`${at}.manifest`, "must be a relative path or https URL");
       }
+      if (p?.version !== undefined) c.str(`${at}.version`, p.version);
+      if (p?.sha256 !== undefined && (typeof p.sha256 !== "string" || !/^[a-f0-9]{64}$/i.test(p.sha256))) c.fail(`${at}.sha256`, "must be a 64-char hex SHA-256 digest");
       if (p?.comingSoon) c.str(`${at}.name`, p.name);
     });
   }

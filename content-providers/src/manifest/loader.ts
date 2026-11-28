@@ -77,6 +77,11 @@ export function getComingSoonEntries(): ProviderIndexEntry[] {
   return comingSoon;
 }
 
+/** Update the coming-soon list (used by bundled init, loadProviderIndex, and offline-first sync). */
+export function setComingSoonEntries(entries: ProviderIndexEntry[]): void {
+  comingSoon = entries;
+}
+
 /** Build every provider from the bundled JSON manifests. A broken bundled manifest is a build bug, so this throws. */
 export function createBundledProviders(): IProvider[] {
   const index = validateIndex(bundledIndex);

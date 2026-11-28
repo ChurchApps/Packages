@@ -18,12 +18,22 @@ export interface ContentProviderConfig {
   name: string;
   apiBase: string;
   oauthBase: string;
+  /** Override for the OAuth authorization endpoint when it differs from {oauthBase}/authorize. */
+  authorizeUrl?: string;
+  /** Override for the OAuth token endpoint when it differs from {oauthBase}/token. */
+  tokenUrl?: string;
+  /** Body encoding for OAuth token exchange & refresh ("form" by default; "json" for JSON token APIs). */
+  tokenEncoding?: "form" | "json";
+  /** Extra authorize query parameters; null drops a default parameter (e.g. scope). */
+  authorizeParams?: Record<string, string | null>;
   clientId: string;
   /** For confidential OAuth clients (e.g. WP OAuth Server); sent on token exchange and refresh. */
   clientSecret?: string;
   scopes: string[];
   supportsDeviceFlow?: boolean;
   deviceAuthEndpoint?: string;
+  /** Body encoding for device flow ("json" by default; "form" for Keycloak-style form endpoints). */
+  deviceFlowEncoding?: "json" | "form";
   /** @deprecated URL templates now live in each provider; kept optional for type compatibility. */
   endpoints?: EndpointsConfig;
 }

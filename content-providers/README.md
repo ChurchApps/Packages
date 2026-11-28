@@ -2,7 +2,7 @@
 
 # @churchapps/content-providers
 
-> **ContentProviderHelper** is a TypeScript library for integrating with third-party content providers like Planning Center, Lessons.church, and more. It provides a unified interface for browsing media libraries, handling OAuth authentication, and retrieving content for playback in church presentation software.
+> **ContentProviderHelper** is a TypeScript library for integrating with third-party content providers like Planning Center, Lessons.church, B1.Church, Dropbox, FreeShow, and more. All shared logic (auth flows, LAN/mDNS discovery, HTTP requests, pagination, caching, and content/plan transformations) is fixed shared code, while every provider is defined purely by a JSON config manifest that can be bundled or downloaded remotely at runtime.
 
 ## Installation
 
@@ -30,50 +30,84 @@ console.log(available); // [{ id: 'planningcenter', name: 'Planning Center', ...
 ```typescript
 import { getProvider } from '@churchapps/content-providers';
 
-const provider = getProvider('planningcenter');
+const provider = getProvider('lessonschurch');
 
 // Browse content
 const items = await provider.browse();
 
-// Get presentations/playlist for a service
-const plan = await provider.getPresentations(serviceId);
+// Get playlist or instructions for a leaf path
+const playlist = await provider.getPlaylist?.('/lessons/p1/s1/l1/v1');
+const instructions = await provider.getInstructions?.('/lessons/p1/s1/l1/v1');
 ```
 
-### Built-in Providers
+### Adding a New Provider by Publishing a Config File (Online Sync + Offline Support)
 
-- **B1ChurchProvider** - B1.Church plans (merges plan items with lesson venues and external providers)
-- **LessonsChurchProvider** - Lessons.church curriculum and add-ons
-- **PlanningCenterProvider** - Planning Center Services (browse only)
-- **BibleProjectProvider** - Bible Project videos
-- **APlayProvider** - A.Play media library
-- **SignPresenterProvider** - Sign Presenter playlists
-- **DropboxProvider** - Media files from a Dropbox account
-- **JesusFilmProvider** - Jesus Film Project (Arclight API)
-- **CbnProvider** - CBN Superbook curriculum
-- **HighVoltageKidsProvider** - High Voltage Kids curriculum (static catalog)
-- **LifeChurchProvider** - Life.Church kids curriculum (static catalog)
-- **FreeShowProvider** - FreeShow shows discovered on the local network (mocked announcements playlist)
+All built-in providers (`aplay`, `b1church`, `bibleproject`, `cbn`, `dropbox`, `freeshow`, `gocurriculum`, `googledrive`, `highvoltagekids`, `jesusfilm`, `lessonschurch`, `lifechurch`, `onedrive`, `planningcenter`, `signpresenter`, plus `awana.json` ready to enable) are pure JSON manifests in `src/manifests/providers/`, indexed by `src/manifests/index.json`. Static catalogs ship beside them in `src/manifests/providers/data/` (or can be inlined inside a manifest).
 
-### Create a Custom Provider
+> **Want to create your own custom provider (or have an AI agent build one)?** Read [CUSTOM_PROVIDERS.md](./CUSTOM_PROVIDERS.md) for the complete schema, expression language, starter templates, validation commands, and FreePlay "Add Provider" hosting checklist.
+
+Zero TypeScript code and zero app republishing are needed to add or update a provider. The official manifest index is published automatically to `DEFAULT_MANIFEST_INDEX_URL` (`https://churchapps.github.io/Packages/providers/v1/index.json`) whenever `src/manifests/` changes on `main`, or you can host your own `dist/manifests/` folder (`yarn export:manifests`) on any HTTPS web server and call `syncProviders` on app launch:
 
 ```typescript
-import { BaseProvider, registerProvider } from '@churchapps/content-providers';
+import {
+  DEFAULT_MANIFEST_INDEX_URL,
+  syncProviders,
+  onProvidersChanged,
+  getAvailableProviders
+} from "@churchapps/content-providers";
 
-class MyProvider extends BaseProvider {
-  // Declare id/name/logos/config/requiresAuth/authTypes/capabilities and implement browse().
-  // Every declared authType/capability must be backed by its IProvider methods (enforced by
-  // tests/contentProviders.test.ts):
-  //   oauth_pkce   -> generateCodeVerifier / buildAuthUrl / buildAuthUrlFromChallenge / exchangeCodeForTokens
-  //                   (OAuthHelper implements the standard flow; delegate to it like SignPresenterProvider)
-  //   device_flow  -> initiateDeviceFlow / pollDeviceFlowToken (see DeviceFlowHelper)
-  //   form_login   -> performLogin
-  //   network_discovery -> discoverInstances
-  //   playlist / instructions / mediaLicensing -> getPlaylist / getInstructions / checkMediaLicense
-  // The protected apiRequest() helper performs authenticated JSON fetches against config.apiBase.
-}
+// Re-render UI automatically whenever cached or newly downloaded providers arrive
+const unsubscribe = onProvidersChanged(() => {
+  setProviders(getAvailableProviders());
+});
 
-registerProvider(new MyProvider());
+// Call once on app launch:
+// 1. Immediately restores the last downloaded configs from storage (works offline!)
+// 2. Checks the server for new/updated JSON configs (uses ETag + sha256 to skip unchanged files)
+// 3. Saves updates back to storage for future offline launches
+// 4. Never throws if offline — seamlessly falls back to cached or bundled configs
+const result = await syncProviders({
+  indexUrl: DEFAULT_MANIFEST_INDEX_URL,
+  // Optional in browsers (defaults to localStorage). Pass AsyncStorage in React Native or a custom adapter in Node:
+  storage: myStorageAdapter,
+  // Optional Ed25519 signature check for every downloaded file:
+  verify: (body, url) => verifySignature(body, url),
+  timeoutMs: 8000
+});
 ```
+
+You can also hydrate cached providers explicitly without touching the network (`hydrateCachedProviders`), clear the cache (`clearProviderCache`), load a single remote manifest (`loadProviderFromUrl` or `fetchProviderConfig` when you also want the raw manifest + datasets for offline persistence), or register a parsed JSON object directly (`registerProviderFromConfig`).
+
+### Publishing Updates
+
+- **Manifest-only updates (new/updated `.json` providers, no app or npm update required):**
+  Edit files in `src/manifests/` (e.g. add a provider to `src/manifests/index.json`) and merge to `main`. `.github/workflows/publish-manifests.yml` automatically validates every manifest, computes SHA-256 digests via `yarn export:manifests`, and publishes `providers/v1/` (you can also trigger it manually from the Actions tab or export locally with `yarn export:manifests`).
+- **npm package updates:**
+  Run `yarn changeset` at the workspace root, commit the changeset with your edits, merge your PR to `main`, and merge the auto-created `Version packages` PR. `.github/workflows/release.yml` builds (`tsup && yarn export:manifests`) and publishes to npm automatically via trusted publishing (OIDC).
+
+### Fixed Shared Subsystems
+
+Every manifest runs on the same fixed shared code:
+
+- **Auth (`OAuthHelper`, `DeviceFlowHelper`, `FormLoginHelper`, `TokenHelper`):**
+  - `oauth_pkce`: form or JSON token exchange (`tokenEncoding`), custom `authorizeUrl`, `tokenUrl`, `authorizeParams`, optional `secret:<name>` client secret, optional `supportsSecretExchange`.
+  - `device_flow`: JSON or Keycloak-style form encoding (`encoding: "json" | "form"`), custom `tokenUrl`, `plan_type_id` passthrough.
+  - `form_login`: JSON or form credential login (`auth.formLogin`) with configurable fields and response token extraction.
+  - `none`: public APIs and static catalogs.
+- **Network Discovery (`NetworkDiscoveryHelper`):**
+  - Declarative `networkDiscovery` (`serviceType`, `defaultPort`, `groupBy`, `nameTemplate`, `probe`).
+  - Hosts register one mDNS scanner via `setMdnsScanner(serviceType => ...)` at startup and any LAN provider — including newly downloaded ones — discovers local servers automatically.
+- **API & Runtime (`ManifestRuntime`):**
+  - Strict host allowlist (`hosts`, plus `"lan"` for RFC1918/loopback addresses and host-supplied `secretUrl`).
+  - GET/POST, URL templates with automatic segment encoding, query params, JSON/form bodies, `"bearer" | "optional" | "none"` auth, raw responses, timeouts, declarative pagination, per-call request deduplication, TTL/shared caching, per-instance `state` (`setState`), recursive `procedures`, host `hooks`, and inline or remote `datasets`.
+- **Shared Transformations (`transforms.ts`, `PlanHelper`, `utils.ts`):**
+  - Content builders (`folder`, `file`, `download`), media/Mux/WordPress helpers (`mediaType`, `isMedia`, `isPlaylistMedia`, `muxStreamUrl`, `muxThumbnail`, `muxPlaybackId`, `wpThumb`), instruction & plan helpers (`filesToInstructions`, `instructionsToPlaylist`, `navigateToPath`, `findFirstThumbnail`, `orderPlanFiles`, `normalizeItemType`), text/markdown helpers (`stripMarkdown`, `truncate`, `truncateLabel`, `slugify`), list/date helpers (`groupBy`, `groupConsecutive`, `compact`, `sortBy`, `localDateOffset`, `timestamp`, `beforeDaysFromNow`), and network auth conversion (`networkAuth`, `networkInstance`).
+- **Readable Config Format:**
+  - Simple fixed-depth APIs use `tree` (Awana, CBN, Planning Center, SignPresenter).
+  - Complex/variable-depth APIs, cloud drives, LAN RPCs, and composite providers (B1.Church, Dropbox, FreeShow, GO! Curriculum, Google Drive, Jesus Film, Lessons.church, OneDrive, static catalogs) use `routes`, `procedures`, `methods`, and structured `functions` (`{ params, let, return }` or short lambdas).
+  - Nothing downloaded is ever evaluated as JavaScript; every expression is parsed into an AST, statically validated at load time, and evaluated in a sandbox.
+
+See `src/manifest/types.ts` for the full schema and `src/manifests/providers/` for all 16 provider configs.
 
 ## Get Involved
 

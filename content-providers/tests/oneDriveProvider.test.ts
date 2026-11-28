@@ -1,7 +1,13 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { OneDriveProvider } from "../src/providers/onedrive";
+import { ManifestProvider } from "../src/manifest/ManifestProvider";
+import oneDriveManifest from "../src/manifests/providers/onedrive.json";
+
+// OneDrive is defined by its JSON manifest.
+const OneDriveProvider = class extends ManifestProvider {
+  constructor() { super(oneDriveManifest); }
+} as unknown as new () => any;
 import { ContentProviderAuthData } from "../src/interfaces";
 
 const auth: ContentProviderAuthData = { access_token: "at", refresh_token: "rt", token_type: "Bearer", created_at: 0, expires_in: 3600, scope: "" };

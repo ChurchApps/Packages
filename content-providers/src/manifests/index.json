@@ -1,0 +1,83 @@
+{
+  "engine": 1,
+  "providers": [
+    {
+      "id": "aplay",
+      "manifest": "providers/aplay.json"
+    },
+    {
+      "id": "b1church",
+      "manifest": "providers/b1church.json"
+    },
+    {
+      "id": "dropbox",
+      "manifest": "providers/dropbox.json"
+    },
+    {
+      "id": "gocurriculum",
+      "manifest": "providers/gocurriculum.json"
+    },
+    {
+      "id": "googledrive",
+      "manifest": "providers/googledrive.json"
+    },
+    {
+      "id": "onedrive",
+      "manifest": "providers/onedrive.json"
+    },
+    {
+      "id": "bibleproject",
+      "manifest": "providers/bibleproject.json"
+    },
+    {
+      "id": "highvoltagekids",
+      "manifest": "providers/highvoltagekids.json"
+    },
+    {
+      "id": "jesusfilm",
+      "manifest": "providers/jesusfilm.json"
+    },
+    {
+      "id": "lessonschurch",
+      "manifest": "providers/lessonschurch.json"
+    },
+    {
+      "id": "lifechurch",
+      "manifest": "providers/lifechurch.json"
+    },
+    {
+      "id": "planningcenter",
+      "manifest": "providers/planningcenter.json"
+    },
+    {
+      "id": "signpresenter",
+      "manifest": "providers/signpresenter.json"
+    },
+    {
+      "id": "cbn",
+      "manifest": "providers/cbn.json"
+    },
+    {
+      "id": "freeshow",
+      "manifest": "providers/freeshow.json"
+    },
+    {
+      "id": "iteachchurch",
+      "comingSoon": true,
+      "name": "iTeachChurch",
+      "logos": {
+        "light": "https://iteachchurch.com/wp-content/uploads/2022/05/iTeachChurch_Artboard-1-copy-3@2x.png",
+        "dark": "https://iteachchurch.com/wp-content/uploads/2022/05/iTeachChurch_Artboard-1-copy-3@2x.png"
+      }
+    },
+    {
+      "id": "ministrystuff",
+      "comingSoon": true,
+      "name": "MinistryStuff",
+      "logos": {
+        "light": "",
+        "dark": ""
+      }
+    }
+  ]
+}

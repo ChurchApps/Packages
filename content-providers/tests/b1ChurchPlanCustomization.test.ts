@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { getOrderedFiles } from "../src/providers/b1Church/planCustomization";
+import { getOrderedFiles } from "../src/helpers/PlanHelper";
 import { Instructions } from "../src/interfaces";
 
 // Regression for issue #963: the same downloadUrl legitimately appears on

@@ -13,10 +13,12 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "CUSTOM_PROVIDERS.md"
   ],
   "scripts": {
-    "build": "tsup",
+    "build": "tsup && yarn export:manifests",
+    "export:manifests": "tsx scripts/export-manifests.ts",
     "dev": "vite",
     "cli": "yarn exec tsx cli/playground.ts",
     "test": "tsx --test tests/*.test.ts",

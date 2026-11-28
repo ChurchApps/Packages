@@ -1,10 +1,10 @@
 /** Smoke test for LifeChurchProvider against bundled data.json without requiring FreePlay or Maestro. */
 
-import { LifeChurchProvider } from "../src/providers/lifeChurch";
+import { getProvider } from "../src/providers/index";
 import { isContentFolder, isContentFile } from "../src/interfaces";
 
 async function main() {
-  const provider = new LifeChurchProvider();
+  const provider = getProvider("lifechurch")!;
   let issues = 0;
 
   console.log("\n=== Root (/ ) ===");

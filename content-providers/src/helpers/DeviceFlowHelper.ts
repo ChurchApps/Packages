@@ -10,7 +10,16 @@ export class DeviceFlowHelper {
     if (!this.supportsDeviceFlow(config)) return null;
 
     try {
-      const response = await fetch(`${config.oauthBase}${config.deviceAuthEndpoint}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ client_id: config.clientId, scope: config.scopes.join(" ") }) });
+      const url = `${config.oauthBase}${config.deviceAuthEndpoint}`;
+      const isForm = config.deviceFlowEncoding === "form";
+      const fields: Record<string, string> = { client_id: config.clientId, scope: config.scopes.join(" ") };
+      if (config.clientSecret) fields.client_secret = config.clientSecret;
+
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": isForm ? "application/x-www-form-urlencoded" : "application/json" },
+        body: isForm ? new URLSearchParams(fields).toString() : JSON.stringify(fields)
+      });
       if (!response.ok) return null;
       return await response.json();
     } catch {
@@ -20,15 +29,27 @@ export class DeviceFlowHelper {
 
   async pollDeviceFlowToken(config: ContentProviderConfig, deviceCode: string): Promise<DeviceFlowPollResult> {
     try {
-      const response = await fetch(`${config.oauthBase}/token`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ grant_type: "urn:ietf:params:oauth:grant-type:device_code", device_code: deviceCode, client_id: config.clientId }) });
+      const url = config.tokenUrl || `${config.oauthBase}/token`;
+      const isForm = config.deviceFlowEncoding === "form";
+      const fields: Record<string, string> = {
+        grant_type: "urn:ietf:params:oauth:grant-type:device_code",
+        device_code: deviceCode,
+        client_id: config.clientId
+      };
+      if (config.clientSecret) fields.client_secret = config.clientSecret;
+
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": isForm ? "application/x-www-form-urlencoded" : "application/json" },
+        body: isForm ? new URLSearchParams(fields).toString() : JSON.stringify(fields)
+      });
 
       if (response.ok) {
         const data = await response.json();
-        const auth = toAuthData(data, { scope: config.scopes.join(" ") });
-        return data.plan_type_id ? { ...auth, planTypeId: data.plan_type_id as string } : auth;
+        return toAuthData(data, { scope: config.scopes.join(" ") });
       }
 
-      const errorData = await response.json();
+      const errorData = await response.json().catch(() => ({}));
       switch (errorData.error) {
         case "authorization_pending": return { error: "authorization_pending" };
         case "slow_down": return { error: "slow_down", shouldSlowDown: true };

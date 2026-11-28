@@ -1,0 +1,220 @@
+{
+  "engine": 1,
+  "id": "aplay",
+  "name": "APlay",
+  "logos": {
+    "light": "https://www.joinamazing.com/_assets/v11/3ba846c5afd7e73d27bc4d87b63d423e7ae2dc73.svg",
+    "dark": "https://www.joinamazing.com/_assets/v11/3ba846c5afd7e73d27bc4d87b63d423e7ae2dc73.svg"
+  },
+  "hosts": [
+    "api-prod.amazingkids.app",
+    "api.joinamazing.com"
+  ],
+  "requiresAuth": true,
+  "capabilities": {
+    "browse": true,
+    "playlist": true,
+    "instructions": true,
+    "mediaLicensing": true
+  },
+  "apiBase": "https://api-prod.amazingkids.app",
+  "auth": {
+    "oauthBase": "https://api.joinamazing.com/prod/aims/oauth",
+    "clientId": "xFJFq7yNYuXXXMx0YBiQ",
+    "scopes": [
+      "openid",
+      "profile",
+      "email"
+    ],
+    "pkce": true
+  },
+  "functions": {
+    "moduleFolders": "(modules) => map(filter(modules, x => !x.isLocked), x => folder(x.id || x.moduleId, x.title || x.name, '/modules/' + (x.id || x.moduleId), x.image))",
+    "libraryFolders": "(libraries, currentPath) => map(libraries, l => folder(l.libraryId || l.id, l.title || l.name, currentPath + '/' + (l.libraryId || l.id), l.image, true))",
+    "productFolders": "(products, currentPath) => map(products, p => folder(p.productId || p.id, p.title || p.name, currentPath + '/products/' + (p.productId || p.id), p.image))",
+    "mediaFile": {
+      "params": ["item"],
+      "let": {
+        "mt": "lower(item.mediaType)",
+        "thumb": "item.thumbnail.src || ''",
+        "isVideo": "mt == 'video' && !!item.video",
+        "isImage": "!isVideo && (mt == 'image' || !!item.image)",
+        "url": "isVideo ? (item.video.muxPlaybackId ? muxStreamUrl(item.video.muxPlaybackId) : item.video.muxStreamingUrl || item.video.url || '') : isImage ? (item.image.src || item.url || '') : (item.url || item.src || '')",
+        "thumbnail": "isVideo ? (thumb || item.video.thumbnailUrl || '') : isImage ? (thumb || item.image.src || '') : (thumb || item.thumbnailUrl || '')",
+        "id": "item.mediaId || item.id"
+      },
+      "return": "url ? file(id, item.title || item.name || item.fileName || '', url, { mediaType: mediaType(url, mt), thumbnail, muxPlaybackId: isVideo ? item.video.muxPlaybackId : undefined, mediaId: id }) : null"
+    }
+  },
+  "procedures": {
+    "modules": {
+      "steps": [
+        {
+          "fetch": "/prod/curriculum/modules",
+          "as": "r"
+        }
+      ],
+      "return": "list(r, 'data', 'modules')"
+    },
+    "libraries": {
+      "params": ["productId", "currentPath"],
+      "steps": [
+        {
+          "fetch": "/prod/curriculum/modules/products/{productId}/libraries",
+          "as": "r"
+        }
+      ],
+      "return": "libraryFolders(list(r, 'data', 'libraries'), currentPath)"
+    },
+    "media": {
+      "params": ["libraryId"],
+      "steps": [
+        {
+          "fetch": "/prod/creators/libraries/{libraryId}/media",
+          "as": "r"
+        }
+      ],
+      "return": "compact(map(list(r, 'data', 'media'), mediaFile))"
+    }
+  },
+  "routes": [
+    {
+      "path": "/",
+      "browse": "[folder('modules-root', 'Modules', '/modules')]"
+    },
+    {
+      "path": "/modules",
+      "browse": {
+        "steps": [
+          {
+            "call": "modules",
+            "as": "list"
+          }
+        ],
+        "return": "moduleFolders(list)"
+      }
+    },
+    {
+      "path": "/modules/:module",
+      "browse": {
+        "steps": [
+          {
+            "call": "modules",
+            "as": "list"
+          },
+          {
+            "let": {
+              "mod": "find(list, x => (x.id || x.moduleId) == params.module)"
+            }
+          },
+          {
+            "return": "[]",
+            "when": "!mod"
+          },
+          {
+            "let": {
+              "products": "filter(mod.products || [], p => !p.isHidden)"
+            }
+          },
+          {
+            "if": "len(products) > 1",
+            "then": [
+              {
+                "return": "productFolders(products, path)"
+              }
+            ]
+          },
+          {
+            "call": "libraries",
+            "args": {
+              "productId": "len(products) == 0 ? params.module : products[0].productId || products[0].id",
+              "currentPath": "path + '/libraries'"
+            },
+            "as": "libs"
+          }
+        ],
+        "return": "libs"
+      }
+    },
+    {
+      "path": "/modules/:module/products/:product",
+      "browse": {
+        "steps": [
+          {
+            "call": "libraries",
+            "args": {
+              "productId": "params.product",
+              "currentPath": "path"
+            },
+            "as": "libs"
+          }
+        ],
+        "return": "libs"
+      }
+    },
+    {
+      "path": "/modules/:module/products/:product/:library",
+      "load": [
+        {
+          "call": "media",
+          "args": {
+            "libraryId": "params.library"
+          },
+          "as": "files"
+        }
+      ],
+      "browse": "files",
+      "playlist": "files",
+      "instructions": "len(files) > 0 ? filesToInstructions('Library', files) : null"
+    },
+    {
+      "path": "/modules/:module/libraries/:library",
+      "load": [
+        {
+          "call": "media",
+          "args": {
+            "libraryId": "params.library"
+          },
+          "as": "files"
+        }
+      ],
+      "browse": "files",
+      "playlist": "files",
+      "instructions": "len(files) > 0 ? filesToInstructions('Library', files) : null"
+    }
+  ],
+  "methods": {
+    "checkMediaLicense": {
+      "params": ["mediaId"],
+      "steps": [
+        {
+          "return": "null",
+          "when": "!auth"
+        },
+        {
+          "fetch": {
+            "method": "POST",
+            "path": "/prod/reports/media/license-check",
+            "body": "{ mediaIds: [mediaId] }",
+            "raw": true
+          },
+          "as": "r"
+        },
+        {
+          "return": "{ mediaId, status: 'unknown', message: 'Unable to verify license status' }",
+          "when": "r.status == 0 || (r.ok && r.body == null)"
+        },
+        {
+          "return": "null",
+          "when": "!r.ok"
+        },
+        {
+          "let": {
+            "result": "find(isArray(r.body) ? r.body : r.body.data || [], x => x.mediaId == mediaId)"
+          }
+        }
+      ],
+      "return": "result && result.isLicensed ? { mediaId, status: 'valid', message: 'Media is licensed for playback', expiresAt: result.expiresAt } : { mediaId, status: 'not_licensed', message: 'Media is not licensed' }"
+    }
+  }
+}

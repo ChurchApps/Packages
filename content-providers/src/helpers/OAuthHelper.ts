@@ -27,6 +27,13 @@ export async function generateCodeChallenge(verifier: string): Promise<string> {
   return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
+function encodeTokenBody(fields: Record<string, string>, encoding: "form" | "json"): { headers: Record<string, string>; body: string } {
+  if (encoding === "json") {
+    return { headers: { "Content-Type": "application/json" }, body: JSON.stringify(fields) };
+  }
+  return { headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: new URLSearchParams(fields).toString() };
+}
+
 export class OAuthHelper {
   generateCodeVerifier(): string {
     return generateCodeVerifier();
@@ -51,26 +58,44 @@ export class OAuthHelper {
       code_challenge_method: "S256",
       state
     });
-    return `${config.oauthBase}/authorize?${params.toString()}`;
+    for (const [key, value] of Object.entries(config.authorizeParams || {})) {
+      if (value === null) params.delete(key);
+      else params.set(key, value);
+    }
+    const base = config.authorizeUrl || `${config.oauthBase}/authorize`;
+    return `${base}?${params.toString()}`;
   }
 
   async exchangeCodeForTokens(config: ContentProviderConfig, _providerId: string, code: string, codeVerifier: string, redirectUri: string): Promise<ContentProviderAuthData | null> {
+    const fields: Record<string, string> = {
+      grant_type: "authorization_code",
+      code,
+      redirect_uri: redirectUri,
+      client_id: config.clientId,
+      code_verifier: codeVerifier
+    };
+    if (config.clientSecret) fields.client_secret = config.clientSecret;
+    return this.postToken(config, fields);
+  }
+
+  async exchangeCodeForTokensWithSecret(config: ContentProviderConfig, code: string, redirectUri: string, clientSecret: string): Promise<ContentProviderAuthData | null> {
+    const fields: Record<string, string> = {
+      grant_type: "authorization_code",
+      code,
+      redirect_uri: redirectUri,
+      client_id: config.clientId,
+      client_secret: clientSecret
+    };
+    return this.postToken(config, fields);
+  }
+
+  private async postToken(config: ContentProviderConfig, fields: Record<string, string>): Promise<ContentProviderAuthData | null> {
     try {
-      const params = new URLSearchParams({
-        grant_type: "authorization_code",
-        code,
-        redirect_uri: redirectUri,
-        client_id: config.clientId,
-        code_verifier: codeVerifier
-      });
-      if (config.clientSecret) params.set("client_secret", config.clientSecret);
+      const tokenUrl = config.tokenUrl || `${config.oauthBase}/token`;
+      const { headers, body } = encodeTokenBody(fields, config.tokenEncoding || "form");
+      const response = await fetch(tokenUrl, { method: "POST", headers, body });
 
-      const tokenUrl = `${config.oauthBase}/token`;
-      const response = await fetch(tokenUrl, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: params.toString() });
-
-      if (!response.ok) {
-        return null;
-      }
+      if (!response.ok) return null;
 
       const data = await response.json();
       return toAuthData(data, { scope: config.scopes.join(" ") });

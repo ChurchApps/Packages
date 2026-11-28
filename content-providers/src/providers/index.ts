@@ -1,69 +1,15 @@
-import { IProvider, ProviderInfo, ProviderLogos } from "../interfaces";
-import { registerProvider, getProvider, getAllProviders } from "./registry";
-import { APlayProvider } from "./aPlay";
-import { AwanaProvider } from "./awana";
-import { B1ChurchProvider } from "./b1Church";
-import { DropboxProvider } from "./dropbox";
-import { GoCurriculumProvider } from "./goCurriculum";
-import { GoogleDriveProvider } from "./googledrive";
-import { OneDriveProvider } from "./onedrive";
-import { BibleProjectProvider } from "./bibleProject";
-import { HighVoltageKidsProvider } from "./highVoltage";
-import { LessonsChurchProvider } from "./lessonsChurch";
-import { LifeChurchProvider } from "./lifeChurch";
-import { PlanningCenterProvider } from "./planningCenter";
-import { SignPresenterProvider } from "./signPresenter";
-import { JesusFilmProvider } from "./jesusFilm";
-import { CbnProvider } from "./cbn";
-import { FreeShowProvider } from "./freeShow";
+import { ProviderInfo } from "../interfaces";
+import { batchProviderUpdates, registerProvider, getProvider, getAllProviders } from "./registry";
+import { createBundledProviders, getComingSoonEntries } from "../manifest/loader";
 
-export { getProvider, getAllProviders, registerProvider } from "./registry";
+export { getProvider, getAllProviders, registerProvider, unregisterProvider, onProvidersChanged, type ProvidersChangedListener } from "./registry";
 
-interface UnimplementedProvider {
-  id: string;
-  name: string;
-  logos: ProviderLogos;
-}
-
-const unimplementedProviders: UnimplementedProvider[] = [
-  {
-    id: "iteachchurch",
-    name: "iTeachChurch",
-    logos: {
-      light: "https://iteachchurch.com/wp-content/uploads/2022/05/iTeachChurch_Artboard-1-copy-3@2x.png",
-      dark: "https://iteachchurch.com/wp-content/uploads/2022/05/iTeachChurch_Artboard-1-copy-3@2x.png"
-    }
-  },
-  {
-    id: "ministrystuff",
-    name: "MinistryStuff",
-    logos: {
-      light: "",
-      dark: ""
-    }
-  }
-];
-
+// Every provider is loaded dynamically from src/manifests/index.json. Hosts can sync new/updated
+// configs from a web server at launch with syncProviders() or loadProviderIndex().
 function initializeProviders() {
-  const providers: IProvider[] = [
-    new APlayProvider(),
-    new AwanaProvider(),
-    new B1ChurchProvider(),
-    new DropboxProvider(),
-    new GoCurriculumProvider(),
-    new GoogleDriveProvider(),
-    new OneDriveProvider(),
-    new BibleProjectProvider(),
-    new HighVoltageKidsProvider(),
-    new JesusFilmProvider(),
-    new LessonsChurchProvider(),
-    new LifeChurchProvider(),
-    new PlanningCenterProvider(),
-    new SignPresenterProvider(),
-    new CbnProvider(),
-    new FreeShowProvider()
-  ];
-  for (const provider of providers) registerProvider(provider);
+  batchProviderUpdates(() => {
+    for (const provider of createBundledProviders()) registerProvider(provider);
+  });
 }
 
 initializeProviders();
@@ -90,10 +36,10 @@ export function getAvailableProviders(ids?: string[]): ProviderInfo[] {
   }));
 
   // Coming soon providers
-  const comingSoon: ProviderInfo[] = unimplementedProviders.map((p) => ({
+  const comingSoon: ProviderInfo[] = getComingSoonEntries().map((p) => ({
     id: p.id,
-    name: p.name,
-    logos: p.logos,
+    name: p.name || p.id,
+    logos: p.logos || { light: "", dark: "" },
     implemented: false,
     requiresAuth: false,
     authTypes: [],

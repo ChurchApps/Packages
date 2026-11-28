@@ -1,0 +1,64 @@
+{
+  "engine": 1,
+  "id": "bibleproject",
+  "name": "The Bible Project",
+  "logos": {
+    "light": "https://static.bibleproject.com/bp-web-components/v0.25.0/bibleproject-logo-mark.svg",
+    "dark": "https://static.bibleproject.com/bp-web-components/v0.25.0/bibleproject-logo-mark.svg"
+  },
+  "hosts": [
+    "bibleproject.com"
+  ],
+  "requiresAuth": false,
+  "capabilities": {
+    "browse": true,
+    "playlist": true,
+    "instructions": true,
+    "mediaLicensing": false
+  },
+  "apiBase": "https://bibleproject.com",
+  "datasets": {
+    "catalog": "data/bibleproject.json"
+  },
+  "functions": {
+    "videoFile": "(v) => file(v.id, v.title, v.videoUrl, { mediaType: 'video', thumbnail: muxThumbnail(v.muxPlaybackId), muxPlaybackId: v.muxPlaybackId, seconds: 0 })",
+    "collection": "(slug) => find(datasets.catalog.collections, c => slugify(c.name) == slug)"
+  },
+  "routes": [
+    {
+      "path": "/",
+      "browse": "map(filter(datasets.catalog.collections, c => len(c.videos) > 0), c => folder(slugify(c.name), c.name, '/' + slugify(c.name), c.image))"
+    },
+    {
+      "path": "/:collection",
+      "load": [
+        {
+          "let": {
+            "c": "collection(params.collection)"
+          }
+        }
+      ],
+      "browse": "c ? map(c.videos, v => folder(v.id, v.title, path + '/' + v.id, muxThumbnail(v.muxPlaybackId), true)) : []",
+      "playlist": "c ? map(c.videos, videoFile) : null",
+      "instructions": "c ? filesToInstructions(c.name, map(c.videos, videoFile), slugify(c.name) + '-section', c.name) : null"
+    },
+    {
+      "path": "/:collection/:video",
+      "load": [
+        {
+          "let": {
+            "c": "collection(params.collection)"
+          }
+        },
+        {
+          "let": {
+            "v": "c && find(c.videos, x => x.id == params.video)"
+          }
+        }
+      ],
+      "browse": "v ? [videoFile(v)] : []",
+      "playlist": "v ? [videoFile(v)] : null",
+      "instructions": "v ? filesToInstructions(v.title, [videoFile(v)], slugify(c.name) + '-section', c.name) : null"
+    }
+  ]
+}

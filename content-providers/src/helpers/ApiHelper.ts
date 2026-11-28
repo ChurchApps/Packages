@@ -1,11 +1,6 @@
 import { ContentProviderAuthData, ContentProviderConfig } from "../interfaces";
 
 export class ApiHelper {
-  createAuthHeaders(auth: ContentProviderAuthData | null | undefined): Record<string, string> | null {
-    if (!auth) return null;
-    return { Authorization: `Bearer ${auth.access_token}`, Accept: "application/json" };
-  }
-
   async apiRequest<T>(config: ContentProviderConfig, providerId: string, path: string, auth?: ContentProviderAuthData | null, method: "GET" | "POST" = "GET", body?: unknown): Promise<T | null> {
     const url = `${config.apiBase}${path}`;
     try {

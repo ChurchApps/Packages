@@ -1,0 +1,393 @@
+{
+  "engine": 1,
+  "id": "lessonschurch",
+  "name": "Lessons.church",
+  "logos": {
+    "light": "https://lessons.church/images/logo.png",
+    "dark": "https://lessons.church/images/logo-dark.png"
+  },
+  "hosts": [
+    "api.lessons.church"
+  ],
+  "requiresAuth": false,
+  "capabilities": {
+    "browse": true,
+    "playlist": true,
+    "instructions": true,
+    "mediaLicensing": false
+  },
+  "apiBase": "https://api.lessons.church",
+  "settings": {
+    "imageSeconds": 15,
+    "defaultAddOnSeconds": 10
+  },
+  "functions": {
+    "feedActions": "(feed) => fromEntries(flatMap((feed && feed.sections) || [], s => map(filter(s.actions || [], a => a.id), a => [a.id, a])))",
+    "sectionAction": {
+      "params": ["action", "info", "lessonImage"],
+      "let": {
+        "raw": "lower(action.actionType || '')",
+        "seconds": "action.seconds ?? settings.imageSeconds",
+        "fa": "action.id ? info[action.id] : null",
+        "first": "fa.files[0]",
+        "thumbnail": "first.thumbnail || lessonImage",
+        "downloadUrl": "first.url || undefined",
+        "mt": "downloadUrl ? mediaType(downloadUrl, first.fileType) : undefined",
+        "full": "fa.content || undefined"
+      },
+      "return": "{ id: action.id, itemType: 'action', relatedId: action.id, label: full ? truncateLabel(full) : action.name, actionType: raw || undefined, content: full && (len(full) > 100 || includes(full, '\n')) ? full : undefined, seconds, downloadUrl, mediaType: mt, thumbnail, children: oneOf(raw, 'play', 'add-on') ? [{ id: action.id + '-file', itemType: 'file', label: action.name, seconds, downloadUrl, mediaType: mt, thumbnail }] : undefined }"
+    },
+    "sectionActionsMap": {
+      "params": ["actionsResponse", "lessonImage", "feed"],
+      "let": {
+        "info": "feedActions(feed)"
+      },
+      "return": "fromEntries(map(filter((actionsResponse && actionsResponse.sections) || [], s => s.id && s.actions), s => [s.id, map(s.actions, a => sectionAction(a, info, lessonImage))]))"
+    },
+    "processInstructionItem": {
+      "params": ["item", "actions", "thumb"],
+      "let": {
+        "itemType": "normalizeItemType(item.itemType)",
+        "processed": "item.children ? map(item.children, child => child.relatedId && actions[child.relatedId] ? { id: child.id, itemType: normalizeItemType(child.itemType), relatedId: child.relatedId, label: child.label, actionType: child.actionType, content: child.content, seconds: child.seconds, children: actions[child.relatedId], downloadUrl: actions[child.relatedId][0].downloadUrl, mediaType: actions[child.relatedId][0].mediaType, thumbnail: thumb } : processInstructionItem(child, actions, thumb)) : undefined"
+      },
+      "return": "{ id: item.id, itemType, relatedId: item.relatedId, label: item.label, actionType: item.actionType, content: item.content, seconds: item.seconds, children: itemType == 'section' && item.relatedId && actions[item.relatedId] && !len(processed) ? actions[item.relatedId] : processed, downloadUrl: undefined, thumbnail: itemType == 'file' || (itemType == 'action' && !len(item.children)) ? thumb : undefined }"
+    },
+    "feedDownloads": {
+      "params": ["bundles"],
+      "return": "flatMap(bundles || [], b => with(filter(b.files || [], f => f.url && !isPlaylistMedia(f.url, f.fileType, f.name)), files => map(files, f => ({ id: f.id, title: (len(files) == 1 ? b.name || f.name : f.name || b.name) || 'Download', url: f.url, fileType: f.fileType, bytes: f.bytes }))))"
+    },
+    "playlistFiles": {
+      "params": ["response"],
+      "let": {
+        "entries": "flatMap((response && response.messages) || [], msg => map(filter(msg.files || [], f => f.url), f => ({ f, msg })))"
+      },
+      "return": "map(entries, (x, i) => file(x.f.id || 'playlist-' + len(filter(slice(entries, 0, i), y => !y.f.id)), x.f.name || x.msg.name, x.f.url, { mediaType: mediaType(x.f.url, x.f.fileType), thumbnail: x.f.thumbnail || response.lessonImage, downloadUrl: x.f.url, seconds: x.f.seconds, loop: x.f.loop, loopVideo: x.f.loopVideo }))"
+    },
+    "addOnInstructions": "(addOnId, item) => ({ name: item.title, items: [{ id: addOnId, itemType: 'action', relatedId: addOnId, label: item.title, seconds: item.seconds, children: [{ id: addOnId + '-file', itemType: 'file', label: item.title, seconds: item.seconds, downloadUrl: item.url, thumbnail: item.thumbnail }] }] })"
+  },
+  "procedures": {
+    "addOnFile": {
+      "params": ["addOn"],
+      "steps": [
+        {
+          "fetch": {
+            "path": "/addOns/public/{addOn.id}",
+            "auth": "none"
+          },
+          "as": "detail"
+        },
+        {
+          "return": "null",
+          "when": "!detail"
+        },
+        {
+          "let": {
+            "video": "detail.video",
+            "rawFile": "detail.file"
+          }
+        },
+        {
+          "return": "null",
+          "when": "!video && !rawFile"
+        },
+        {
+          "let": {
+            "url": "video ? apiBase + '/externalVideos/download/' + video.id : rawFile.contentPath",
+            "mt": "video ? 'video' : (startsWith(rawFile.fileType || '', 'video/') ? 'video' : 'image')",
+            "seconds": "video ? video.seconds || addOn.seconds || settings.defaultAddOnSeconds : addOn.seconds || settings.defaultAddOnSeconds"
+          }
+        }
+      ],
+      "return": "file(addOn.id, addOn.name ?? detail.name, url, { mediaType: mt, thumbnail: addOn.image ?? detail.image, downloadUrl: url, seconds, loopVideo: (video && video.loopVideo) || false })"
+    },
+    "venuePlaylist": {
+      "params": ["venueId", "resolution"],
+      "steps": [
+        {
+          "fetch": {
+            "path": "/venues/playlist/{venueId}",
+            "query": {
+              "resolution": "resolution || null"
+            },
+            "auth": "none"
+          },
+          "as": "r"
+        }
+      ],
+      "return": "r ? playlistFiles(r) : null"
+    },
+    "venueInstructions": {
+      "params": ["venueId"],
+      "steps": [
+        {
+          "fetch": {
+            "path": "/venues/public/planItems/{venueId}",
+            "auth": "none"
+          },
+          "as": "planItems"
+        },
+        {
+          "return": "null",
+          "when": "!planItems"
+        },
+        {
+          "fetch": {
+            "path": "/venues/public/actions/{venueId}",
+            "auth": "none"
+          },
+          "as": "actions"
+        },
+        {
+          "fetch": {
+            "path": "/venues/public/feed/{venueId}",
+            "auth": "none"
+          },
+          "as": "feed"
+        },
+        {
+          "let": {
+            "lessonImage": "feed && feed.lessonImage",
+            "sectionMap": "sectionActionsMap(actions, lessonImage, feed)",
+            "downloads": "feedDownloads(feed && feed.downloads)"
+          }
+        }
+      ],
+      "return": "{ name: planItems.venueName, items: map(planItems.items || [], item => processInstructionItem(item, sectionMap, lessonImage)), downloads: len(downloads) > 0 ? downloads : undefined }"
+    },
+    "allAddOns": {
+      "steps": [
+        {
+          "fetch": {
+            "path": "/addOns/public",
+            "auth": "none"
+          },
+          "as": "r"
+        }
+      ],
+      "return": "isArray(r) ? r : null"
+    }
+  },
+  "routes": [
+    {
+      "path": "/",
+      "browse": "[folder('lessons-root', 'Lessons', '/lessons'), folder('addons-root', 'Add-Ons', '/addons')]"
+    },
+    {
+      "path": "/lessons",
+      "browse": {
+        "steps": [
+          {
+            "fetch": {
+              "path": "/programs/public",
+              "auth": "none"
+            },
+            "as": "r"
+          }
+        ],
+        "return": "map(list(r), p => folder(p.id, p.name, '/lessons/' + p.id, p.image))"
+      }
+    },
+    {
+      "path": "/lessons/:program",
+      "browse": {
+        "steps": [
+          {
+            "fetch": {
+              "path": "/studies/public/program/{params.program}",
+              "auth": "none"
+            },
+            "as": "r"
+          }
+        ],
+        "return": "sortBy(map(list(r), s => folder(s.id, s.name, path + '/' + s.id, s.image)), f => f.title)"
+      }
+    },
+    {
+      "path": "/lessons/:program/:study",
+      "browse": {
+        "steps": [
+          {
+            "fetch": {
+              "path": "/lessons/public/study/{params.study}",
+              "auth": "none"
+            },
+            "as": "r"
+          }
+        ],
+        "return": "map(list(r), l => folder(l.id, l.name || l.title, path + '/' + l.id, l.image))"
+      }
+    },
+    {
+      "path": "/lessons/:program/:study/:lesson",
+      "browse": {
+        "steps": [
+          {
+            "fetch": {
+              "path": "/venues/public/lesson/{params.lesson}",
+              "auth": "none"
+            },
+            "as": "r"
+          },
+          {
+            "return": "[]",
+            "when": "!r"
+          },
+          {
+            "fetch": {
+              "path": "/lessons/public/{params.lesson}",
+              "auth": "none"
+            },
+            "as": "lesson"
+          }
+        ],
+        "return": "map(list(r), v => folder(v.id, v.name, path + '/' + v.id, lesson && lesson.image, true))"
+      }
+    },
+    {
+      "path": "/addons",
+      "browse": {
+        "steps": [
+          {
+            "call": "allAddOns",
+            "as": "all"
+          }
+        ],
+        "return": "map(sortBy(unique(compact(map(all || [], a => a.category))), c => c, 'raw'), c => folder('category-' + c, c, '/addons/' + encode(c)))"
+      }
+    },
+    {
+      "path": "/addons/:category",
+      "load": [
+        {
+          "let": {
+            "category": "decode(params.category)"
+          }
+        }
+      ],
+      "browse": {
+        "steps": [
+          {
+            "call": "allAddOns",
+            "as": "all"
+          }
+        ],
+        "return": "map(filter(all || [], a => a.category == category), a => folder(a.id, a.name, path + '/' + a.id, a.image, true))"
+      },
+      "instructions": {
+        "steps": [
+          {
+            "call": "allAddOns",
+            "as": "all"
+          },
+          {
+            "return": "null",
+            "when": "!all"
+          },
+          {
+            "each": "filter(all, a => a.category == category)",
+            "as": "addOn",
+            "into": "children",
+            "steps": [
+              {
+                "call": "addOnFile",
+                "args": {
+                  "addOn": "addOn"
+                },
+                "as": "item"
+              },
+              {
+                "let": {
+                  "seconds": "(item && item.seconds) || addOn.seconds || settings.defaultAddOnSeconds",
+                  "downloadUrl": "item && item.url",
+                  "mt": "item && item.mediaType"
+                }
+              }
+            ],
+            "return": "{ id: addOn.id, itemType: 'action', relatedId: addOn.id, label: addOn.name, seconds, mediaType: mt, children: [{ id: addOn.id + '-file', itemType: 'file', label: addOn.name, seconds, downloadUrl, mediaType: mt, thumbnail: addOn.image }] }"
+          },
+          {
+            "return": "null",
+            "when": "len(children) == 0"
+          }
+        ],
+        "return": "{ name: category, items: [{ id: 'category-' + category, itemType: 'section', label: category, children }] }"
+      }
+    },
+    {
+      "path": "/addons/:category/:id/*rest",
+      "load": [
+        {
+          "call": "addOnFile",
+          "args": {
+            "addOn": "{ id: params.id }"
+          },
+          "as": "item"
+        }
+      ],
+      "browse": "len(params.rest) == 0 && item ? [item] : []",
+      "playlist": "item ? [item] : null",
+      "instructions": {
+        "steps": [
+          {
+            "call": "venueInstructions",
+            "args": {
+              "venueId": "segments[4]"
+            },
+            "as": "venue",
+            "when": "len(segments) >= 5"
+          },
+          {
+            "return": "venue",
+            "when": "len(segments) >= 5"
+          }
+        ],
+        "return": "len(params.rest) == 0 && item ? addOnInstructions(params.id, item) : null"
+      }
+    },
+    {
+      "path": "/:root/:a/:b/:c/:venue/*rest",
+      "browse": {
+        "steps": [
+          {
+            "return": "[]",
+            "when": "params.root != 'lessons' || len(params.rest) > 0"
+          },
+          {
+            "call": "venuePlaylist",
+            "args": {
+              "venueId": "params.venue",
+              "resolution": "null"
+            },
+            "as": "files"
+          }
+        ],
+        "return": "files || []"
+      },
+      "playlist": {
+        "steps": [
+          {
+            "call": "venuePlaylist",
+            "args": {
+              "venueId": "params.venue",
+              "resolution": "resolution"
+            },
+            "as": "files"
+          }
+        ],
+        "return": "files"
+      },
+      "instructions": {
+        "steps": [
+          {
+            "call": "venueInstructions",
+            "args": {
+              "venueId": "params.venue"
+            },
+            "as": "i"
+          }
+        ],
+        "return": "i"
+      }
+    }
+  ]
+}

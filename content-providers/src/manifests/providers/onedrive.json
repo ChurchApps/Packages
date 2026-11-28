@@ -1,0 +1,149 @@
+{
+  "engine": 1,
+  "id": "onedrive",
+  "name": "OneDrive",
+  "logos": {
+    "light": "https://res-1.cdn.office.net/files/fabric-cdn-prod_20230815.002/assets/brand-icons/product/png/onedrive_48x1.png",
+    "dark": "https://res-1.cdn.office.net/files/fabric-cdn-prod_20230815.002/assets/brand-icons/product/png/onedrive_48x1.png"
+  },
+  "hosts": [
+    "graph.microsoft.com",
+    "login.microsoftonline.com"
+  ],
+  "requiresAuth": true,
+  "capabilities": {
+    "browse": true,
+    "playlist": true,
+    "instructions": true,
+    "mediaLicensing": false
+  },
+  "apiBase": "https://graph.microsoft.com/v1.0",
+  "auth": {
+    "oauthBase": "https://login.microsoftonline.com/common/oauth2/v2.0",
+    "clientId": "49a15ab2-868f-4612-8b03-c1c7fae485f1",
+    "clientSecret": "secret:onedrive",
+    "scopes": [
+      "Files.Read.All",
+      "offline_access"
+    ],
+    "pkce": true,
+    "authorizeParams": {
+      "prompt": "select_account"
+    }
+  },
+  "functions": {
+    "validId": "(id) => test(id, '^[\\w!.-]+$')",
+    "itemPath": "(id) => id == 'root' ? '/me/drive/root' : '/me/drive/items/' + encode(id)",
+    "isMediaItem": "(e) => !!e.file && (some(['video/', 'image/', 'audio/'], p => startsWith(e.file.mimeType, p)) || isMedia(e.name))",
+    "toFile": "(item, apiBase) => with(apiBase + '/me/drive/items/' + encode(item.id) + '/content', url => ({ type: 'file', id: item.id, title: item.name, mediaType: mediaType(item.name, item.file.mimeType), thumbnail: item.thumbnails[0].medium.url, url, downloadUrl: url }))"
+  },
+  "procedures": {
+    "children": {
+      "params": [
+        "id"
+      ],
+      "steps": [
+        {
+          "fetch": {
+            "url": "apiBase + itemPath(id) + '/children?$top=999&$expand=thumbnails'",
+            "auth": "bearer",
+            "page": {
+              "items": "response.value || []",
+              "while": "response['@odata.nextLink']",
+              "next": {
+                "url": "response['@odata.nextLink']",
+                "auth": "bearer"
+              },
+              "max": 10
+            }
+          },
+          "as": "all"
+        }
+      ],
+      "return": "{ folders: filter(all, e => e.folder), mediaFiles: map(filter(all, isMediaItem), f => toFile(f, apiBase)) }"
+    }
+  },
+  "routes": [
+    {
+      "path": "/",
+      "browse": {
+        "steps": [
+          {
+            "call": "children",
+            "args": {
+              "id": "'root'"
+            },
+            "as": "c"
+          }
+        ],
+        "return": "concat(map(c.folders, f => ({ type: 'folder', id: f.id, title: f.name, path: '/' + f.id })), c.mediaFiles)"
+      }
+    },
+    {
+      "path": "/:id",
+      "load": [
+        {
+          "let": {
+            "id": "params.id"
+          }
+        },
+        {
+          "return": "null",
+          "when": "!validId(id)"
+        }
+      ],
+      "browse": {
+        "steps": [
+          {
+            "call": "children",
+            "args": {
+              "id": "id"
+            },
+            "as": "c"
+          }
+        ],
+        "return": "concat(map(c.folders, f => ({ type: 'folder', id: f.id, title: f.name, path: '/' + f.id })), c.mediaFiles)"
+      },
+      "playlist": {
+        "steps": [
+          {
+            "call": "children",
+            "args": {
+              "id": "id"
+            },
+            "as": "c"
+          }
+        ],
+        "return": "c.mediaFiles"
+      },
+      "instructions": {
+        "steps": [
+          {
+            "call": "children",
+            "args": {
+              "id": "id"
+            },
+            "as": "c"
+          },
+          {
+            "return": "null",
+            "when": "len(c.mediaFiles) == 0"
+          },
+          {
+            "fetch": {
+              "url": "apiBase + itemPath(id) + '?$select=name'",
+              "auth": "bearer"
+            },
+            "as": "meta"
+          },
+          {
+            "let": {
+              "name": "(meta && meta.name) || 'OneDrive'"
+            }
+          }
+        ],
+        "return": "filesToInstructions(name, c.mediaFiles, 'onedrive-section', name)"
+      }
+    }
+  ]
+}

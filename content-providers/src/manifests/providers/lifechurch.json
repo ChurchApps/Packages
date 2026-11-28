@@ -1,0 +1,119 @@
+{
+  "engine": 1,
+  "id": "lifechurch",
+  "name": "Life.Church",
+  "logos": {
+    "light": "https://cdn.brandfetch.io/idRrA6pM45/w/400/h/400/theme/dark/icon.jpeg?c=1bxid64Mup7aczewSAYMX&t=1668042253613",
+    "dark": "https://cdn.brandfetch.io/idRrA6pM45/w/400/h/400/theme/dark/icon.jpeg?c=1bxid64Mup7aczewSAYMX&t=1668042253613"
+  },
+  "hosts": [
+    "www.life.church"
+  ],
+  "requiresAuth": false,
+  "capabilities": {
+    "browse": true,
+    "playlist": true,
+    "instructions": true,
+    "mediaLicensing": false
+  },
+  "apiBase": "https://www.life.church",
+  "datasets": {
+    "catalog": "data/lifechurch.json"
+  },
+  "functions": {
+    "series": "(id) => find(datasets.catalog.series, s => s.id == id)",
+    "resolveScheduled": "(s) => with(series(s.seriesId), se => with(se && find(se.units, u => u.id == s.unitId), unit => with(unit && find(unit.lessons, l => l.id == s.lessonId), lesson => se && unit && lesson ? { series: se, unit, lesson } : null)))",
+    "lessonFile": "(lesson, title) => ({ type: 'file', id: lesson.id, title: title ?? lesson.title, mediaType: 'video', url: lesson.videoUrl, thumbnail: lesson.thumbnail, providerData: { sourceUrl: lesson.sourceUrl } })",
+    "scheduledLabel": "(s, r) => s.ageGroup + ' — ' + (r ? r.lesson.title : s.sourceTitle)"
+  },
+  "routes": [
+    {
+      "path": "/",
+      "browse": "concat(len(datasets.catalog.scheduledLessons) > 0 ? [{ type: 'folder', id: 'scheduled', title: 'This Sunday', path: '/scheduled' }] : [], map(datasets.catalog.series, s => ({ type: 'folder', id: s.id, title: s.name, thumbnail: s.thumbnail, path: '/' + s.id })))"
+    },
+    {
+      "path": "/scheduled",
+      "browse": "map(datasets.catalog.scheduledLessons || [], s => with(resolveScheduled(s), r => ({ type: 'folder', id: s.id, title: scheduledLabel(s, r), thumbnail: r ? r.lesson.thumbnail ?? r.unit.thumbnail : null, isLeaf: true, path: '/scheduled/' + s.id })))"
+    },
+    {
+      "path": "/scheduled/:id",
+      "load": [
+        {
+          "let": {
+            "s": "find(datasets.catalog.scheduledLessons, x => x.id == params.id)"
+          }
+        },
+        {
+          "let": {
+            "r": "s && resolveScheduled(s)"
+          }
+        },
+        {
+          "let": {
+            "files": "r ? [lessonFile(r.lesson, scheduledLabel(s, r))] : null"
+          }
+        }
+      ],
+      "browse": "files || []",
+      "playlist": "files",
+      "instructions": "files ? filesToInstructions(scheduledLabel(s, r), files, 'scheduled-' + s.id + '-section', 'This Sunday') : null"
+    },
+    {
+      "path": "/:series",
+      "load": [
+        {
+          "let": {
+            "se": "series(params.series)"
+          }
+        }
+      ],
+      "browse": "se ? map(se.units, u => ({ type: 'folder', id: u.id, title: u.name, thumbnail: u.thumbnail ?? se.thumbnail, path: '/' + se.id + '/' + u.id })) : []"
+    },
+    {
+      "path": "/:series/:unit",
+      "load": [
+        {
+          "let": {
+            "se": "series(params.series)"
+          }
+        },
+        {
+          "let": {
+            "unit": "se && find(se.units, u => u.id == params.unit)"
+          }
+        }
+      ],
+      "browse": "unit ? map(unit.lessons, l => ({ type: 'folder', id: l.id, title: l.title, thumbnail: l.thumbnail, isLeaf: true, path: '/' + se.id + '/' + unit.id + '/' + l.id })) : []",
+      "playlist": "unit ? map(unit.lessons, l => lessonFile(l)) : null",
+      "instructions": "unit ? filesToInstructions(unit.name, map(unit.lessons, l => lessonFile(l)), unit.id + '-section', unit.name) : null"
+    },
+    {
+      "path": "/:series/:unit/:lesson",
+      "load": [
+        {
+          "let": {
+            "se": "series(params.series)"
+          }
+        },
+        {
+          "let": {
+            "unit": "se && find(se.units, u => u.id == params.unit)"
+          }
+        },
+        {
+          "let": {
+            "lesson": "unit && find(unit.lessons, l => l.id == params.lesson)"
+          }
+        }
+      ],
+      "browse": "lesson ? [lessonFile(lesson)] : []",
+      "playlist": "lesson ? [lessonFile(lesson)] : null",
+      "instructions": "lesson ? filesToInstructions(lesson.title, [lessonFile(lesson)], unit.id + '-section', unit.name) : null"
+    }
+  ],
+  "methods": {
+    "getCurrentPlan": {
+      "return": "with(sortBy(datasets.catalog.scheduledLessons || [], s => s.weekOf, 'text', true)[0], sched => sched ? with(resolveScheduled(sched), r => r ? { id: sched.id, title: sched.ageGroup + ' — ' + r.lesson.title, serviceDate: sched.weekOf, thumbnail: r.lesson.thumbnail ?? r.unit.thumbnail ?? r.series.thumbnail, files: [{ id: r.lesson.id, name: r.lesson.title, url: r.lesson.videoUrl, image: r.lesson.thumbnail, seconds: 0 }] } : null) : null)"
+    }
+  }
+}

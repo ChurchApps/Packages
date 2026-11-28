@@ -1,8 +1,14 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { SignPresenterProvider } from "../src/providers/signPresenter";
+import { ManifestProvider } from "../src/manifest/ManifestProvider";
+import signPresenterManifest from "../src/manifests/providers/signpresenter.json";
 import { ContentProviderAuthData } from "../src/interfaces";
+
+// SignPresenter is defined by its JSON manifest; getPlaylist/getInstructions are attached from it at runtime.
+const SignPresenterProvider = class extends ManifestProvider {
+  constructor() { super(signPresenterManifest); }
+} as unknown as new () => any;
 
 const auth: ContentProviderAuthData = { access_token: "at", refresh_token: "rt", token_type: "Bearer", created_at: 0, expires_in: 3600, scope: "" };
 

@@ -1,0 +1,78 @@
+{
+  "engine": 1,
+  "id": "awana",
+  "name": "Awana",
+  "logos": {
+    "light": "https://www.awana.org/wp-content/uploads/2025/04/awana-logo-black.svg",
+    "dark": "https://www.awana.org/wp-content/uploads/2025/04/awana-logo-white.svg"
+  },
+  "hosts": ["awanabritedev.wpengine.com", "awanabritestg.wpengine.com", "britecurriculum.com", "sso.awana.org", "login.awana.org"],
+  "requiresAuth": true,
+  "capabilities": { "browse": true, "playlist": true, "instructions": true, "mediaLicensing": false },
+  "environments": {
+    "dev": { "site": "https://awanabritedev.wpengine.com", "sso": "https://sso.awana.org" },
+    "staging": { "site": "https://awanabritestg.wpengine.com", "sso": "https://sso.awana.org" },
+    "prod": { "site": "https://britecurriculum.com", "sso": "https://login.awana.org" }
+  },
+  "defaultEnvironment": "dev",
+  "apiBase": "{env.site}/wp-json/content/v1",
+  "auth": {
+    "oauthBase": "{env.sso}/auth/realms/awana/protocol/openid-connect",
+    "clientId": "churchapps",
+    "clientSecret": "secret:awana",
+    "scopes": ["openid", "profile", "email"],
+    "deviceFlow": { "endpoint": "/auth/device", "encoding": "form" }
+  },
+  "cache": { "ttlSeconds": 300, "max": 50 },
+  "verifyPaths": true,
+  "tree": [
+    {
+      "request": "/library",
+      "items": "response.courses",
+      "folder": { "id": "str(item.id)", "title": "item.name", "thumbnail": "item.image" },
+      "children": [
+        {
+          "items": "parent.units",
+          "folder": { "id": "str(item.id)", "title": "item.name", "thumbnail": "item.image || parent.image" },
+          "children": [
+            {
+              "when": "parent.has_files",
+              "static": [{ "id": "unit", "title": "Unit Files" }],
+              "thumbnail": "parent.image || parents[0].image",
+              "leaf": {
+                "request": "/units/{parents[1].id}",
+                "from": [{ "list": "response.files", "as": "item" }],
+                "playlist": {
+                  "where": "oneOf(item.type, 'video', 'audio', 'image') && item.url",
+                  "file": { "id": "str(item.id)", "title": "item.name", "url": "item.url", "mediaType": "item.type", "thumbnail": "item.type == 'image' ? item.url : parents[1].image" }
+                },
+                "downloads": {
+                  "where": "item.url",
+                  "file": { "id": "str(item.id)", "title": "item.name", "url": "item.url", "fileType": "item.mime", "bytes": "item.size" }
+                },
+                "title": "response.name + ' - Unit Files'"
+              }
+            },
+            {
+              "items": "parent.lessons",
+              "folder": { "id": "str(item.id)", "title": "item.name", "thumbnail": "parent.image || parents[0].image" },
+              "leaf": {
+                "request": "/lessons/{segments[2]}",
+                "from": [{ "list": "response.files", "as": "item" }],
+                "playlist": {
+                  "where": "oneOf(item.type, 'video', 'audio', 'image') && item.url",
+                  "file": { "id": "str(item.id)", "title": "item.name", "url": "item.url", "mediaType": "item.type", "thumbnail": "item.type == 'image' ? item.url : parents[1].image" }
+                },
+                "downloads": {
+                  "where": "item.url",
+                  "file": { "id": "str(item.id)", "title": "item.name", "url": "item.url", "fileType": "item.mime", "bytes": "item.size" }
+                },
+                "title": "response.name"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

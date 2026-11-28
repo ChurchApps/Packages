@@ -5,13 +5,24 @@ import { AddressInfo } from "node:net";
 import os from "node:os";
 
 import { getProvider } from "../src/providers/index";
-import { DEFAULT_SLIDE_SECONDS, FreeShowShow } from "../src/providers/freeShow/FreeShowInterfaces";
-import { showToFiles, slideSeconds } from "../src/providers/freeShow/FreeShowConverters";
-import { freeShowMediaUrl, freeShowRequest } from "../src/providers/freeShow/FreeShowApi";
-import { FreeShowProvider, freeShowServicesToInstances, networkInstanceToAuth } from "../src/providers/freeShow";
-import { isContentFolder } from "../src/interfaces";
+import { freeShowServicesToInstances, networkInstanceToAuth } from "../src/compat";
+import { probeLanHost, setMdnsScanner } from "../src/helpers/NetworkDiscoveryHelper";
+import { isContentFolder, ContentFile, NetworkInstance } from "../src/interfaces";
+import { ManifestProvider } from "../src/manifest/ManifestProvider";
+import freeShowManifest from "../src/manifests/providers/freeshow.json";
 
-const announcements: FreeShowShow = {
+const DEFAULT_SLIDE_SECONDS = freeShowManifest.settings.defaultSlideSeconds;
+
+// FreeShow is defined by its JSON manifest; slide mapping and media URLs are its named functions.
+const FreeShowProvider = class extends ManifestProvider {
+  constructor() { super(freeShowManifest); }
+} as unknown as new () => any;
+const freeShow = new ManifestProvider(freeShowManifest);
+const slideSeconds = (ref: Record<string, unknown>, mediaType: string) => freeShow.callFunction("slideSeconds", ref, mediaType) as number | undefined;
+const freeShowMediaUrl = (instance: Pick<NetworkInstance, "ip" | "port">, path: string) => freeShow.callFunction("mediaUrl", instance, path) as string | null;
+const showToFiles = (show: Record<string, unknown>, instance: Pick<NetworkInstance, "ip" | "port">) => freeShow.callFunction("showToFiles", show, instance) as ContentFile[];
+
+const announcements = {
   name: "Announcements",
   settings: { activeLayout: "L" },
   slides: { s1: { group: "Kids" }, s2: { group: "Theme" }, s3: { group: "Local video" } },
@@ -67,8 +78,8 @@ test("freeShowMediaUrl passes online media, proxies local images, drops local vi
   assert.equal(freeShowMediaUrl(instance, "C:\\a\\c.pdf"), null);
 });
 
-test("showToFiles maps backgrounds and timers through the resolver", () => {
-  const files = showToFiles(announcements, path => freeShowMediaUrl({ ip: "h", port: 1 }, path));
+test("showToFiles maps backgrounds and timers through the machine's media urls", () => {
+  const files = showToFiles(announcements, { ip: "h", port: 1 });
   assert.equal(files.length, 2);
   assert.equal(files[0].mediaType, "video");
   assert.equal(files[0].seconds, undefined);
@@ -78,11 +89,35 @@ test("showToFiles maps backgrounds and timers through the resolver", () => {
   assert.ok(files.every(file => file.loop === true));
 });
 
-test("freeShowRequest unwraps data and rejects non-FreeShow servers", async () => {
+test("probeLanHost validates FreeShow responses and rejects non-FreeShow servers", async () => {
   const instance = await instanceAt();
-  assert.deepEqual(await freeShowRequest(instance, "get_shows"), responses.get_shows);
-  assert.equal(await freeShowRequest(instance, "next_slide"), null);
-  await assert.rejects(freeShowRequest({ ip: "127.0.0.1", port: 1 }, "get_shows", {}, 500));
+  const probe = freeShowManifest.networkDiscovery.probe;
+  assert.equal(await probeLanHost(instance.ip, instance.port, probe), true);
+  assert.equal(await probeLanHost(instance.ip, instance.port, { ...probe, body: { action: "next_slide" }, expect: { action: "next_slide" } }), false);
+  assert.equal(await probeLanHost("127.0.0.1", 1, { ...probe, timeoutMs: 300 }), false);
+});
+
+test("discoverInstances uses the global mDNS scanner when no per-provider discoverer is set", async () => {
+  const port = await ready;
+  const lanIp = Object.values(os.networkInterfaces()).flat().find(net => net && net.family === "IPv4" && !net.internal)?.address;
+  const scannedTypes: string[] = [];
+  setMdnsScanner(async (serviceType) => {
+    scannedTypes.push(serviceType);
+    return [{ name: "freeshow-REMOTE-abc123", txt: { ip: lanIp || "192.168.1.50" } }];
+  });
+  try {
+    const provider = new ManifestProvider({
+      ...freeShowManifest,
+      networkDiscovery: { ...freeShowManifest.networkDiscovery, defaultPort: port }
+    }) as any;
+    const found = await provider.discoverInstances();
+    assert.deepEqual(scannedTypes, ["_freeshow._udp"]);
+    assert.equal(found.length, 1);
+    assert.equal(found[0].id, "abc123");
+    assert.equal(found[0].port, port);
+  } finally {
+    setMdnsScanner(null);
+  }
 });
 
 test("servicesToInstances groups a machine's services and prefers the address that answers", async () => {

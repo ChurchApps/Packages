@@ -1,0 +1,233 @@
+{
+  "engine": 1,
+  "id": "googledrive",
+  "name": "Google Drive",
+  "logos": {
+    "light": "https://ssl.gstatic.com/images/branding/product/2x/drive_2020q4_48dp.png",
+    "dark": "https://ssl.gstatic.com/images/branding/product/2x/drive_2020q4_48dp.png"
+  },
+  "hosts": [
+    "www.googleapis.com",
+    "oauth2.googleapis.com",
+    "accounts.google.com"
+  ],
+  "requiresAuth": true,
+  "capabilities": {
+    "browse": true,
+    "playlist": true,
+    "instructions": true,
+    "mediaLicensing": false
+  },
+  "apiBase": "https://www.googleapis.com/drive/v3",
+  "auth": {
+    "oauthBase": "https://oauth2.googleapis.com",
+    "clientId": "214868247432-hao323qmsfu96h345udaifs8f1nc7i71.apps.googleusercontent.com",
+    "clientSecret": "secret:googledrive",
+    "scopes": [
+      "https://www.googleapis.com/auth/drive.readonly"
+    ],
+    "pkce": true,
+    "authorizeUrl": "https://accounts.google.com/o/oauth2/v2/auth",
+    "authorizeParams": {
+      "access_type": "offline",
+      "prompt": "consent"
+    }
+  },
+  "settings": {
+    "folderMime": "application/vnd.google-apps.folder",
+    "leafCheckMaxFolders": 50
+  },
+  "functions": {
+    "validId": "(id) => test(id, '^[\\w-]+$')",
+    "isFolder": "(f) => f.mimeType == settings.folderMime",
+    "isMediaFile": "(f) => !isFolder(f) && !startsWith(f.mimeType, 'application/vnd.google-apps') && (some(['video/', 'image/', 'audio/'], p => startsWith(f.mimeType, p)) || isMedia(f.name))",
+    "toFile": "(f) => with(f.webContentLink || 'https://drive.google.com/uc?id=' + f.id + '&export=download', url => ({ type: 'file', id: f.id, title: f.name, mediaType: mediaType(f.name, f.mimeType), thumbnail: f.thumbnailLink, url, downloadUrl: url }))"
+  },
+  "procedures": {
+    "list": {
+      "params": [
+        "q"
+      ],
+      "steps": [
+        {
+          "fetch": {
+            "path": "/files",
+            "query": {
+              "q": "q",
+              "fields": "'nextPageToken,files(id,name,mimeType,thumbnailLink,webContentLink,parents)'",
+              "orderBy": "'folder,name_natural'",
+              "pageSize": "'1000'",
+              "supportsAllDrives": "'true'",
+              "corpora": "'user'"
+            },
+            "page": {
+              "items": "response.files || []",
+              "while": "response.nextPageToken",
+              "next": {
+                "path": "/files",
+                "query": {
+                  "q": "q",
+                  "fields": "'nextPageToken,files(id,name,mimeType,thumbnailLink,webContentLink,parents)'",
+                  "orderBy": "'folder,name_natural'",
+                  "pageSize": "'1000'",
+                  "supportsAllDrives": "'true'",
+                  "corpora": "'user'",
+                  "pageToken": "response.nextPageToken"
+                }
+              },
+              "max": 10
+            }
+          },
+          "as": "all"
+        }
+      ],
+      "return": "all || []"
+    },
+    "children": {
+      "params": [
+        "id"
+      ],
+      "steps": [
+        {
+          "call": "list",
+          "args": {
+            "q": "\"'\" + id + \"' in parents and trashed=false\""
+          },
+          "as": "all"
+        }
+      ],
+      "return": "{ folders: filter(all, isFolder), mediaFiles: map(filter(all, isMediaFile), toFile) }"
+    },
+    "leafIds": {
+      "params": [
+        "folders"
+      ],
+      "steps": [
+        {
+          "return": "null",
+          "when": "len(folders) == 0 || len(folders) > settings.leafCheckMaxFolders"
+        },
+        {
+          "call": "list",
+          "args": {
+            "q": "\"mimeType='\" + settings.folderMime + \"' and trashed=false and (\" + join(map(folders, f => \"'\" + f.id + \"' in parents\"), ' or ') + ')'"
+          },
+          "as": "subs"
+        },
+        {
+          "let": {
+            "withSubs": "flatMap(subs, s => s.parents || [])"
+          }
+        }
+      ],
+      "return": "map(filter(folders, f => !includes(withSubs, f.id)), f => f.id)"
+    }
+  },
+  "routes": [
+    {
+      "path": "/",
+      "load": [
+        {
+          "let": {
+            "id": "'root'"
+          }
+        }
+      ],
+      "browse": {
+        "steps": [
+          {
+            "call": "children",
+            "args": {
+              "id": "id"
+            },
+            "as": "c"
+          },
+          {
+            "call": "leafIds",
+            "args": {
+              "folders": "c.folders"
+            },
+            "as": "leaves"
+          }
+        ],
+        "return": "concat(map(c.folders, f => ({ type: 'folder', id: f.id, title: f.name, path: '/' + f.id, isLeaf: leaves ? includes(leaves, f.id) : null })), c.mediaFiles)"
+      }
+    },
+    {
+      "path": "/:id",
+      "load": [
+        {
+          "let": {
+            "id": "params.id"
+          }
+        },
+        {
+          "return": "null",
+          "when": "!validId(id)"
+        }
+      ],
+      "browse": {
+        "steps": [
+          {
+            "call": "children",
+            "args": {
+              "id": "id"
+            },
+            "as": "c"
+          },
+          {
+            "call": "leafIds",
+            "args": {
+              "folders": "c.folders"
+            },
+            "as": "leaves"
+          }
+        ],
+        "return": "concat(map(c.folders, f => ({ type: 'folder', id: f.id, title: f.name, path: '/' + f.id, isLeaf: leaves ? includes(leaves, f.id) : null })), c.mediaFiles)"
+      },
+      "playlist": {
+        "steps": [
+          {
+            "call": "children",
+            "args": {
+              "id": "id"
+            },
+            "as": "c"
+          }
+        ],
+        "return": "c.mediaFiles"
+      },
+      "instructions": {
+        "steps": [
+          {
+            "call": "children",
+            "args": {
+              "id": "id"
+            },
+            "as": "c"
+          },
+          {
+            "return": "null",
+            "when": "len(c.mediaFiles) == 0"
+          },
+          {
+            "fetch": {
+              "path": "/files/{id}",
+              "query": {
+                "fields": "'name'",
+                "supportsAllDrives": "'true'"
+              }
+            },
+            "as": "meta"
+          },
+          {
+            "let": {
+              "name": "(meta && meta.name) || 'Google Drive'"
+            }
+          }
+        ],
+        "return": "filesToInstructions(name, c.mediaFiles, 'googledrive-section', name)"
+      }
+    }
+  ]
+}

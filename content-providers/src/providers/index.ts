@@ -1,41 +1,13 @@
-import { IProvider, ProviderInfo } from "../interfaces";
+import { ProviderInfo } from "../interfaces";
 import { registerProvider, getProvider, getAllProviders } from "./registry";
-import { APlayProvider } from "./aPlay";
-import { B1ChurchProvider } from "./b1Church";
-import { DropboxProvider } from "./dropbox";
-import { GoCurriculumProvider } from "./goCurriculum";
-import { GoogleDriveProvider } from "./googledrive";
-import { OneDriveProvider } from "./onedrive";
-import { BibleProjectProvider } from "./bibleProject";
-import { HighVoltageKidsProvider } from "./highVoltage";
-import { LessonsChurchProvider } from "./lessonsChurch";
-import { LifeChurchProvider } from "./lifeChurch";
-import { PlanningCenterProvider } from "./planningCenter";
-import { JesusFilmProvider } from "./jesusFilm";
-import { FreeShowProvider } from "./freeShow";
 import { createBundledProviders, getComingSoonEntries } from "../manifest/loader";
 
 export { getProvider, getAllProviders, registerProvider } from "./registry";
 
+// Every provider comes from a JSON manifest listed in src/manifests/index.json. Hosts can add or update providers at
+// runtime with loadProviderIndex.
 function initializeProviders() {
-  const providers: IProvider[] = [
-    new APlayProvider(),
-    new B1ChurchProvider(),
-    new DropboxProvider(),
-    new GoCurriculumProvider(),
-    new GoogleDriveProvider(),
-    new OneDriveProvider(),
-    new BibleProjectProvider(),
-    new HighVoltageKidsProvider(),
-    new JesusFilmProvider(),
-    new LessonsChurchProvider(),
-    new LifeChurchProvider(),
-    new PlanningCenterProvider(),
-    new FreeShowProvider(),
-    // Providers defined by JSON manifests (src/manifests); hosts can add more at runtime with loadProviderIndex.
-    ...createBundledProviders()
-  ];
-  for (const provider of providers) registerProvider(provider);
+  for (const provider of createBundledProviders()) registerProvider(provider);
 }
 
 initializeProviders();

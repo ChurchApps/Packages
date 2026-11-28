@@ -1,0 +1,34 @@
+{
+  "engine": 1,
+  "id": "b1church",
+  "name": "B1.Church",
+  "logos": {
+    "light": "https://b1.church/b1-church-logo.png",
+    "dark": "https://b1.church/b1-church-logo.png"
+  },
+  "hosts": [
+    "api.churchapps.org",
+    "api.lessons.church",
+    "admin.b1.church"
+  ],
+  "requiresAuth": true,
+  "capabilities": {
+    "browse": true,
+    "playlist": true,
+    "instructions": true,
+    "mediaLicensing": false
+  },
+  "implementation": "b1church",
+  "apiBase": "https://api.churchapps.org/doing",
+  "auth": {
+    "oauthBase": "https://api.churchapps.org/membership/oauth",
+    "clientId": "nsowldn58dk",
+    "scopes": [
+      "plans"
+    ],
+    "pkce": true,
+    "deviceFlow": {
+      "endpoint": "/device/authorize"
+    }
+  }
+}

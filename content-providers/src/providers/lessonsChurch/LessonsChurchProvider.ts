@@ -1,8 +1,9 @@
-import { ContentProviderConfig, ContentProviderAuthData, ContentItem, ContentFile, ContentDownload, ProviderLogos, FeedDownloadInterface, FeedVenueInterface, Instructions, VenueActionsResponseInterface, ProviderCapabilities, AuthType } from "../../interfaces";
+import { ContentProviderAuthData, ContentItem, ContentFile, ContentDownload, FeedDownloadInterface, FeedVenueInterface, Instructions, VenueActionsResponseInterface } from "../../interfaces";
 import { detectMediaType, createFolder, isPlaylistMedia } from "../../utils";
 import { parsePath, getSegment } from "../../pathUtils";
-import { BaseProvider } from "../BaseProvider";
-import { apiRequest, API_BASE } from "./LessonsChurchApi";
+import { ConfiguredProvider } from "../../manifest/ConfiguredProvider";
+import defaultManifest from "../../manifests/providers/lessonschurch.json";
+import { apiRequest } from "./LessonsChurchApi";
 import { convertAddOnToFile, convertAddOnCategoryToInstructions, buildSectionActionsMap, processInstructionItem } from "./LessonsChurchConverters";
 
 /**
@@ -10,17 +11,11 @@ import { convertAddOnToFile, convertAddOnCategoryToInstructions, buildSectionAct
  * /lessons/{id}/{id}/{id} → venues, /lessons/{id}/{id}/{id}/{id} → files;
  * /addons → categories, /addons/{cat} → items, /addons/{cat}/{id} → file.
  */
-export class LessonsChurchProvider extends BaseProvider {
-  readonly id = "lessonschurch";
-  readonly name = "Lessons.church";
+export class LessonsChurchProvider extends ConfiguredProvider {
+  constructor(manifest: unknown = defaultManifest) {
+    super(manifest);
+  }
 
-  readonly logos: ProviderLogos = { light: "https://lessons.church/images/logo.png", dark: "https://lessons.church/images/logo-dark.png" };
-
-  readonly config: ContentProviderConfig = { id: "lessonschurch", name: "Lessons.church", apiBase: API_BASE, oauthBase: "", clientId: "", scopes: [] };
-
-  readonly requiresAuth = false;
-  readonly authTypes: AuthType[] = ["none"];
-  readonly capabilities: ProviderCapabilities = { browse: true, playlist: true, instructions: true, mediaLicensing: false };
 
   async getPlaylist(path: string, _auth?: ContentProviderAuthData | null, resolution?: number): Promise<ContentFile[] | null> {
     const { segments } = parsePath(path);

@@ -1,16 +1,13 @@
 import {
-  AuthType,
   ContentFile,
   ContentItem,
   ContentProviderAuthData,
-  ContentProviderConfig,
   Instructions,
-  NetworkInstance,
-  ProviderCapabilities,
-  ProviderLogos
+  NetworkInstance
 } from "../../interfaces";
 import { parsePath } from "../../pathUtils";
-import { BaseProvider } from "../BaseProvider";
+import { ConfiguredProvider } from "../../manifest/ConfiguredProvider";
+import defaultManifest from "../../manifests/providers/freeshow.json";
 import { createFile, createFolder, detectMediaType, filesToInstructions } from "../../utils";
 import { freeShowMediaUrl, freeShowRequest } from "./FreeShowApi";
 import { authToNetworkInstance, networkInstanceToAuth, showToFiles } from "./FreeShowConverters";
@@ -18,32 +15,11 @@ import { DEFAULT_SLIDE_SECONDS, FreeShowDiscoverer, FreeShowProject, FreeShowSho
 
 const byName = (a: [string, { name?: string }], b: [string, { name?: string }]) => (a[1].name || "").localeCompare(b[1].name || "");
 
-export class FreeShowProvider extends BaseProvider {
-  readonly id = "freeshow";
-  readonly name = "FreeShow";
+export class FreeShowProvider extends ConfiguredProvider {
+  constructor(manifest: unknown = defaultManifest) {
+    super(manifest);
+  }
 
-  readonly logos: ProviderLogos = {
-    light: "https://freeshow.app/images/favicon.png",
-    dark: "https://freeshow.app/images/favicon.png"
-  };
-
-  readonly config: ContentProviderConfig = {
-    id: "freeshow",
-    name: "FreeShow",
-    apiBase: "",
-    oauthBase: "",
-    clientId: "",
-    scopes: []
-  };
-
-  readonly requiresAuth = true;
-  readonly authTypes: AuthType[] = ["network_discovery"];
-  readonly capabilities: ProviderCapabilities = {
-    browse: true,
-    playlist: true,
-    instructions: true,
-    mediaLicensing: false
-  };
 
   private discoverer: FreeShowDiscoverer | null = null;
 

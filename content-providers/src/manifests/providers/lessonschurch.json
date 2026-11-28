@@ -1,0 +1,21 @@
+{
+  "engine": 1,
+  "id": "lessonschurch",
+  "name": "Lessons.church",
+  "logos": {
+    "light": "https://lessons.church/images/logo.png",
+    "dark": "https://lessons.church/images/logo-dark.png"
+  },
+  "hosts": [
+    "api.lessons.church"
+  ],
+  "requiresAuth": false,
+  "capabilities": {
+    "browse": true,
+    "playlist": true,
+    "instructions": true,
+    "mediaLicensing": false
+  },
+  "implementation": "lessonschurch",
+  "apiBase": "https://api.lessons.church"
+}

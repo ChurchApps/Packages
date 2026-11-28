@@ -3,10 +3,10 @@ import { MANIFEST_ENGINE_VERSION, ManifestGroup, ManifestLeaf, ProviderIndex, Pr
 
 const ROOTS = new Set(["segments", "parent", "parents", "item", "response", "env", "index"]);
 const TOP_KEYS = new Set([
-  "engine", "id", "name", "logos", "hosts", "requiresAuth", "capabilities", "environments", "defaultEnvironment", "apiBase", "auth", "cache", "verifyPaths", "tree"
+  "engine", "id", "name", "logos", "hosts", "requiresAuth", "capabilities", "environments", "defaultEnvironment", "apiBase", "auth", "cache", "verifyPaths", "tree", "authTypes", "implementation", "settings"
 ]);
 const GROUP_KEYS = new Set([
-  "when", "static", "thumbnail", "request", "items", "folder", "children", "leaf"
+  "when", "static", "thumbnail", "request", "items", "where", "folder", "children", "leaf"
 ]);
 const LEAF_KEYS = new Set([
   "request", "from", "vars", "playlist", "downloads", "title", "instructions", "fallback"
@@ -15,6 +15,7 @@ const FILE_KEYS = new Set([
   "id", "title", "url", "mediaType", "thumbnail", "downloadUrl", "muxPlaybackId", "mediaId", "seconds", "loop", "loopVideo", "streamUrl", "providerData"
 ]);
 const ID_PATTERN = /^[a-z0-9][a-z0-9-]*$/;
+const AUTH_TYPES: string[] = ["none", "oauth_pkce", "device_flow", "form_login", "network_discovery"];
 
 class Checker {
   readonly errors: string[] = [];
@@ -63,7 +64,7 @@ function checkGroups(c: Checker, where: string, groups: unknown) {
       if (!Array.isArray(g.static)) c.fail(`${at}.static`, "must be an array");
       else g.static.forEach((s, j) => { c.str(`${at}.static[${j}].id`, s?.id); c.str(`${at}.static[${j}].title`, s?.title); });
       if (g.thumbnail !== undefined) c.expr(`${at}.thumbnail`, g.thumbnail, ROOTS);
-      if (g.folder || g.request || g.items) c.fail(at, "a static group can't also have folder, request or items");
+      if (g.folder || g.request || g.items || g.where) c.fail(at, "a static group can't also have folder, request or items");
     } else {
       if (!g.folder) c.fail(at, "needs static entries or a folder mapping");
       else {
@@ -74,6 +75,7 @@ function checkGroups(c: Checker, where: string, groups: unknown) {
       }
       if (g.request !== undefined) c.template(`${at}.request`, g.request, ROOTS);
       if (g.items !== undefined) c.expr(`${at}.items`, g.items, ROOTS);
+      if (g.where !== undefined) c.expr(`${at}.where`, g.where, ROOTS);
     }
     if (g.children && g.leaf) c.fail(at, "can't have both children and leaf");
     if (g.children) checkGroups(c, `${at}.children`, g.children);
@@ -140,12 +142,17 @@ export function validateManifest(value: unknown): ProviderManifest {
   c.str("name", m.name);
   c.str("logos.light", m.logos?.light);
   c.str("logos.dark", m.logos?.dark);
-  if (!Array.isArray(m.hosts) || m.hosts.length === 0 || m.hosts.some(h => typeof h !== "string" || !h)) c.fail("hosts", "must list at least one host");
+  const builtIn = m.implementation !== undefined;
+  if (builtIn && (typeof m.implementation !== "string" || !ID_PATTERN.test(m.implementation))) c.fail("implementation", "must be a built-in implementation name");
+  if (!Array.isArray(m.hosts) || m.hosts.some(h => typeof h !== "string" || !h)) c.fail("hosts", "must be an array of host names");
+  else if (!builtIn && m.hosts.length === 0) c.fail("hosts", "must list at least one host");
+  if (m.authTypes !== undefined && (!Array.isArray(m.authTypes) || m.authTypes.some(t => !AUTH_TYPES.includes(t)))) c.fail("authTypes", `must only contain ${AUTH_TYPES.join(", ")}`);
+  if (m.settings !== undefined && (typeof m.settings !== "object" || m.settings === null || Array.isArray(m.settings))) c.fail("settings", "must be an object");
   if (typeof m.requiresAuth !== "boolean") c.fail("requiresAuth", "must be a boolean");
   for (const key of ["browse", "playlist", "instructions", "mediaLicensing"] as const) {
     if (typeof m.capabilities?.[key] !== "boolean") c.fail(`capabilities.${key}`, "must be a boolean");
   }
-  if (m.capabilities?.mediaLicensing) c.fail("capabilities.mediaLicensing", "isn't supported by manifests yet");
+  if (m.capabilities?.mediaLicensing && !builtIn) c.fail("capabilities.mediaLicensing", "needs a built-in implementation");
 
   if (m.environments !== undefined) {
     const names = Object.keys(m.environments);
@@ -154,7 +161,7 @@ export function validateManifest(value: unknown): ProviderManifest {
   }
 
   c.template("apiBase", m.apiBase, ROOTS);
-  if (typeof m.apiBase === "string" && !isHttpsTemplate(m.apiBase)) c.fail("apiBase", "must be https");
+  if (typeof m.apiBase === "string" && !isHttpsTemplate(m.apiBase) && !(builtIn && m.apiBase === "")) c.fail("apiBase", "must be https");
 
   if (m.auth !== undefined) {
     const a = m.auth;
@@ -164,17 +171,18 @@ export function validateManifest(value: unknown): ProviderManifest {
     c.str("auth.clientId", a.clientId);
     if (a.clientSecret !== undefined && !/^secret:[\w-]+$/.test(a.clientSecret)) c.fail("auth.clientSecret", "must be a \"secret:<name>\" reference, never the secret itself");
     if (!Array.isArray(a.scopes)) c.fail("auth.scopes", "must be an array");
-    if (!a.pkce && !a.deviceFlow) c.fail("auth", "needs pkce or deviceFlow");
     if (a.deviceFlow) {
       c.str("auth.deviceFlow.endpoint", a.deviceFlow.endpoint);
       if (a.deviceFlow.encoding !== undefined && !["json", "form"].includes(a.deviceFlow.encoding)) c.fail("auth.deviceFlow.encoding", "must be json or form");
     }
   }
-  if (m.requiresAuth && !m.auth) c.fail("auth", "required when requiresAuth is true");
+  if (m.requiresAuth && !m.auth && !m.authTypes?.length) c.fail("auth", "required when requiresAuth is true");
 
   if (m.cache !== undefined && !(typeof m.cache.ttlSeconds === "number" && m.cache.ttlSeconds > 0)) c.fail("cache.ttlSeconds", "must be a positive number");
 
-  checkGroups(c, "tree", m.tree);
+  if (builtIn) {
+    if (m.tree !== undefined) c.fail("tree", "can't be combined with implementation");
+  } else checkGroups(c, "tree", m.tree);
 
   if (c.errors.length) throw new Error(`Invalid provider manifest "${m.id}":\n${c.errors.join("\n")}`);
   return m;

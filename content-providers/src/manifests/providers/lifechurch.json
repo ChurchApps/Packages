@@ -1,0 +1,21 @@
+{
+  "engine": 1,
+  "id": "lifechurch",
+  "name": "Life.Church",
+  "logos": {
+    "light": "https://cdn.brandfetch.io/idRrA6pM45/w/400/h/400/theme/dark/icon.jpeg?c=1bxid64Mup7aczewSAYMX&t=1668042253613",
+    "dark": "https://cdn.brandfetch.io/idRrA6pM45/w/400/h/400/theme/dark/icon.jpeg?c=1bxid64Mup7aczewSAYMX&t=1668042253613"
+  },
+  "hosts": [
+    "www.life.church"
+  ],
+  "requiresAuth": false,
+  "capabilities": {
+    "browse": true,
+    "playlist": true,
+    "instructions": true,
+    "mediaLicensing": false
+  },
+  "implementation": "lifechurch",
+  "apiBase": "https://www.life.church"
+}

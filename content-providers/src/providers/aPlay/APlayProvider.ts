@@ -1,9 +1,10 @@
-import { ContentProviderConfig, ContentProviderAuthData, ContentItem, ContentFile, ProviderLogos, ProviderCapabilities, MediaLicenseResult, AuthType, Instructions } from "../../interfaces";
+import { ContentProviderAuthData, ContentItem, ContentFile, MediaLicenseResult, Instructions } from "../../interfaces";
 import { parsePath } from "../../pathUtils";
 import { filesToInstructions } from "../../utils";
 import { OAuthHelper } from "../../helpers";
-import { BaseProvider } from "../BaseProvider";
-import { checkMediaLicense, API_BASE } from "./APlayApi";
+import { ConfiguredProvider } from "../../manifest/ConfiguredProvider";
+import defaultManifest from "../../manifests/providers/aplay.json";
+import { checkMediaLicense } from "./APlayApi";
 import { extractLibraryId, convertMediaToFiles, convertModulesToFolders, convertLibrariesToFolders, convertProductsToFolders } from "./APlayConverters";
 
 /** Extracts an array from an API response with various formats: { data: [...] }, { key: [...] }, or [...] directly. */
@@ -24,19 +25,12 @@ function extractArray<T = Record<string, unknown>>(
 }
 
 /** APlay Provider: media curriculum library with OAuth 2.0 auth. */
-export class APlayProvider extends BaseProvider {
+export class APlayProvider extends ConfiguredProvider {
+  constructor(manifest: unknown = defaultManifest) {
+    super(manifest);
+  }
+
   private readonly oauthHelper = new OAuthHelper();
-
-  readonly id = "aplay";
-  readonly name = "APlay";
-
-  readonly logos: ProviderLogos = { light: "https://www.joinamazing.com/_assets/v11/3ba846c5afd7e73d27bc4d87b63d423e7ae2dc73.svg", dark: "https://www.joinamazing.com/_assets/v11/3ba846c5afd7e73d27bc4d87b63d423e7ae2dc73.svg" };
-
-  readonly config: ContentProviderConfig = { id: "aplay", name: "APlay", apiBase: API_BASE, oauthBase: "https://api.joinamazing.com/prod/aims/oauth", clientId: "xFJFq7yNYuXXXMx0YBiQ", scopes: ["openid", "profile", "email"] };
-
-  readonly requiresAuth = true;
-  readonly authTypes: AuthType[] = ["oauth_pkce"];
-  readonly capabilities: ProviderCapabilities = { browse: true, playlist: true, instructions: true, mediaLicensing: true };
 
   async browse(path?: string | null, auth?: ContentProviderAuthData | null): Promise<ContentItem[]> {
     const { segments, depth } = parsePath(path);

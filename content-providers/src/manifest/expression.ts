@@ -48,7 +48,17 @@ export const FUNCTIONS: Record<string, (...args: unknown[]) => unknown> = {
   isMedia: (url) => (typeof url === "string" ? isMediaFile(url) : false),
   mediaType: (url, hint) => detectMediaType(typeof url === "string" ? url : "", typeof hint === "string" ? hint : undefined),
   wpThumb,
-  oneOf: (value, ...options) => options.includes(value)
+  oneOf: (value, ...options) => options.includes(value),
+  /** True when the date is earlier than `days` days from now (past dates included). */
+  beforeDaysFromNow: (date, days) => {
+    const time = new Date(String(date)).getTime();
+    return !Number.isNaN(time) && time < Date.now() + Number(days) * 86400000;
+  },
+  /** "2026-11-27" from any date string; "" when it doesn't parse. */
+  isoDate: (date) => {
+    const d = new Date(String(date));
+    return Number.isNaN(d.getTime()) ? "" : d.toISOString().slice(0, 10);
+  }
 };
 
 const TOKEN = /\s*(?:(\d+(?:\.\d+)?)|('(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*")|([A-Za-z_$][\w$]*)|(\?\?|&&|\|\||==|!=|[!+?:.,()[\]]))/y;

@@ -1,12 +1,11 @@
 import {
-  ContentProviderConfig, ContentProviderAuthData, ContentItem,
-  ContentFile, ProviderLogos, ProviderCapabilities,
-  AuthType, Instructions
+  ContentProviderAuthData, ContentItem,
+  ContentFile, Instructions
 } from "../../interfaces";
 import { OAuthHelper } from "../../helpers";
-import { getProviderSecret } from "../../helpers/ProviderSecrets";
 import { detectMediaType, filesToInstructions, isMediaFile } from "../../utils";
-import { BaseProvider } from "../BaseProvider";
+import { ConfiguredProvider } from "../../manifest/ConfiguredProvider";
+import defaultManifest from "../../manifests/providers/googledrive.json";
 import { DriveFile, DriveFileListResponse } from "./GoogleDriveInterfaces";
 
 const FOLDER_MIME = "application/vnd.google-apps.folder";
@@ -14,37 +13,14 @@ const MAX_PAGINATION_CALLS = 10;
 // ponytail: leaf detection is one batched query; past this many sibling folders the q param gets unwieldy — leave isLeaf undefined
 const LEAF_CHECK_MAX_FOLDERS = 50;
 
-export class GoogleDriveProvider extends BaseProvider {
+export class GoogleDriveProvider extends ConfiguredProvider {
+  // oauthBase is the token host; the consent screen is accounts.google.com (see buildAuthUrlFromChallenge).
+  // Google requires client_secret even for PKCE public clients; the host supplies it with setProviderSecret("googledrive", ...).
+  constructor(manifest: unknown = defaultManifest) {
+    super(manifest);
+  }
+
   private readonly oauthHelper = new OAuthHelper();
-
-  readonly id = "googledrive";
-  readonly name = "Google Drive";
-
-  readonly logos: ProviderLogos = {
-    light: "https://ssl.gstatic.com/images/branding/product/2x/drive_2020q4_48dp.png",
-    dark: "https://ssl.gstatic.com/images/branding/product/2x/drive_2020q4_48dp.png"
-  };
-
-  readonly config: ContentProviderConfig = {
-    id: "googledrive",
-    name: "Google Drive",
-    apiBase: "https://www.googleapis.com/drive/v3",
-    // Token endpoint host; the user-facing consent screen is accounts.google.com (see buildAuthUrlFromChallenge)
-    oauthBase: "https://oauth2.googleapis.com",
-    clientId: "214868247432-hao323qmsfu96h345udaifs8f1nc7i71.apps.googleusercontent.com",
-    // Google requires client_secret even for PKCE public clients; injected server-side via setProviderSecret("googledrive", ...)
-    get clientSecret(): string { return getProviderSecret("googledrive"); },
-    scopes: ["https://www.googleapis.com/auth/drive.readonly"]
-  };
-
-  readonly requiresAuth = true;
-  readonly authTypes: AuthType[] = ["oauth_pkce"];
-  readonly capabilities: ProviderCapabilities = {
-    browse: true,
-    playlist: true,
-    instructions: true,
-    mediaLicensing: false
-  };
 
   // Paths are Drive folder ids ("/<id>"), not names; root is "" or "/"
   private folderIdFromPath(path?: string | null): string {

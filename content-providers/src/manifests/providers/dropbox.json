@@ -1,0 +1,28 @@
+{
+  "engine": 1,
+  "id": "dropbox",
+  "name": "Dropbox",
+  "logos": {
+    "light": "https://cdn.prod.website-files.com/66c503d081b2f012369fc5d2/674000d6c0a42d41f8c331be_dropbox-2-logo-png-transparent.png",
+    "dark": "https://cdn.prod.website-files.com/66c503d081b2f012369fc5d2/674000d6c0a42d41f8c331be_dropbox-2-logo-png-transparent.png"
+  },
+  "hosts": [
+    "api.dropboxapi.com",
+    "www.dropbox.com"
+  ],
+  "requiresAuth": true,
+  "capabilities": {
+    "browse": true,
+    "playlist": true,
+    "instructions": true,
+    "mediaLicensing": false
+  },
+  "implementation": "dropbox",
+  "apiBase": "https://api.dropboxapi.com",
+  "auth": {
+    "oauthBase": "https://www.dropbox.com/oauth2",
+    "clientId": "s8eot158flc42d1",
+    "scopes": [],
+    "pkce": true
+  }
+}

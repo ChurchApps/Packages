@@ -1,0 +1,76 @@
+{
+  "engine": 1,
+  "id": "planningcenter",
+  "name": "Planning Center",
+  "logos": {
+    "light": "https://www.planningcenter.com/icons/icon-512x512.png",
+    "dark": "https://www.planningcenter.com/icons/icon-512x512.png"
+  },
+  "hosts": [
+    "api.planningcenteronline.com"
+  ],
+  "requiresAuth": true,
+  "capabilities": {
+    "browse": true,
+    "playlist": false,
+    "instructions": false,
+    "mediaLicensing": false
+  },
+  "apiBase": "https://api.planningcenteronline.com",
+  "auth": {
+    "oauthBase": "https://api.planningcenteronline.com/oauth",
+    "clientId": "",
+    "scopes": [
+      "services"
+    ]
+  },
+  "tree": [
+    {
+      "static": [
+        {
+          "id": "serviceTypes-root",
+          "segment": "serviceTypes",
+          "title": "Service Types"
+        }
+      ],
+      "children": [
+        {
+          "request": "/services/v2/service_types",
+          "items": "response.data",
+          "folder": {
+            "id": "item.id",
+            "title": "item.attributes.name"
+          },
+          "children": [
+            {
+              "request": "/services/v2/service_types/{segments[1]}/plans?filter=future&order=sort_date",
+              "items": "response.data",
+              "where": "item.attributes.items_count != 0 && beforeDaysFromNow(item.attributes.sort_date, 7)",
+              "folder": {
+                "id": "item.id",
+                "title": "item.attributes.title || isoDate(item.attributes.sort_date)"
+              },
+              "leaf": {
+                "request": "/services/v2/service_types/{segments[1]}/plans/{segments[2]}/items?per_page=100",
+                "from": [
+                  {
+                    "list": "response.data",
+                    "as": "item"
+                  }
+                ],
+                "playlist": {
+                  "file": {
+                    "id": "item.id",
+                    "title": "item.attributes.title || ''",
+                    "url": "''",
+                    "mediaType": "'image'"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

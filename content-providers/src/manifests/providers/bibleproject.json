@@ -1,0 +1,21 @@
+{
+  "engine": 1,
+  "id": "bibleproject",
+  "name": "The Bible Project",
+  "logos": {
+    "light": "https://static.bibleproject.com/bp-web-components/v0.25.0/bibleproject-logo-mark.svg",
+    "dark": "https://static.bibleproject.com/bp-web-components/v0.25.0/bibleproject-logo-mark.svg"
+  },
+  "hosts": [
+    "bibleproject.com"
+  ],
+  "requiresAuth": false,
+  "capabilities": {
+    "browse": true,
+    "playlist": true,
+    "instructions": true,
+    "mediaLicensing": false
+  },
+  "implementation": "bibleproject",
+  "apiBase": "https://bibleproject.com"
+}

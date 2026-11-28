@@ -1,0 +1,32 @@
+{
+  "engine": 1,
+  "id": "onedrive",
+  "name": "OneDrive",
+  "logos": {
+    "light": "https://res-1.cdn.office.net/files/fabric-cdn-prod_20230815.002/assets/brand-icons/product/png/onedrive_48x1.png",
+    "dark": "https://res-1.cdn.office.net/files/fabric-cdn-prod_20230815.002/assets/brand-icons/product/png/onedrive_48x1.png"
+  },
+  "hosts": [
+    "graph.microsoft.com",
+    "login.microsoftonline.com"
+  ],
+  "requiresAuth": true,
+  "capabilities": {
+    "browse": true,
+    "playlist": true,
+    "instructions": true,
+    "mediaLicensing": false
+  },
+  "implementation": "onedrive",
+  "apiBase": "https://graph.microsoft.com/v1.0",
+  "auth": {
+    "oauthBase": "https://login.microsoftonline.com/common/oauth2/v2.0",
+    "clientId": "49a15ab2-868f-4612-8b03-c1c7fae485f1",
+    "clientSecret": "secret:onedrive",
+    "scopes": [
+      "Files.Read.All",
+      "offline_access"
+    ],
+    "pkce": true
+  }
+}

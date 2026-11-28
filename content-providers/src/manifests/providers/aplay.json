@@ -1,0 +1,32 @@
+{
+  "engine": 1,
+  "id": "aplay",
+  "name": "APlay",
+  "logos": {
+    "light": "https://www.joinamazing.com/_assets/v11/3ba846c5afd7e73d27bc4d87b63d423e7ae2dc73.svg",
+    "dark": "https://www.joinamazing.com/_assets/v11/3ba846c5afd7e73d27bc4d87b63d423e7ae2dc73.svg"
+  },
+  "hosts": [
+    "api-prod.amazingkids.app",
+    "api.joinamazing.com"
+  ],
+  "requiresAuth": true,
+  "capabilities": {
+    "browse": true,
+    "playlist": true,
+    "instructions": true,
+    "mediaLicensing": true
+  },
+  "implementation": "aplay",
+  "apiBase": "https://api-prod.amazingkids.app",
+  "auth": {
+    "oauthBase": "https://api.joinamazing.com/prod/aims/oauth",
+    "clientId": "xFJFq7yNYuXXXMx0YBiQ",
+    "scopes": [
+      "openid",
+      "profile",
+      "email"
+    ],
+    "pkce": true
+  }
+}

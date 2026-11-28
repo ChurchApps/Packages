@@ -1,47 +1,23 @@
 import {
-  ContentProviderConfig, ContentProviderAuthData, ContentItem,
-  ContentFile, ProviderLogos, ProviderCapabilities,
-  AuthType, Instructions
+  ContentProviderAuthData, ContentItem,
+  ContentFile, Instructions
 } from "../../interfaces";
 import { OAuthHelper } from "../../helpers";
-import { getProviderSecret } from "../../helpers/ProviderSecrets";
 import { detectMediaType, filesToInstructions, isMediaFile } from "../../utils";
-import { BaseProvider } from "../BaseProvider";
+import { ConfiguredProvider } from "../../manifest/ConfiguredProvider";
+import defaultManifest from "../../manifests/providers/onedrive.json";
 import { DriveItem, DriveItemListResponse } from "./OneDriveInterfaces";
 
 const API_BASE = "https://graph.microsoft.com/v1.0";
 const MAX_PAGINATION_CALLS = 10;
 
-export class OneDriveProvider extends BaseProvider {
+export class OneDriveProvider extends ConfiguredProvider {
+  // Azure "FreePlay" registration; relay callbacks are registered as public clients, so no secret is normally set.
+  constructor(manifest: unknown = defaultManifest) {
+    super(manifest);
+  }
+
   private readonly oauthHelper = new OAuthHelper();
-
-  readonly id = "onedrive";
-  readonly name = "OneDrive";
-
-  readonly logos: ProviderLogos = {
-    light: "https://res-1.cdn.office.net/files/fabric-cdn-prod_20230815.002/assets/brand-icons/product/png/onedrive_48x1.png",
-    dark: "https://res-1.cdn.office.net/files/fabric-cdn-prod_20230815.002/assets/brand-icons/product/png/onedrive_48x1.png"
-  };
-
-  readonly config: ContentProviderConfig = {
-    id: "onedrive",
-    name: "OneDrive",
-    apiBase: API_BASE,
-    oauthBase: "https://login.microsoftonline.com/common/oauth2/v2.0",
-    // Azure "FreePlay" registration; relay callbacks are registered as mobile/desktop (public client), so no secret is normally set
-    clientId: "49a15ab2-868f-4612-8b03-c1c7fae485f1",
-    get clientSecret(): string { return getProviderSecret("onedrive"); },
-    scopes: ["Files.Read.All", "offline_access"]
-  };
-
-  readonly requiresAuth = true;
-  readonly authTypes: AuthType[] = ["oauth_pkce"];
-  readonly capabilities: ProviderCapabilities = {
-    browse: true,
-    playlist: true,
-    instructions: true,
-    mediaLicensing: false
-  };
 
   // Paths are item ids ("/<id>"); personal-account ids contain "!"
   private itemIdFromPath(path?: string | null): string {

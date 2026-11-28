@@ -1,13 +1,11 @@
-import { AuthType, ContentDownload, ContentFile, ContentFolder, ContentItem, ContentProviderAuthData, ContentProviderConfig, DeviceAuthorizationResponse, DeviceFlowPollResult, Instructions, ProviderCapabilities, ProviderLogos } from "../interfaces";
-import { BaseProvider } from "../providers/BaseProvider";
+import { ContentDownload, ContentFile, ContentFolder, ContentItem, ContentProviderAuthData, DeviceAuthorizationResponse, DeviceFlowPollResult, Instructions } from "../interfaces";
+import { ConfiguredProvider } from "./ConfiguredProvider";
 import { parsePath } from "../pathUtils";
 import { createFile, filesToInstructions } from "../utils";
 import { DeviceFlowHelper, OAuthHelper } from "../helpers";
-import { getProviderSecret } from "../helpers/ProviderSecrets";
 import { toAuthData } from "../helpers/TokenHelper";
 import { evalExpr, exprRoots, fillTemplate, Scope, templateExprs } from "./expression";
-import { ManifestFileMapping, ManifestGroup, ManifestLeaf, ProviderManifest } from "./types";
-import { validateManifest } from "./validate";
+import { ManifestFileMapping, ManifestGroup, ManifestLeaf } from "./types";
 
 type Target = { kind: "groups"; groups: ManifestGroup[] } | { kind: "leaf"; leaf: ManifestLeaf };
 
@@ -41,7 +39,9 @@ const toStr = (v: unknown): string => (v === null || v === undefined ? "" : Stri
 
 /** Expressions in a group (not its children), or a whole leaf including its fallback. */
 function groupExprs(g: ManifestGroup): string[] {
-  const list = [g.when, g.thumbnail, g.items, g.folder?.id, g.folder?.title, g.folder?.thumbnail, g.folder?.segment].filter((e): e is string => !!e);
+  const list = [
+    g.when, g.thumbnail, g.items, g.where, g.folder?.id, g.folder?.title, g.folder?.thumbnail, g.folder?.segment
+  ].filter((e): e is string => !!e);
   return g.request ? [...list, ...templateExprs(g.request)] : list;
 }
 
@@ -70,51 +70,19 @@ const readsParents = (exprs: string[]) => exprs.some(e => PARENT_NAMES.some(n =>
  * A content provider defined entirely by a JSON manifest. Auth flows, API calls, the folder tree and file mapping all
  * come from the manifest; this class only knows the generic building blocks.
  */
-export class ManifestProvider extends BaseProvider {
-  readonly id: string;
-  readonly name: string;
-  readonly logos: ProviderLogos;
-  readonly config: ContentProviderConfig;
-  readonly requiresAuth: boolean;
-  readonly authTypes: AuthType[];
-  readonly capabilities: ProviderCapabilities;
-  readonly manifest: ProviderManifest;
-
-  private environment?: string;
+export class ManifestProvider extends ConfiguredProvider {
   private readonly cache = new Map<string, { at: number; value: unknown }>();
   private readonly oauthHelper = new OAuthHelper();
   private readonly deviceFlowHelper = new DeviceFlowHelper();
 
   constructor(manifest: unknown) {
-    super();
-    const m = validateManifest(manifest);
-    this.manifest = m;
-    this.id = m.id;
-    this.name = m.name;
-    this.logos = { ...m.logos };
-    this.requiresAuth = m.requiresAuth;
-    this.capabilities = { ...m.capabilities };
-    this.environment = m.defaultEnvironment;
-
+    super(manifest);
+    const m = this.manifest;
+    if (m.implementation || !m.tree) throw new Error(`[${m.id}] ManifestProvider needs a tree; "${m.implementation}" is a built-in implementation`);
     const auth = m.auth;
-    this.authTypes = auth ? [...(auth.pkce ? ["oauth_pkce" as const] : []), ...(auth.deviceFlow ? ["device_flow" as const] : [])] : ["none"];
-
-    // apiBase and oauthBase are getters so switching environment changes them.
-    const config = { id: m.id, name: m.name, clientId: auth?.clientId || "", scopes: [...(auth?.scopes || [])] } as ContentProviderConfig;
-    Object.defineProperty(config, "apiBase", { get: () => this.fill(m.apiBase), enumerable: true });
-    Object.defineProperty(config, "oauthBase", { get: () => (auth ? this.fill(auth.oauthBase) : ""), enumerable: true });
-    if (auth?.clientSecret) {
-      const secretName = auth.clientSecret.slice("secret:".length);
-      Object.defineProperty(config, "clientSecret", { get: () => getProviderSecret(secretName), enumerable: true });
-    }
-    if (auth?.deviceFlow) {
-      config.supportsDeviceFlow = true;
-      config.deviceAuthEndpoint = auth.deviceFlow.endpoint;
-    }
-    this.config = config;
 
     // Hosts feature-detect with `"method" in provider`, so only attach what this manifest declares.
-    const methods: Record<string, unknown> = {};
+    const methods: Record<string, (...args: any[]) => unknown> = {};
     if (m.capabilities.playlist) methods.getPlaylist = this.getPlaylistImpl;
     if (m.capabilities.instructions) methods.getInstructions = this.getInstructionsImpl;
     if (auth?.pkce) {
@@ -127,23 +95,11 @@ export class ManifestProvider extends BaseProvider {
       methods.initiateDeviceFlow = this.initiateDeviceFlowImpl;
       methods.pollDeviceFlowToken = this.pollDeviceFlowTokenImpl;
     }
-    if (m.environments) {
-      methods.setEnvironment = (name: string) => {
-        if (!m.environments?.[name]) return;
-        this.environment = name;
-        this.cache.clear();
-      };
-      methods.getEnvironment = () => this.environment;
-    }
-    for (const [key, fn] of Object.entries(methods)) Object.defineProperty(this, key, { value: typeof fn === "function" ? fn.bind(this) : fn, enumerable: false });
+    for (const [key, fn] of Object.entries(methods)) Object.defineProperty(this, key, { value: fn.bind(this), enumerable: false });
   }
 
-  private get env(): Record<string, string> {
-    return (this.environment && this.manifest.environments?.[this.environment]) || {};
-  }
-
-  private fill(template: string): string {
-    return fillTemplate(template, { env: this.env }, false);
+  protected onEnvironmentChange(): void {
+    this.cache.clear();
   }
 
   /** Refuse any URL whose host the manifest didn't list. */
@@ -199,14 +155,15 @@ export class ManifestProvider extends BaseProvider {
       if (response === null) return [];
     }
     const items = evalExpr(group.items || "response", { ...scope, response });
-    return Array.isArray(items) ? items : [];
+    if (!Array.isArray(items)) return [];
+    return group.where ? items.filter(item => evalExpr(group.where!, { ...scope, response, item })) : items;
   }
 
   /** Walk the path to the groups it lists or the leaf it opens. Returns null when the path doesn't exist. */
   private async resolve(path: string | null | undefined, auth: ContentProviderAuthData | null | undefined, memo: Memo, forInstructions = false): Promise<Resolved | null> {
     const { segments } = parsePath(path);
     const chosen: ManifestGroup[] = [];
-    let target: Target = { kind: "groups", groups: this.manifest.tree };
+    let target: Target = { kind: "groups", groups: this.manifest.tree! };
     let ambiguous = false;
 
     // First pass: pick the group each segment belongs to without fetching anything.
@@ -228,7 +185,7 @@ export class ManifestProvider extends BaseProvider {
 
     // Second pass: find the item each segment selects, so expressions can read parent/parents and paths are checked.
     const parents: unknown[] = [];
-    let groups = this.manifest.tree;
+    let groups = this.manifest.tree!;
     for (let i = 0; i < segments.length; i++) {
       const scope = this.baseScope(segments.slice(0, i), parents);
       let found: { group: ManifestGroup; item: unknown } | null = null;

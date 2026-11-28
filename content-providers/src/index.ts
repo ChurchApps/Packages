@@ -19,15 +19,15 @@ export { BaseProvider } from "./providers/BaseProvider";
 
 // JSON-manifest providers: the engine, validation, and loading a hosted provider index.
 export { ManifestProvider } from "./manifest/ManifestProvider";
+export { ConfiguredProvider } from "./manifest/ConfiguredProvider";
 export { validateManifest, validateIndex } from "./manifest/validate";
-export { loadProviderIndex, type LoadProviderIndexOptions, type LoadProviderIndexResult } from "./manifest/loader";
+export { loadProviderIndex, createProvider, type LoadProviderIndexOptions, type LoadProviderIndexResult } from "./manifest/loader";
 export { MANIFEST_ENGINE_VERSION, type ProviderManifest, type ManifestAuth, type ManifestGroup, type ManifestLeaf, type ManifestFileMapping, type ProviderIndex, type ProviderIndexEntry } from "./manifest/types";
 
 export { APlayProvider } from "./providers/aPlay";
 export { LessonsChurchProvider } from "./providers/lessonsChurch";
 export { B1ChurchProvider } from "./providers/b1Church";
 export { DropboxProvider } from "./providers/dropbox";
-export { PlanningCenterProvider } from "./providers/planningCenter";
 export { BibleProjectProvider } from "./providers/bibleProject";
 export { HighVoltageKidsProvider } from "./providers/highVoltage";
 export { JesusFilmProvider } from "./providers/jesusFilm";

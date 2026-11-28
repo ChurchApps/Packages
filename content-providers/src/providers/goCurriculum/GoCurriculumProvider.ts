@@ -1,11 +1,11 @@
-import { AuthType, ContentFile, ContentItem, ContentProviderAuthData, ContentProviderConfig, InstructionItem, Instructions, ProviderCapabilities, ProviderLogos } from "../../interfaces";
+import { ContentFile, ContentItem, ContentProviderAuthData, InstructionItem, Instructions } from "../../interfaces";
 import { parsePath } from "../../pathUtils";
 import { createFolder, createFile, detectMediaType, filesToInstructions, isPlaylistMedia, slugify } from "../../utils";
 import { OAuthHelper } from "../../helpers";
 import { getProviderSecret } from "../../helpers/ProviderSecrets";
-import { BaseProvider } from "../BaseProvider";
+import { ConfiguredProvider } from "../../manifest/ConfiguredProvider";
+import defaultManifest from "../../manifests/providers/gocurriculum.json";
 import { GoCurriculumData, GoCurriculumCollection, GoCurriculumGuide, GoCurriculumGuideItem, GoCurriculumLesson, GoCurriculumPlaylistItem } from "./GoCurriculumInterfaces";
-import { GO_LOGO } from "./logo";
 
 /**
  * Path: / → age groups, /{group} → collections, /{group}/{collection} → lessons (leaf), /{group}/{collection}/{lesson} → files.
@@ -122,26 +122,14 @@ async function loadFromFeed(groupId: string): Promise<GoCurriculumData | null> {
   return response.ok ? await response.json() as GoCurriculumData : null;
 }
 
-export class GoCurriculumProvider extends BaseProvider {
+export class GoCurriculumProvider extends ConfiguredProvider {
+  constructor(manifest: unknown = defaultManifest) {
+    super(manifest);
+  }
+
   private readonly oauthHelper = new OAuthHelper();
   // token → its active memberships, from /oauth/me
   private readonly verifiedTokens = new Map<string, GoMembership[]>();
-
-  readonly id = "gocurriculum";
-  readonly name = "GO! Curriculum";
-
-  readonly logos: ProviderLogos = { light: GO_LOGO, dark: GO_LOGO };
-
-  readonly config: ContentProviderConfig = {
-    id: "gocurriculum",
-    name: "GO! Curriculum",
-    apiBase: "https://gocurriculum.com",
-    oauthBase: "https://gocurriculum.com/oauth",
-    clientId: "Rdrvz9jz9nTNf8rCsbpuAgVLdoWHZmcjdmmrP0Bw",
-    // supplied at runtime via setProviderSecret("gocurriculum", ...) — never commit the value
-    get clientSecret(): string { return getProviderSecret("gocurriculum"); },
-    scopes: ["basic"]
-  };
 
   private data: Record<string, GoCurriculumData> = {};
   private dataFetchedAt = 0;
@@ -186,10 +174,6 @@ export class GoCurriculumProvider extends BaseProvider {
     if (!hasGroup(groupId, memberships)) return { ...data, catalog: [] };
     return { ...data, catalog: data.catalog.map(c => filterCollection(c, groupId, memberships)) };
   }
-
-  readonly requiresAuth = true;
-  readonly authTypes: AuthType[] = ["oauth_pkce"];
-  readonly capabilities: ProviderCapabilities = { browse: true, playlist: true, instructions: true, mediaLicensing: false };
 
   // a valid login plus a membership for the age group opens it; playlist items with `tiers` also need a matching tier
   private async verifyAuth(auth?: ContentProviderAuthData | null): Promise<boolean> {

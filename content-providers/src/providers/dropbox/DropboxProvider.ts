@@ -1,12 +1,12 @@
 import {
-  ContentProviderConfig, ContentProviderAuthData, ContentItem,
-  ContentFile, ProviderLogos, ProviderCapabilities,
-  AuthType, Instructions
+  ContentProviderAuthData, ContentItem,
+  ContentFile, Instructions
 } from "../../interfaces";
 import { OAuthHelper } from "../../helpers";
 import { toAuthData } from "../../helpers/TokenHelper";
 import { filesToInstructions } from "../../utils";
-import { BaseProvider } from "../BaseProvider";
+import { ConfiguredProvider } from "../../manifest/ConfiguredProvider";
+import defaultManifest from "../../manifests/providers/dropbox.json";
 import {
   DropboxListFolderResponse, DropboxEntry,
   DropboxFileEntry, DropboxTemporaryLinkResponse, DropboxSharedLinkResponse
@@ -18,34 +18,12 @@ import {
 
 const MAX_PAGINATION_CALLS = 50;
 
-export class DropboxProvider extends BaseProvider {
+export class DropboxProvider extends ConfiguredProvider {
+  constructor(manifest: unknown = defaultManifest) {
+    super(manifest);
+  }
+
   private readonly oauthHelper = new OAuthHelper();
-
-  readonly id = "dropbox";
-  readonly name = "Dropbox";
-
-  readonly logos: ProviderLogos = {
-    light: "https://cdn.prod.website-files.com/66c503d081b2f012369fc5d2/674000d6c0a42d41f8c331be_dropbox-2-logo-png-transparent.png",
-    dark: "https://cdn.prod.website-files.com/66c503d081b2f012369fc5d2/674000d6c0a42d41f8c331be_dropbox-2-logo-png-transparent.png"
-  };
-
-  readonly config: ContentProviderConfig = {
-    id: "dropbox",
-    name: "Dropbox",
-    apiBase: "https://api.dropboxapi.com",
-    oauthBase: "https://www.dropbox.com/oauth2",
-    clientId: "s8eot158flc42d1",
-    scopes: []
-  };
-
-  readonly requiresAuth = true;
-  readonly authTypes: AuthType[] = ["oauth_pkce"];
-  readonly capabilities: ProviderCapabilities = {
-    browse: true,
-    playlist: true,
-    instructions: true,
-    mediaLicensing: false
-  };
 
   private dropboxPost<T>(endpoint: string, body: Record<string, unknown>, auth?: ContentProviderAuthData | null): Promise<T | null> {
     if (!auth) { console.error("[Dropbox] No auth token provided"); return Promise.resolve(null); }

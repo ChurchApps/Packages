@@ -1,4 +1,4 @@
-import { ProviderCapabilities, ProviderLogos } from "../interfaces";
+import { AuthType, ProviderCapabilities, ProviderLogos } from "../interfaces";
 
 /** Highest manifest engine version this build understands. Manifests needing a newer engine are skipped. */
 export const MANIFEST_ENGINE_VERSION = 1;
@@ -16,22 +16,31 @@ export interface ProviderManifest {
   id: string;
   name: string;
   logos: ProviderLogos;
-  /** Every API and auth host this provider may call. Requests to any other host are refused. */
+  /** Every API and auth host this provider may call. Requests the engine makes to any other host are refused. */
   hosts: string[];
   requiresAuth: boolean;
+  /** Sign-in types. Defaults to what `auth` declares (pkce → oauth_pkce, deviceFlow → device_flow), or ["none"]. */
+  authTypes?: AuthType[];
+  /**
+   * Name of a built-in implementation (code shipped in this package) that supplies the logic, for providers JSON can't
+   * express. Omit it and give a `tree` for a provider defined purely by this manifest.
+   */
+  implementation?: string;
+  /** Free-form values a built-in implementation reads, so its constants live here rather than in code. */
+  settings?: Record<string, unknown>;
   capabilities: ProviderCapabilities;
   /** Named sets of values readable as env.*, e.g. separate dev and prod hosts. */
   environments?: Record<string, Record<string, string>>;
   defaultEnvironment?: string;
-  /** Template, e.g. "https://api.example.com" or "{env.site}/wp-json/content/v1". */
+  /** Template, e.g. "https://api.example.com" or "{env.site}/wp-json/content/v1". Empty for providers with no fixed API. */
   apiBase: string;
   auth?: ManifestAuth;
   /** Cache successful API responses per access token. */
   cache?: { ttlSeconds: number; max?: number };
   /** Check every path segment against its parent's list, so a stale or hand-made path can't reach other content. */
   verifyPaths?: boolean;
-  /** The groups listed at the root path. */
-  tree: ManifestGroup[];
+  /** The groups listed at the root path. Required unless `implementation` is set. */
+  tree?: ManifestGroup[];
 }
 
 export interface ManifestAuth {
@@ -62,6 +71,8 @@ export interface ManifestGroup {
   request?: string;
   /** The list to map. Defaults to "response". Anything that isn't an array counts as empty. */
   items?: string;
+  /** Keep only items where this expression (reading `item`) is truthy. */
+  where?: string;
   /** How each listed item becomes a folder. `segment` (the path part) defaults to `id`. */
   folder?: { id: string; title: string; thumbnail?: string; segment?: string };
   /** Groups listed when one of this group's folders is opened. */

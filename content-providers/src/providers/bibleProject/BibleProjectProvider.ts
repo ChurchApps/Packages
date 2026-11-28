@@ -1,37 +1,17 @@
-import { ContentProviderConfig, ContentProviderAuthData, ContentItem, ContentFile, ProviderLogos, ProviderCapabilities, AuthType, Instructions } from "../../interfaces";
+import { ContentProviderAuthData, ContentItem, ContentFile, Instructions } from "../../interfaces";
 import { createFile, slugify, filesToInstructions } from "../../utils";
 import { parsePath } from "../../pathUtils";
-import { BaseProvider } from "../BaseProvider";
+import { ConfiguredProvider } from "../../manifest/ConfiguredProvider";
+import defaultManifest from "../../manifests/providers/bibleproject.json";
 import bibleProjectData from "./data.json";
 import { BibleProjectData, BibleProjectCollection, BibleProjectVideo } from "./BibleProjectInterfaces";
 
 /** BibleProject Provider: Bible education video content. */
-export class BibleProjectProvider extends BaseProvider {
-  readonly id = "bibleproject";
-  readonly name = "The Bible Project";
+export class BibleProjectProvider extends ConfiguredProvider {
+  constructor(manifest: unknown = defaultManifest) {
+    super(manifest);
+  }
 
-  readonly logos: ProviderLogos = {
-    light: "https://static.bibleproject.com/bp-web-components/v0.25.0/bibleproject-logo-mark.svg",
-    dark: "https://static.bibleproject.com/bp-web-components/v0.25.0/bibleproject-logo-mark.svg"
-  };
-
-  readonly config: ContentProviderConfig = {
-    id: "bibleproject",
-    name: "The Bible Project",
-    apiBase: "https://bibleproject.com",
-    oauthBase: "",
-    clientId: "",
-    scopes: []
-  };
-
-  readonly requiresAuth = false;
-  readonly authTypes: AuthType[] = ["none"];
-  readonly capabilities: ProviderCapabilities = {
-    browse: true,
-    playlist: true,
-    instructions: true,
-    mediaLicensing: false
-  };
 
   private data: BibleProjectData = bibleProjectData;
 

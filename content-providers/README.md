@@ -39,35 +39,28 @@ const items = await provider.browse();
 const plan = await provider.getPresentations(serviceId);
 ```
 
-### Built-in Providers
+### Providers
 
-- **B1ChurchProvider** - B1.Church plans (merges plan items with lesson venues and external providers)
-- **LessonsChurchProvider** - Lessons.church curriculum and add-ons
-- **PlanningCenterProvider** - Planning Center Services (browse only)
-- **BibleProjectProvider** - Bible Project videos
-- **APlayProvider** - A.Play media library
-- **DropboxProvider** - Media files from a Dropbox account
-- **JesusFilmProvider** - Jesus Film Project (Arclight API)
-- **HighVoltageKidsProvider** - High Voltage Kids curriculum (static catalog)
-- **LifeChurchProvider** - Life.Church kids curriculum (static catalog)
-- **FreeShowProvider** - FreeShow shows discovered on the local network (mocked announcements playlist)
+Every provider is defined by a JSON manifest in `src/manifests/providers/`, listed in `src/manifests/index.json`.
+
+- **Pure JSON:** Awana, CBN, SignPresenter and the plan-integration provider have no provider code. The generic `ManifestProvider` runs them.
+- **JSON plus a built-in implementation:** APlay, B1.Church, Dropbox, GO! Curriculum, Google Drive, OneDrive, The Bible Project, High Voltage Kids, Jesus Film Project, Lessons.church, Life.Church and FreeShow. Their manifests hold identity, logos, hosts, auth settings and capabilities. `"implementation"` names the TypeScript class that supplies their logic, such as plan merging, cloud-drive paging, LAN discovery and licensing checks.
 
 ### JSON Manifest Providers
 
-Awana, CBN and SignPresenter have no provider code. Each one is a JSON manifest in `src/manifests/providers/`, run by the generic `ManifestProvider`. `src/manifests/index.json` lists the manifest providers and the "coming soon" entries.
-
 To add a provider that fits the existing building blocks, write a manifest and add it to the index. No code is needed. A manifest declares:
 
+- **Implementation (optional):** the name of a built-in implementation, for logic JSON can't express, plus free-form `settings` for it to read. A manifest can only name implementations built into the package, so a downloaded manifest never brings code with it.
 - **Identity:** `id`, `name`, `logos`, `capabilities`, and `hosts`. `hosts` lists every host the provider may call; requests to any other host are refused.
 - **Auth:** `oauthBase`, `clientId`, `scopes`, plus `pkce` and/or `deviceFlow` (`json` or Keycloak-style `form` encoding). A client secret can only be a `"secret:<name>"` reference, resolved from `setProviderSecret` at runtime.
 - **Environments:** named value sets read as `{env.*}` in URLs. Hosts switch with `provider.setEnvironment(name)`.
-- **Tree:** nested groups. A group is either fixed `static` entries or a `request` + `items` list mapped to folders. Its `children` are the next level; its `leaf` loads the files.
+- **Tree:** nested groups. A group is either fixed `static` entries or a `request` + `items` list (filtered by `where`) mapped to folders. Its `children` are the next level; its `leaf` loads the files.
 - **Leaf:** a `request`, `from` steps to flatten nested lists, `vars`, a `playlist` file mapping with a `where` filter, optional `downloads`, an instructions `title`, and a `fallback` leaf for when the first list is empty.
 - **Options:** `cache` (per-token response cache) and `verifyPaths` (every path segment must exist in its parent's list).
 
-Field values are expressions in a small sandboxed language: paths (`item.name`, `segments[1]`, `parents[0].image`), `+ == != && || ?? ! ?:`, and whitelisted functions (`list`, `trim`, `str`, `isMedia`, `mediaType`, `wpThumb`, `oneOf`). Nothing is evaluated as JavaScript. See `src/manifest/types.ts` for the full format.
+Field values are expressions in a small sandboxed language: paths (`item.name`, `segments[1]`, `parents[0].image`), `+ == != && || ?? ! ?:`, and whitelisted functions (`list`, `trim`, `str`, `isMedia`, `mediaType`, `wpThumb`, `oneOf`, `beforeDaysFromNow`, `isoDate`). Nothing is evaluated as JavaScript. See `src/manifest/types.ts` for the full format.
 
-Hosts can load more providers at runtime from a hosted index. Every file must pass the host's signature check; built-in code providers can't be replaced:
+Hosts can load more providers, or updated manifests for existing ones, at runtime from a hosted index. Every file must pass the host's signature check:
 
 ```typescript
 import { loadProviderIndex } from "@churchapps/content-providers";
@@ -80,6 +73,8 @@ const { loaded, skipped } = await loadProviderIndex("https://example.org/provide
 ### Create a Custom Provider
 
 ```typescript
+// Prefer a JSON manifest (see above). For logic JSON can't express, extend ConfiguredProvider so identity and auth
+// settings still come from a manifest, and add the class to src/providers/implementations.ts.
 import { BaseProvider, registerProvider } from '@churchapps/content-providers';
 
 class MyProvider extends BaseProvider {

@@ -1,13 +1,14 @@
-import { ContentProviderConfig, ContentProviderAuthData, ContentItem, ContentFile, ProviderLogos, Plan, PlanPresentation, Instructions, ProviderCapabilities, DeviceAuthorizationResponse, DeviceFlowPollResult, AuthType, InstructionItem, CurrentPlan } from "../../interfaces";
+import { ContentProviderAuthData, ContentItem, ContentFile, Plan, PlanPresentation, Instructions, DeviceAuthorizationResponse, DeviceFlowPollResult, InstructionItem, CurrentPlan } from "../../interfaces";
 import { parsePath } from "../../pathUtils";
 import { navigateToPath } from "../../instructionPathUtils";
 import { DeviceFlowHelper } from "../../helpers";
 import { generateCodeVerifier } from "../../helpers/OAuthHelper";
-import { BaseProvider } from "../BaseProvider";
+import { ConfiguredProvider } from "../../manifest/ConfiguredProvider";
+import defaultManifest from "../../manifests/providers/b1church.json";
 import { instructionsToPlaylist } from "../../utils";
 import { B1Plan, B1PlanItem } from "./B1ChurchTypes";
 import * as B1ChurchAuth from "./B1ChurchAuth";
-import { fetchMinistries, fetchPlanTypes, fetchPlans, fetchVenueFeed, fetchVenueActions, fetchVenueImages, fetchFromProviderProxy, fetchCurrentPlanByType, fetchPlanItems, API_BASE } from "./B1ChurchApi";
+import { fetchMinistries, fetchPlanTypes, fetchPlans, fetchVenueFeed, fetchVenueActions, fetchVenueImages, fetchFromProviderProxy, fetchCurrentPlanByType, fetchPlanItems } from "./B1ChurchApi";
 import { ministryToFolder, planTypeToFolder, planToFolder, planItemToInstruction, getFilesFromVenueFeed, getFileFromProviderFileItem, buildSectionActionsMap } from "./B1ChurchConverters";
 import { getOrderedFiles } from "./planCustomization";
 
@@ -35,7 +36,11 @@ function isExternalProviderItem(item: B1PlanItem): boolean {
   return itemType.startsWith("provider");
 }
 
-export class B1ChurchProvider extends BaseProvider {
+export class B1ChurchProvider extends ConfiguredProvider {
+  constructor(manifest: unknown = defaultManifest) {
+    super(manifest);
+  }
+
   private readonly deviceFlowHelper = new DeviceFlowHelper();
 
   // Unified cache for external provider data to avoid duplicate calls across methods
@@ -45,18 +50,7 @@ export class B1ChurchProvider extends BaseProvider {
     playlists: new Map<string, ContentFile[] | null>()
   };
 
-  readonly id = "b1church";
-  readonly name = "B1.Church";
-
-  readonly logos: ProviderLogos = { light: "https://b1.church/b1-church-logo.png", dark: "https://b1.church/b1-church-logo.png" };
-
-  readonly config: ContentProviderConfig = { id: "b1church", name: "B1.Church", apiBase: `${API_BASE}/doing`, oauthBase: `${API_BASE}/membership/oauth`, clientId: "nsowldn58dk", scopes: ["plans"], supportsDeviceFlow: true, deviceAuthEndpoint: "/device/authorize" };
-
   private appBase = "https://admin.b1.church";
-
-  readonly requiresAuth = true;
-  readonly authTypes: AuthType[] = ["oauth_pkce", "device_flow"];
-  readonly capabilities: ProviderCapabilities = { browse: true, playlist: true, instructions: true, mediaLicensing: false };
 
   generateCodeVerifier(): string {
     return generateCodeVerifier();

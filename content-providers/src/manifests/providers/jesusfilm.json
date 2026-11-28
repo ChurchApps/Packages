@@ -1,0 +1,21 @@
+{
+  "engine": 1,
+  "id": "jesusfilm",
+  "name": "Jesus Film Project",
+  "logos": {
+    "light": "https://www.jesusfilm.org/wp-content/uploads/2022/11/jfp-logo-red.png",
+    "dark": "https://www.jesusfilm.org/wp-content/uploads/2022/11/jfp-logo-red.png"
+  },
+  "hosts": [
+    "api.arclight.org"
+  ],
+  "requiresAuth": false,
+  "capabilities": {
+    "browse": true,
+    "playlist": true,
+    "instructions": true,
+    "mediaLicensing": false
+  },
+  "implementation": "jesusfilm",
+  "apiBase": "https://api.arclight.org/v2"
+}

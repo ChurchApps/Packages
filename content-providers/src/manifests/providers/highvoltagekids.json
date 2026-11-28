@@ -1,0 +1,21 @@
+{
+  "engine": 1,
+  "id": "highvoltagekids",
+  "name": "High Voltage Kids",
+  "logos": {
+    "light": "https://highvoltagekids.com/wp-content/uploads/2023/10/logo-300x300-1.webp",
+    "dark": "https://highvoltagekids.com/wp-content/uploads/2023/10/logo-300x300-1.webp"
+  },
+  "hosts": [
+    "highvoltagekids.com"
+  ],
+  "requiresAuth": false,
+  "capabilities": {
+    "browse": true,
+    "playlist": true,
+    "instructions": true,
+    "mediaLicensing": false
+  },
+  "implementation": "highvoltagekids",
+  "apiBase": "https://highvoltagekids.com"
+}

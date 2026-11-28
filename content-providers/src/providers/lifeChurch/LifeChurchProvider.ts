@@ -1,37 +1,17 @@
-import { ContentProviderConfig, ContentProviderAuthData, ContentItem, ContentFile, ProviderLogos, ProviderCapabilities, AuthType, Instructions, CurrentPlan } from "../../interfaces";
+import { ContentProviderAuthData, ContentItem, ContentFile, Instructions, CurrentPlan } from "../../interfaces";
 import { parsePath } from "../../pathUtils";
 import { filesToInstructions } from "../../utils";
-import { BaseProvider } from "../BaseProvider";
+import { ConfiguredProvider } from "../../manifest/ConfiguredProvider";
+import defaultManifest from "../../manifests/providers/lifechurch.json";
 import lifeChurchData from "./data.json";
 import { LifeChurchData, LifeChurchSeries, LifeChurchUnit, LifeChurchLesson, LifeChurchScheduledLesson } from "./LifeChurchInterfaces";
 
 /** Browses Life.Church's kids curriculum from a static catalog (series → units → lessons), plus a weekly scheduled lesson index. */
-export class LifeChurchProvider extends BaseProvider {
-  readonly id = "lifechurch";
-  readonly name = "Life.Church";
+export class LifeChurchProvider extends ConfiguredProvider {
+  constructor(manifest: unknown = defaultManifest) {
+    super(manifest);
+  }
 
-  readonly logos: ProviderLogos = {
-    light: "https://cdn.brandfetch.io/idRrA6pM45/w/400/h/400/theme/dark/icon.jpeg?c=1bxid64Mup7aczewSAYMX&t=1668042253613",
-    dark: "https://cdn.brandfetch.io/idRrA6pM45/w/400/h/400/theme/dark/icon.jpeg?c=1bxid64Mup7aczewSAYMX&t=1668042253613"
-  };
-
-  readonly config: ContentProviderConfig = {
-    id: "lifechurch",
-    name: "Life.Church",
-    apiBase: "https://www.life.church",
-    oauthBase: "",
-    clientId: "",
-    scopes: []
-  };
-
-  readonly requiresAuth = false;
-  readonly authTypes: AuthType[] = ["none"];
-  readonly capabilities: ProviderCapabilities = {
-    browse: true,
-    playlist: true,
-    instructions: true,
-    mediaLicensing: false
-  };
 
   private data: LifeChurchData = lifeChurchData as LifeChurchData;
 

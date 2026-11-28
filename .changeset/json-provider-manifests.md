@@ -2,4 +2,4 @@
 "@churchapps/content-providers": minor
 ---
 
-Add JSON manifest providers: a generic `ManifestProvider` engine, a provider index, and `loadProviderIndex` for loading signed manifests from a server. Awana, CBN and SignPresenter now run from manifests. `AwanaProvider`, `CbnProvider` and `SignPresenterProvider` are no longer exported; use `getProvider(id)`.
+Every provider is now defined by a JSON manifest, listed in a provider index. Awana, CBN, SignPresenter and the plan-integration provider are pure JSON, run by the new `ManifestProvider`. The other twelve keep their logic in built-in implementations that read identity, auth settings and capabilities from their manifests. Adds `loadProviderIndex` for loading signed manifests from a server. `AwanaProvider`, `CbnProvider`, `SignPresenterProvider` and `PlanningCenterProvider` are no longer exported; use `getProvider(id)`.

@@ -1,7 +1,8 @@
-import { ContentProviderConfig, ContentProviderAuthData, ContentItem, ContentFile, ProviderLogos, ProviderCapabilities, AuthType, Instructions } from "../../interfaces";
+import { ContentProviderAuthData, ContentItem, ContentFile, Instructions } from "../../interfaces";
 import { createFile, createFolder, filesToInstructions } from "../../utils";
 import { parsePath } from "../../pathUtils";
-import { BaseProvider } from "../BaseProvider";
+import { ConfiguredProvider } from "../../manifest/ConfiguredProvider";
+import defaultManifest from "../../manifests/providers/jesusfilm.json";
 import type { ArclightMediaListResponse, ArclightLanguageVariant, ArclightMediaComponent, ArclightMediaComponentLinksResponse } from "./JesusFilmInterfaces";
 
 const API_BASE = "https://api.arclight.org/v2";
@@ -24,32 +25,11 @@ const CATEGORY_NAMES: Record<string, string> = {
  * Path: / → categories, /{category} → items, /{category}/{id} → video or children,
  * /{category}/{...ids}/{id} → nested containers or video.
  */
-export class JesusFilmProvider extends BaseProvider {
-  readonly id = "jesusfilm";
-  readonly name = "Jesus Film Project";
+export class JesusFilmProvider extends ConfiguredProvider {
+  constructor(manifest: unknown = defaultManifest) {
+    super(manifest);
+  }
 
-  readonly logos: ProviderLogos = {
-    light: "https://www.jesusfilm.org/wp-content/uploads/2022/11/jfp-logo-red.png",
-    dark: "https://www.jesusfilm.org/wp-content/uploads/2022/11/jfp-logo-red.png"
-  };
-
-  readonly config: ContentProviderConfig = {
-    id: "jesusfilm",
-    name: "Jesus Film Project",
-    apiBase: API_BASE,
-    oauthBase: "",
-    clientId: "",
-    scopes: []
-  };
-
-  readonly requiresAuth = false;
-  readonly authTypes: AuthType[] = ["none"];
-  readonly capabilities: ProviderCapabilities = {
-    browse: true,
-    playlist: true,
-    instructions: true,
-    mediaLicensing: false
-  };
 
   // Not ApiHelper: Arclight needs the apiKey query param and callers rely on throw-on-error.
   private async fetchApi<T>(path: string): Promise<T> {

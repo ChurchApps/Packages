@@ -1,0 +1,22 @@
+{
+  "engine": 1,
+  "id": "freeshow",
+  "name": "FreeShow",
+  "logos": {
+    "light": "https://freeshow.app/images/favicon.png",
+    "dark": "https://freeshow.app/images/favicon.png"
+  },
+  "hosts": [],
+  "requiresAuth": true,
+  "capabilities": {
+    "browse": true,
+    "playlist": true,
+    "instructions": true,
+    "mediaLicensing": false
+  },
+  "implementation": "freeshow",
+  "authTypes": [
+    "network_discovery"
+  ],
+  "apiBase": ""
+}

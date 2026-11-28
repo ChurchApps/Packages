@@ -84,6 +84,21 @@ export class ManifestProvider extends BaseProvider {
   readonly capabilities: ProviderCapabilities;
   readonly manifest: ProviderManifest;
 
+  // Optional IProvider methods dynamically attached from the manifest at construction time.
+  declare generateCodeVerifier?: () => string;
+  declare buildAuthUrl?: (codeVerifier: string, redirectUri: string, state?: string) => Promise<{ url: string; challengeMethod: string }>;
+  declare buildAuthUrlFromChallenge?: (codeChallenge: string, redirectUri: string, state: string) => string;
+  declare exchangeCodeForTokens?: (code: string, codeVerifier: string, redirectUri: string) => Promise<ContentProviderAuthData | null>;
+  declare initiateDeviceFlow?: () => Promise<DeviceAuthorizationResponse | null>;
+  declare pollDeviceFlowToken?: (deviceCode: string) => Promise<DeviceFlowPollResult>;
+  declare performLogin?: (email: string, password: string) => Promise<ContentProviderAuthData | null>;
+  declare discoverInstances?: () => Promise<NetworkInstance[]>;
+  declare getPlaylist?: (path: string, auth?: ContentProviderAuthData | null, resolution?: number) => Promise<ContentFile[] | null>;
+  declare getInstructions?: (path: string, auth?: ContentProviderAuthData | null) => Promise<Instructions | null>;
+  declare getCurrentPlan?: (auth?: ContentProviderAuthData | null) => Promise<import("../interfaces").CurrentPlan | null>;
+  declare setPairingData?: (data: unknown) => void;
+  declare checkMediaLicense?: (mediaId: string, auth?: ContentProviderAuthData | null) => Promise<import("../interfaces").MediaLicenseResult | null>;
+
   private environment?: string;
   private readonly cache = new Map<string, { at: number; value: unknown }>();
   private readonly oauthHelper = new OAuthHelper();

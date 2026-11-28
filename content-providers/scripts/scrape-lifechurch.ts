@@ -5,7 +5,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const OUTPUT_PATH = join(__dirname, "..", "src", "providers", "lifeChurch", "data.json");
+const OUTPUT_PATH = join(__dirname, "..", "src", "manifests", "providers", "data", "lifechurch.json");
 const SITEMAP_URL = "https://www.life.church/sitemap.xml";
 const SCHEDULE_BASE = "https://open.life.church";
 const UA = "Mozilla/5.0 (compatible; FreePlay-LifeChurch-Scraper/2.1; +https://github.com/ChurchApps/FreePlay)";

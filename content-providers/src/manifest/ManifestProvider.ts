@@ -1,5 +1,7 @@
 import { ContentDownload, ContentFile, ContentFolder, ContentItem, ContentProviderAuthData, DeviceAuthorizationResponse, DeviceFlowPollResult, Instructions } from "../interfaces";
 import { ConfiguredProvider } from "./ConfiguredProvider";
+import { getProviderSecret } from "../helpers/ProviderSecrets";
+import { ManifestRuntime, normalizeFiles, normalizeItems, toInstructions } from "./runtime";
 import { parsePath } from "../pathUtils";
 import { createFile, filesToInstructions } from "../utils";
 import { DeviceFlowHelper, OAuthHelper } from "../helpers";
@@ -75,11 +77,25 @@ export class ManifestProvider extends ConfiguredProvider {
   private readonly oauthHelper = new OAuthHelper();
   private readonly deviceFlowHelper = new DeviceFlowHelper();
 
-  constructor(manifest: unknown) {
+  private readonly runtime: ManifestRuntime;
+  private readonly hooks = new Map<string, (...args: unknown[]) => unknown>();
+
+  /** `datasets` holds the manifest's static JSON files, already loaded (the loader does this). */
+  constructor(manifest: unknown, options: { datasets?: Record<string, unknown> } = {}) {
     super(manifest);
     const m = this.manifest;
-    if (m.implementation || !m.tree) throw new Error(`[${m.id}] ManifestProvider needs a tree; "${m.implementation}" is a built-in implementation`);
+    if (m.implementation || (!m.tree && !m.routes)) throw new Error(`[${m.id}] ManifestProvider needs a tree or routes; "${m.implementation}" is a built-in implementation`);
     const auth = m.auth;
+    this.runtime = new ManifestRuntime({
+      manifest: m,
+      id: m.id,
+      requiresAuth: m.requiresAuth,
+      apiBase: () => this.config.apiBase,
+      env: () => this.env,
+      secret: name => getProviderSecret(name),
+      datasets: options.datasets || {},
+      hooks: this.hooks
+    });
 
     // Hosts feature-detect with `"method" in provider`, so only attach what this manifest declares.
     const methods: Record<string, (...args: any[]) => unknown> = {};
@@ -87,9 +103,20 @@ export class ManifestProvider extends ConfiguredProvider {
     if (m.capabilities.instructions) methods.getInstructions = this.getInstructionsImpl;
     if (auth?.pkce) {
       methods.generateCodeVerifier = () => this.oauthHelper.generateCodeVerifier();
-      methods.buildAuthUrl = (codeVerifier: string, redirectUri: string, state?: string) => this.checkHost(this.config.oauthBase) && this.oauthHelper.buildAuthUrl(this.config, codeVerifier, redirectUri, state || this.id);
-      methods.buildAuthUrlFromChallenge = (codeChallenge: string, redirectUri: string, state: string) => this.checkHost(this.config.oauthBase) && this.oauthHelper.buildAuthUrlFromChallenge(this.config, codeChallenge, redirectUri, state);
-      methods.exchangeCodeForTokens = (code: string, codeVerifier: string, redirectUri: string) => this.checkHost(this.config.oauthBase) && this.oauthHelper.exchangeCodeForTokens(this.config, this.id, code, codeVerifier, redirectUri);
+      methods.buildAuthUrl = async (codeVerifier: string, redirectUri: string, state?: string) => ({ url: this.authorizeUrl(await this.oauthHelper.generateCodeChallenge(codeVerifier), redirectUri, state || this.id), challengeMethod: "S256" });
+      methods.buildAuthUrlFromChallenge = (codeChallenge: string, redirectUri: string, state: string) => this.authorizeUrl(codeChallenge, redirectUri, state);
+      methods.exchangeCodeForTokens = this.exchangeCodeForTokensImpl;
+    }
+    for (const [name, proc] of Object.entries(m.methods || {})) {
+      const count = (proc.params || []).length;
+      methods[name] = (...args: unknown[]) => this.runtime.runProcedure(proc, args.slice(0, count), args[count] as ContentProviderAuthData | null | undefined);
+    }
+    for (const [setter, hook] of Object.entries(m.hooks || {})) {
+      methods[setter] = (fn: unknown) => {
+        if (typeof fn === "function") this.hooks.set(hook, fn as (...args: unknown[]) => unknown);
+        else this.hooks.delete(hook);
+        this.runtime.clearCaches();
+      };
     }
     if (auth?.deviceFlow) {
       methods.initiateDeviceFlow = this.initiateDeviceFlowImpl;
@@ -100,6 +127,41 @@ export class ManifestProvider extends ConfiguredProvider {
 
   protected onEnvironmentChange(): void {
     this.cache.clear();
+    this.runtime.clearCaches();
+  }
+
+  /** Call one of the manifest's named functions, e.g. for tests or host code that wants the same logic. */
+  callFunction(name: string, ...args: unknown[]): unknown {
+    if (!this.manifest.functions?.[name]) throw new Error(`[${this.id}] has no function "${name}"`);
+    const names = args.map((_, i) => `a${i}`);
+    return evalExpr(`${name}(${names.join(", ")})`, Object.fromEntries(args.map((a, i) => [names[i], a])), this.runtime.ctx);
+  }
+
+  private authorizeUrl(codeChallenge: string, redirectUri: string, state: string): string {
+    const auth = this.manifest.auth!;
+    const params = new URLSearchParams({ response_type: "code", client_id: this.config.clientId, redirect_uri: redirectUri, scope: this.config.scopes.join(" "), code_challenge: codeChallenge, code_challenge_method: "S256", state });
+    for (const [k, v] of Object.entries(auth.authorizeParams || {})) {
+      if (v === null) params.delete(k);
+      else params.set(k, v);
+    }
+    const base = auth.authorizeUrl ? this.fill(auth.authorizeUrl) : `${this.config.oauthBase}/authorize`;
+    this.checkHost(base);
+    return `${base}?${params.toString()}`;
+  }
+
+  private async exchangeCodeForTokensImpl(code: string, codeVerifier: string, redirectUri: string): Promise<ContentProviderAuthData | null> {
+    const auth = this.manifest.auth!;
+    const tokenUrl = auth.tokenUrl ? this.fill(auth.tokenUrl) : `${this.config.oauthBase}/token`;
+    this.checkHost(tokenUrl);
+    try {
+      const params = new URLSearchParams({ grant_type: "authorization_code", code, redirect_uri: redirectUri, client_id: this.config.clientId, code_verifier: codeVerifier });
+      if (this.config.clientSecret) params.set("client_secret", this.config.clientSecret);
+      const response = await fetch(tokenUrl, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: params.toString() });
+      if (!response.ok) return null;
+      return toAuthData(await response.json(), { scope: this.config.scopes.join(" ") });
+    } catch {
+      return null;
+    }
   }
 
   /** Refuse any URL whose host the manifest didn't list. */
@@ -308,6 +370,7 @@ export class ManifestProvider extends ConfiguredProvider {
   }
 
   async browse(path?: string | null, auth?: ContentProviderAuthData | null): Promise<ContentItem[]> {
+    if (this.manifest.routes) return normalizeItems(await this.runtime.runRoute("browse", path, auth));
     const memo: Memo = new Map();
     const resolved = await this.resolve(path, auth, memo);
     if (!resolved) return [];
@@ -316,11 +379,16 @@ export class ManifestProvider extends ConfiguredProvider {
   }
 
   private async getPlaylistImpl(path: string, auth?: ContentProviderAuthData | null): Promise<ContentFile[] | null> {
+    if (this.manifest.routes) {
+      const files = normalizeFiles(await this.runtime.runRoute("playlist", path, auth));
+      return files.length > 0 ? files : null;
+    }
     const result = await this.leafFor(path, auth, false);
     return result && result.files.length > 0 ? result.files : null;
   }
 
   private async getInstructionsImpl(path: string, auth?: ContentProviderAuthData | null): Promise<Instructions | null> {
+    if (this.manifest.routes) return toInstructions(await this.runtime.runRoute("instructions", path, auth));
     const result = await this.leafFor(path, auth, true);
     if (!result || (result.files.length === 0 && result.downloads.length === 0)) return null;
     const { leaf, scope } = result;

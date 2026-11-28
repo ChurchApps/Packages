@@ -39,13 +39,88 @@ export interface ProviderManifest {
   cache?: { ttlSeconds: number; max?: number };
   /** Check every path segment against its parent's list, so a stale or hand-made path can't reach other content. */
   verifyPaths?: boolean;
-  /** The groups listed at the root path. Required unless `implementation` is set. */
+  /** The groups listed at the root path. A manifest defines its content with `tree` or `routes` (or names an implementation). */
   tree?: ManifestGroup[];
+  /** Path patterns, tried in order, each with the steps that browse, play or instruct at that path. */
+  routes?: ManifestRoute[];
+  /** Named functions written in the expression language, e.g. "(me) => map(...)". Callable from any expression. */
+  functions?: Record<string, string>;
+  /** Named step lists that can fetch and call each other (recursion included), run with a `call` step. */
+  procedures?: Record<string, ManifestProcedure>;
+  /** Extra provider methods, e.g. getCurrentPlan or checkMediaLicense. Called with (...params, auth). */
+  methods?: Record<string, ManifestProcedure>;
+  /** Setter methods a host calls to plug in its own functions, e.g. { "setDiscoverer": "discover" }. Steps call them with `hook`. */
+  hooks?: Record<string, string>;
+  /** Static JSON files that ship beside the manifest (paths relative to it), readable as datasets.<name>. */
+  datasets?: Record<string, string>;
+  /** Names of host secrets (setProviderSecret) that expressions may read with secret(name). */
+  secrets?: string[];
 }
 
+/** A path pattern such as "/catalog/:course/*rest" and what to do there. */
+export interface ManifestRoute {
+  /** Literal segments, ":name" for one segment, "*name" for the rest of the path (any depth, including none). */
+  path: string;
+  /** Steps shared by this route's operations, run before them. */
+  load?: ManifestStep[];
+  browse?: ManifestOperation;
+  playlist?: ManifestOperation;
+  instructions?: ManifestOperation;
+}
+
+/** An expression, or steps ending in a `return` expression. */
+export type ManifestOperation = string | { steps?: ManifestStep[]; return?: string };
+
+export interface ManifestProcedure {
+  params?: string[];
+  steps?: ManifestStep[];
+  return?: string;
+}
+
+/** One step. Every step can have a `when` guard; most bind their result with `as`. */
+export type ManifestStep =
+  | { when?: string; let: Record<string, string> }
+  | { when?: string; fetch: ManifestRequest; as: string }
+  | { when?: string; each: string; as: string; index?: string; steps?: ManifestStep[]; return?: string; into: string; parallel?: boolean }
+  | { when?: string; call: string; args?: Record<string, string>; as: string }
+  | { when?: string; hook: string; args?: string[]; as: string; else?: ManifestStep[] }
+  | { when?: string; if: string; then?: ManifestStep[]; else?: ManifestStep[] }
+  | { when?: string; cache: { key: string; seconds: number; shared?: boolean; keepWhen?: string }; steps?: ManifestStep[]; return?: string; as: string }
+  | { when?: string; return: string };
+
+/** A GET path template, or a full request description. */
+export type ManifestRequest = string | {
+  method?: "GET" | "POST";
+  /** Template relative to apiBase. */
+  path?: string;
+  /** Expression for an absolute URL (its host must be listed in `hosts`). */
+  url?: string;
+  /** A URL the host supplied as a secret: a JSON object of URLs, picked by `key`. Trusted, so not host-checked. */
+  secretUrl?: { secret: string; key: string };
+  query?: Record<string, string>;
+  /** Expression for a JSON body. */
+  body?: string;
+  /** Form fields (application/x-www-form-urlencoded). */
+  form?: Record<string, string>;
+  headers?: Record<string, string>;
+  /** "bearer" sends the access token; "none" sends nothing. Defaults to bearer for apiBase paths, none otherwise. */
+  auth?: "bearer" | "none";
+  /** Return { ok, status, body } instead of the body (null on failure), to read error responses. */
+  raw?: boolean;
+  timeoutMs?: number;
+  /** Follow pages: collect `items` from each response and keep requesting `next` while `while` holds. */
+  page?: { items: string; while: string; next: ManifestRequest; max?: number };
+};
+
 export interface ManifestAuth {
-  /** Template. Authorize is {oauthBase}/authorize and token is {oauthBase}/token. */
+  /** Template. Authorize is {oauthBase}/authorize and token is {oauthBase}/token unless overridden below. */
   oauthBase: string;
+  /** Template for the consent page, when it isn't {oauthBase}/authorize. */
+  authorizeUrl?: string;
+  /** Template for the token endpoint, when it isn't {oauthBase}/token. */
+  tokenUrl?: string;
+  /** Extra authorize parameters; null drops a default one (e.g. scope). */
+  authorizeParams?: Record<string, string | null>;
   clientId: string;
   /** Only a reference such as "secret:awana", resolved at runtime from setProviderSecret. Never the secret itself. */
   clientSecret?: string;

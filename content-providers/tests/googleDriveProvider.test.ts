@@ -1,7 +1,13 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { GoogleDriveProvider } from "../src/providers/googledrive";
+import { ManifestProvider } from "../src/manifest/ManifestProvider";
+import googleDriveManifest from "../src/manifests/providers/googledrive.json";
+
+// Google Drive is defined by its JSON manifest.
+const GoogleDriveProvider = class extends ManifestProvider {
+  constructor() { super(googleDriveManifest); }
+} as unknown as new () => any;
 import { ContentProviderAuthData } from "../src/interfaces";
 
 const auth: ContentProviderAuthData = { access_token: "at", refresh_token: "rt", token_type: "Bearer", created_at: 0, expires_in: 3600, scope: "" };

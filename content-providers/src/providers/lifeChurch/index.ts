@@ -1,1 +1,0 @@
-export { LifeChurchProvider } from "./LifeChurchProvider";

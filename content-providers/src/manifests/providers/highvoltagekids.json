@@ -16,6 +16,67 @@
     "instructions": true,
     "mediaLicensing": false
   },
-  "implementation": "highvoltagekids",
-  "apiBase": "https://highvoltagekids.com"
+  "apiBase": "https://highvoltagekids.com",
+  "datasets": {
+    "catalog": "data/highvoltagekids.json"
+  },
+  "settings": {
+    "imageSeconds": 15
+  },
+  "functions": {
+    "collection": "(slug) => find(datasets.catalog.collections, c => slugify(c.name) == slug)",
+    "study": "(slug, studyId) => with(collection(slug), c => c && find(c.folders, s => s.id == studyId))",
+    "fileItem": "(f, thumbnail) => ({ id: f.id, itemType: 'file', label: f.title, seconds: f.mediaType == 'image' ? settings.imageSeconds : 0, downloadUrl: f.url, thumbnail })",
+    "playFile": "(f, lesson) => ({ type: 'file', id: f.id, title: f.title, mediaType: f.mediaType, url: f.url, thumbnail: lesson.image })",
+    "baseName": "(title) => with(match(title, '^(.+?)\\s*\\d+$'), m => m ? trim(m[1]) : title)",
+    "lessonActions": "(lesson) => map(groupConsecutive(lesson.files, f => baseName(f.title) != f.title ? baseName(f.title) : null), g => ({ id: g.items[0].id + '-action', itemType: 'action', label: len(g.items) > 1 && g.key ? g.key : g.items[0].title, actionType: 'play', children: map(g.items, f => fileItem(f, lesson.image)) }))"
+  },
+  "routes": [
+    {
+      "path": "/",
+      "browse": "map(filter(datasets.catalog.collections, c => len(c.folders) > 0), c => ({ type: 'folder', id: slugify(c.name), title: c.name, path: '/' + slugify(c.name) }))"
+    },
+    {
+      "path": "/:collection",
+      "load": [
+        {
+          "let": {
+            "c": "collection(params.collection)"
+          }
+        }
+      ],
+      "browse": "c ? map(c.folders, s => ({ type: 'folder', id: s.id, title: s.name, path: path + '/' + s.id, thumbnail: s.image })) : []"
+    },
+    {
+      "path": "/:collection/:study",
+      "load": [
+        {
+          "let": {
+            "s": "study(params.collection, params.study)"
+          }
+        }
+      ],
+      "browse": "s ? map(s.lessons, l => ({ type: 'folder', id: l.id, title: l.name, path: path + '/' + l.id, thumbnail: l.image, isLeaf: true })) : []",
+      "playlist": "s ? flatMap(s.lessons, l => map(l.files, f => playFile(f, l))) : null",
+      "instructions": "s ? { name: s.name, items: [{ id: 'main', itemType: 'section', label: 'Content', children: map(s.lessons, l => ({ id: l.id, itemType: 'action', label: l.name, actionType: 'play', children: map(l.files, f => fileItem(f, l.image)) })) }] } : null"
+    },
+    {
+      "path": "/:collection/:study/:lesson",
+      "load": [
+        {
+          "let": {
+            "s": "study(params.collection, params.study)"
+          }
+        },
+        {
+          "let": {
+            "l": "s && find(s.lessons, x => x.id == params.lesson)"
+          }
+        }
+      ],
+      "browse": "l ? map(l.files, f => ({ type: 'file', id: f.id, title: f.title, url: f.url, mediaType: f.mediaType })) : []",
+      "playlist": "l ? map(l.files, f => playFile(f, l)) : null",
+      "instructions": "l ? { name: l.name, items: [{ id: 'main', itemType: 'section', label: l.name, children: lessonActions(l) }] } : null"
+    }
+  ]
 }

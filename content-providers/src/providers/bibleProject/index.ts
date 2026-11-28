@@ -1,1 +1,0 @@
-export { BibleProjectProvider } from "./BibleProjectProvider";

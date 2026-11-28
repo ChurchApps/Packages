@@ -1,8 +1,13 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { filterMediaEntries } from "../src/providers/dropbox/DropboxConverters";
-import { DropboxEntry } from "../src/providers/dropbox/DropboxInterfaces";
+import { ManifestProvider } from "../src/manifest/ManifestProvider";
+import dropboxManifest from "../src/manifests/providers/dropbox.json";
+
+// Dropbox is defined by its JSON manifest; filterMediaEntries is one of its named functions.
+type DropboxEntry = { ".tag": "file" | "folder"; id: string; name: string; path_lower: string; path_display: string; size?: number; is_downloadable?: boolean };
+const dropbox = new ManifestProvider(dropboxManifest);
+const filterMediaEntries = (entries: DropboxEntry[]) => dropbox.callFunction("filterMediaEntries", entries) as { folders: DropboxEntry[]; mediaFiles: DropboxEntry[] };
 
 const file = (name: string): DropboxEntry => ({ ".tag": "file", id: "id:" + name, name, path_lower: "/" + name.toLowerCase(), path_display: "/" + name, size: 100, is_downloadable: true });
 const folder = (name: string): DropboxEntry => ({ ".tag": "folder", id: "id:" + name, name, path_lower: "/" + name.toLowerCase(), path_display: "/" + name });

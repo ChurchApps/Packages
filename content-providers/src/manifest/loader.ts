@@ -22,7 +22,11 @@ import onedrive from "../manifests/providers/onedrive.json";
 import planningcenter from "../manifests/providers/planningcenter.json";
 import signpresenter from "../manifests/providers/signpresenter.json";
 
-/** Manifests shipped inside the package, keyed by their path in index.json. */
+import bibleprojectData from "../manifests/providers/data/bibleproject.json";
+import highvoltagekidsData from "../manifests/providers/data/highvoltagekids.json";
+import lifechurchData from "../manifests/providers/data/lifechurch.json";
+
+/** Manifests and their datasets shipped inside the package, keyed by their path relative to index.json. */
 const BUNDLED: Record<string, unknown> = {
   "providers/aplay.json": aplay,
   "providers/awana.json": awana,
@@ -39,8 +43,29 @@ const BUNDLED: Record<string, unknown> = {
   "providers/lifechurch.json": lifechurch,
   "providers/onedrive.json": onedrive,
   "providers/planningcenter.json": planningcenter,
-  "providers/signpresenter.json": signpresenter
+  "providers/signpresenter.json": signpresenter,
+  "providers/data/bibleproject.json": bibleprojectData,
+  "providers/data/highvoltagekids.json": highvoltagekidsData,
+  "providers/data/lifechurch.json": lifechurchData
 };
+
+/** "providers/x.json" + "data/x.json" → "providers/data/x.json" */
+function beside(manifestPath: string, relative: string): string {
+  const dir = manifestPath.includes("/") ? manifestPath.slice(0, manifestPath.lastIndexOf("/") + 1) : "";
+  return dir + relative;
+}
+
+/** Load a manifest's datasets with `read`, keyed by dataset name. */
+async function loadDatasets(manifest: unknown, read: (relative: string) => Promise<unknown> | unknown): Promise<Record<string, unknown>> {
+  const datasets: Record<string, unknown> = {};
+  const declared = (manifest as { datasets?: Record<string, unknown> })?.datasets;
+  if (!declared || typeof declared !== "object") return datasets;
+  for (const [name, path] of Object.entries(declared)) {
+    if (typeof path !== "string" || path.includes("..")) throw new Error(`dataset "${name}" must be a relative path`);
+    datasets[name] = await read(path);
+  }
+  return datasets;
+}
 
 let comingSoon: ProviderIndexEntry[] = [];
 
@@ -56,16 +81,22 @@ export function createBundledProviders(): IProvider[] {
   return index.providers.filter(p => p.manifest).map(entry => {
     const manifest = BUNDLED[entry.manifest!];
     if (!manifest) throw new Error(`Bundled provider index lists ${entry.manifest}, which isn't bundled`);
-    const provider = createProvider(manifest);
+    const datasets: Record<string, unknown> = {};
+    for (const [name, path] of Object.entries((manifest as { datasets?: Record<string, string> }).datasets || {})) {
+      const data = BUNDLED[beside(entry.manifest!, path)];
+      if (data === undefined) throw new Error(`${entry.manifest} needs ${path}, which isn't bundled`);
+      datasets[name] = data;
+    }
+    const provider = createProvider(manifest, datasets);
     if (provider.id !== entry.id) throw new Error(`${entry.manifest} has id "${provider.id}" but the index says "${entry.id}"`);
     return provider;
   });
 }
 
 /** Build a provider from a manifest: the named built-in implementation, or the generic engine for a tree manifest. */
-export function createProvider(manifest: unknown): IProvider {
+export function createProvider(manifest: unknown, datasets: Record<string, unknown> = {}): IProvider {
   const name = (manifest as { implementation?: unknown })?.implementation;
-  if (name === undefined) return new ManifestProvider(manifest);
+  if (name === undefined) return new ManifestProvider(manifest, { datasets });
   const create = typeof name === "string" && Object.prototype.hasOwnProperty.call(IMPLEMENTATIONS, name) ? IMPLEMENTATIONS[name] : undefined;
   if (!create) throw new Error(`implementation "${String(name)}" isn't built into this version`);
   return create(manifest);
@@ -112,7 +143,9 @@ export async function loadProviderIndex(indexUrl: string, options: LoadProviderI
     if (!entry.manifest) continue;
     try {
       const manifestUrl = new URL(entry.manifest, indexUrl).toString();
-      const provider = createProvider(await download(manifestUrl));
+      const manifest = await download(manifestUrl);
+      const datasets = await loadDatasets(manifest, relative => download(new URL(relative, manifestUrl).toString()));
+      const provider = createProvider(manifest, datasets);
       if (provider.id !== entry.id) throw new Error(`manifest id "${provider.id}" doesn't match the index`);
       registerProvider(provider);
       result.loaded.push(entry.id);

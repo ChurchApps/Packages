@@ -27,9 +27,6 @@ export { MANIFEST_ENGINE_VERSION, type ProviderManifest, type ManifestAuth, type
 export { APlayProvider } from "./providers/aPlay";
 export { LessonsChurchProvider } from "./providers/lessonsChurch";
 export { B1ChurchProvider } from "./providers/b1Church";
-export { DropboxProvider } from "./providers/dropbox";
-export { BibleProjectProvider } from "./providers/bibleProject";
-export { HighVoltageKidsProvider } from "./providers/highVoltage";
 export { JesusFilmProvider } from "./providers/jesusFilm";
 export { FreeShowProvider } from "./providers/freeShow";
 export { GoCurriculumProvider, type GoCurriculumCatalogLoader, type GoCurriculumData } from "./providers/goCurriculum";
@@ -41,7 +38,6 @@ export {
   authToNetworkInstance,
   type FreeShowDiscoverer
 } from "./providers/freeShow";
-export { LifeChurchProvider } from "./providers/lifeChurch";
 
 export {
   getProvider,

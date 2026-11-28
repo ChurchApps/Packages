@@ -16,6 +16,50 @@
     "instructions": true,
     "mediaLicensing": false
   },
-  "implementation": "bibleproject",
-  "apiBase": "https://bibleproject.com"
+  "apiBase": "https://bibleproject.com",
+  "datasets": {
+    "catalog": "data/bibleproject.json"
+  },
+  "functions": {
+    "muxThumb": "(id) => 'https://image.mux.com/' + id + '/thumbnail.jpg?width=400&height=225'",
+    "videoFile": "(v) => ({ type: 'file', id: v.id, title: v.title, url: v.videoUrl, mediaType: 'video', thumbnail: muxThumb(v.muxPlaybackId), muxPlaybackId: v.muxPlaybackId, seconds: 0 })",
+    "collection": "(slug) => find(datasets.catalog.collections, c => slugify(c.name) == slug)"
+  },
+  "routes": [
+    {
+      "path": "/",
+      "browse": "map(filter(datasets.catalog.collections, c => len(c.videos) > 0), c => ({ type: 'folder', id: slugify(c.name), title: c.name, thumbnail: c.image, path: '/' + slugify(c.name) }))"
+    },
+    {
+      "path": "/:collection",
+      "load": [
+        {
+          "let": {
+            "c": "collection(params.collection)"
+          }
+        }
+      ],
+      "browse": "c ? map(c.videos, v => ({ type: 'folder', id: v.id, title: v.title, thumbnail: muxThumb(v.muxPlaybackId), isLeaf: true, path: path + '/' + v.id })) : []",
+      "playlist": "c ? map(c.videos, videoFile) : null",
+      "instructions": "c ? filesToInstructions(c.name, map(c.videos, videoFile), slugify(c.name) + '-section', c.name) : null"
+    },
+    {
+      "path": "/:collection/:video",
+      "load": [
+        {
+          "let": {
+            "c": "collection(params.collection)"
+          }
+        },
+        {
+          "let": {
+            "v": "c && find(c.videos, x => x.id == params.video)"
+          }
+        }
+      ],
+      "browse": "v ? [videoFile(v)] : []",
+      "playlist": "v ? [videoFile(v)] : null",
+      "instructions": "v ? filesToInstructions(v.title, [videoFile(v)], slugify(c.name) + '-section', c.name) : null"
+    }
+  ]
 }

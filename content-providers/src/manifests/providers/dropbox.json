@@ -17,12 +17,211 @@
     "instructions": true,
     "mediaLicensing": false
   },
-  "implementation": "dropbox",
   "apiBase": "https://api.dropboxapi.com",
   "auth": {
     "oauthBase": "https://www.dropbox.com/oauth2",
     "clientId": "s8eot158flc42d1",
     "scopes": [],
-    "pkce": true
-  }
+    "pkce": true,
+    "tokenUrl": "https://api.dropboxapi.com/oauth2/token",
+    "authorizeParams": {
+      "scope": null,
+      "token_access_type": "offline"
+    }
+  },
+  "functions": {
+    "filterMediaEntries": "(entries) => ({ folders: sortBy(filter(entries, e => e['.tag'] == 'folder'), e => e.name, 'natural'), mediaFiles: sortBy(filter(entries, e => e['.tag'] == 'file' && isMedia(e.name)), e => e.name, 'natural') })",
+    "rawUrl": "(url) => urlParams(url, { dl: null, raw: '1' })"
+  },
+  "procedures": {
+    "listAll": {
+      "params": [
+        "dropboxPath"
+      ],
+      "steps": [
+        {
+          "fetch": {
+            "method": "POST",
+            "path": "/2/files/list_folder",
+            "body": "{ path: dropboxPath, recursive: false, include_media_info: false }",
+            "page": {
+              "items": "response.entries || []",
+              "while": "response.has_more",
+              "next": {
+                "method": "POST",
+                "path": "/2/files/list_folder/continue",
+                "body": "{ cursor: response.cursor }"
+              },
+              "max": 51
+            }
+          },
+          "as": "all"
+        }
+      ],
+      "return": "all || []"
+    },
+    "isLeaf": {
+      "params": [
+        "folderPath"
+      ],
+      "steps": [
+        {
+          "fetch": {
+            "method": "POST",
+            "path": "/2/files/list_folder",
+            "body": "{ path: folderPath, recursive: false, include_media_info: false }"
+          },
+          "as": "r"
+        }
+      ],
+      "return": "r ? !some(r.entries, e => e['.tag'] == 'folder') : false"
+    },
+    "fileLinks": {
+      "params": [
+        "entries"
+      ],
+      "steps": [
+        {
+          "each": "entries",
+          "as": "entry",
+          "parallel": true,
+          "into": "files",
+          "steps": [
+            {
+              "fetch": {
+                "method": "POST",
+                "path": "/2/sharing/create_shared_link_with_settings",
+                "body": "{ path: entry.path_lower, settings: { requested_visibility: 'public' } }",
+                "raw": true
+              },
+              "as": "shared"
+            },
+            {
+              "fetch": {
+                "method": "POST",
+                "path": "/2/files/get_temporary_link",
+                "body": "{ path: entry.path_lower }"
+              },
+              "as": "temp"
+            },
+            {
+              "let": {
+                "viewUrl": "shared && shared.ok ? rawUrl(shared.body.url) : shared && shared.status == 409 && shared.body && shared.body.error && shared.body.error.shared_link_already_exists && shared.body.error.shared_link_already_exists.metadata && shared.body.error.shared_link_already_exists.metadata.url ? rawUrl(shared.body.error.shared_link_already_exists.metadata.url) : null",
+                "downloadUrl": "(temp && temp.link) || null"
+              }
+            }
+          ],
+          "return": "viewUrl || downloadUrl ? { type: 'file', id: entry.id, title: entry.name, mediaType: mediaType(entry.name), url: viewUrl || downloadUrl, downloadUrl: downloadUrl || viewUrl } : null"
+        }
+      ],
+      "return": "files"
+    }
+  },
+  "routes": [
+    {
+      "path": "/*parts",
+      "load": [
+        {
+          "let": {
+            "dropboxPath": "path && path != '/' ? (startsWith(path, '/') ? path : '/' + path) : ''"
+          }
+        }
+      ],
+      "browse": {
+        "steps": [
+          {
+            "call": "listAll",
+            "args": {
+              "dropboxPath": "dropboxPath"
+            },
+            "as": "all"
+          },
+          {
+            "let": {
+              "sorted": "filterMediaEntries(all)"
+            }
+          },
+          {
+            "each": "sorted.folders",
+            "as": "f",
+            "parallel": true,
+            "into": "folders",
+            "steps": [
+              {
+                "call": "isLeaf",
+                "args": {
+                  "folderPath": "f.path_lower"
+                },
+                "as": "leaf"
+              }
+            ],
+            "return": "{ type: 'folder', id: f.id, title: f.name, path: f.path_lower, isLeaf: leaf }"
+          },
+          {
+            "call": "fileLinks",
+            "args": {
+              "entries": "sorted.mediaFiles"
+            },
+            "as": "files"
+          }
+        ],
+        "return": "concat(folders, files)"
+      },
+      "playlist": {
+        "steps": [
+          {
+            "return": "null",
+            "when": "dropboxPath == ''"
+          },
+          {
+            "call": "listAll",
+            "args": {
+              "dropboxPath": "dropboxPath"
+            },
+            "as": "all"
+          },
+          {
+            "call": "fileLinks",
+            "args": {
+              "entries": "filterMediaEntries(all).mediaFiles"
+            },
+            "as": "files"
+          }
+        ],
+        "return": "files"
+      },
+      "instructions": {
+        "steps": [
+          {
+            "return": "null",
+            "when": "dropboxPath == ''"
+          },
+          {
+            "call": "listAll",
+            "args": {
+              "dropboxPath": "dropboxPath"
+            },
+            "as": "all"
+          },
+          {
+            "call": "fileLinks",
+            "args": {
+              "entries": "filterMediaEntries(all).mediaFiles"
+            },
+            "as": "files"
+          },
+          {
+            "return": "null",
+            "when": "len(files) == 0"
+          },
+          {
+            "let": {
+              "name": "with(filter(split(dropboxPath, '/'), s => s), parts => parts[len(parts) - 1] || 'Dropbox')"
+            }
+          }
+        ],
+        "return": "filesToInstructions(name, files, 'dropbox-section', name)"
+      }
+    }
+  ]
 }

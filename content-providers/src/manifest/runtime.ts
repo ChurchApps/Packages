@@ -61,7 +61,7 @@ export function normalizeFiles(value: unknown): ContentFile[] {
 }
 
 /** Match "/a/:b/*rest" against path segments. Returns the params, or null. */
-export function matchRoute(pattern: string, segments: string[]): Record<string, unknown> | null {
+function matchRoute(pattern: string, segments: string[]): Record<string, unknown> | null {
   const parts = parsePath(pattern).segments;
   const params: Record<string, unknown> = {};
   for (let i = 0; i < parts.length; i++) {

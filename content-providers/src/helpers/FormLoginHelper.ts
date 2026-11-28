@@ -26,11 +26,6 @@ export interface FormLoginConfig {
   defaultExpiresIn?: number;
 }
 
-export interface FormLoginResult {
-  response: unknown;
-  auth: ContentProviderAuthData | null;
-}
-
 export class FormLoginHelper {
   async login(
     url: string,

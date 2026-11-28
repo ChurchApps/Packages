@@ -44,7 +44,7 @@ function wpThumb(thumb: unknown): string | undefined {
 }
 
 /** Strip common Markdown syntax into clean single-line text. */
-export function stripMarkdown(text: string): string {
+function stripMarkdown(text: string): string {
   return text
     .replace(/\*\*(.+?)\*\*/g, "$1")
     .replace(/__(.+?)__/g, "$1")
@@ -59,7 +59,7 @@ export function stripMarkdown(text: string): string {
 }
 
 /** Truncate text at the first newline or maxLen, stripping markdown, and append suffix when cut. */
-export function truncateLabel(text: string, maxLen = 100, suffix = "..."): string {
+function truncateLabel(text: string, maxLen = 100, suffix = "..."): string {
   const lb = text.indexOf("\n");
   const cutoff = lb > 0 && lb < maxLen ? lb : maxLen;
   const cut = text.length > cutoff ? text.slice(0, cutoff) : text;
@@ -67,14 +67,14 @@ export function truncateLabel(text: string, maxLen = 100, suffix = "..."): strin
 }
 
 /** Local calendar date string "YYYY-MM-DD" offset by `days` from today (avoids UTC midnight timezone shifts). */
-export function localDateOffset(days = 0): string {
+function localDateOffset(days = 0): string {
   const d = new Date();
   d.setDate(d.getDate() + days);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
 /** Normalize Lessons.church / B1 plan item types into standard InstructionItem itemTypes. */
-export function normalizeItemType(type?: string): string | undefined {
+function normalizeItemType(type?: string): string | undefined {
   if (type === "lessonSection") return "section";
   if (type === "lessonAction" || type === "lessonAddOn") return "action";
   return type;

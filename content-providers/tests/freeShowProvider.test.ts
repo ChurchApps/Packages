@@ -5,23 +5,24 @@ import { AddressInfo } from "node:net";
 import os from "node:os";
 
 import { getProvider } from "../src/providers/index";
-import { DEFAULT_SLIDE_SECONDS, FreeShowShow, FreeShowLayoutSlide } from "../src/providers/freeShow/FreeShowInterfaces";
-import { freeShowServicesToInstances, networkInstanceToAuth } from "../src/providers/freeShow";
+import { freeShowServicesToInstances, networkInstanceToAuth } from "../src/compat";
 import { probeLanHost, setMdnsScanner } from "../src/helpers/NetworkDiscoveryHelper";
 import { isContentFolder, ContentFile, NetworkInstance } from "../src/interfaces";
 import { ManifestProvider } from "../src/manifest/ManifestProvider";
 import freeShowManifest from "../src/manifests/providers/freeshow.json";
+
+const DEFAULT_SLIDE_SECONDS = freeShowManifest.settings.defaultSlideSeconds;
 
 // FreeShow is defined by its JSON manifest; slide mapping and media URLs are its named functions.
 const FreeShowProvider = class extends ManifestProvider {
   constructor() { super(freeShowManifest); }
 } as unknown as new () => any;
 const freeShow = new ManifestProvider(freeShowManifest);
-const slideSeconds = (ref: FreeShowLayoutSlide, mediaType: string) => freeShow.callFunction("slideSeconds", ref, mediaType) as number | undefined;
+const slideSeconds = (ref: Record<string, unknown>, mediaType: string) => freeShow.callFunction("slideSeconds", ref, mediaType) as number | undefined;
 const freeShowMediaUrl = (instance: Pick<NetworkInstance, "ip" | "port">, path: string) => freeShow.callFunction("mediaUrl", instance, path) as string | null;
-const showToFiles = (show: FreeShowShow, instance: Pick<NetworkInstance, "ip" | "port">) => freeShow.callFunction("showToFiles", show, instance) as ContentFile[];
+const showToFiles = (show: Record<string, unknown>, instance: Pick<NetworkInstance, "ip" | "port">) => freeShow.callFunction("showToFiles", show, instance) as ContentFile[];
 
-const announcements: FreeShowShow = {
+const announcements = {
   name: "Announcements",
   settings: { activeLayout: "L" },
   slides: { s1: { group: "Kids" }, s2: { group: "Theme" }, s3: { group: "Local video" } },

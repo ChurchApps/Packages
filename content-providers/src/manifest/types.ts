@@ -1,7 +1,21 @@
 import { AuthType, ProviderCapabilities, ProviderLogos } from "../interfaces";
+import { FormLoginConfig } from "../helpers/FormLoginHelper";
+import { NetworkDiscoveryConfig } from "../helpers/NetworkDiscoveryHelper";
 
 /** Highest manifest engine version this build understands. Manifests needing a newer engine are skipped. */
 export const MANIFEST_ENGINE_VERSION = 1;
+
+/** A manifest helper function: either a lambda string "(x) => ..." or a structured block with named `let` bindings. */
+export type ManifestFunction =
+  | string
+  | {
+    params?: string[];
+    let?: Record<string, string>;
+    return: string;
+  };
+
+/** A dataset declared by a manifest: a relative path beside the manifest, an HTTPS URL, or inline JSON data. */
+export type ManifestDataset = string | Record<string, unknown> | unknown[];
 
 /**
  * Field values are expressions (see expression.ts) unless noted. `request` and URL fields are templates:
@@ -19,15 +33,12 @@ export interface ProviderManifest {
   /** Every API and auth host this provider may call. Requests the engine makes to any other host are refused. */
   hosts: string[];
   requiresAuth: boolean;
-  /** Sign-in types. Defaults to what `auth` declares (pkce → oauth_pkce, deviceFlow → device_flow), or ["none"]. */
+  /** Sign-in types. Defaults to what `auth` / `networkDiscovery` declare, or ["none"]. */
   authTypes?: AuthType[];
-  /**
-   * Name of a built-in implementation (code shipped in this package) that supplies the logic, for providers JSON can't
-   * express. Omit it and give a `tree` for a provider defined purely by this manifest.
-   */
-  implementation?: string;
-  /** Free-form values a built-in implementation reads, so its constants live here rather than in code. */
+  /** Free-form values the manifest's expressions read, so constants and lookup tables stay in data. */
   settings?: Record<string, unknown>;
+  /** Initial per-instance state readable as `state.*` and updated with `setState` steps (e.g. pairing data). */
+  state?: Record<string, unknown>;
   capabilities: ProviderCapabilities;
   /** Named sets of values readable as env.*, e.g. separate dev and prod hosts. */
   environments?: Record<string, Record<string, string>>;
@@ -35,24 +46,26 @@ export interface ProviderManifest {
   /** Template, e.g. "https://api.example.com" or "{env.site}/wp-json/content/v1". Empty for providers with no fixed API. */
   apiBase: string;
   auth?: ManifestAuth;
+  /** LAN / mDNS discovery configuration for local-network providers (e.g. FreeShow). */
+  networkDiscovery?: NetworkDiscoveryConfig;
   /** Cache successful API responses per access token. */
   cache?: { ttlSeconds: number; max?: number };
   /** Check every path segment against its parent's list, so a stale or hand-made path can't reach other content. */
   verifyPaths?: boolean;
-  /** The groups listed at the root path. A manifest defines its content with `tree` or `routes` (or names an implementation). */
+  /** The groups listed at the root path. A manifest defines its content with `tree` or `routes`. */
   tree?: ManifestGroup[];
   /** Path patterns, tried in order, each with the steps that browse, play or instruct at that path. */
   routes?: ManifestRoute[];
-  /** Named functions written in the expression language, e.g. "(me) => map(...)". Callable from any expression. */
-  functions?: Record<string, string>;
+  /** Named functions written as lambdas or `{ params, let, return }` blocks. Callable from any expression. */
+  functions?: Record<string, ManifestFunction>;
   /** Named step lists that can fetch and call each other (recursion included), run with a `call` step. */
   procedures?: Record<string, ManifestProcedure>;
-  /** Extra provider methods, e.g. getCurrentPlan or checkMediaLicense. Called with (...params, auth). */
+  /** Extra provider methods, e.g. getCurrentPlan, setPairingData or checkMediaLicense. Called with (...params, auth). */
   methods?: Record<string, ManifestProcedure>;
-  /** Setter methods a host calls to plug in its own functions, e.g. { "setDiscoverer": "discover" }. Steps call them with `hook`. */
+  /** Setter methods a host calls to plug in its own functions, e.g. { "setCatalogLoader": "catalogLoader" }. Steps call them with `hook`. */
   hooks?: Record<string, string>;
-  /** Static JSON files that ship beside the manifest (paths relative to it), readable as datasets.<name>. */
-  datasets?: Record<string, string>;
+  /** Static JSON files (relative path or HTTPS URL) or inline JSON data, readable as datasets.<name>. */
+  datasets?: Record<string, ManifestDataset>;
   /** Names of host secrets (setProviderSecret) that expressions may read with secret(name). */
   secrets?: string[];
 }
@@ -80,6 +93,7 @@ export interface ManifestProcedure {
 /** One step. Every step can have a `when` guard; most bind their result with `as`. */
 export type ManifestStep =
   | { when?: string; let: Record<string, string> }
+  | { when?: string; setState: Record<string, string> }
   | { when?: string; fetch: ManifestRequest; as: string }
   | { when?: string; each: string; as: string; index?: string; steps?: ManifestStep[]; return?: string; into: string; parallel?: boolean }
   | { when?: string; call: string; args?: Record<string, string>; as: string }
@@ -104,8 +118,8 @@ export type ManifestRequest = string | {
   /** Form fields (application/x-www-form-urlencoded). */
   form?: Record<string, string>;
   headers?: Record<string, string>;
-  /** "bearer" sends the access token; "none" sends nothing. Defaults to bearer for apiBase paths, none otherwise. */
-  auth?: "bearer" | "none";
+  /** "bearer" requires & sends the token; "optional" sends the token if present; "none" sends nothing. Defaults to bearer for apiBase paths, none otherwise. */
+  auth?: "bearer" | "optional" | "none";
   /** Return { ok, status, body } instead of the body (null on failure), to read error responses. */
   raw?: boolean;
   timeoutMs?: number;
@@ -115,24 +129,32 @@ export type ManifestRequest = string | {
 
 export interface ManifestAuth {
   /** Template. Authorize is {oauthBase}/authorize and token is {oauthBase}/token unless overridden below. */
-  oauthBase: string;
+  oauthBase?: string;
   /** Template for the consent page, when it isn't {oauthBase}/authorize. */
   authorizeUrl?: string;
   /** Template for the token endpoint, when it isn't {oauthBase}/token. */
   tokenUrl?: string;
+  /** Body encoding for OAuth token exchange & refresh ("form" by default; "json" for JSON token endpoints). */
+  tokenEncoding?: "form" | "json";
   /** Extra authorize parameters; null drops a default one (e.g. scope). */
   authorizeParams?: Record<string, string | null>;
-  clientId: string;
+  clientId?: string;
   /** Only a reference such as "secret:awana", resolved at runtime from setProviderSecret. Never the secret itself. */
   clientSecret?: string;
-  scopes: string[];
+  scopes?: string[];
   pkce?: boolean;
+  /** Expose exchangeCodeForTokensWithSecret and refreshTokenWithSecret methods on the provider. */
+  supportsSecretExchange?: boolean;
   deviceFlow?: {
     /** Appended to oauthBase. */
     endpoint: string;
     /** "json" (default) posts a JSON body; "form" posts form fields and includes the client secret (Keycloak). */
     encoding?: "json" | "form";
+    /** Optional override for the device token polling URL. */
+    tokenUrl?: string;
   };
+  /** Credential login configuration for form_login providers. */
+  formLogin?: FormLoginConfig;
 }
 
 /** One set of children under a path: either fixed entries or a list read from the API. */
@@ -200,7 +222,7 @@ export interface ProviderIndex {
 
 export interface ProviderIndexEntry {
   id: string;
-  /** Path of the provider's manifest, relative to the index. */
+  /** Path or HTTPS URL of the provider's manifest. */
   manifest?: string;
   /** Listed as "coming soon" with no implementation. */
   comingSoon?: boolean;

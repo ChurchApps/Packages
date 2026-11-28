@@ -35,24 +35,36 @@ export class TokenHelper {
 
   async refreshToken(config: ContentProviderConfig, auth: ContentProviderAuthData): Promise<ContentProviderAuthData | null> {
     if (!auth.refresh_token) return null;
-    const key = `${config.oauthBase}|${config.clientId}|${auth.refresh_token}`;
+    const tokenUrl = config.tokenUrl || `${config.oauthBase}/token`;
+    const key = `${tokenUrl}|${config.clientId}|${auth.refresh_token}`;
     const existing = TokenHelper.inflight.get(key);
     if (existing) return existing;
-    const pending = this.doRefresh(config, auth).finally(() => { TokenHelper.inflight.delete(key); });
+    const pending = this.doRefresh(config, auth, config.clientSecret).finally(() => { TokenHelper.inflight.delete(key); });
     TokenHelper.inflight.set(key, pending);
     return pending;
   }
 
-  private async doRefresh(config: ContentProviderConfig, auth: ContentProviderAuthData): Promise<ContentProviderAuthData | null> {
+  async refreshTokenWithSecret(config: ContentProviderConfig, auth: ContentProviderAuthData, clientSecret: string): Promise<ContentProviderAuthData | null> {
+    if (!auth.refresh_token) return null;
+    return this.doRefresh(config, auth, clientSecret);
+  }
+
+  private async doRefresh(config: ContentProviderConfig, auth: ContentProviderAuthData, clientSecret?: string): Promise<ContentProviderAuthData | null> {
     try {
-      const params = new URLSearchParams({
+      const fields: Record<string, string> = {
         grant_type: "refresh_token",
         refresh_token: auth.refresh_token,
         client_id: config.clientId
-      });
-      if (config.clientSecret) params.set("client_secret", config.clientSecret);
+      };
+      if (clientSecret) fields.client_secret = clientSecret;
 
-      const response = await fetch(`${config.oauthBase}/token`, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: params.toString() });
+      const tokenUrl = config.tokenUrl || `${config.oauthBase}/token`;
+      const isJson = config.tokenEncoding === "json";
+      const response = await fetch(tokenUrl, {
+        method: "POST",
+        headers: { "Content-Type": isJson ? "application/json" : "application/x-www-form-urlencoded" },
+        body: isJson ? JSON.stringify(fields) : new URLSearchParams(fields).toString()
+      });
       if (!response.ok) {
         console.warn(`[TokenHelper] Token refresh failed: ${response.status} ${response.statusText}`);
         return null;

@@ -42,7 +42,6 @@
     "api": "(apiBase, path) => apiBase + path + (includes(path, '?') ? '&' : '?') + 'apiKey=' + settings.apiKey",
     "category": "(id) => find(settings.categories, c => c.id == id)",
     "image": "(c) => c.imageUrls.mobileCinematicHigh || c.imageUrls.videoStill || c.imageUrls.thumbnail",
-    "muxId": "(url) => with(match(url, 'stream\\.mux\\.com/([^/]+)'), m => m ? m[1] : undefined)",
     "components": "(r) => (r && r._embedded && r._embedded.mediaComponents) || []",
     "downloadUrl": "(variant) => variant && variant.downloadUrls ? (variant.downloadUrls.high && variant.downloadUrls.high.url) || (variant.downloadUrls.low && variant.downloadUrls.low.url) : null"
   },
@@ -93,7 +92,7 @@
           }
         }
       ],
-      "return": "[{ type: 'file', id, title: (c && c.title) || id, url, mediaType: 'video', muxPlaybackId: muxId(url), seconds: c ? round(c.lengthInMilliseconds / 1000) : 0, thumbnail: c ? c.imageUrls.mobileCinematicHigh || c.imageUrls.videoStill : undefined }]"
+      "return": "[file(id, (c && c.title) || id, url, { mediaType: 'video', muxPlaybackId: muxPlaybackId(url), seconds: c ? round(c.lengthInMilliseconds / 1000) : 0, thumbnail: c ? c.imageUrls.mobileCinematicHigh || c.imageUrls.videoStill : undefined })]"
     },
     "childComponents": {
       "params": [
@@ -162,7 +161,7 @@
               }
             }
           ],
-          "return": "url ? { type: 'file', id: c.mediaComponentId, title: c.title, mediaType: 'video', url, thumbnail: c.imageUrls.mobileCinematicHigh || c.imageUrls.videoStill, muxPlaybackId: muxId(url), seconds: round(c.lengthInMilliseconds / 1000) } : null"
+          "return": "url ? file(c.mediaComponentId, c.title, url, { mediaType: 'video', thumbnail: c.imageUrls.mobileCinematicHigh || c.imageUrls.videoStill, muxPlaybackId: muxPlaybackId(url), seconds: round(c.lengthInMilliseconds / 1000) }) : null"
         }
       ],
       "return": "files"

@@ -5,14 +5,11 @@ import { ManifestProvider } from "../src/manifest/ManifestProvider";
 import { validateManifest, validateIndex } from "../src/manifest/validate";
 import { evalExpr, fillTemplate } from "../src/manifest/expression";
 import { loadProviderIndex } from "../src/manifest/loader";
-import { getProvider } from "../src/providers/index";
+import { getProvider, getAllProviders } from "../src/providers/index";
 import { ContentProviderAuthData } from "../src/interfaces";
 import cbnManifest from "../src/manifests/providers/cbn.json";
 import bundledIndex from "../src/manifests/index.json";
 import b1Manifest from "../src/manifests/providers/b1church.json";
-import { B1ChurchProvider } from "../src/providers/b1Church";
-import { ConfiguredProvider } from "../src/manifest/ConfiguredProvider";
-import { getAllProviders } from "../src/providers/index";
 
 const auth: ContentProviderAuthData = { access_token: "at", refresh_token: "rt", token_type: "Bearer", created_at: 0, expires_in: 3600, scope: "" };
 const CBN = "https://sbamemberdev.wpenginepowered.com/wp-json/superbook/v1";
@@ -73,28 +70,27 @@ test("request templates encode values so a segment can't change the path", () =>
 
 // --- validation ---
 
-test("every provider comes from a bundled manifest listed in the index", () => {
+test("every provider is a pure JSON ManifestProvider listed in the bundled index", () => {
   const index = validateIndex(bundledIndex);
   const listed = index.providers.filter(p => p.manifest).map(p => p.id);
   assert.deepEqual(getAllProviders().map(p => p.id), listed, "registry order follows the index");
   for (const provider of getAllProviders()) {
-    assert.ok(provider instanceof ConfiguredProvider, `${provider.id} is manifest-backed`);
-    assert.equal((provider as ConfiguredProvider).manifest.id, provider.id);
+    assert.ok(provider instanceof ManifestProvider, `${provider.id} is a pure ManifestProvider`);
+    assert.equal(provider.manifest.id, provider.id);
   }
   validateManifest(cbnManifest);
+  validateManifest(b1Manifest);
 });
 
-test("built-in implementations take their identity and auth config from the manifest", () => {
-  const p = new B1ChurchProvider({ ...b1Manifest, name: "Renamed", auth: { ...b1Manifest.auth, clientId: "other-client" } });
+test("B1.Church runs from its manifest and honors overrides", () => {
+  const p = new ManifestProvider({ ...b1Manifest, name: "Renamed", auth: { ...b1Manifest.auth, clientId: "other-client" } });
   assert.equal(p.id, "b1church");
   assert.equal(p.name, "Renamed");
   assert.equal(p.config.clientId, "other-client");
   assert.equal(p.config.oauthBase, "https://api.churchapps.org/membership/oauth");
+  assert.equal(p.config.authorizeUrl, "https://admin.b1.church/oauth");
+  assert.equal(p.config.tokenEncoding, "json");
   assert.deepEqual(p.authTypes, ["oauth_pkce", "device_flow"]);
-});
-
-test("a manifest can't name an implementation and also define a tree", () => {
-  assert.throws(() => validateManifest({ ...minimal(), implementation: "b1church" }), /can't be combined with implementation/);
 });
 
 test("validation rejects unsafe or broken manifests", () => {
@@ -219,40 +215,40 @@ function serve(files: Record<string, unknown>) {
   }) as typeof fetch;
 }
 
-test("loadProviderIndex registers verified remote manifests; unknown implementations are skipped", async () => {
+test("loadProviderIndex registers verified remote manifests; manifests needing a newer engine are skipped", async () => {
   const remote = minimal();
   remote.id = "remote-example";
-  const codeOnly = { ...minimal(), id: "needs-code", implementation: "not-in-this-build", tree: undefined };
+  const futureEngine = { ...minimal(), id: "needs-v99", engine: 99 };
   const files = {
     "https://cdn.example.com/providers/index.json": {
       engine: 1,
       providers: [
         { id: "remote-example", manifest: "providers/remote-example.json" },
-        { id: "needs-code", manifest: "providers/needs-code.json" },
+        { id: "needs-v99", manifest: "providers/needs-v99.json" },
         { id: "soon", comingSoon: true, name: "Soon" }
       ]
     },
     "https://cdn.example.com/providers/providers/remote-example.json": remote,
-    "https://cdn.example.com/providers/providers/needs-code.json": codeOnly
+    "https://cdn.example.com/providers/providers/needs-v99.json": futureEngine
   };
   const verified: string[] = [];
   const result = await loadProviderIndex("https://cdn.example.com/providers/index.json", { fetch: serve(files), verify: (_body, url) => { verified.push(url); return true; } });
 
   assert.deepEqual(result.loaded, ["remote-example"]);
-  assert.deepEqual(result.skipped.map(s => s.id), ["needs-code"]);
-  assert.match(result.skipped[0].reason, /isn't built into this version/);
+  assert.deepEqual(result.skipped.map(s => s.id), ["needs-v99"]);
+  assert.match(result.skipped[0].reason, /needs engine 99/);
   assert.ok(getProvider("remote-example") instanceof ManifestProvider);
-  assert.equal(getProvider("needs-code"), null);
-  assert.deepEqual(verified, ["https://cdn.example.com/providers/index.json", "https://cdn.example.com/providers/providers/remote-example.json", "https://cdn.example.com/providers/providers/needs-code.json"]);
+  assert.equal(getProvider("needs-v99"), null);
+  assert.deepEqual(verified, ["https://cdn.example.com/providers/index.json", "https://cdn.example.com/providers/providers/remote-example.json", "https://cdn.example.com/providers/providers/needs-v99.json"]);
 });
 
-test("a signed remote manifest can update a built-in provider's settings", async () => {
+test("a signed remote manifest can update an existing provider's settings", async () => {
   const updated = { ...b1Manifest, auth: { ...b1Manifest.auth, scopes: ["plans", "extra"] } };
   const files = { "https://cdn.example.com/index.json": { engine: 1, providers: [{ id: "b1church", manifest: "b1church.json" }] }, "https://cdn.example.com/b1church.json": updated };
   const result = await loadProviderIndex("https://cdn.example.com/index.json", { fetch: serve(files), verify: () => true });
   assert.deepEqual(result.loaded, ["b1church"]);
   const provider = getProvider("b1church")!;
-  assert.ok(provider instanceof B1ChurchProvider, "still the built-in implementation");
+  assert.ok(provider instanceof ManifestProvider);
   assert.deepEqual(provider.config.scopes, ["plans", "extra"]);
 });
 

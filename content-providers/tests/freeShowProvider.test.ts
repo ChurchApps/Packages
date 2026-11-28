@@ -6,8 +6,8 @@ import os from "node:os";
 
 import { getProvider } from "../src/providers/index";
 import { DEFAULT_SLIDE_SECONDS, FreeShowShow, FreeShowLayoutSlide } from "../src/providers/freeShow/FreeShowInterfaces";
-import { freeShowRequest } from "../src/providers/freeShow/FreeShowApi";
 import { freeShowServicesToInstances, networkInstanceToAuth } from "../src/providers/freeShow";
+import { probeLanHost, setMdnsScanner } from "../src/helpers/NetworkDiscoveryHelper";
 import { isContentFolder, ContentFile, NetworkInstance } from "../src/interfaces";
 import { ManifestProvider } from "../src/manifest/ManifestProvider";
 import freeShowManifest from "../src/manifests/providers/freeshow.json";
@@ -88,11 +88,35 @@ test("showToFiles maps backgrounds and timers through the machine's media urls",
   assert.ok(files.every(file => file.loop === true));
 });
 
-test("freeShowRequest unwraps data and rejects non-FreeShow servers", async () => {
+test("probeLanHost validates FreeShow responses and rejects non-FreeShow servers", async () => {
   const instance = await instanceAt();
-  assert.deepEqual(await freeShowRequest(instance, "get_shows"), responses.get_shows);
-  assert.equal(await freeShowRequest(instance, "next_slide"), null);
-  await assert.rejects(freeShowRequest({ ip: "127.0.0.1", port: 1 }, "get_shows", {}, 500));
+  const probe = freeShowManifest.networkDiscovery.probe;
+  assert.equal(await probeLanHost(instance.ip, instance.port, probe), true);
+  assert.equal(await probeLanHost(instance.ip, instance.port, { ...probe, body: { action: "next_slide" }, expect: { action: "next_slide" } }), false);
+  assert.equal(await probeLanHost("127.0.0.1", 1, { ...probe, timeoutMs: 300 }), false);
+});
+
+test("discoverInstances uses the global mDNS scanner when no per-provider discoverer is set", async () => {
+  const port = await ready;
+  const lanIp = Object.values(os.networkInterfaces()).flat().find(net => net && net.family === "IPv4" && !net.internal)?.address;
+  const scannedTypes: string[] = [];
+  setMdnsScanner(async (serviceType) => {
+    scannedTypes.push(serviceType);
+    return [{ name: "freeshow-REMOTE-abc123", txt: { ip: lanIp || "192.168.1.50" } }];
+  });
+  try {
+    const provider = new ManifestProvider({
+      ...freeShowManifest,
+      networkDiscovery: { ...freeShowManifest.networkDiscovery, defaultPort: port }
+    }) as any;
+    const found = await provider.discoverInstances();
+    assert.deepEqual(scannedTypes, ["_freeshow._udp"]);
+    assert.equal(found.length, 1);
+    assert.equal(found[0].id, "abc123");
+    assert.equal(found[0].port, port);
+  } finally {
+    setMdnsScanner(null);
+  }
 });
 
 test("servicesToInstances groups a machine's services and prefers the address that answers", async () => {

@@ -13,3 +13,7 @@ export function getAllProviders(): IProvider[] {
 export function registerProvider(provider: IProvider): void {
   providerRegistry.set(provider.id, provider);
 }
+
+export function unregisterProvider(providerId: string): boolean {
+  return providerRegistry.delete(providerId);
+}

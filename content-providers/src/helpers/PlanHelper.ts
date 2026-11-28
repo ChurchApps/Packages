@@ -1,9 +1,27 @@
-import { InstructionItem, Instructions, MessageFileInterface } from "../../interfaces";
-import { instructionItemMediaType } from "../../utils";
-import { B1PlanItem } from "./B1ChurchTypes";
+import { InstructionItem, Instructions, MessageFileInterface } from "../interfaces";
+import { instructionItemMediaType } from "../utils";
+
+export interface PlanOrderItem {
+  id?: string;
+  itemType?: string;
+  relatedId?: string;
+  sort?: number;
+  children?: PlanOrderItem[];
+}
 
 const SECTION_TYPES = new Set(["item", "section", "lessonSection", "providerSection"]);
 const ACTION_TYPES = new Set(["action", "lessonAction", "providerPresentation", "lessonAddOn", "addon", "providerFile", "file"]);
+
+/** Find the first thumbnail present anywhere in an InstructionItem tree (depth-first). */
+export function findFirstThumbnail(items: InstructionItem[] | undefined): string | undefined {
+  if (!items) return undefined;
+  for (const item of items) {
+    if (item.thumbnail) return item.thumbnail;
+    const child = findFirstThumbnail(item.children);
+    if (child) return child;
+  }
+  return undefined;
+}
 
 function collectFilesFromNode(node: InstructionItem): MessageFileInterface[] {
   const files: MessageFileInterface[] = [];
@@ -22,7 +40,7 @@ function collectFilesFromNode(node: InstructionItem): MessageFileInterface[] {
   return files;
 }
 
-function buildFileMaps(items: InstructionItem[]): { sectionMap: Map<string, MessageFileInterface[]>, itemMap: Map<string, MessageFileInterface[]> } {
+function buildFileMaps(items: InstructionItem[]): { sectionMap: Map<string, MessageFileInterface[]>; itemMap: Map<string, MessageFileInterface[]> } {
   const sectionMap = new Map<string, MessageFileInterface[]>();
   const itemMap = new Map<string, MessageFileInterface[]>();
 
@@ -41,8 +59,8 @@ function buildFileMaps(items: InstructionItem[]): { sectionMap: Map<string, Mess
   return { sectionMap, itemMap };
 }
 
-function collectRelatedIds(items: B1PlanItem[]): { id: string, itemType: string }[] {
-  const out: { id: string, itemType: string }[] = [];
+function collectRelatedIds(items: PlanOrderItem[]): { id: string; itemType: string }[] {
+  const out: { id: string; itemType: string }[] = [];
   const sorted = [...items].sort((a, b) => (a.sort || 0) - (b.sort || 0));
   for (const item of sorted) {
     const t = item.itemType || "";
@@ -54,7 +72,8 @@ function collectRelatedIds(items: B1PlanItem[]): { id: string, itemType: string 
   return out;
 }
 
-export function getOrderedFiles(instructions: Instructions, customPlanItems?: B1PlanItem[]): MessageFileInterface[] {
+/** Order leaf files from an Instructions tree according to optional custom plan items. */
+export function getOrderedFiles(instructions: Instructions, customPlanItems?: PlanOrderItem[]): MessageFileInterface[] {
   const { sectionMap, itemMap } = buildFileMaps(instructions.items || []);
 
   if (customPlanItems && customPlanItems.length > 0) {

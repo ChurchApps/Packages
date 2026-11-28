@@ -2,7 +2,7 @@ import { ProviderInfo } from "../interfaces";
 import { registerProvider, getProvider, getAllProviders } from "./registry";
 import { createBundledProviders, getComingSoonEntries } from "../manifest/loader";
 
-export { getProvider, getAllProviders, registerProvider } from "./registry";
+export { getProvider, getAllProviders, registerProvider, unregisterProvider } from "./registry";
 
 // Every provider comes from a JSON manifest listed in src/manifests/index.json. Hosts can add or update providers at
 // runtime with loadProviderIndex.

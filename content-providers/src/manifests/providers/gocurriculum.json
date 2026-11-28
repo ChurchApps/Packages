@@ -113,16 +113,42 @@
   },
   "functions": {
     "normalize": "(s) => replace(lower(s), '[^a-z0-9]', '')",
-    "parseMemberships": "(me) => with((me && me.memberpress && me.memberpress.active_memberships) ?? (me && me.active_memberships), raw => flatMap(isArray(raw) ? raw : raw ? [raw] : [], entry => with(settings.membershipIds[str(number(entry && entry.id))], known => known ? known : with(isString(entry) ? entry : entry && (entry.title || entry.name), title => with(isString(title) ? match(title, '^(.*?)\\s*\\[([^\\]]+)\\]\\s*$') : null, m => m ? [{ group: normalize(m[1]), tier: normalize(m[2]) }] : [])))))",
+    "parseMembershipEntry": {
+      "params": ["entry"],
+      "let": {
+        "known": "settings.membershipIds[str(number(entry.id))]",
+        "title": "isString(entry) ? entry : (entry.title || entry.name)",
+        "m": "isString(title) ? match(title, '^(.*?)\\s*\\[([^\\]]+)\\]\\s*$') : null"
+      },
+      "return": "known ? known : m ? [{ group: normalize(m[1]), tier: normalize(m[2]) }] : []"
+    },
+    "parseMemberships": {
+      "params": ["me"],
+      "let": {
+        "raw": "me.memberpress.active_memberships ?? me.active_memberships",
+        "entries": "isArray(raw) ? raw : raw ? [raw] : []"
+      },
+      "return": "flatMap(entries, parseMembershipEntry)"
+    },
     "hasGroup": "(groupId, memberships) => some(memberships, m => !m.group || m.group == normalize(groupId))",
     "canSee": "(item, groupId, memberships) => !len(item.tiers) || with(map(item.tiers, normalize), tiers => some(memberships, m => (!m.group || m.group == normalize(groupId)) && includes(tiers, m.tier)))",
     "filterGuide": "(guide, hidden) => !guide || len(hidden) == 0 ? guide : { ...guide, sections: map(guide.sections, s => ({ ...s, items: map(s.items, i => i.files ? { ...i, files: filter(i.files, f => !includes(hidden, f.url)) } : i) })) }",
-    "filterCollection": "(collection, groupId, memberships) => ({ ...collection, lessons: map(collection.lessons, lesson => with(map(filter(lesson.playlist, p => !canSee(p, groupId, memberships)), p => p.url), hidden => len(hidden) == 0 ? lesson : { ...lesson, playlist: filter(lesson.playlist, p => !includes(hidden, p.url)), script: filterGuide(lesson.script, hidden), smallGroup: filterGuide(lesson.smallGroup, hidden) })) })",
-    "folder": "(id, title, path, thumbnail, isLeaf) => ({ type: 'folder', id, title, path, thumbnail, isLeaf })",
-    "lessonFiles": "(collection, lesson) => map(lesson.playlist, f => ({ type: 'file', id: slugify(f.file), title: f.title, url: f.url, mediaType: mediaType(f.url + ' ' + f.file, f.mediaType), thumbnail: f.thumbnail || lesson.thumbnail || collection.thumbnail, seconds: f.duration }))",
-    "guideAction": "(item, id, lesson) => with(trim(replace(item.content || '', '\\*+', '')), plain => with(len(plain) > 100 ? trimEnd(slice(plain, 0, 100)) + '…' : plain, label => with(map(item.files || [], f => ({ id: slugify(f.file), itemType: 'file', label: (find(lesson.playlist, p => p.url == f.url) || {}).title || f.file, seconds: f.seconds, downloadUrl: f.url, mediaType: mediaType(f.url + ' ' + f.file, f.mediaType), thumbnail: f.thumbnail || lesson.thumbnail })), files => ({ id, itemType: 'action', actionType: item.type, label, content: item.content != label ? item.content : undefined, seconds: len(files) ? files[0].seconds : undefined, children: len(files) ? files : undefined }))))",
+    "filterCollection": {
+      "params": ["collection", "groupId", "memberships"],
+      "return": "{ ...collection, lessons: map(collection.lessons, lesson => with(map(filter(lesson.playlist, p => !canSee(p, groupId, memberships)), p => p.url), hidden => len(hidden) == 0 ? lesson : { ...lesson, playlist: filter(lesson.playlist, p => !includes(hidden, p.url)), script: filterGuide(lesson.script, hidden), smallGroup: filterGuide(lesson.smallGroup, hidden) })) }"
+    },
+    "lessonFiles": "(collection, lesson) => map(lesson.playlist, f => file(slugify(f.file), f.title, f.url, { mediaType: mediaType(f.url + ' ' + f.file, f.mediaType), thumbnail: f.thumbnail || lesson.thumbnail || collection.thumbnail, seconds: f.duration }))",
+    "guideAction": {
+      "params": ["item", "id", "lesson"],
+      "let": {
+        "plain": "trim(replace(item.content || '', '\\*+', ''))",
+        "label": "truncate(plain, 100, '…')",
+        "files": "map(item.files || [], f => ({ id: slugify(f.file), itemType: 'file', label: (find(lesson.playlist, p => p.url == f.url) || {}).title || f.file, seconds: f.seconds, downloadUrl: f.url, mediaType: mediaType(f.url + ' ' + f.file, f.mediaType), thumbnail: f.thumbnail || lesson.thumbnail }))"
+      },
+      "return": "{ id, itemType: 'action', actionType: item.type, label, content: item.content != label ? item.content : undefined, seconds: len(files) ? files[0].seconds : undefined, children: len(files) ? files : undefined }"
+    },
     "guideToInstructions": "(name, guide, prefix, lesson) => ({ name, items: map(guide.sections, (s, i) => ({ id: prefix + '-' + i, itemType: 'section', label: s.name, children: map(s.items, (a, j) => guideAction(a, prefix + '-' + i + '-' + j, lesson)) })) })",
-    "downloads": "(lesson) => map(filter(lesson.resources || [], r => r.url && !isPlaylistMedia(r.url, undefined, r.file)), r => ({ id: slugify(r.file || r.title), title: r.title || r.file, url: r.url }))",
+    "downloads": "(lesson) => map(filter(lesson.resources || [], r => r.url && !isPlaylistMedia(r.url, undefined, r.file)), r => download(r.title || r.file, r.url, { id: slugify(r.file || r.title) }))",
     "withDownloads": "(instructions, lesson) => with(downloads(lesson), d => instructions && len(d) > 0 ? { ...instructions, downloads: d } : instructions)"
   },
   "hooks": {

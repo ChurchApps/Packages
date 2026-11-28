@@ -1,13 +1,14 @@
-import { ContentDownload, ContentFile, ContentFolder, ContentItem, ContentProviderAuthData, DeviceAuthorizationResponse, DeviceFlowPollResult, Instructions } from "../interfaces";
-import { ConfiguredProvider } from "./ConfiguredProvider";
+import { AuthType, ContentDownload, ContentFile, ContentFolder, ContentItem, ContentProviderAuthData, ContentProviderConfig, DeviceAuthorizationResponse, DeviceFlowPollResult, Instructions, NetworkInstance, ProviderCapabilities, ProviderLogos } from "../interfaces";
+import { BaseProvider } from "../providers/BaseProvider";
 import { getProviderSecret } from "../helpers/ProviderSecrets";
-import { ManifestRuntime, normalizeFiles, normalizeItems, toInstructions } from "./runtime";
+import { DeviceFlowHelper, FormLoginHelper, OAuthHelper, TokenHelper } from "../helpers";
+import { authToNetworkInstance, getMdnsScanner, MdnsService, NetworkDiscoverer, networkInstanceToAuth, resolveMdnsServices } from "../helpers/NetworkDiscoveryHelper";
 import { parsePath } from "../pathUtils";
 import { createFile, filesToInstructions } from "../utils";
-import { DeviceFlowHelper, OAuthHelper } from "../helpers";
-import { toAuthData } from "../helpers/TokenHelper";
 import { evalExpr, exprRoots, fillTemplate, Scope, templateExprs } from "./expression";
-import { ManifestFileMapping, ManifestGroup, ManifestLeaf } from "./types";
+import { ManifestRuntime, normalizeFiles, normalizeItems, toInstructions } from "./runtime";
+import { ManifestFileMapping, ManifestGroup, ManifestLeaf, ProviderManifest } from "./types";
+import { validateManifest } from "./validate";
 
 type Target = { kind: "groups"; groups: ManifestGroup[] } | { kind: "leaf"; leaf: ManifestLeaf };
 
@@ -69,23 +70,90 @@ function leafExprs(leaf: ManifestLeaf, forInstructions: boolean): string[] {
 const readsParents = (exprs: string[]) => exprs.some(e => PARENT_NAMES.some(n => exprRoots(e).has(n)));
 
 /**
- * A content provider defined entirely by a JSON manifest. Auth flows, API calls, the folder tree and file mapping all
- * come from the manifest; this class only knows the generic building blocks.
+ * A content provider defined entirely by a JSON manifest.
+ * Auth flows (PKCE, Device Flow, Form Login, LAN Network Discovery), API calls, pagination, caching,
+ * instance state, and content transformations all run in fixed shared code driven by the manifest.
  */
-export class ManifestProvider extends ConfiguredProvider {
+export class ManifestProvider extends BaseProvider {
+  readonly id: string;
+  readonly name: string;
+  readonly logos: ProviderLogos;
+  readonly config: ContentProviderConfig;
+  readonly requiresAuth: boolean;
+  readonly authTypes: AuthType[];
+  readonly capabilities: ProviderCapabilities;
+  readonly manifest: ProviderManifest;
+
+  private environment?: string;
   private readonly cache = new Map<string, { at: number; value: unknown }>();
   private readonly oauthHelper = new OAuthHelper();
   private readonly deviceFlowHelper = new DeviceFlowHelper();
+  private readonly tokenHelper = new TokenHelper();
+  private readonly formLoginHelper = new FormLoginHelper();
 
   private readonly runtime: ManifestRuntime;
+  private readonly state: Record<string, unknown>;
   private readonly hooks = new Map<string, (...args: unknown[]) => unknown>();
+  private discoverer: NetworkDiscoverer | null = null;
 
-  /** `datasets` holds the manifest's static JSON files, already loaded (the loader does this). */
+  /** `datasets` holds any externally loaded JSON datasets; inline datasets from `manifest.datasets` are merged automatically. */
   constructor(manifest: unknown, options: { datasets?: Record<string, unknown> } = {}) {
-    super(manifest);
-    const m = this.manifest;
-    if (m.implementation || (!m.tree && !m.routes)) throw new Error(`[${m.id}] ManifestProvider needs a tree or routes; "${m.implementation}" is a built-in implementation`);
+    super();
+    const m = validateManifest(manifest);
+    this.manifest = m;
+    this.id = m.id;
+    this.name = m.name;
+    this.logos = { ...m.logos };
+    this.requiresAuth = m.requiresAuth;
+    this.capabilities = { ...m.capabilities };
+    this.environment = m.defaultEnvironment;
+    this.state = m.state ? structuredClone(m.state) : {};
+
     const auth = m.auth;
+    if (m.authTypes) {
+      this.authTypes = [...m.authTypes];
+    } else {
+      const derived: AuthType[] = [];
+      if (auth?.pkce) derived.push("oauth_pkce");
+      if (auth?.deviceFlow) derived.push("device_flow");
+      if (auth?.formLogin) derived.push("form_login");
+      if (m.networkDiscovery) derived.push("network_discovery");
+      this.authTypes = derived.length > 0 ? derived : (auth ? [] : ["none"]);
+    }
+
+    // Build ContentProviderConfig with live getters so environment switches and runtime secrets stay up to date.
+    const config = {
+      id: m.id,
+      name: m.name,
+      clientId: auth?.clientId || "",
+      scopes: [...(auth?.scopes || [])]
+    } as ContentProviderConfig;
+    Object.defineProperty(config, "apiBase", { get: () => this.fill(m.apiBase), enumerable: true });
+    Object.defineProperty(config, "oauthBase", { get: () => (auth?.oauthBase ? this.fill(auth.oauthBase) : ""), enumerable: true });
+    if (auth?.authorizeUrl) Object.defineProperty(config, "authorizeUrl", { get: () => this.fill(auth.authorizeUrl!), enumerable: true });
+    if (auth?.tokenUrl || auth?.deviceFlow?.tokenUrl) {
+      const tokenTpl = auth.tokenUrl || auth.deviceFlow?.tokenUrl;
+      Object.defineProperty(config, "tokenUrl", { get: () => this.fill(tokenTpl!), enumerable: true });
+    }
+    if (auth?.tokenEncoding) config.tokenEncoding = auth.tokenEncoding;
+    if (auth?.authorizeParams) config.authorizeParams = { ...auth.authorizeParams };
+    if (auth?.clientSecret) {
+      const secretName = auth.clientSecret.slice("secret:".length);
+      Object.defineProperty(config, "clientSecret", { get: () => getProviderSecret(secretName), enumerable: true });
+    }
+    if (auth?.deviceFlow) {
+      config.supportsDeviceFlow = true;
+      config.deviceAuthEndpoint = auth.deviceFlow.endpoint;
+      if (auth.deviceFlow.encoding) config.deviceFlowEncoding = auth.deviceFlow.encoding;
+    }
+    this.config = config;
+
+    // Merge inline datasets declared directly in the manifest with externally loaded datasets.
+    const datasets: Record<string, unknown> = { ...(options.datasets || {}) };
+    for (const [name, entry] of Object.entries(m.datasets || {})) {
+      if (typeof entry !== "string" && !(name in datasets)) datasets[name] = entry;
+    }
+
     this.runtime = new ManifestRuntime({
       manifest: m,
       id: m.id,
@@ -93,19 +161,66 @@ export class ManifestProvider extends ConfiguredProvider {
       apiBase: () => this.config.apiBase,
       env: () => this.env,
       secret: name => getProviderSecret(name),
-      datasets: options.datasets || {},
+      datasets,
+      state: this.state,
       hooks: this.hooks
     });
 
     // Hosts feature-detect with `"method" in provider`, so only attach what this manifest declares.
     const methods: Record<string, (...args: any[]) => unknown> = {};
+    if (m.environments) {
+      methods.setEnvironment = (name: string) => {
+        if (!m.environments?.[name]) return;
+        this.environment = name;
+        this.cache.clear();
+        this.runtime.clearCaches();
+      };
+      methods.getEnvironment = () => this.environment;
+    }
     if (m.capabilities.playlist) methods.getPlaylist = this.getPlaylistImpl;
     if (m.capabilities.instructions) methods.getInstructions = this.getInstructionsImpl;
     if (auth?.pkce) {
       methods.generateCodeVerifier = () => this.oauthHelper.generateCodeVerifier();
-      methods.buildAuthUrl = async (codeVerifier: string, redirectUri: string, state?: string) => ({ url: this.authorizeUrl(await this.oauthHelper.generateCodeChallenge(codeVerifier), redirectUri, state || this.id), challengeMethod: "S256" });
-      methods.buildAuthUrlFromChallenge = (codeChallenge: string, redirectUri: string, state: string) => this.authorizeUrl(codeChallenge, redirectUri, state);
-      methods.exchangeCodeForTokens = this.exchangeCodeForTokensImpl;
+      methods.buildAuthUrl = async (codeVerifier: string, redirectUri: string, state?: string) => {
+        this.checkHost(this.config.authorizeUrl || `${this.config.oauthBase}/authorize`);
+        return this.oauthHelper.buildAuthUrl(this.config, codeVerifier, redirectUri, state || this.id);
+      };
+      methods.buildAuthUrlFromChallenge = (codeChallenge: string, redirectUri: string, state: string) => {
+        this.checkHost(this.config.authorizeUrl || `${this.config.oauthBase}/authorize`);
+        return this.oauthHelper.buildAuthUrlFromChallenge(this.config, codeChallenge, redirectUri, state);
+      };
+      methods.exchangeCodeForTokens = (code: string, codeVerifier: string, redirectUri: string) => {
+        this.checkHost(this.config.tokenUrl || `${this.config.oauthBase}/token`);
+        return this.oauthHelper.exchangeCodeForTokens(this.config, this.id, code, codeVerifier, redirectUri);
+      };
+    }
+    if (auth?.supportsSecretExchange) {
+      methods.exchangeCodeForTokensWithSecret = (code: string, redirectUri: string, clientSecret: string) => {
+        this.checkHost(this.config.tokenUrl || `${this.config.oauthBase}/token`);
+        return this.oauthHelper.exchangeCodeForTokensWithSecret(this.config, code, redirectUri, clientSecret);
+      };
+      methods.refreshTokenWithSecret = (authData: ContentProviderAuthData, clientSecret: string) => {
+        this.checkHost(this.config.tokenUrl || `${this.config.oauthBase}/token`);
+        return this.tokenHelper.refreshTokenWithSecret(this.config, authData, clientSecret);
+      };
+    }
+    if (auth?.deviceFlow) {
+      methods.initiateDeviceFlow = this.initiateDeviceFlowImpl;
+      methods.pollDeviceFlowToken = this.pollDeviceFlowTokenImpl;
+    }
+    if (auth?.formLogin) {
+      methods.performLogin = this.performLoginImpl;
+    }
+    if (m.networkDiscovery || this.authTypes.includes("network_discovery")) {
+      methods.setDiscoverer = (fn: NetworkDiscoverer | null) => {
+        this.discoverer = typeof fn === "function" ? fn : null;
+      };
+      methods.discoverInstances = this.discoverInstancesImpl;
+      if (m.networkDiscovery) {
+        methods.resolveDiscoveredServices = (services: MdnsService[], port?: number) => resolveMdnsServices(services, m.networkDiscovery!, { port, providerName: this.name });
+        methods.toAuth = (instance: NetworkInstance) => networkInstanceToAuth(instance, m.networkDiscovery!.scope || this.id);
+        methods.selectedInstance = (authData?: ContentProviderAuthData | null) => authToNetworkInstance(authData);
+      }
     }
     for (const [name, proc] of Object.entries(m.methods || {})) {
       const count = (proc.params || []).length;
@@ -118,16 +233,15 @@ export class ManifestProvider extends ConfiguredProvider {
         this.runtime.clearCaches();
       };
     }
-    if (auth?.deviceFlow) {
-      methods.initiateDeviceFlow = this.initiateDeviceFlowImpl;
-      methods.pollDeviceFlowToken = this.pollDeviceFlowTokenImpl;
-    }
     for (const [key, fn] of Object.entries(methods)) Object.defineProperty(this, key, { value: fn.bind(this), enumerable: false });
   }
 
-  protected onEnvironmentChange(): void {
-    this.cache.clear();
-    this.runtime.clearCaches();
+  private get env(): Record<string, string> {
+    return (this.environment && this.manifest.environments?.[this.environment]) || {};
+  }
+
+  private fill(template: string): string {
+    return fillTemplate(template, { env: this.env }, false);
   }
 
   /** Call one of the manifest's named functions, e.g. for tests or host code that wants the same logic. */
@@ -135,33 +249,6 @@ export class ManifestProvider extends ConfiguredProvider {
     if (!this.manifest.functions?.[name]) throw new Error(`[${this.id}] has no function "${name}"`);
     const names = args.map((_, i) => `a${i}`);
     return evalExpr(`${name}(${names.join(", ")})`, Object.fromEntries(args.map((a, i) => [names[i], a])), this.runtime.ctx);
-  }
-
-  private authorizeUrl(codeChallenge: string, redirectUri: string, state: string): string {
-    const auth = this.manifest.auth!;
-    const params = new URLSearchParams({ response_type: "code", client_id: this.config.clientId, redirect_uri: redirectUri, scope: this.config.scopes.join(" "), code_challenge: codeChallenge, code_challenge_method: "S256", state });
-    for (const [k, v] of Object.entries(auth.authorizeParams || {})) {
-      if (v === null) params.delete(k);
-      else params.set(k, v);
-    }
-    const base = auth.authorizeUrl ? this.fill(auth.authorizeUrl) : `${this.config.oauthBase}/authorize`;
-    this.checkHost(base);
-    return `${base}?${params.toString()}`;
-  }
-
-  private async exchangeCodeForTokensImpl(code: string, codeVerifier: string, redirectUri: string): Promise<ContentProviderAuthData | null> {
-    const auth = this.manifest.auth!;
-    const tokenUrl = auth.tokenUrl ? this.fill(auth.tokenUrl) : `${this.config.oauthBase}/token`;
-    this.checkHost(tokenUrl);
-    try {
-      const params = new URLSearchParams({ grant_type: "authorization_code", code, redirect_uri: redirectUri, client_id: this.config.clientId, code_verifier: codeVerifier });
-      if (this.config.clientSecret) params.set("client_secret", this.config.clientSecret);
-      const response = await fetch(tokenUrl, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: params.toString() });
-      if (!response.ok) return null;
-      return toAuthData(await response.json(), { scope: this.config.scopes.join(" ") });
-    } catch {
-      return null;
-    }
   }
 
   /** Refuse any URL whose host the manifest didn't list. */
@@ -206,19 +293,19 @@ export class ManifestProvider extends ConfiguredProvider {
   }
 
   private segmentOf(group: ManifestGroup, item: unknown, scope: Scope): string {
-    return toStr(evalExpr(group.folder!.segment || group.folder!.id, { ...scope, item }));
+    return toStr(evalExpr(group.folder!.segment || group.folder!.id, { ...scope, item }, this.runtime.ctx));
   }
 
   /** The raw items a dynamic group lists under the current path. */
   private async groupItems(group: ManifestGroup, scope: Scope, auth: ContentProviderAuthData | null | undefined, memo: Memo): Promise<unknown[]> {
     let response: unknown = null;
     if (group.request) {
-      response = await this.request(fillTemplate(group.request, scope, true), auth, memo);
+      response = await this.request(fillTemplate(group.request, scope, true, this.runtime.ctx), auth, memo);
       if (response === null) return [];
     }
-    const items = evalExpr(group.items || "response", { ...scope, response });
+    const items = evalExpr(group.items || "response", { ...scope, response }, this.runtime.ctx);
     if (!Array.isArray(items)) return [];
-    return group.where ? items.filter(item => evalExpr(group.where!, { ...scope, response, item })) : items;
+    return group.where ? items.filter(item => evalExpr(group.where!, { ...scope, response, item }, this.runtime.ctx)) : items;
   }
 
   /** Walk the path to the groups it lists or the leaf it opens. Returns null when the path doesn't exist. */
@@ -252,7 +339,7 @@ export class ManifestProvider extends ConfiguredProvider {
       const scope = this.baseScope(segments.slice(0, i), parents);
       let found: { group: ManifestGroup; item: unknown } | null = null;
       for (const group of groups) {
-        if (group.when && !evalExpr(group.when, scope)) continue;
+        if (group.when && !evalExpr(group.when, scope, this.runtime.ctx)) continue;
         if (group.static) {
           const entry = group.static.find(s => (s.segment ?? s.id) === segments[i]);
           if (entry) { found = { group, item: entry }; break; }
@@ -279,18 +366,18 @@ export class ManifestProvider extends ConfiguredProvider {
     const base = path.replace(/\/+$/, "");
     const out: ContentItem[] = [];
     for (const group of groups) {
-      if (group.when && !evalExpr(group.when, scope)) continue;
+      if (group.when && !evalExpr(group.when, scope, this.runtime.ctx)) continue;
       const isLeaf = group.leaf ? true : undefined;
       if (group.static) {
-        const thumbnail = group.thumbnail ? toStr(evalExpr(group.thumbnail, scope)) || undefined : undefined;
+        const thumbnail = group.thumbnail ? toStr(evalExpr(group.thumbnail, scope, this.runtime.ctx)) || undefined : undefined;
         for (const s of group.static) out.push(compact<ContentFolder>({ type: "folder", id: s.id, title: s.title, path: `${base}/${s.segment ?? s.id}`, thumbnail, isLeaf }));
         continue;
       }
       for (const item of await this.groupItems(group, scope, auth, memo)) {
         const itemScope = { ...scope, item };
         const folder = group.folder!;
-        const thumbnail = folder.thumbnail ? toStr(evalExpr(folder.thumbnail, itemScope)) || undefined : undefined;
-        out.push(compact<ContentFolder>({ type: "folder", id: toStr(evalExpr(folder.id, itemScope)), title: toStr(evalExpr(folder.title, itemScope)), path: `${base}/${this.segmentOf(group, item, scope)}`, thumbnail, isLeaf }));
+        const thumbnail = folder.thumbnail ? toStr(evalExpr(folder.thumbnail, itemScope, this.runtime.ctx)) || undefined : undefined;
+        out.push(compact<ContentFolder>({ type: "folder", id: toStr(evalExpr(folder.id, itemScope, this.runtime.ctx)), title: toStr(evalExpr(folder.title, itemScope, this.runtime.ctx)), path: `${base}/${this.segmentOf(group, item, scope)}`, thumbnail, isLeaf }));
       }
     }
     return out;
@@ -300,7 +387,7 @@ export class ManifestProvider extends ConfiguredProvider {
     const get = (key: keyof ManifestFileMapping) => {
       const expr = mapping[key];
       if (typeof expr !== "string") return undefined;
-      const value = evalExpr(expr, scope);
+      const value = evalExpr(expr, scope, this.runtime.ctx);
       return value === null ? undefined : value;
     };
     const url = toStr(get("url"));
@@ -318,7 +405,7 @@ export class ManifestProvider extends ConfiguredProvider {
     if ("mediaId" in mapping) file.mediaId = get("mediaId") as string | undefined;
     if (mapping.providerData) {
       file.providerData = {};
-      for (const [key, expr] of Object.entries(mapping.providerData)) file.providerData[key] = evalExpr(expr, scope) ?? undefined;
+      for (const [key, expr] of Object.entries(mapping.providerData)) file.providerData[key] = evalExpr(expr, scope, this.runtime.ctx) ?? undefined;
     }
     return file;
   }
@@ -329,7 +416,7 @@ export class ManifestProvider extends ConfiguredProvider {
     for (const step of from) {
       const next: Scope[] = [];
       for (const s of scopes) {
-        const list = evalExpr(step.list, s);
+        const list = evalExpr(step.list, s, this.runtime.ctx);
         if (!Array.isArray(list)) continue;
         list.forEach((value, i) => next.push({ ...s, [step.as]: value, index: { ...(s.index as object), [step.as]: i } }));
       }
@@ -340,21 +427,21 @@ export class ManifestProvider extends ConfiguredProvider {
 
   private async loadLeaf(leaf: ManifestLeaf, resolved: Resolved, auth: ContentProviderAuthData | null | undefined, memo: Memo): Promise<LeafResult> {
     const base = this.baseScope(resolved.segments, resolved.parents);
-    const response = await this.request(fillTemplate(leaf.request, base, true), auth, memo);
+    const response = await this.request(fillTemplate(leaf.request, base, true, this.runtime.ctx), auth, memo);
     const scope = { ...base, response };
     const from = leaf.from || DEFAULT_FROM;
 
-    const first = evalExpr(from[0].list, { ...scope, index: {} });
+    const first = evalExpr(from[0].list, { ...scope, index: {} }, this.runtime.ctx);
     if (leaf.fallback && (!Array.isArray(first) || first.length === 0)) return this.loadLeaf(leaf.fallback, resolved, auth, memo);
 
     const files: ContentFile[] = [];
     const downloads: ContentDownload[] = [];
     for (const itemScope of this.flatten(from, scope)) {
-      for (const [name, expr] of Object.entries(leaf.vars || {})) itemScope[name] = evalExpr(expr, itemScope);
-      if (!leaf.playlist.where || evalExpr(leaf.playlist.where, itemScope)) files.push(this.mapFile(leaf.playlist.file, itemScope));
-      else if (leaf.downloads && (!leaf.downloads.where || evalExpr(leaf.downloads.where, itemScope))) {
+      for (const [name, expr] of Object.entries(leaf.vars || {})) itemScope[name] = evalExpr(expr, itemScope, this.runtime.ctx);
+      if (!leaf.playlist.where || evalExpr(leaf.playlist.where, itemScope, this.runtime.ctx)) files.push(this.mapFile(leaf.playlist.file, itemScope));
+      else if (leaf.downloads && (!leaf.downloads.where || evalExpr(leaf.downloads.where, itemScope, this.runtime.ctx))) {
         const d = leaf.downloads.file;
-        const val = (expr?: string) => (expr ? evalExpr(expr, itemScope) ?? undefined : undefined);
+        const val = (expr?: string) => (expr ? evalExpr(expr, itemScope, this.runtime.ctx) ?? undefined : undefined);
         downloads.push({ id: d.id ? toStr(val(d.id)) : undefined, title: toStr(val(d.title)), url: toStr(val(d.url)), fileType: val(d.fileType) as string | undefined, bytes: (val(d.bytes) as number | undefined) || undefined });
       }
     }
@@ -392,50 +479,50 @@ export class ManifestProvider extends ConfiguredProvider {
     const result = await this.leafFor(path, auth, true);
     if (!result || (result.files.length === 0 && result.downloads.length === 0)) return null;
     const { leaf, scope } = result;
-    const name = toStr(leaf.title ? evalExpr(leaf.title, scope) : "") || this.name;
+    const name = toStr(leaf.title ? evalExpr(leaf.title, scope, this.runtime.ctx) : "") || this.name;
 
-    const sectionId = leaf.instructions?.section ? toStr(evalExpr(leaf.instructions.section, scope)) : undefined;
+    const sectionId = leaf.instructions?.section ? toStr(evalExpr(leaf.instructions.section, scope, this.runtime.ctx)) : undefined;
     const instructions = filesToInstructions(name, result.files, sectionId ? { id: sectionId, label: name } : undefined);
     if (leaf.instructions?.header) {
-      instructions.items = [{ id: toStr(evalExpr(leaf.instructions.header, scope)), itemType: "header", label: name, children: instructions.items }];
+      instructions.items = [{ id: toStr(evalExpr(leaf.instructions.header, scope, this.runtime.ctx)), itemType: "header", label: name, children: instructions.items }];
     }
     if (result.downloads.length > 0) instructions.downloads = result.downloads;
     return instructions;
   }
 
   private async initiateDeviceFlowImpl(): Promise<DeviceAuthorizationResponse | null> {
-    const flow = this.manifest.auth!.deviceFlow!;
-    this.checkHost(this.config.oauthBase);
-    if (flow.encoding !== "form") return this.deviceFlowHelper.initiateDeviceFlow(this.config);
-    try {
-      const response = await fetch(`${this.config.oauthBase}${flow.endpoint}`, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: this.formBody({ scope: this.config.scopes.join(" ") }) });
-      if (!response.ok) return null;
-      return await response.json();
-    } catch {
-      return null;
-    }
+    this.checkHost(`${this.config.oauthBase}${this.config.deviceAuthEndpoint}`);
+    return this.deviceFlowHelper.initiateDeviceFlow(this.config);
   }
 
   private async pollDeviceFlowTokenImpl(deviceCode: string): Promise<DeviceFlowPollResult> {
-    const flow = this.manifest.auth!.deviceFlow!;
-    this.checkHost(this.config.oauthBase);
-    if (flow.encoding !== "form") return this.deviceFlowHelper.pollDeviceFlowToken(this.config, deviceCode);
-    try {
-      const response = await fetch(`${this.config.oauthBase}/token`, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: this.formBody({ grant_type: "urn:ietf:params:oauth:grant-type:device_code", device_code: deviceCode }) });
-      if (response.ok) return toAuthData(await response.json(), { scope: this.config.scopes.join(" ") });
-      const errorData = await response.json().catch(() => ({}));
-      if (errorData.error === "authorization_pending") return { error: "authorization_pending" };
-      if (errorData.error === "slow_down") return { error: "slow_down", shouldSlowDown: true };
-      return null;
-    } catch {
-      return { error: "network_error" };
-    }
+    this.checkHost(this.config.tokenUrl || `${this.config.oauthBase}/token`);
+    return this.deviceFlowHelper.pollDeviceFlowToken(this.config, deviceCode);
   }
 
-  /** Keycloak-style form body; the confidential client's secret comes from setProviderSecret at runtime. */
-  private formBody(fields: Record<string, string>): string {
-    const params = new URLSearchParams({ client_id: this.config.clientId, ...fields });
-    if (this.config.clientSecret) params.set("client_secret", this.config.clientSecret);
-    return params.toString();
+  private async performLoginImpl(email: string, password: string): Promise<ContentProviderAuthData | null> {
+    const fl = this.manifest.auth!.formLogin!;
+    const url = fl.url ? this.fill(fl.url) : this.config.apiBase + this.fill(fl.path || "");
+    this.checkHost(url);
+    return this.formLoginHelper.login(url, email, password, fl, (expr, response) => evalExpr(expr, { response }, this.runtime.ctx));
+  }
+
+  private async discoverInstancesImpl(): Promise<NetworkInstance[]> {
+    if (this.discoverer) {
+      try {
+        return (await this.discoverer()) || [];
+      } catch {
+        return [];
+      }
+    }
+    const nd = this.manifest.networkDiscovery;
+    const scanner = getMdnsScanner();
+    if (!nd || !scanner) return [];
+    try {
+      const services = await scanner(nd.serviceType);
+      return await resolveMdnsServices(services || [], nd, { providerName: this.name });
+    } catch {
+      return [];
+    }
   }
 }

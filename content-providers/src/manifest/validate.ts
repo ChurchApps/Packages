@@ -1,4 +1,5 @@
 import { evalExpr, exprCalls, exprRoots, FUNCTIONS, templateExprs } from "./expression";
+import { FORBIDDEN_KEYS } from "./transforms";
 import { MANIFEST_ENGINE_VERSION, ManifestGroup, ManifestLeaf, ManifestOperation, ManifestRequest, ManifestStep, ProviderIndex, ProviderManifest } from "./types";
 
 const ROOTS = new Set(["segments", "parent", "parents", "item", "response", "env", "index"]);
@@ -14,12 +15,13 @@ const TOP_KEYS = new Set([
   "defaultEnvironment",
   "apiBase",
   "auth",
+  "networkDiscovery",
   "cache",
   "verifyPaths",
   "tree",
   "authTypes",
-  "implementation",
   "settings",
+  "state",
   "routes",
   "functions",
   "procedures",
@@ -29,7 +31,7 @@ const TOP_KEYS = new Set([
   "secrets"
 ]);
 /** Names every route, method and procedure expression can read. */
-const GLOBALS = ["env", "datasets", "settings", "auth", "apiBase"];
+const GLOBALS = ["env", "datasets", "settings", "state", "auth", "apiBase"];
 const RESERVED_METHODS = new Set([
   "browse",
   "getPlaylist",
@@ -39,8 +41,13 @@ const RESERVED_METHODS = new Set([
   "buildAuthUrl",
   "buildAuthUrlFromChallenge",
   "exchangeCodeForTokens",
+  "exchangeCodeForTokensWithSecret",
+  "refreshTokenWithSecret",
   "initiateDeviceFlow",
   "pollDeviceFlowToken",
+  "performLogin",
+  "discoverInstances",
+  "resolveDiscoveredServices",
   "callFunction",
   "constructor",
   "setEnvironment",
@@ -145,7 +152,7 @@ function checkLeaf(c: Checker, where: string, leaf: ManifestLeaf) {
     else {
       leaf.from.forEach((step, i) => {
         c.expr(`${where}.from[${i}].list`, step?.list, names);
-        if (typeof step?.as !== "string" || !/^[A-Za-z_]\w*$/.test(step.as)) c.fail(`${where}.from[${i}].as`, "must be a name");
+        if (typeof step?.as !== "string" || !NAME.test(step.as)) c.fail(`${where}.from[${i}].as`, "must be a name");
         else names.add(step.as);
       });
     }
@@ -190,7 +197,7 @@ function checkRequest(c: Checker, where: string, req: ManifestRequest, names: Se
   if (req.method !== undefined && !["GET", "POST"].includes(req.method)) c.fail(`${where}.method`, "must be GET or POST");
   if (req.timeoutMs !== undefined && !(typeof req.timeoutMs === "number" && req.timeoutMs > 0)) c.fail(`${where}.timeoutMs`, "must be a positive number");
   if (req.raw !== undefined && typeof req.raw !== "boolean") c.fail(`${where}.raw`, "must be true or false");
-  if (req.auth !== undefined && !["bearer", "none"].includes(req.auth)) c.fail(`${where}.auth`, "must be bearer or none");
+  if (req.auth !== undefined && !["bearer", "optional", "none"].includes(req.auth)) c.fail(`${where}.auth`, "must be bearer, optional or none");
   if (req.body !== undefined) c.expr(`${where}.body`, req.body, names);
   for (const group of ["query", "form", "headers"] as const) for (const [k, v] of Object.entries(req[group] || {})) c.expr(`${where}.${group}.${k}`, v, names);
   if (req.headers && Object.keys(req.headers).some(h => h.toLowerCase() === "authorization")) c.fail(`${where}.headers`, "can't set Authorization; use auth");
@@ -219,6 +226,14 @@ function checkSteps(c: Checker, where: string, steps: unknown, names: Set<string
         if (!NAME.test(name)) c.fail(`${at}.let`, `bad name "${name}"`);
         c.expr(`${at}.let.${name}`, expr, names);
         names.add(name);
+      }
+    } else if ("setState" in step) {
+      if (!step.setState || typeof step.setState !== "object" || Array.isArray(step.setState)) c.fail(`${at}.setState`, "must be an object");
+      else {
+        for (const [name, expr] of Object.entries(step.setState)) {
+          if (!m.state || !Object.prototype.hasOwnProperty.call(m.state, name)) c.fail(`${at}.setState.${name}`, "must be declared in \"state\"");
+          c.expr(`${at}.setState.${name}`, expr, names);
+        }
       }
     } else if ("fetch" in step) {
       checkRequest(c, `${at}.fetch`, step.fetch, names, m);
@@ -310,6 +325,23 @@ function checkProcedures(c: Checker, where: string, procs: unknown, m: ProviderM
   }
 }
 
+function checkNetworkDiscovery(c: Checker, nd: ProviderManifest["networkDiscovery"]) {
+  if (nd === undefined) return;
+  c.keys("networkDiscovery", nd, new Set(["serviceType", "defaultPort", "groupBy", "nameTemplate", "scope", "probe"]));
+  if (!nd || typeof nd !== "object") return;
+  if (typeof nd.serviceType !== "string" || !nd.serviceType) c.fail("networkDiscovery.serviceType", "must be a non-empty string");
+  if (typeof nd.defaultPort !== "number" || nd.defaultPort <= 0 || nd.defaultPort > 65535) c.fail("networkDiscovery.defaultPort", "must be a valid TCP port");
+  if (nd.groupBy !== undefined && !["lastDashSegment", "name"].includes(nd.groupBy)) c.fail("networkDiscovery.groupBy", "must be lastDashSegment or name");
+  if (nd.nameTemplate !== undefined) c.str("networkDiscovery.nameTemplate", nd.nameTemplate);
+  if (nd.scope !== undefined) c.str("networkDiscovery.scope", nd.scope);
+  if (nd.probe !== undefined) {
+    c.keys("networkDiscovery.probe", nd.probe, new Set(["method", "path", "body", "expect", "timeoutMs"]));
+    if (nd.probe.method !== undefined && !["GET", "POST"].includes(nd.probe.method)) c.fail("networkDiscovery.probe.method", "must be GET or POST");
+    if (nd.probe.path !== undefined) c.str("networkDiscovery.probe.path", nd.probe.path);
+    if (nd.probe.timeoutMs !== undefined && !(typeof nd.probe.timeoutMs === "number" && nd.probe.timeoutMs > 0)) c.fail("networkDiscovery.probe.timeoutMs", "must be a positive number");
+  }
+}
+
 function isHttpsTemplate(value: string) {
   return value.startsWith("https://") || value.startsWith("{env.");
 }
@@ -327,17 +359,19 @@ export function validateManifest(value: unknown): ProviderManifest {
   c.str("name", m.name);
   c.str("logos.light", m.logos?.light);
   c.str("logos.dark", m.logos?.dark);
-  const builtIn = m.implementation !== undefined;
-  if (builtIn && (typeof m.implementation !== "string" || !ID_PATTERN.test(m.implementation))) c.fail("implementation", "must be a built-in implementation name");
   if (!Array.isArray(m.hosts) || m.hosts.some(h => typeof h !== "string" || !h || h.includes("/") || h.includes("*"))) c.fail("hosts", "must be an array of host names (or \"lan\" for local-network addresses)");
-  else if (!builtIn && m.hosts.length === 0) c.fail("hosts", "must list at least one host");
+  else if (m.hosts.length === 0) c.fail("hosts", "must list at least one host");
   if (m.authTypes !== undefined && (!Array.isArray(m.authTypes) || m.authTypes.some(t => !AUTH_TYPES.includes(t)))) c.fail("authTypes", `must only contain ${AUTH_TYPES.join(", ")}`);
   if (m.settings !== undefined && (typeof m.settings !== "object" || m.settings === null || Array.isArray(m.settings))) c.fail("settings", "must be an object");
+  if (m.state !== undefined) {
+    if (typeof m.state !== "object" || m.state === null || Array.isArray(m.state)) c.fail("state", "must be an object");
+    else for (const k of Object.keys(m.state)) if (!NAME.test(k) || FORBIDDEN_KEYS.has(k)) c.fail(`state.${k}`, "bad state key");
+  }
   if (typeof m.requiresAuth !== "boolean") c.fail("requiresAuth", "must be a boolean");
   for (const key of ["browse", "playlist", "instructions", "mediaLicensing"] as const) {
     if (typeof m.capabilities?.[key] !== "boolean") c.fail(`capabilities.${key}`, "must be a boolean");
   }
-  if (m.capabilities?.mediaLicensing && !builtIn && !m.methods?.checkMediaLicense) c.fail("capabilities.mediaLicensing", "needs a checkMediaLicense method");
+  if (m.capabilities?.mediaLicensing && !m.methods?.checkMediaLicense) c.fail("capabilities.mediaLicensing", "needs a checkMediaLicense method");
 
   if (m.environments !== undefined) {
     const names = Object.keys(m.environments);
@@ -351,46 +385,102 @@ export function validateManifest(value: unknown): ProviderManifest {
   if (m.auth !== undefined) {
     const a = m.auth;
     c.keys("auth", a, new Set([
-      "oauthBase", "clientId", "clientSecret", "scopes", "pkce", "deviceFlow", "authorizeUrl", "tokenUrl", "authorizeParams"
+      "oauthBase", "clientId", "clientSecret", "scopes", "pkce", "supportsSecretExchange", "deviceFlow", "authorizeUrl", "tokenUrl", "tokenEncoding", "authorizeParams", "formLogin"
     ]));
+    const usesOAuth = !!(a.oauthBase || a.pkce || a.deviceFlow || a.clientId !== undefined);
     for (const key of ["authorizeUrl", "tokenUrl"] as const) {
       if (a[key] === undefined) continue;
       c.template(`auth.${key}`, a[key], ROOTS);
       if (typeof a[key] === "string" && !isHttpsTemplate(a[key]!)) c.fail(`auth.${key}`, "must be https");
     }
+    if (a.tokenEncoding !== undefined && !["form", "json"].includes(a.tokenEncoding)) c.fail("auth.tokenEncoding", "must be form or json");
+    if (a.supportsSecretExchange !== undefined && typeof a.supportsSecretExchange !== "boolean") c.fail("auth.supportsSecretExchange", "must be a boolean");
     for (const [k, v] of Object.entries(a.authorizeParams || {})) if (v !== null && typeof v !== "string") c.fail(`auth.authorizeParams.${k}`, "must be a string or null");
-    c.template("auth.oauthBase", a.oauthBase, ROOTS);
-    if (typeof a.oauthBase === "string" && !isHttpsTemplate(a.oauthBase)) c.fail("auth.oauthBase", "must be https");
-    c.str("auth.clientId", a.clientId);
-    if (a.clientSecret !== undefined && !/^secret:[\w-]+$/.test(a.clientSecret)) c.fail("auth.clientSecret", "must be a \"secret:<name>\" reference, never the secret itself");
-    if (!Array.isArray(a.scopes)) c.fail("auth.scopes", "must be an array");
+    if (usesOAuth) {
+      c.template("auth.oauthBase", a.oauthBase, ROOTS);
+      if (typeof a.oauthBase === "string" && !isHttpsTemplate(a.oauthBase)) c.fail("auth.oauthBase", "must be https");
+      c.str("auth.clientId", a.clientId);
+      if (a.clientSecret !== undefined && !/^secret:[\w-]+$/.test(a.clientSecret)) c.fail("auth.clientSecret", "must be a \"secret:<name>\" reference, never the secret itself");
+      if (!Array.isArray(a.scopes)) c.fail("auth.scopes", "must be an array");
+    }
     if (a.deviceFlow) {
+      c.keys("auth.deviceFlow", a.deviceFlow, new Set(["endpoint", "encoding", "tokenUrl"]));
       c.str("auth.deviceFlow.endpoint", a.deviceFlow.endpoint);
       if (a.deviceFlow.encoding !== undefined && !["json", "form"].includes(a.deviceFlow.encoding)) c.fail("auth.deviceFlow.encoding", "must be json or form");
+      if (a.deviceFlow.tokenUrl !== undefined) {
+        c.template("auth.deviceFlow.tokenUrl", a.deviceFlow.tokenUrl, ROOTS);
+        if (typeof a.deviceFlow.tokenUrl === "string" && !isHttpsTemplate(a.deviceFlow.tokenUrl)) c.fail("auth.deviceFlow.tokenUrl", "must be https");
+      }
+    }
+    if (a.formLogin) {
+      const fl = a.formLogin;
+      c.keys("auth.formLogin", fl, new Set([
+        "path", "url", "encoding", "usernameField", "passwordField", "extraFields", "headers", "tokenExpr", "refreshTokenExpr", "expiresInExpr", "defaultExpiresIn"
+      ]));
+      const targets = [fl.path, fl.url].filter(v => v !== undefined).length;
+      if (targets !== 1) c.fail("auth.formLogin", "needs exactly one of path or url");
+      if (fl.path !== undefined) c.template("auth.formLogin.path", fl.path, ROOTS);
+      if (fl.url !== undefined) {
+        c.template("auth.formLogin.url", fl.url, ROOTS);
+        if (typeof fl.url === "string" && !isHttpsTemplate(fl.url)) c.fail("auth.formLogin.url", "must be https");
+      }
+      if (fl.encoding !== undefined && !["json", "form"].includes(fl.encoding)) c.fail("auth.formLogin.encoding", "must be json or form");
+      const respNames = new Set(["response"]);
+      if (fl.tokenExpr !== undefined) c.expr("auth.formLogin.tokenExpr", fl.tokenExpr, respNames);
+      if (fl.refreshTokenExpr !== undefined) c.expr("auth.formLogin.refreshTokenExpr", fl.refreshTokenExpr, respNames);
+      if (fl.expiresInExpr !== undefined) c.expr("auth.formLogin.expiresInExpr", fl.expiresInExpr, respNames);
     }
   }
-  if (m.requiresAuth && !m.auth && !m.authTypes?.length) c.fail("auth", "required when requiresAuth is true");
+  checkNetworkDiscovery(c, m.networkDiscovery);
+  if (m.requiresAuth && !m.auth && !m.networkDiscovery && !m.authTypes?.length) c.fail("auth", "required when requiresAuth is true");
 
   if (m.cache !== undefined && !(typeof m.cache.ttlSeconds === "number" && m.cache.ttlSeconds > 0)) c.fail("cache.ttlSeconds", "must be a positive number");
 
-  for (const [name, fn] of Object.entries(m.functions || {})) {
+  for (const [name] of Object.entries(m.functions || {})) {
     if (!NAME.test(name) || FUNCTIONS[name]) c.fail(`functions.${name}`, "must be a new name, not a built-in function");
     c.fns.add(name);
     c.own.add(name);
-    void fn;
   }
   for (const [name, fn] of Object.entries(m.functions || {})) {
-    c.expr(`functions.${name}`, fn, new Set(["settings", "datasets"]));
-    try {
-      if (typeof fn === "string" && typeof evalExpr(fn, {}) !== "function") c.fail(`functions.${name}`, "must be a lambda, e.g. \"(x) => ...\"");
-    } catch {
-      // the parse error was already reported
+    const at = `functions.${name}`;
+    if (typeof fn === "string") {
+      c.expr(at, fn, new Set(["settings", "datasets"]));
+      try {
+        if (typeof evalExpr(fn, {}) !== "function") c.fail(at, "must be a lambda, e.g. \"(x) => ...\"");
+      } catch {
+        // parse error already reported
+      }
+    } else if (fn && typeof fn === "object" && !Array.isArray(fn)) {
+      c.keys(at, fn, new Set(["params", "let", "return"]));
+      const params = Array.isArray(fn.params) ? fn.params : [];
+      if (fn.params !== undefined && (!Array.isArray(fn.params) || fn.params.some(p => typeof p !== "string" || !NAME.test(p)))) c.fail(`${at}.params`, "must be an array of names");
+      const fnNames = new Set(["settings", "datasets", ...params]);
+      if (fn.let !== undefined) {
+        if (!fn.let || typeof fn.let !== "object" || Array.isArray(fn.let)) c.fail(`${at}.let`, "must be an object");
+        else {
+          for (const [varName, expr] of Object.entries(fn.let)) {
+            if (!NAME.test(varName)) c.fail(`${at}.let`, `bad name "${varName}"`);
+            c.expr(`${at}.let.${varName}`, expr, fnNames);
+            fnNames.add(varName);
+          }
+        }
+      }
+      c.expr(`${at}.return`, fn.return, fnNames);
+    } else {
+      c.fail(at, "must be a lambda string or { params, let, return } object");
     }
   }
+
   if (m.secrets !== undefined && (!Array.isArray(m.secrets) || m.secrets.some(s => typeof s !== "string" || !NAME.test(s)))) c.fail("secrets", "must be an array of names");
-  for (const [name, path] of Object.entries(m.datasets || {})) {
+  for (const [name, dataset] of Object.entries(m.datasets || {})) {
     if (!NAME.test(name)) c.fail(`datasets.${name}`, "bad name");
-    if (typeof path !== "string" || path.includes("..") || path.startsWith("/") || /^\w+:/.test(path)) c.fail(`datasets.${name}`, "must be a relative path beside the manifest");
+    if (typeof dataset === "string") {
+      const isRemote = dataset.startsWith("https://");
+      const isRelative = !dataset.includes("..") && !dataset.startsWith("/") && !/^\w+:/.test(dataset);
+      if (!isRemote && !isRelative) c.fail(`datasets.${name}`, "must be a relative path beside the manifest, an https URL, or inline JSON");
+    } else if (!dataset || typeof dataset !== "object") {
+      c.fail(`datasets.${name}`, "must be a path string or inline JSON object/array");
+    }
   }
   for (const [setter, hook] of Object.entries(m.hooks || {})) {
     if (!/^set[A-Z]\w*$/.test(setter) || RESERVED_METHODS.has(setter)) c.fail(`hooks.${setter}`, "must be a setter name such as setLoader");
@@ -399,9 +489,7 @@ export function validateManifest(value: unknown): ProviderManifest {
   checkProcedures(c, "procedures", m.procedures, m, false);
   checkProcedures(c, "methods", m.methods, m, true);
 
-  if (builtIn) {
-    if (m.tree !== undefined || m.routes !== undefined) c.fail("tree", "can't be combined with implementation");
-  } else if (m.routes !== undefined) {
+  if (m.routes !== undefined) {
     if (m.tree !== undefined) c.fail("tree", "use tree or routes, not both");
     checkRoutes(c, m);
   } else checkGroups(c, "tree", m.tree);
@@ -422,7 +510,11 @@ export function validateIndex(value: unknown): ProviderIndex {
       c.keys(at, p, new Set(["id", "manifest", "comingSoon", "name", "logos"]));
       if (typeof p?.id !== "string" || !ID_PATTERN.test(p.id)) c.fail(`${at}.id`, "must be lowercase letters, digits and dashes");
       if (!p?.manifest === !p?.comingSoon) c.fail(at, "needs exactly one of manifest or comingSoon");
-      if (p?.manifest !== undefined && (typeof p.manifest !== "string" || p.manifest.includes(".."))) c.fail(`${at}.manifest`, "must be a relative path");
+      if (p?.manifest !== undefined) {
+        const isRemote = typeof p.manifest === "string" && p.manifest.startsWith("https://");
+        const isRel = typeof p.manifest === "string" && !p.manifest.includes("..") && !/^\w+:/.test(p.manifest);
+        if (!isRemote && !isRel) c.fail(`${at}.manifest`, "must be a relative path or https URL");
+      }
       if (p?.comingSoon) c.str(`${at}.name`, p.name);
     });
   }

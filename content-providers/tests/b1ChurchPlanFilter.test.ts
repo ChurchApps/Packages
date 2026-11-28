@@ -1,7 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { B1ChurchProvider } from "../src/providers/b1Church/B1ChurchProvider";
+import { ManifestProvider } from "../src/manifest/ManifestProvider";
+import b1Manifest from "../src/manifests/providers/b1church.json";
 
 const iso = (daysFromToday: number) => {
   const d = new Date();
@@ -20,6 +21,6 @@ test("browse plan list keeps yesterday's plan regardless of timezone", async t =
   globalThis.fetch = (async () => ({ ok: true, json: async () => plans })) as any;
   t.after(() => { globalThis.fetch = originalFetch; });
 
-  const items = await new B1ChurchProvider().browse("/ministries/m1/pt1", null);
+  const items = await new ManifestProvider(b1Manifest).browse("/ministries/m1/pt1", null);
   assert.deepEqual(items.map(i => i.id), ["yesterday", "future"]);
 });

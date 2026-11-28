@@ -2,6 +2,7 @@ import { ContentFile, ContentFolder, ContentItem, ContentProviderAuthData, Instr
 import { parsePath } from "../pathUtils";
 import { detectMediaType } from "../utils";
 import { EvalContext, evalExpr, fillTemplate, Scope } from "./expression";
+import { FORBIDDEN_KEYS, str } from "./transforms";
 import { ManifestOperation, ManifestProcedure, ManifestRequest, ManifestRoute, ManifestStep, ProviderManifest } from "./types";
 
 /** What the runtime needs from its provider. */
@@ -13,6 +14,7 @@ export interface RuntimeHost {
   env(): Record<string, string>;
   secret(name: string): string;
   datasets: Record<string, unknown>;
+  state: Record<string, unknown>;
   hooks: Map<string, (...args: unknown[]) => unknown>;
 }
 
@@ -26,8 +28,6 @@ const PRIVATE_V4 = /^(10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01
 const FILE_KEYS = [
   "thumbnail", "downloadUrl", "muxPlaybackId", "decryptionKey", "mediaId", "pingbackUrl", "seconds", "loop", "loopVideo", "streamUrl", "providerData"
 ] as const;
-
-const str = (v: unknown): string => (v === null || v === undefined ? "" : String(v));
 
 /** Turn whatever an operation returned into well-formed folders and files, dropping anything malformed. */
 export function normalizeItems(value: unknown): ContentItem[] {
@@ -95,7 +95,14 @@ export class ManifestRuntime {
 
   /** Names every expression can read. */
   globals(auth: ContentProviderAuthData | null | undefined): Scope {
-    return { env: this.host.env(), datasets: this.host.datasets, settings: this.host.manifest.settings || {}, auth: auth ?? null, apiBase: this.host.apiBase() };
+    return {
+      env: this.host.env(),
+      datasets: this.host.datasets,
+      settings: this.host.manifest.settings || {},
+      state: this.host.state,
+      auth: auth ?? null,
+      apiBase: this.host.apiBase()
+    };
   }
 
   private eval(expr: string, scope: Scope): unknown {
@@ -145,6 +152,11 @@ export class ManifestRuntime {
       if ("return" in step && !("cache" in step) && !("each" in step)) return { done: true, value: this.eval(step.return as string, scope) };
       if ("let" in step) {
         for (const [name, expr] of Object.entries(step.let)) scope[name] = this.eval(expr, scope);
+      } else if ("setState" in step) {
+        for (const [name, expr] of Object.entries(step.setState)) {
+          if (!FORBIDDEN_KEYS.has(name)) this.host.state[name] = this.eval(expr, scope);
+        }
+        scope.state = this.host.state;
       } else if ("fetch" in step) {
         scope[step.as] = await this.request(step.fetch, scope, auth, memo);
       } else if ("each" in step) {
@@ -251,8 +263,9 @@ export class ManifestRuntime {
     }
     if (!trusted && !this.allowed(url)) throw new Error(`[${this.host.id}] ${url} is not on this provider's host list`);
 
-    const bearer = (req.auth ?? (req.url === undefined && !req.secretUrl ? "bearer" : "none")) === "bearer";
-    if (bearer && this.host.requiresAuth && !auth?.access_token) return null;
+    const authMode = req.auth ?? (req.url === undefined && !req.secretUrl ? "bearer" : "none");
+    if (authMode === "bearer" && this.host.requiresAuth && !auth?.access_token) return null;
+    const sendBearer = (authMode === "bearer" || authMode === "optional") && !!auth?.access_token;
 
     const method = req.method || (req.body !== undefined || req.form ? "POST" : "GET");
     const headers: Record<string, string> = { Accept: "application/json" };
@@ -265,10 +278,10 @@ export class ManifestRuntime {
       body = new URLSearchParams(Object.fromEntries(Object.entries(req.form).map(([k, e]) => [k, str(this.eval(e, scope))]))).toString();
     }
     for (const [k, expr] of Object.entries(req.headers || {})) headers[k] = str(this.eval(expr, scope));
-    if (bearer && auth?.access_token) headers.Authorization = `Bearer ${auth.access_token}`;
+    if (sendBearer) headers.Authorization = `Bearer ${auth!.access_token}`;
 
     const once = async (): Promise<unknown> => {
-      const memoKey = `${method} ${url} ${body || ""} ${bearer ? auth?.access_token || "" : ""} ${req.raw ? "raw" : ""}`;
+      const memoKey = `${method} ${url} ${body || ""} ${sendBearer ? auth!.access_token : ""} ${req.raw ? "raw" : ""}`;
       const pending = memo.get(memoKey);
       if (pending) return pending;
       const promise = this.send(url, method, headers, body, req.raw, req.timeoutMs);

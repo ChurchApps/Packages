@@ -18,17 +18,622 @@
     "instructions": true,
     "mediaLicensing": false
   },
-  "implementation": "b1church",
   "apiBase": "https://api.churchapps.org/doing",
   "auth": {
     "oauthBase": "https://api.churchapps.org/membership/oauth",
+    "authorizeUrl": "https://admin.b1.church/oauth",
     "clientId": "nsowldn58dk",
     "scopes": [
       "plans"
     ],
     "pkce": true,
+    "tokenEncoding": "json",
+    "supportsSecretExchange": true,
     "deviceFlow": {
       "endpoint": "/device/authorize"
     }
-  }
+  },
+  "state": {
+    "planTypeId": null
+  },
+  "settings": {
+    "membershipBase": "https://api.churchapps.org/membership",
+    "lessonsApiBase": "https://api.lessons.church",
+    "lessonsEmbedBase": "https://lessons.church"
+  },
+  "functions": {
+    "isLessonsChurch": "(plan) => !plan.providerId || plan.providerId == 'lessonschurch'",
+    "isExternalItem": "(item) => !!item.providerId && item.providerId != 'b1church' && (!!item.providerPath || startsWith(item.itemType || '', 'provider'))",
+    "isSectionType": "(t) => oneOf(t, 'section', 'lessonSection', 'providerSection')",
+    "isActionType": "(t) => oneOf(t, 'lessonAction', 'action', 'lessonAddOn', 'addon')",
+    "parentPath": "(p) => join(slice(split(p, '/'), 0, len(split(p, '/')) - 1), '/')",
+    "leafSegment": "(p) => split(p, '/')[len(split(p, '/')) - 1]",
+    "embedUrl": {
+      "params": ["apiType", "relatedId"],
+      "let": {
+        "kind": "oneOf(apiType, 'action', 'lessonAction') ? 'action' : oneOf(apiType, 'addon', 'lessonAddOn') ? 'addon' : oneOf(apiType, 'section', 'lessonSection') ? 'section' : null"
+      },
+      "return": "relatedId && kind ? settings.lessonsEmbedBase + '/embed/' + kind + '/' + relatedId : undefined"
+    },
+    "planItemToInstruction": {
+      "params": ["item", "thumbnail"],
+      "let": {
+        "itemType": "normalizeItemType(item.itemType)",
+        "isFileType": "itemType == 'file' || (item.link && !len(item.children))"
+      },
+      "return": "{ id: item.id, itemType, relatedId: item.relatedId, label: item.label, content: item.description, seconds: item.seconds, downloadUrl: item.link, thumbnail: isFileType ? thumbnail : undefined, children: item.children ? map(item.children, c => planItemToInstruction(c, thumbnail)) : undefined }"
+    },
+    "sectionActionsMap": {
+      "params": ["actionsResponse", "thumbnail"],
+      "return": "fromEntries(map(filter((actionsResponse && actionsResponse.sections) || [], s => s.id && s.actions), s => [s.id, map(s.actions, a => ({ id: a.id, itemType: 'action', relatedId: a.id, label: a.name, seconds: a.seconds ?? 10, children: [{ id: a.id + '-file', itemType: 'file', label: a.name, seconds: a.seconds ?? 10, downloadUrl: embedUrl('action', a.id), thumbnail }] }))]))"
+    },
+    "convertFeedFiles": "(feedFiles, thumb) => map(filter(feedFiles || [], f => f.url), f => file(f.id || '', f.name || '', f.url || '', { mediaType: mediaType(f.url || '', f.fileType), thumbnail: thumb, seconds: f.seconds, streamUrl: f.streamUrl }))",
+    "venueFeedFiles": {
+      "params": ["venueFeed", "itemType", "relatedId"],
+      "let": {
+        "sections": "(venueFeed && venueFeed.sections) || []",
+        "thumb": "venueFeed && venueFeed.lessonImage",
+        "matchedSection": "relatedId && isSectionType(itemType) ? find(sections, s => s.id == relatedId) : null",
+        "matchedAction": "relatedId && isActionType(itemType) ? find(flatMap(sections, s => s.actions || []), a => a.id == relatedId) : null"
+      },
+      "return": "matchedSection ? flatMap(filter(matchedSection.actions || [], a => oneOf(lower(a.actionType || ''), 'play', 'add-on')), a => convertFeedFiles(a.files, thumb)) : matchedAction ? convertFeedFiles(matchedAction.files, thumb) : []"
+    },
+    "providerFileItem": {
+      "params": ["item"],
+      "let": {
+        "fileId": "item.relatedId ?? item.id"
+      },
+      "return": "oneOf(item.itemType, 'providerFile', 'providerPresentation') && item.link && fileId ? file(fileId, item.label || 'File', item.link, { seconds: item.seconds }) : null"
+    },
+    "findPresentationFiles": {
+      "params": ["plan", "instructions", "contentPath"],
+      "let": {
+        "node": "navigateToPath(instructions, contentPath)",
+        "presId": "node && (node.relatedId || node.id)",
+        "allPres": "flatMap((plan && plan.sections) || [], s => s.presentations || [])",
+        "found": "presId ? find(allPres, p => p.id == presId) : null"
+      },
+      "return": "(found && isArray(found.files)) ? found.files : []"
+    }
+  },
+  "procedures": {
+    "providerProxy": {
+      "params": ["method", "ministryId", "providerId", "targetPath", "resolution"],
+      "steps": [
+        {
+          "fetch": {
+            "method": "POST",
+            "path": "/providerProxy/{method}",
+            "body": "resolution != undefined && resolution != null ? { ministryId, providerId, path: targetPath, resolution } : { ministryId, providerId, path: targetPath }",
+            "auth": "optional"
+          },
+          "as": "res"
+        }
+      ],
+      "return": "res"
+    },
+    "cachedProxy": {
+      "params": ["method", "ministryId", "providerId", "targetPath", "resolution"],
+      "steps": [
+        {
+          "cache": {
+            "key": "method + ':' + providerId + ':' + targetPath + ':' + (resolution ?? '')",
+            "seconds": 3600
+          },
+          "as": "res",
+          "steps": [
+            {
+              "call": "providerProxy",
+              "args": {
+                "method": "method",
+                "ministryId": "ministryId",
+                "providerId": "providerId",
+                "targetPath": "targetPath",
+                "resolution": "resolution"
+              },
+              "as": "fetched"
+            }
+          ],
+          "return": "fetched"
+        }
+      ],
+      "return": "res"
+    },
+    "fetchPlanImages": {
+      "params": ["plans", "ministryId"],
+      "steps": [
+        {
+          "let": {
+            "lcPlans": "filter(plans, p => p.contentId && isLessonsChurch(p))",
+            "venueIds": "map(lcPlans, p => p.contentId)",
+            "extPlans": "filter(plans, p => p.providerId && p.providerId != 'lessonschurch' && p.providerId != 'b1church' && p.providerPlanId)"
+          }
+        },
+        {
+          "fetch": {
+            "url": "settings.lessonsApiBase + '/venues/public/images?ids=' + join(venueIds, ',')",
+            "auth": "none"
+          },
+          "as": "lcRows",
+          "when": "len(venueIds) > 0"
+        },
+        {
+          "let": {
+            "lcPairs": "compact(map(lcRows || [], row => row.venueId && row.lessonImage ? with(find(lcPlans, p => p.contentId == row.venueId), plan => plan ? [plan.id, row.lessonImage] : null) : null))",
+            "extGroups": "groupBy(extPlans, p => p.providerId + '::' + parentPath(p.providerPlanId))"
+          }
+        },
+        {
+          "each": "extGroups",
+          "as": "grp",
+          "parallel": true,
+          "into": "extPairGroups",
+          "steps": [
+            {
+              "let": {
+                "first": "grp.items[0]",
+                "pPath": "parentPath(first.providerPlanId)"
+              }
+            },
+            {
+              "call": "providerProxy",
+              "args": {
+                "method": "'browse'",
+                "ministryId": "ministryId",
+                "providerId": "first.providerId",
+                "targetPath": "pPath",
+                "resolution": "null"
+              },
+              "as": "items"
+            }
+          ],
+          "return": "isArray(items) ? compact(map(grp.items, plan => with(find(items, it => it.id == leafSegment(plan.providerPlanId) || it.id == plan.contentId), m => m && m.thumbnail ? [plan.id, m.thumbnail] : null))) : []"
+        }
+      ],
+      "return": "fromEntries(concat(lcPairs, flat(extPairGroups)))"
+    },
+    "processInstructionItems": {
+      "params": ["items", "ministryId", "sectionMap", "thumbnail"],
+      "steps": [
+        {
+          "each": "items || []",
+          "as": "item",
+          "into": "out",
+          "steps": [
+            {
+              "let": {
+                "base": "planItemToInstruction(item, thumbnail)",
+                "canExpandLocal": "isSectionType(item.itemType) && item.relatedId && sectionMap[item.relatedId]",
+                "directLink": "oneOf(item.itemType, 'providerFile', 'providerPresentation') && !!item.link",
+                "hasLocalChildren": "len(item.children) > 0 && len(keys(sectionMap)) > 0 && some(item.children, c => isSectionType(c.itemType) && c.relatedId && sectionMap[c.relatedId])"
+              }
+            },
+            {
+              "return": "merge(base, { children: sectionMap[item.relatedId] })",
+              "when": "canExpandLocal"
+            },
+            {
+              "return": "base",
+              "when": "directLink"
+            },
+            {
+              "if": "hasLocalChildren",
+              "then": [
+                {
+                  "call": "processInstructionItems",
+                  "args": {
+                    "items": "item.children",
+                    "ministryId": "ministryId",
+                    "sectionMap": "sectionMap",
+                    "thumbnail": "thumbnail"
+                  },
+                  "as": "kids"
+                },
+                {
+                  "return": "merge(base, { children: kids })"
+                }
+              ]
+            },
+            {
+              "if": "isExternalItem(item) && item.providerId && item.providerPath",
+              "then": [
+                {
+                  "call": "providerProxy",
+                  "args": {
+                    "method": "'getInstructions'",
+                    "ministryId": "ministryId",
+                    "providerId": "item.providerId",
+                    "targetPath": "item.providerPath",
+                    "resolution": "null"
+                  },
+                  "as": "ext"
+                },
+                {
+                  "let": {
+                    "extMatch": "ext && item.providerContentPath ? navigateToPath(ext, item.providerContentPath) : null",
+                    "extChildren": "ext ? (item.providerContentPath ? (extMatch && extMatch.children ? extMatch.children : base.children) : ext.items) : base.children"
+                  }
+                },
+                {
+                  "return": "merge(base, { children: extChildren })"
+                }
+              ]
+            },
+            {
+              "if": "len(item.children) > 0",
+              "then": [
+                {
+                  "call": "processInstructionItems",
+                  "args": {
+                    "items": "item.children",
+                    "ministryId": "ministryId",
+                    "sectionMap": "sectionMap",
+                    "thumbnail": "thumbnail"
+                  },
+                  "as": "kids"
+                },
+                {
+                  "return": "merge(base, { children: kids })"
+                }
+              ]
+            }
+          ],
+          "return": "base"
+        }
+      ],
+      "return": "out"
+    }
+  },
+  "methods": {
+    "setPairingData": {
+      "params": ["data"],
+      "steps": [
+        {
+          "when": "isObject(data) && isString(data.planTypeId)",
+          "setState": {
+            "planTypeId": "data.planTypeId"
+          }
+        }
+      ]
+    },
+    "getCurrentPlan": {
+      "steps": [
+        {
+          "return": "null",
+          "when": "!state.planTypeId"
+        },
+        {
+          "fetch": {
+            "path": "/plans/public/current/{state.planTypeId}",
+            "auth": "none"
+          },
+          "as": "plan"
+        },
+        {
+          "return": "null",
+          "when": "!plan || !plan.providerId || !plan.providerPlanId || !plan.ministryId"
+        },
+        {
+          "fetch": {
+            "path": "/planItems/presenter/{plan.churchId}/{plan.id}",
+            "auth": "none"
+          },
+          "as": "planItems",
+          "when": "plan.churchId && plan.id"
+        },
+        {
+          "call": "providerProxy",
+          "args": {
+            "method": "'getInstructions'",
+            "ministryId": "plan.ministryId",
+            "providerId": "plan.providerId",
+            "targetPath": "plan.providerPlanId",
+            "resolution": "null"
+          },
+          "as": "instructions"
+        },
+        {
+          "return": "null",
+          "when": "!instructions"
+        }
+      ],
+      "return": "{ id: plan.id, title: plan.name || '', serviceDate: plan.serviceDate, thumbnail: findFirstThumbnail(instructions.items), files: orderPlanFiles(instructions, planItems || []) }"
+    }
+  },
+  "routes": [
+    {
+      "path": "/",
+      "browse": "[folder('ministries-root', 'Ministries', '/ministries')]"
+    },
+    {
+      "path": "/ministries",
+      "browse": {
+        "steps": [
+          {
+            "fetch": {
+              "url": "settings.membershipBase + '/groups/tag/ministry'",
+              "auth": "optional"
+            },
+            "as": "ministries"
+          }
+        ],
+        "return": "map(ministries || [], m => folder(m.id, m.name, '/ministries/' + m.id, m.photoUrl))"
+      }
+    },
+    {
+      "path": "/ministries/:ministryId",
+      "browse": {
+        "steps": [
+          {
+            "fetch": {
+              "path": "/planTypes/ministryId/{params.ministryId}",
+              "auth": "optional"
+            },
+            "as": "planTypes"
+          }
+        ],
+        "return": "map(planTypes || [], pt => folder(pt.id, pt.name, '/ministries/' + params.ministryId + '/' + pt.id))"
+      }
+    },
+    {
+      "path": "/ministries/:ministryId/:planTypeId",
+      "browse": {
+        "steps": [
+          {
+            "fetch": {
+              "path": "/plans/types/{params.planTypeId}",
+              "auth": "optional"
+            },
+            "as": "allPlans"
+          },
+          {
+            "let": {
+              "cutoff": "localDateOffset(-1)",
+              "upcoming": "sortBy(filter(allPlans || [], p => slice(str(p.serviceDate), 0, 10) >= cutoff), p => timestamp(p.serviceDate), 'number')"
+            }
+          },
+          {
+            "call": "fetchPlanImages",
+            "args": {
+              "plans": "upcoming",
+              "ministryId": "params.ministryId"
+            },
+            "as": "imageMap"
+          }
+        ],
+        "return": "map(upcoming, p => folder(p.id, p.name, '/ministries/' + params.ministryId + '/' + params.planTypeId + '/' + p.id, imageMap[p.id], true))"
+      }
+    },
+    {
+      "path": "/ministries/:ministryId/:planTypeId/:planId/*rest",
+      "load": [
+        {
+          "fetch": {
+            "path": "/plans/types/{params.planTypeId}",
+            "auth": "optional"
+          },
+          "as": "plans"
+        },
+        {
+          "let": {
+            "planFolder": "find(plans || [], p => p.id == params.planId)"
+          }
+        },
+        {
+          "return": "null",
+          "when": "!planFolder || !planFolder.churchId"
+        },
+        {
+          "fetch": {
+            "path": "/planFeed/presenter/{planFolder.churchId}/{params.planId}",
+            "auth": "optional"
+          },
+          "as": "planItems"
+        },
+        {
+          "let": {
+            "venueId": "isLessonsChurch(planFolder) ? planFolder.contentId : null",
+            "planTitle": "planFolder.name || 'Plan'"
+          }
+        }
+      ],
+      "browse": "[]",
+      "instructions": {
+        "steps": [
+          {
+            "if": "(!planItems || len(planItems) == 0) && planFolder.providerId && planFolder.providerPlanId",
+            "then": [
+              {
+                "call": "providerProxy",
+                "args": {
+                  "method": "'getInstructions'",
+                  "ministryId": "params.ministryId",
+                  "providerId": "planFolder.providerId",
+                  "targetPath": "planFolder.providerPlanId",
+                  "resolution": "null"
+                },
+                "as": "extInstructions"
+              },
+              {
+                "return": "{ name: planTitle, items: extInstructions.items }",
+                "when": "extInstructions"
+              }
+            ]
+          },
+          {
+            "return": "null",
+            "when": "!isArray(planItems)"
+          },
+          {
+            "fetch": {
+              "url": "settings.lessonsApiBase + '/venues/public/actions/' + venueId",
+              "auth": "none"
+            },
+            "as": "venueActions",
+            "when": "venueId"
+          },
+          {
+            "fetch": {
+              "url": "settings.lessonsApiBase + '/venues/public/feed/' + venueId",
+              "auth": "none"
+            },
+            "as": "venueFeed",
+            "when": "venueId"
+          },
+          {
+            "let": {
+              "lessonImage": "venueFeed && venueFeed.lessonImage",
+              "sectionMap": "venueId ? sectionActionsMap(venueActions, lessonImage) : {}"
+            }
+          },
+          {
+            "call": "processInstructionItems",
+            "args": {
+              "items": "planItems",
+              "ministryId": "params.ministryId",
+              "sectionMap": "sectionMap",
+              "thumbnail": "lessonImage"
+            },
+            "as": "processed"
+          }
+        ],
+        "return": "{ name: planTitle, items: processed }"
+      },
+      "playlist": {
+        "steps": [
+          {
+            "if": "(!planItems || len(planItems) == 0) && planFolder.providerId && planFolder.providerPlanId",
+            "then": [
+              {
+                "call": "providerProxy",
+                "args": {
+                  "method": "'getPlaylist'",
+                  "ministryId": "params.ministryId",
+                  "providerId": "planFolder.providerId",
+                  "targetPath": "planFolder.providerPlanId",
+                  "resolution": "resolution"
+                },
+                "as": "extFiles"
+              },
+              {
+                "return": "extFiles || null"
+              }
+            ]
+          },
+          {
+            "return": "null",
+            "when": "!isArray(planItems)"
+          },
+          {
+            "fetch": {
+              "url": "settings.lessonsApiBase + '/venues/public/feed/' + venueId",
+              "auth": "none"
+            },
+            "as": "venueFeed",
+            "when": "venueId"
+          },
+          {
+            "let": {
+              "children": "flatMap(planItems, s => len(s.children) ? s.children : [s])"
+            }
+          },
+          {
+            "each": "children",
+            "as": "child",
+            "into": "fileGroups",
+            "steps": [
+              {
+                "return": "venueFeedFiles(venueFeed, child.itemType, child.relatedId)",
+                "when": "isSectionType(child.itemType) && venueFeed && child.relatedId"
+              },
+              {
+                "if": "isExternalItem(child) && child.providerId && child.providerPath",
+                "then": [
+                  {
+                    "if": "child.providerContentPath",
+                    "then": [
+                      {
+                        "call": "cachedProxy",
+                        "args": {
+                          "method": "'getPresentations'",
+                          "ministryId": "params.ministryId",
+                          "providerId": "child.providerId",
+                          "targetPath": "child.providerPath",
+                          "resolution": "null"
+                        },
+                        "as": "extPlan"
+                      },
+                      {
+                        "call": "cachedProxy",
+                        "args": {
+                          "method": "'getInstructions'",
+                          "ministryId": "params.ministryId",
+                          "providerId": "child.providerId",
+                          "targetPath": "child.providerPath",
+                          "resolution": "null"
+                        },
+                        "as": "extInstructions"
+                      },
+                      {
+                        "return": "findPresentationFiles(extPlan, extInstructions, child.providerContentPath)",
+                        "when": "extPlan"
+                      },
+                      {
+                        "let": {
+                          "matchedItem": "extInstructions ? navigateToPath(extInstructions, child.providerContentPath) : null"
+                        }
+                      },
+                      {
+                        "return": "matchedItem ? instructionsToPlaylist({ name: matchedItem.label || '', items: [matchedItem] }) : []"
+                      }
+                    ],
+                    "else": [
+                      {
+                        "call": "cachedProxy",
+                        "args": {
+                          "method": "'getPlaylist'",
+                          "ministryId": "params.ministryId",
+                          "providerId": "child.providerId",
+                          "targetPath": "child.providerPath",
+                          "resolution": "resolution"
+                        },
+                        "as": "extPlaylist"
+                      },
+                      {
+                        "return": "isArray(extPlaylist) ? extPlaylist : []"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "if": "oneOf(child.itemType, 'providerFile', 'providerPresentation') && child.link",
+                "then": [
+                  {
+                    "let": {
+                      "directFile": "providerFileItem(child)"
+                    }
+                  },
+                  {
+                    "return": "directFile ? [directFile] : []"
+                  }
+                ]
+              },
+              {
+                "return": "venueFeedFiles(venueFeed, child.itemType, child.relatedId)",
+                "when": "venueFeed && isActionType(child.itemType)"
+              }
+            ],
+            "return": "[]"
+          },
+          {
+            "let": {
+              "files": "flat(fileGroups)"
+            }
+          }
+        ],
+        "return": "len(files) > 0 ? files : null"
+      }
+    }
+  ]
 }

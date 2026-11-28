@@ -29,11 +29,22 @@
     "pkce": true
   },
   "functions": {
-    "folder": "(id, title, path, thumbnail, isLeaf) => ({ type: 'folder', id, title, path, thumbnail, isLeaf })",
     "moduleFolders": "(modules) => map(filter(modules, x => !x.isLocked), x => folder(x.id || x.moduleId, x.title || x.name, '/modules/' + (x.id || x.moduleId), x.image))",
     "libraryFolders": "(libraries, currentPath) => map(libraries, l => folder(l.libraryId || l.id, l.title || l.name, currentPath + '/' + (l.libraryId || l.id), l.image, true))",
     "productFolders": "(products, currentPath) => map(products, p => folder(p.productId || p.id, p.title || p.name, currentPath + '/products/' + (p.productId || p.id), p.image))",
-    "mediaFile": "(item) => with(lower(item.mediaType), mt => with((item.thumbnail && item.thumbnail.src) || '', thumb => with(item.video, video => with(item.image, image => with(mt == 'video' && video ? { url: video.muxPlaybackId ? 'https://stream.mux.com/' + video.muxPlaybackId + '/capped-1080p.mp4' : video.muxStreamingUrl || video.url || '', thumbnail: thumb || video.thumbnailUrl || '', mux: video.muxPlaybackId } : mt == 'image' || image ? { url: (image && image.src) || item.url || '', thumbnail: thumb || (image && image.src) || '' } : { url: item.url || item.src || '', thumbnail: thumb || item.thumbnailUrl || '' }, r => r.url ? with(item.mediaId || item.id, id => ({ type: 'file', id, title: item.title || item.name || item.fileName || '', url: r.url, mediaType: mediaType(r.url, mt), thumbnail: r.thumbnail, muxPlaybackId: r.mux, mediaId: id })) : null)))))"
+    "mediaFile": {
+      "params": ["item"],
+      "let": {
+        "mt": "lower(item.mediaType)",
+        "thumb": "item.thumbnail.src || ''",
+        "isVideo": "mt == 'video' && !!item.video",
+        "isImage": "!isVideo && (mt == 'image' || !!item.image)",
+        "url": "isVideo ? (item.video.muxPlaybackId ? muxStreamUrl(item.video.muxPlaybackId) : item.video.muxStreamingUrl || item.video.url || '') : isImage ? (item.image.src || item.url || '') : (item.url || item.src || '')",
+        "thumbnail": "isVideo ? (thumb || item.video.thumbnailUrl || '') : isImage ? (thumb || item.image.src || '') : (thumb || item.thumbnailUrl || '')",
+        "id": "item.mediaId || item.id"
+      },
+      "return": "url ? file(id, item.title || item.name || item.fileName || '', url, { mediaType: mediaType(url, mt), thumbnail, muxPlaybackId: isVideo ? item.video.muxPlaybackId : undefined, mediaId: id }) : null"
+    }
   },
   "procedures": {
     "modules": {
@@ -46,10 +57,7 @@
       "return": "list(r, 'data', 'modules')"
     },
     "libraries": {
-      "params": [
-        "productId",
-        "currentPath"
-      ],
+      "params": ["productId", "currentPath"],
       "steps": [
         {
           "fetch": "/prod/curriculum/modules/products/{productId}/libraries",
@@ -59,22 +67,20 @@
       "return": "libraryFolders(list(r, 'data', 'libraries'), currentPath)"
     },
     "media": {
-      "params": [
-        "libraryId"
-      ],
+      "params": ["libraryId"],
       "steps": [
         {
           "fetch": "/prod/creators/libraries/{libraryId}/media",
           "as": "r"
         }
       ],
-      "return": "filter(map(list(r, 'data', 'media'), mediaFile), f => f)"
+      "return": "compact(map(list(r, 'data', 'media'), mediaFile))"
     }
   },
   "routes": [
     {
       "path": "/",
-      "browse": "[{ type: 'folder', id: 'modules-root', title: 'Modules', path: '/modules' }]"
+      "browse": "[folder('modules-root', 'Modules', '/modules')]"
     },
     {
       "path": "/modules",
@@ -148,96 +154,38 @@
     },
     {
       "path": "/modules/:module/products/:product/:library",
-      "browse": {
-        "steps": [
-          {
-            "call": "media",
-            "args": {
-              "libraryId": "params.library"
-            },
-            "as": "files"
-          }
-        ],
-        "return": "files"
-      },
-      "playlist": {
-        "steps": [
-          {
-            "call": "media",
-            "args": {
-              "libraryId": "params.library"
-            },
-            "as": "files"
-          }
-        ],
-        "return": "files"
-      },
-      "instructions": {
-        "steps": [
-          {
-            "call": "media",
-            "args": {
-              "libraryId": "params.library"
-            },
-            "as": "files"
+      "load": [
+        {
+          "call": "media",
+          "args": {
+            "libraryId": "params.library"
           },
-          {
-            "return": "null",
-            "when": "len(files) == 0"
-          }
-        ],
-        "return": "filesToInstructions('Library', files)"
-      }
+          "as": "files"
+        }
+      ],
+      "browse": "files",
+      "playlist": "files",
+      "instructions": "len(files) > 0 ? filesToInstructions('Library', files) : null"
     },
     {
       "path": "/modules/:module/libraries/:library",
-      "browse": {
-        "steps": [
-          {
-            "call": "media",
-            "args": {
-              "libraryId": "params.library"
-            },
-            "as": "files"
-          }
-        ],
-        "return": "files"
-      },
-      "playlist": {
-        "steps": [
-          {
-            "call": "media",
-            "args": {
-              "libraryId": "params.library"
-            },
-            "as": "files"
-          }
-        ],
-        "return": "files"
-      },
-      "instructions": {
-        "steps": [
-          {
-            "call": "media",
-            "args": {
-              "libraryId": "params.library"
-            },
-            "as": "files"
+      "load": [
+        {
+          "call": "media",
+          "args": {
+            "libraryId": "params.library"
           },
-          {
-            "return": "null",
-            "when": "len(files) == 0"
-          }
-        ],
-        "return": "filesToInstructions('Library', files)"
-      }
+          "as": "files"
+        }
+      ],
+      "browse": "files",
+      "playlist": "files",
+      "instructions": "len(files) > 0 ? filesToInstructions('Library', files) : null"
     }
   ],
   "methods": {
     "checkMediaLicense": {
-      "params": [
-        "mediaId"
-      ],
+      "params": ["mediaId"],
       "steps": [
         {
           "return": "null",

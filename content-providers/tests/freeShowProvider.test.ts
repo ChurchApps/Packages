@@ -5,11 +5,21 @@ import { AddressInfo } from "node:net";
 import os from "node:os";
 
 import { getProvider } from "../src/providers/index";
-import { DEFAULT_SLIDE_SECONDS, FreeShowShow } from "../src/providers/freeShow/FreeShowInterfaces";
-import { showToFiles, slideSeconds } from "../src/providers/freeShow/FreeShowConverters";
-import { freeShowMediaUrl, freeShowRequest } from "../src/providers/freeShow/FreeShowApi";
-import { FreeShowProvider, freeShowServicesToInstances, networkInstanceToAuth } from "../src/providers/freeShow";
-import { isContentFolder } from "../src/interfaces";
+import { DEFAULT_SLIDE_SECONDS, FreeShowShow, FreeShowLayoutSlide } from "../src/providers/freeShow/FreeShowInterfaces";
+import { freeShowRequest } from "../src/providers/freeShow/FreeShowApi";
+import { freeShowServicesToInstances, networkInstanceToAuth } from "../src/providers/freeShow";
+import { isContentFolder, ContentFile, NetworkInstance } from "../src/interfaces";
+import { ManifestProvider } from "../src/manifest/ManifestProvider";
+import freeShowManifest from "../src/manifests/providers/freeshow.json";
+
+// FreeShow is defined by its JSON manifest; slide mapping and media URLs are its named functions.
+const FreeShowProvider = class extends ManifestProvider {
+  constructor() { super(freeShowManifest); }
+} as unknown as new () => any;
+const freeShow = new ManifestProvider(freeShowManifest);
+const slideSeconds = (ref: FreeShowLayoutSlide, mediaType: string) => freeShow.callFunction("slideSeconds", ref, mediaType) as number | undefined;
+const freeShowMediaUrl = (instance: Pick<NetworkInstance, "ip" | "port">, path: string) => freeShow.callFunction("mediaUrl", instance, path) as string | null;
+const showToFiles = (show: FreeShowShow, instance: Pick<NetworkInstance, "ip" | "port">) => freeShow.callFunction("showToFiles", show, instance) as ContentFile[];
 
 const announcements: FreeShowShow = {
   name: "Announcements",
@@ -67,8 +77,8 @@ test("freeShowMediaUrl passes online media, proxies local images, drops local vi
   assert.equal(freeShowMediaUrl(instance, "C:\\a\\c.pdf"), null);
 });
 
-test("showToFiles maps backgrounds and timers through the resolver", () => {
-  const files = showToFiles(announcements, path => freeShowMediaUrl({ ip: "h", port: 1 }, path));
+test("showToFiles maps backgrounds and timers through the machine's media urls", () => {
+  const files = showToFiles(announcements, { ip: "h", port: 1 });
   assert.equal(files.length, 2);
   assert.equal(files[0].mediaType, "video");
   assert.equal(files[0].seconds, undefined);

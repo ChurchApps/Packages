@@ -1,47 +1,7 @@
-import { ContentFile, ContentProviderAuthData, NetworkInstance } from "../../interfaces";
-import { createFile, detectMediaType } from "../../utils";
-import {
-  DEFAULT_SLIDE_SECONDS,
-  FreeShowLayoutSlide,
-  FreeShowShow
-} from "./FreeShowInterfaces";
+import { ContentProviderAuthData, NetworkInstance } from "../../interfaces";
 
-export function slideSeconds(ref: FreeShowLayoutSlide, mediaType: "video" | "image" | "audio"): number | undefined {
-  if (typeof ref.nextTimer === "number" && ref.nextTimer > 0) return ref.nextTimer;
-  if (ref.actions?.nextAfterMedia && mediaType === "video") return undefined;
-  return DEFAULT_SLIDE_SECONDS;
-}
-
-export type MediaUrlResolver = (path: string, explicitType?: string) => string | null;
-
-export function showToFiles(show: FreeShowShow, resolveUrl: MediaUrlResolver = path => path): ContentFile[] {
-  const layoutId = show.settings?.activeLayout || Object.keys(show.layouts || {})[0];
-  const layout = layoutId ? show.layouts?.[layoutId] : undefined;
-  const refs = layout?.slides || [];
-  const loops = refs.some(ref => ref.end === true);
-
-  const files: ContentFile[] = [];
-  for (const ref of refs) {
-    if (ref.disabled || !ref.background) continue;
-    const media = show.media?.[ref.background];
-    const path = media?.path;
-    if (!path) continue;
-    const url = resolveUrl(path, media?.type);
-    if (!url) continue;
-
-    const mediaType = detectMediaType(path, media?.type);
-    const slide = show.slides?.[ref.id];
-    const title = media?.name || slide?.group || "Slide";
-    files.push(createFile(ref.id, title, url, {
-      mediaType,
-      thumbnail: mediaType === "image" && url === path ? path : undefined,
-      seconds: slideSeconds(ref, mediaType),
-      loop: loops,
-      loopVideo: false
-    }));
-  }
-  return files;
-}
+// FreeShow's browsing, playlists and slide mapping live in its JSON manifest. These helpers run on the host:
+// they turn a machine found on the network into a saved sign-in and back.
 
 export function networkInstanceToAuth(instance: NetworkInstance): ContentProviderAuthData {
   return {

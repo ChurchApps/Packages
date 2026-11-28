@@ -187,6 +187,8 @@ function checkRequest(c: Checker, where: string, req: ManifestRequest, names: Se
     c.expr(`${where}.secretUrl.key`, req.secretUrl?.key, names);
   }
   if (req.method !== undefined && !["GET", "POST"].includes(req.method)) c.fail(`${where}.method`, "must be GET or POST");
+  if (req.timeoutMs !== undefined && !(typeof req.timeoutMs === "number" && req.timeoutMs > 0)) c.fail(`${where}.timeoutMs`, "must be a positive number");
+  if (req.raw !== undefined && typeof req.raw !== "boolean") c.fail(`${where}.raw`, "must be true or false");
   if (req.auth !== undefined && !["bearer", "none"].includes(req.auth)) c.fail(`${where}.auth`, "must be bearer or none");
   if (req.body !== undefined) c.expr(`${where}.body`, req.body, names);
   for (const group of ["query", "form", "headers"] as const) for (const [k, v] of Object.entries(req[group] || {})) c.expr(`${where}.${group}.${k}`, v, names);
@@ -255,6 +257,8 @@ function checkSteps(c: Checker, where: string, steps: unknown, names: Set<string
       if (step.return !== undefined) c.expr(`${at}.return`, step.return, inner);
       if (step.cache?.keepWhen !== undefined) c.expr(`${at}.cache.keepWhen`, step.cache.keepWhen, new Set([...inner, "value"]));
       bind(step.as);
+    } else if ("fail" in step) {
+      c.expr(`${at}.fail`, step.fail, names);
     } else if ("return" in step) {
       c.expr(`${at}.return`, step.return, names);
     } else c.fail(at, "unknown step");
@@ -341,7 +345,7 @@ export function validateManifest(value: unknown): ProviderManifest {
   }
 
   c.template("apiBase", m.apiBase, ROOTS);
-  if (typeof m.apiBase === "string" && !isHttpsTemplate(m.apiBase) && !(builtIn && m.apiBase === "")) c.fail("apiBase", "must be https");
+  if (typeof m.apiBase === "string" && !isHttpsTemplate(m.apiBase) && m.apiBase !== "") c.fail("apiBase", "must be https (or empty when every request uses a full url)");
 
   if (m.auth !== undefined) {
     const a = m.auth;

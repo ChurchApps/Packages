@@ -86,6 +86,7 @@ export type ManifestStep =
   | { when?: string; hook: string; args?: string[]; as: string; else?: ManifestStep[] }
   | { when?: string; if: string; then?: ManifestStep[]; else?: ManifestStep[] }
   | { when?: string; cache: { key: string; seconds: number; shared?: boolean; keepWhen?: string }; steps?: ManifestStep[]; return?: string; as: string }
+  | { when?: string; fail: string }
   | { when?: string; return: string };
 
 /** A GET path template, or a full request description. */

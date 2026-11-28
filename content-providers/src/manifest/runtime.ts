@@ -182,6 +182,8 @@ export class ManifestRuntime {
         if (r.done) return r;
       } else if ("cache" in step) {
         scope[step.as] = await this.cached(step, scope, auth, memo);
+      } else if ("fail" in step) {
+        throw new Error(str(this.eval(step.fail, scope)));
       }
     }
     return NOT_DONE;

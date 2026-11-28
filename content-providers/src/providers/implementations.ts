@@ -1,6 +1,5 @@
 import { IProvider } from "../interfaces";
 import { B1ChurchProvider } from "./b1Church";
-import { FreeShowProvider } from "./freeShow";
 import { GoCurriculumProvider } from "./goCurriculum";
 
 /**
@@ -9,6 +8,5 @@ import { GoCurriculumProvider } from "./goCurriculum";
  */
 export const IMPLEMENTATIONS: Record<string, (manifest: unknown) => IProvider> = {
   b1church: m => new B1ChurchProvider(m),
-  freeshow: m => new FreeShowProvider(m),
   gocurriculum: m => new GoCurriculumProvider(m)
 };

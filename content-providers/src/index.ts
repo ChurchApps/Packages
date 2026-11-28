@@ -25,7 +25,7 @@ export { loadProviderIndex, createProvider, type LoadProviderIndexOptions, type 
 export { MANIFEST_ENGINE_VERSION, type ProviderManifest, type ManifestAuth, type ManifestGroup, type ManifestLeaf, type ManifestFileMapping, type ProviderIndex, type ProviderIndexEntry } from "./manifest/types";
 
 export { B1ChurchProvider } from "./providers/b1Church";
-export { FreeShowProvider } from "./providers/freeShow";
+export { type FreeShowProvider } from "./providers/freeShow";
 export { GoCurriculumProvider, type GoCurriculumCatalogLoader, type GoCurriculumData } from "./providers/goCurriculum";
 export {
   FREESHOW_REST_PORT,

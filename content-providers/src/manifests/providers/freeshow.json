@@ -6,7 +6,9 @@
     "light": "https://freeshow.app/images/favicon.png",
     "dark": "https://freeshow.app/images/favicon.png"
   },
-  "hosts": [],
+  "hosts": [
+    "lan"
+  ],
   "requiresAuth": true,
   "capabilities": {
     "browse": true,
@@ -14,9 +16,278 @@
     "instructions": true,
     "mediaLicensing": false
   },
-  "implementation": "freeshow",
   "authTypes": [
     "network_discovery"
   ],
-  "apiBase": ""
+  "apiBase": "",
+  "settings": {
+    "defaultSlideSeconds": 5
+  },
+  "functions": {
+    "mediaUrl": "(instance, path, type) => test(path, '^https?://', 'i') ? path : !isMedia(path) || mediaType(path, type) != 'image' ? null : 'http://' + instance.ip + ':' + instance.port + '/?action=get_thumbnail&data=' + encode(json({ path }))",
+    "slideSeconds": "(ref, mt) => isNumber(ref.nextTimer) && ref.nextTimer > 0 ? ref.nextTimer : ref.actions && ref.actions.nextAfterMedia && mt == 'video' ? undefined : settings.defaultSlideSeconds",
+    "showToFiles": "(show, instance) => with((show.settings && show.settings.activeLayout) || keys(show.layouts || {})[0], layoutId => with(layoutId && show.layouts ? show.layouts[layoutId] : undefined, layout => with((layout && layout.slides) || [], refs => with(some(refs, r => r.end == true), loops => filter(map(filter(refs, r => !r.disabled && r.background), ref => with(show.media && show.media[ref.background], media => with(media && media.path, path => path ? with(mediaUrl(instance, path, media.type), url => url ? with(mediaType(path, media.type), mt => with(show.slides && show.slides[ref.id], slide => ({ type: 'file', id: ref.id, title: media.name || (slide && slide.group) || 'Slide', url, mediaType: mt, thumbnail: mt == 'image' && url == path ? path : undefined, seconds: slideSeconds(ref, mt), loop: loops, loopVideo: false }))) : null) : null))), f => f)))))",
+    "byName": "(entries) => sortBy(entries, e => e[1].name || '')"
+  },
+  "procedures": {
+    "request": {
+      "params": [
+        "instance",
+        "action",
+        "data"
+      ],
+      "steps": [
+        {
+          "fetch": {
+            "method": "POST",
+            "url": "'http://' + instance.ip + ':' + instance.port + '/'",
+            "body": "merge({ action }, data || {})",
+            "auth": "none",
+            "raw": true,
+            "timeoutMs": 15000
+          },
+          "as": "r"
+        },
+        {
+          "return": "null",
+          "when": "r.status == 204"
+        },
+        {
+          "fail": "'FreeShow ' + action + ' failed (' + r.status + ')'",
+          "when": "!r.ok"
+        },
+        {
+          "fail": "'Not a FreeShow response'",
+          "when": "!r.body || r.body.action != action"
+        }
+      ],
+      "return": "r.body.data ?? null"
+    },
+    "showFiles": {
+      "params": [
+        "instance",
+        "id"
+      ],
+      "steps": [
+        {
+          "call": "request",
+          "args": {
+            "instance": "instance",
+            "action": "'get_show'",
+            "data": "{ id }"
+          },
+          "as": "show"
+        },
+        {
+          "return": "{ name: 'Show', files: [] }",
+          "when": "!show"
+        }
+      ],
+      "return": "{ name: show.name || 'Show', files: showToFiles(show, instance) }"
+    },
+    "load": {
+      "params": [
+        "kind",
+        "id"
+      ],
+      "steps": [
+        {
+          "let": {
+            "instance": "networkInstance(auth)"
+          }
+        },
+        {
+          "fail": "'No FreeShow machine selected'",
+          "when": "!instance"
+        },
+        {
+          "if": "kind == 'shows'",
+          "then": [
+            {
+              "call": "showFiles",
+              "args": {
+                "instance": "instance",
+                "id": "id"
+              },
+              "as": "show"
+            },
+            {
+              "return": "show"
+            }
+          ]
+        },
+        {
+          "return": "null",
+          "when": "kind != 'projects'"
+        },
+        {
+          "call": "request",
+          "args": {
+            "instance": "instance",
+            "action": "'get_project'",
+            "data": "{ id }"
+          },
+          "as": "project"
+        },
+        {
+          "return": "null",
+          "when": "!project"
+        },
+        {
+          "each": "project.shows || []",
+          "as": "item",
+          "index": "i",
+          "into": "parts",
+          "steps": [
+            {
+              "if": "!item.type || item.type == 'show'",
+              "then": [
+                {
+                  "call": "showFiles",
+                  "args": {
+                    "instance": "instance",
+                    "id": "item.id"
+                  },
+                  "as": "show"
+                },
+                {
+                  "return": "map(show.files, f => merge(f, { id: i + '-' + f.id }))"
+                }
+              ]
+            },
+            {
+              "return": "[]",
+              "when": "item.type != 'image' && item.type != 'video'"
+            },
+            {
+              "let": {
+                "url": "mediaUrl(instance, item.id, item.type)"
+              }
+            },
+            {
+              "return": "[]",
+              "when": "!url"
+            },
+            {
+              "let": {
+                "mt": "mediaType(item.id, item.type)"
+              }
+            }
+          ],
+          "return": "[{ type: 'file', id: i + '-media', title: item.name || 'Media', url, mediaType: mt, seconds: mt == 'image' ? settings.defaultSlideSeconds : undefined }]"
+        }
+      ],
+      "return": "{ name: project.name || 'Project', files: flat(parts) }"
+    }
+  },
+  "hooks": {
+    "setDiscoverer": "discover"
+  },
+  "methods": {
+    "discoverInstances": {
+      "steps": [
+        {
+          "hook": "discover",
+          "as": "list"
+        }
+      ],
+      "return": "list || []"
+    },
+    "toAuth": {
+      "params": [
+        "instance"
+      ],
+      "return": "networkAuth(instance, 'freeshow')"
+    },
+    "selectedInstance": {
+      "return": "networkInstance(auth)"
+    }
+  },
+  "routes": [
+    {
+      "path": "/",
+      "browse": "[{ type: 'folder', id: 'projects', title: 'Projects', path: '/projects' }, { type: 'folder', id: 'shows', title: 'Shows', path: '/shows' }]"
+    },
+    {
+      "path": "/:kind",
+      "browse": {
+        "steps": [
+          {
+            "let": {
+              "instance": "networkInstance(auth)"
+            }
+          },
+          {
+            "fail": "'No FreeShow machine selected'",
+            "when": "!instance"
+          },
+          {
+            "if": "params.kind == 'projects'",
+            "then": [
+              {
+                "call": "request",
+                "args": {
+                  "instance": "instance",
+                  "action": "'get_projects'",
+                  "data": "{}"
+                },
+                "as": "projects"
+              },
+              {
+                "return": "map(byName(filter(entries(projects || {}), e => !e[1].deleted && !e[1].archived)), e => ({ type: 'folder', id: e[0], title: e[1].name || 'Project', path: '/projects/' + e[0], isLeaf: true }))"
+              }
+            ]
+          },
+          {
+            "if": "params.kind == 'shows'",
+            "then": [
+              {
+                "call": "request",
+                "args": {
+                  "instance": "instance",
+                  "action": "'get_shows'",
+                  "data": "{}"
+                },
+                "as": "shows"
+              },
+              {
+                "return": "map(byName(entries(shows || {})), e => ({ type: 'folder', id: e[0], title: e[1].name || 'Show', path: '/shows/' + e[0], isLeaf: true }))"
+              }
+            ]
+          }
+        ],
+        "return": "[]"
+      }
+    },
+    {
+      "path": "/:kind/:id",
+      "browse": "[]",
+      "playlist": {
+        "steps": [
+          {
+            "call": "load",
+            "args": {
+              "kind": "params.kind",
+              "id": "params.id"
+            },
+            "as": "r"
+          }
+        ],
+        "return": "r && len(r.files) ? r.files : null"
+      },
+      "instructions": {
+        "steps": [
+          {
+            "call": "load",
+            "args": {
+              "kind": "params.kind",
+              "id": "params.id"
+            },
+            "as": "r"
+          }
+        ],
+        "return": "r && len(r.files) ? filesToInstructions(r.name, r.files) : null"
+      }
+    }
+  ]
 }

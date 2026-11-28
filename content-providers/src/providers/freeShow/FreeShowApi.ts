@@ -1,5 +1,4 @@
 import { NetworkInstance } from "../../interfaces";
-import { detectMediaType, isMediaFile } from "../../utils";
 
 // FreeShow serves REST on its API port + 1; the API port defaults to 5505.
 export const FREESHOW_REST_PORT = 5506;
@@ -56,11 +55,4 @@ export async function servicesToInstances(services: MdnsService[], port = FREESH
     return { id, name: `FreeShow (${ip})`, host: ip, ip, port };
   }));
   return instances.sort((a, b) => a.ip.localeCompare(b.ip, undefined, { numeric: true }));
-}
-
-/** Online media plays as-is; local images stream through get_thumbnail (a full-size data URL). FreeShow's API can't serve local video/audio. */
-export function freeShowMediaUrl(instance: Pick<NetworkInstance, "ip" | "port">, path: string, explicitType?: string): string | null {
-  if (/^https?:\/\//i.test(path)) return path;
-  if (!isMediaFile(path) || detectMediaType(path, explicitType) !== "image") return null;
-  return `http://${instance.ip}:${instance.port}/?action=get_thumbnail&data=${encodeURIComponent(JSON.stringify({ path }))}`;
 }

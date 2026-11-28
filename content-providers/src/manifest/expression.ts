@@ -200,9 +200,9 @@ export const FUNCTIONS: Record<string, (...args: unknown[]) => unknown> = {
   filesToInstructions: (name, files, sectionId, sectionLabel) => filesToInstructions(str(name), arr(files) as ContentFile[], sectionId ? { id: str(sectionId), label: sectionLabel === undefined ? undefined : str(sectionLabel) } : undefined),
   instructionItems: (files) => filesToInstructions("", arr(files) as ContentFile[]).items as InstructionItem[],
   /** Saved sign-in for a machine found on the local network. */
-  networkAuth: (instance) => {
+  networkAuth: (instance, scope) => {
     const i = instance as NetworkInstance;
-    return { access_token: i.id, refresh_token: JSON.stringify(i), token_type: "network", created_at: Math.floor(Date.now() / 1000), expires_in: 10 * 365 * 24 * 3600, scope: "network" } satisfies ContentProviderAuthData;
+    return { access_token: i.id, refresh_token: JSON.stringify(i), token_type: "network", created_at: Math.floor(Date.now() / 1000), expires_in: 10 * 365 * 24 * 3600, scope: str(scope) || "network" } satisfies ContentProviderAuthData;
   },
   /** The machine a network sign-in points at, or null. */
   networkInstance: (auth) => {

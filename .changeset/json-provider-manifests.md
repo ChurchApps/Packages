@@ -1,5 +1,0 @@
----
-"@churchapps/content-providers": minor
----
-
-All providers (including B1.Church and FreeShow) are now pure JSON config manifests run by fixed shared code (`ManifestProvider`, `OAuthHelper`, `DeviceFlowHelper`, `FormLoginHelper`, `TokenHelper`, `NetworkDiscoveryHelper`, `PlanHelper`, and the shared transformation library), dynamically bundled from `src/manifests/index.json` (with `awana.json` kept available in `src/manifests/providers/` to enable in the index when ready). Adds offline-first launch sync (`syncProviders`, `hydrateCachedProviders`, `clearProviderCache`, `createMemoryStorage`, `onProvidersChanged`, `DEFAULT_MANIFEST_INDEX_URL`) with ETag and SHA-256 incremental updates so new providers appear automatically without republishing apps while continuing to work offline. Also adds `fetchProviderConfig`, `loadProviderFromUrl`, `registerProviderFromConfig`, `unregisterProvider`, `loadProviderIndex`, `setMdnsScanner`, `resolveMdnsServices`, declarative `networkDiscovery`, `form_login`, JSON token exchange, per-instance manifest `state`, structured manifest `functions`, inline/remote `datasets`, `yarn export:manifests`, and `CUSTOM_PROVIDERS.md`.

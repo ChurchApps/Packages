@@ -2,7 +2,14 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
-import { GoCurriculumProvider, parseMemberships } from "../src/providers/goCurriculum/GoCurriculumProvider";
+import { ManifestProvider } from "../src/manifest/ManifestProvider";
+import goCurriculumManifest from "../src/manifests/providers/gocurriculum.json";
+
+// GO! Curriculum is defined by its JSON manifest; parseMemberships is one of its named functions.
+const GoCurriculumProvider = class extends ManifestProvider {
+  constructor() { super(goCurriculumManifest); }
+} as unknown as new () => any;
+const parseMemberships = (me: unknown) => new ManifestProvider(goCurriculumManifest).callFunction("parseMemberships", me);
 import { ContentProviderAuthData } from "../src/interfaces";
 import { setProviderSecret } from "../src/helpers/ProviderSecrets";
 

@@ -22,11 +22,11 @@ export { ManifestProvider } from "./manifest/ManifestProvider";
 export { ConfiguredProvider } from "./manifest/ConfiguredProvider";
 export { validateManifest, validateIndex } from "./manifest/validate";
 export { loadProviderIndex, createProvider, type LoadProviderIndexOptions, type LoadProviderIndexResult } from "./manifest/loader";
-export { MANIFEST_ENGINE_VERSION, type ProviderManifest, type ManifestAuth, type ManifestGroup, type ManifestLeaf, type ManifestFileMapping, type ProviderIndex, type ProviderIndexEntry } from "./manifest/types";
+export { MANIFEST_ENGINE_VERSION, type ProviderManifest, type ManifestAuth, type ManifestGroup, type ManifestLeaf, type ManifestFileMapping, type ManifestRoute, type ManifestStep, type ManifestRequest, type ManifestProcedure, type ManifestOperation, type ProviderIndex, type ProviderIndexEntry } from "./manifest/types";
 
 export { B1ChurchProvider } from "./providers/b1Church";
 export { type FreeShowProvider } from "./providers/freeShow";
-export { GoCurriculumProvider, type GoCurriculumCatalogLoader, type GoCurriculumData } from "./providers/goCurriculum";
+export { type GoCurriculumProvider, type GoCurriculumCatalogLoader, type GoCurriculumData } from "./providers/goCurriculum";
 export {
   FREESHOW_REST_PORT,
   freeShowServicesToInstances,

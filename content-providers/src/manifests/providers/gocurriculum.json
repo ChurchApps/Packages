@@ -16,7 +16,6 @@
     "instructions": true,
     "mediaLicensing": false
   },
-  "implementation": "gocurriculum",
   "apiBase": "https://gocurriculum.com",
   "auth": {
     "oauthBase": "https://gocurriculum.com/oauth",
@@ -26,5 +25,421 @@
       "basic"
     ],
     "pkce": true
+  },
+  "secrets": [
+    "gocurriculumFeeds"
+  ],
+  "settings": {
+    "groups": [
+      {
+        "id": "elementary",
+        "name": "Elementary"
+      },
+      {
+        "id": "preschool",
+        "name": "Preschool"
+      }
+    ],
+    "smallGroup": "small-group",
+    "catalogSeconds": 3600,
+    "membershipIds": {
+      "486": [
+        {
+          "group": "preschool",
+          "tier": "basic"
+        }
+      ],
+      "5398": [
+        {
+          "group": "preschool",
+          "tier": "premium"
+        }
+      ],
+      "485": [
+        {
+          "group": "elementary",
+          "tier": "basic"
+        }
+      ],
+      "5399": [
+        {
+          "group": "elementary",
+          "tier": "premium"
+        }
+      ],
+      "7467": [
+        {
+          "group": "preschool",
+          "tier": "videoplus"
+        }
+      ],
+      "7468": [
+        {
+          "group": "elementary",
+          "tier": "videoplus"
+        }
+      ],
+      "7466": [
+        {
+          "group": "preschool",
+          "tier": "platinum"
+        },
+        {
+          "group": "elementary",
+          "tier": "platinum"
+        }
+      ],
+      "5401": [
+        {
+          "group": "preschool",
+          "tier": "basic"
+        },
+        {
+          "group": "elementary",
+          "tier": "basic"
+        }
+      ],
+      "5402": [
+        {
+          "group": "preschool",
+          "tier": "premium"
+        },
+        {
+          "group": "elementary",
+          "tier": "premium"
+        }
+      ]
+    }
+  },
+  "functions": {
+    "normalize": "(s) => replace(lower(s), '[^a-z0-9]', '')",
+    "parseMemberships": "(me) => with((me && me.memberpress && me.memberpress.active_memberships) ?? (me && me.active_memberships), raw => flatMap(isArray(raw) ? raw : raw ? [raw] : [], entry => with(settings.membershipIds[str(number(entry && entry.id))], known => known ? known : with(isString(entry) ? entry : entry && (entry.title || entry.name), title => with(isString(title) ? match(title, '^(.*?)\\s*\\[([^\\]]+)\\]\\s*$') : null, m => m ? [{ group: normalize(m[1]), tier: normalize(m[2]) }] : [])))))",
+    "hasGroup": "(groupId, memberships) => some(memberships, m => !m.group || m.group == normalize(groupId))",
+    "canSee": "(item, groupId, memberships) => !len(item.tiers) || with(map(item.tiers, normalize), tiers => some(memberships, m => (!m.group || m.group == normalize(groupId)) && includes(tiers, m.tier)))",
+    "filterGuide": "(guide, hidden) => !guide || len(hidden) == 0 ? guide : { ...guide, sections: map(guide.sections, s => ({ ...s, items: map(s.items, i => i.files ? { ...i, files: filter(i.files, f => !includes(hidden, f.url)) } : i) })) }",
+    "filterCollection": "(collection, groupId, memberships) => ({ ...collection, lessons: map(collection.lessons, lesson => with(map(filter(lesson.playlist, p => !canSee(p, groupId, memberships)), p => p.url), hidden => len(hidden) == 0 ? lesson : { ...lesson, playlist: filter(lesson.playlist, p => !includes(hidden, p.url)), script: filterGuide(lesson.script, hidden), smallGroup: filterGuide(lesson.smallGroup, hidden) })) })",
+    "folder": "(id, title, path, thumbnail, isLeaf) => ({ type: 'folder', id, title, path, thumbnail, isLeaf })",
+    "lessonFiles": "(collection, lesson) => map(lesson.playlist, f => ({ type: 'file', id: slugify(f.file), title: f.title, url: f.url, mediaType: mediaType(f.url + ' ' + f.file, f.mediaType), thumbnail: f.thumbnail || lesson.thumbnail || collection.thumbnail, seconds: f.duration }))",
+    "guideAction": "(item, id, lesson) => with(trim(replace(item.content || '', '\\*+', '')), plain => with(len(plain) > 100 ? trimEnd(slice(plain, 0, 100)) + '…' : plain, label => with(map(item.files || [], f => ({ id: slugify(f.file), itemType: 'file', label: (find(lesson.playlist, p => p.url == f.url) || {}).title || f.file, seconds: f.seconds, downloadUrl: f.url, mediaType: mediaType(f.url + ' ' + f.file, f.mediaType), thumbnail: f.thumbnail || lesson.thumbnail })), files => ({ id, itemType: 'action', actionType: item.type, label, content: item.content != label ? item.content : undefined, seconds: len(files) ? files[0].seconds : undefined, children: len(files) ? files : undefined }))))",
+    "guideToInstructions": "(name, guide, prefix, lesson) => ({ name, items: map(guide.sections, (s, i) => ({ id: prefix + '-' + i, itemType: 'section', label: s.name, children: map(s.items, (a, j) => guideAction(a, prefix + '-' + i + '-' + j, lesson)) })) })",
+    "downloads": "(lesson) => map(filter(lesson.resources || [], r => r.url && !isPlaylistMedia(r.url, undefined, r.file)), r => ({ id: slugify(r.file || r.title), title: r.title || r.file, url: r.url }))",
+    "withDownloads": "(instructions, lesson) => with(downloads(lesson), d => instructions && len(d) > 0 ? { ...instructions, downloads: d } : instructions)"
+  },
+  "hooks": {
+    "setCatalogLoader": "catalogLoader"
+  },
+  "procedures": {
+    "memberships": {
+      "steps": [
+        {
+          "return": "null",
+          "when": "!auth || !auth.access_token"
+        },
+        {
+          "cache": {
+            "key": "'me'",
+            "seconds": 31536000
+          },
+          "as": "ms",
+          "steps": [
+            {
+              "fetch": {
+                "method": "POST",
+                "path": "/oauth/me",
+                "form": {
+                  "access_token": "auth.access_token"
+                },
+                "auth": "none",
+                "raw": true
+              },
+              "as": "r"
+            },
+            {
+              "return": "null",
+              "when": "!r.ok"
+            }
+          ],
+          "return": "parseMemberships(r.body)"
+        }
+      ],
+      "return": "ms"
+    },
+    "catalogs": {
+      "steps": [
+        {
+          "cache": {
+            "key": "'catalogs'",
+            "shared": true,
+            "seconds": 3600,
+            "keepWhen": "every(settings.groups, g => value[g.id])"
+          },
+          "as": "cats",
+          "steps": [
+            {
+              "each": "settings.groups",
+              "as": "g",
+              "parallel": true,
+              "into": "loaded",
+              "steps": [
+                {
+                  "hook": "catalogLoader",
+                  "args": [
+                    "g.id",
+                    "auth"
+                  ],
+                  "as": "data",
+                  "else": [
+                    {
+                      "fetch": {
+                        "secretUrl": {
+                          "secret": "gocurriculumFeeds",
+                          "key": "g.id"
+                        },
+                        "auth": "none"
+                      },
+                      "as": "feed"
+                    },
+                    {
+                      "return": "feed"
+                    }
+                  ]
+                }
+              ],
+              "return": "data ? [g.id, data] : null"
+            }
+          ],
+          "return": "fromEntries(map(settings.groups, g => [g.id, (find(loaded, e => e[0] == g.id) || [])[1] || (previous && previous[g.id]) || null]))"
+        }
+      ],
+      "return": "cats"
+    },
+    "collection": {
+      "params": [
+        "groupId",
+        "collectionId",
+        "ms"
+      ],
+      "steps": [
+        {
+          "call": "catalogs",
+          "as": "cats"
+        },
+        {
+          "let": {
+            "found": "find((cats[groupId] && cats[groupId].catalog) || [], c => c.id == collectionId)"
+          }
+        }
+      ],
+      "return": "found ? filterCollection(found, groupId, ms) : null"
+    }
+  },
+  "routes": [
+    {
+      "path": "/",
+      "load": [
+        {
+          "call": "memberships",
+          "as": "ms"
+        },
+        {
+          "return": "null",
+          "when": "ms == null"
+        }
+      ],
+      "browse": "map(filter(settings.groups, g => hasGroup(g.id, ms)), g => folder(g.id, g.name, '/' + g.id))"
+    },
+    {
+      "path": "/:group",
+      "load": [
+        {
+          "call": "memberships",
+          "as": "ms"
+        },
+        {
+          "return": "null",
+          "when": "ms == null"
+        },
+        {
+          "return": "null",
+          "when": "!hasGroup(params.group, ms)"
+        }
+      ],
+      "browse": {
+        "steps": [
+          {
+            "call": "catalogs",
+            "as": "cats"
+          }
+        ],
+        "return": "map((cats[params.group] && cats[params.group].catalog) || [], c => folder(c.id, c.name, '/' + params.group + '/' + c.id, c.thumbnail))"
+      }
+    },
+    {
+      "path": "/:group/:collection",
+      "load": [
+        {
+          "call": "memberships",
+          "as": "ms"
+        },
+        {
+          "return": "null",
+          "when": "ms == null"
+        },
+        {
+          "return": "null",
+          "when": "!hasGroup(params.group, ms)"
+        },
+        {
+          "call": "collection",
+          "args": {
+            "groupId": "params.group",
+            "collectionId": "params.collection",
+            "ms": "ms"
+          },
+          "as": "collection"
+        },
+        {
+          "return": "null",
+          "when": "!collection"
+        }
+      ],
+      "browse": "with('/' + params.group + '/' + collection.id, base => concat(some(collection.lessons, l => l.smallGroup) ? [folder(settings.smallGroup, 'Small Group Guides', base + '/' + settings.smallGroup, collection.thumbnail)] : [], map(collection.lessons, l => folder(l.id, l.name, base + '/' + l.id, l.thumbnail || collection.thumbnail, true))))"
+    },
+    {
+      "path": "/:group/:collection/small-group",
+      "load": [
+        {
+          "call": "memberships",
+          "as": "ms"
+        },
+        {
+          "return": "null",
+          "when": "ms == null"
+        },
+        {
+          "return": "null",
+          "when": "!hasGroup(params.group, ms)"
+        },
+        {
+          "call": "collection",
+          "args": {
+            "groupId": "params.group",
+            "collectionId": "params.collection",
+            "ms": "ms"
+          },
+          "as": "collection"
+        },
+        {
+          "return": "null",
+          "when": "!collection"
+        }
+      ],
+      "browse": "map(filter(collection.lessons, l => l.smallGroup), l => folder(l.id, l.name, '/' + params.group + '/' + collection.id + '/' + settings.smallGroup + '/' + l.id, l.thumbnail || collection.thumbnail, true))"
+    },
+    {
+      "path": "/:group/:collection/:lesson",
+      "load": [
+        {
+          "call": "memberships",
+          "as": "ms"
+        },
+        {
+          "return": "null",
+          "when": "ms == null"
+        },
+        {
+          "return": "null",
+          "when": "!hasGroup(params.group, ms)"
+        },
+        {
+          "call": "collection",
+          "args": {
+            "groupId": "params.group",
+            "collectionId": "params.collection",
+            "ms": "ms"
+          },
+          "as": "collection"
+        },
+        {
+          "return": "null",
+          "when": "!collection"
+        },
+        {
+          "let": {
+            "lesson": "find(collection.lessons, l => l.id == params.lesson)"
+          }
+        }
+      ],
+      "browse": "lesson ? lessonFiles(collection, lesson) : []",
+      "playlist": "lesson ? lessonFiles(collection, lesson) : null",
+      "instructions": "!lesson ? null : withDownloads(lesson.script && len(lesson.script.sections) ? guideToInstructions(lesson.name, lesson.script, 'lg', lesson) : len(lesson.playlist) ? filesToInstructions(lesson.name, lessonFiles(collection, lesson)) : null, lesson)"
+    },
+    {
+      "path": "/:group/:collection/small-group/:lesson",
+      "load": [
+        {
+          "call": "memberships",
+          "as": "ms"
+        },
+        {
+          "return": "null",
+          "when": "ms == null"
+        },
+        {
+          "return": "null",
+          "when": "!hasGroup(params.group, ms)"
+        },
+        {
+          "call": "collection",
+          "args": {
+            "groupId": "params.group",
+            "collectionId": "params.collection",
+            "ms": "ms"
+          },
+          "as": "collection"
+        },
+        {
+          "return": "null",
+          "when": "!collection"
+        },
+        {
+          "let": {
+            "lesson": "find(collection.lessons, l => l.id == params.lesson)"
+          }
+        }
+      ],
+      "instructions": "!lesson || !lesson.smallGroup || !len(lesson.smallGroup.sections) ? null : withDownloads(guideToInstructions(lesson.name + ' - Small Group', lesson.smallGroup, 'sg', lesson), lesson)"
+    }
+  ],
+  "methods": {
+    "getCatalog": {
+      "params": [
+        "groupId"
+      ],
+      "steps": [
+        {
+          "call": "memberships",
+          "as": "ms"
+        },
+        {
+          "return": "null",
+          "when": "ms == null"
+        },
+        {
+          "call": "catalogs",
+          "as": "cats"
+        },
+        {
+          "let": {
+            "data": "cats[groupId]"
+          }
+        },
+        {
+          "return": "null",
+          "when": "!data"
+        }
+      ],
+      "return": "!hasGroup(groupId, ms) ? { ...data, catalog: [] } : { ...data, catalog: map(data.catalog, c => filterCollection(c, groupId, ms)) }"
+    }
   }
 }

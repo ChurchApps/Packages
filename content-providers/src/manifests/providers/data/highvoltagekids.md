@@ -4,10 +4,10 @@ This folder contains static data for the High Voltage Kids content provider.
 
 ## Files
 
-- `data.json` - Static JSON containing all studies and lessons
-- `list.html` - Source HTML from the membership downloads page
+- `highvoltagekids.json` - Static JSON containing all studies and lessons
+- `highvoltagekids-list.html` - Source HTML from the membership downloads page
 
-## How to Update data.json
+## How to Update highvoltagekids.json
 
 ### 1. Get Updated HTML
 
@@ -15,7 +15,7 @@ This folder contains static data for the High Voltage Kids content provider.
 2. Navigate to the [Membership Downloads](https://highvoltagekids.com/membership-downloads/) page
 3. Scroll to the bottom of the page to trigger all lazy-loaded images
 4. Save the complete HTML (Ctrl+S or right-click > Save As)
-5. Replace `list.html` with the new file
+5. Replace `highvoltagekids-list.html` with the new file
 
 ### 2. Generate JSON
 
@@ -23,7 +23,7 @@ Run this Node.js script from the `highvoltage` folder:
 
 ```javascript
 const fs = require('fs');
-let html = fs.readFileSync('./list.html', 'utf-8');
+let html = fs.readFileSync('./highvoltagekids-list.html', 'utf-8');
 
 // Normalize HTML by inserting newlines before each article
 html = html.replace(/<article/g, '\n<article');
@@ -135,9 +135,9 @@ const data = {
     ]
 };
 
-fs.writeFileSync('./data.json', JSON.stringify(data, null, 2));
+fs.writeFileSync('./highvoltagekids.json', JSON.stringify(data, null, 2));
 
-console.log('Generated data.json');
+console.log('Generated highvoltagekids.json');
 console.log('Elementary:', elementary.length, 'studies');
 console.log('Preschool:', preschool.length, 'studies');
 ```

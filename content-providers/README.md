@@ -41,24 +41,28 @@ const plan = await provider.getPresentations(serviceId);
 
 ### Providers
 
-Every provider is defined by a JSON manifest in `src/manifests/providers/`, listed in `src/manifests/index.json`.
+Every provider is defined by a JSON manifest in `src/manifests/providers/`, listed in `src/manifests/index.json`. Static catalogs (Bible Project, High Voltage Kids, Life.Church) ship beside them in `src/manifests/providers/data/`.
 
-- **Pure JSON:** Awana, CBN, SignPresenter and the plan-integration provider have no provider code. The generic `ManifestProvider` runs them.
-- **JSON plus a built-in implementation:** APlay, B1.Church, Dropbox, GO! Curriculum, Google Drive, OneDrive, The Bible Project, High Voltage Kids, Jesus Film Project, Lessons.church, Life.Church and FreeShow. Their manifests hold identity, logos, hosts, auth settings and capabilities. `"implementation"` names the TypeScript class that supplies their logic, such as plan merging, cloud-drive paging, LAN discovery and licensing checks.
+- **Pure JSON (15):** APlay, Awana, CBN, Dropbox, FreeShow, GO! Curriculum, Google Drive, Jesus Film Project, Lessons.church, Life.Church, OneDrive, SignPresenter, The Bible Project, High Voltage Kids and the plan-integration provider. The generic `ManifestProvider` runs them.
+- **JSON plus a built-in implementation (1):** B1.Church. Its manifest holds identity, logos, hosts, auth settings and capabilities, and `"implementation": "b1church"` names the TypeScript class that merges plans with lesson and external content.
 
 ### JSON Manifest Providers
 
-To add a provider that fits the existing building blocks, write a manifest and add it to the index. No code is needed. A manifest declares:
+To add a provider, write a manifest and add it to the index. A manifest declares:
 
-- **Implementation (optional):** the name of a built-in implementation, for logic JSON can't express, plus free-form `settings` for it to read. A manifest can only name implementations built into the package, so a downloaded manifest never brings code with it.
-- **Identity:** `id`, `name`, `logos`, `capabilities`, and `hosts`. `hosts` lists every host the provider may call; requests to any other host are refused.
-- **Auth:** `oauthBase`, `clientId`, `scopes`, plus `pkce` and/or `deviceFlow` (`json` or Keycloak-style `form` encoding). A client secret can only be a `"secret:<name>"` reference, resolved from `setProviderSecret` at runtime.
+- **Identity:** `id`, `name`, `logos`, `capabilities`, and `hosts`. `hosts` lists every host the provider may call; requests to any other host are refused. `"lan"` allows local-network addresses (for apps on the same network, like FreeShow).
+- **Auth:** `oauthBase`, `clientId`, `scopes`, plus `pkce` and/or `deviceFlow` (`json` or Keycloak-style `form` encoding). `authorizeUrl`, `tokenUrl` and `authorizeParams` cover providers with non-standard OAuth (Google, Dropbox). A client secret can only be a `"secret:<name>"` reference, resolved from `setProviderSecret` at runtime. `authTypes` overrides the derived sign-in types (e.g. `network_discovery`).
 - **Environments:** named value sets read as `{env.*}` in URLs. Hosts switch with `provider.setEnvironment(name)`.
-- **Tree:** nested groups. A group is either fixed `static` entries or a `request` + `items` list (filtered by `where`) mapped to folders. Its `children` are the next level; its `leaf` loads the files.
-- **Leaf:** a `request`, `from` steps to flatten nested lists, `vars`, a `playlist` file mapping with a `where` filter, optional `downloads`, an instructions `title`, and a `fallback` leaf for when the first list is empty.
-- **Options:** `cache` (per-token response cache) and `verifyPaths` (every path segment must exist in its parent's list).
+- **Content:** either a `tree` or `routes`.
+  - A **tree** is nested groups: fixed `static` entries, or a `request` + `items` list mapped to folders, with `children` for the next level and a `leaf` that loads files. Good for simple fixed-depth APIs (Awana, CBN, SignPresenter).
+  - **Routes** match path patterns (`/catalog/:id`, `/*folders` for any depth) and give each of `browse`, `playlist` and `instructions` an expression or a list of steps. Steps are `let`, `fetch` (GET/POST, query, JSON or form body, paging, raw error responses), `each` (optionally in parallel), `call` (named `procedures`, recursion allowed), `if`, `cache` (per-token or shared, with "keep while" freshness), `hook`, `fail` and `return`.
+- **Functions:** named lambdas in the expression language, shared by every route, method and other function.
+- **Methods:** extra provider methods such as `getCurrentPlan`, `checkMediaLicense`, `getCatalog` or `discoverInstances`, written as steps.
+- **Hooks:** setter methods a host app calls to plug in its own functions (e.g. FreePlay's `setDiscoverer` for mDNS, `setCatalogLoader` for the GO! relay). Steps call them with `hook`, with an `else` fallback.
+- **Datasets and secrets:** static JSON files beside the manifest (`datasets.catalog`), and declared host secrets readable with `secret(name)` or used as a trusted `secretUrl`.
+- **Settings:** free-form values the manifest's expressions read (IDs, constants, lookup tables).
 
-Field values are expressions in a small sandboxed language: paths (`item.name`, `segments[1]`, `parents[0].image`), `+ == != && || ?? ! ?:`, and whitelisted functions (`list`, `trim`, `str`, `isMedia`, `mediaType`, `wpThumb`, `oneOf`, `beforeDaysFromNow`, `isoDate`). Nothing is evaluated as JavaScript. See `src/manifest/types.ts` for the full format.
+Expressions are a small sandboxed language: paths (`item.name`, `segments[1]`), literals, `[...]` and `{ ... }` with spread, lambdas (`x => x.id`), arithmetic and comparisons, `&& || ?? ?:`, and whitelisted functions for lists (`map`, `filter`, `find`, `sortBy`, `groupConsecutive`, ...), objects, strings and regexes (`replace`, `match`, `test`), URLs, media types and instructions. Nothing is evaluated as JavaScript, and nothing in an expression can make a request or reach host code. Validation parses every expression and checks every name when a manifest loads. See `src/manifest/types.ts` for the full format and `src/manifests/providers/` for examples from simple (CBN) to involved (Lessons.church, GO! Curriculum).
 
 Hosts can load more providers, or updated manifests for existing ones, at runtime from a hosted index. Every file must pass the host's signature check:
 

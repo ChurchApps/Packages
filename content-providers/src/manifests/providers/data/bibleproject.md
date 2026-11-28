@@ -4,13 +4,12 @@ This provider serves video content from [BibleProject](https://bibleproject.com/
 
 ## Files
 
-- `BibleProjectProvider.ts` - The provider implementation
-- `data.json` - Static JSON file containing all video data
-- `index.ts` - Re-exports the provider
+- `../bibleproject.json` - The provider manifest (browsing, playlists and instructions)
+- `bibleproject.json` - Static JSON file containing all video data, loaded as the manifest's `catalog` dataset
 
-## Rebuilding data.json
+## Rebuilding bibleproject.json
 
-The `data.json` file contains all video metadata extracted from the BibleProject downloads page. To rebuild it:
+The `bibleproject.json` file contains all video metadata extracted from the BibleProject downloads page. To rebuild it:
 
 ### Step 1: Download the HTML
 
@@ -276,8 +275,8 @@ for (const collection of output.collections) {
 console.log(`\nTotal: ${videos.length} videos in ${output.collections.length} collections`);
 
 // Write JSON file
-fs.writeFileSync('data.json', JSON.stringify(output, null, 2));
-console.log('\nJSON file written to data.json');
+fs.writeFileSync('bibleproject.json', JSON.stringify(output, null, 2));
+console.log('\nJSON file written to bibleproject.json');
 ```
 
 Then run:
@@ -288,7 +287,7 @@ node generate_data.js
 
 ### Step 4: Verify and copy
 
-Review the output summary to ensure all collections look correct, then copy `data.json` to this folder.
+Review the output summary to ensure all collections look correct, then copy `bibleproject.json` to this folder.
 
 ## Adding New Collections
 
@@ -300,7 +299,7 @@ If BibleProject adds new video series:
 
 ## Data Structure
 
-The `data.json` file has this structure:
+The `bibleproject.json` file has this structure:
 
 ```json
 {

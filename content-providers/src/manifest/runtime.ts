@@ -224,6 +224,7 @@ export class ManifestRuntime {
     let url: string;
     let trusted = false;
     if (req.secretUrl) {
+      if (!this.host.manifest.secrets?.includes(req.secretUrl.secret)) return null;
       let urls: Record<string, unknown> = {};
       try {
         urls = JSON.parse(this.host.secret(req.secretUrl.secret) || "{}");

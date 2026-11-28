@@ -172,7 +172,7 @@ function checkLeaf(c: Checker, where: string, leaf: ManifestLeaf) {
   if (leaf.fallback) checkLeaf(c, `${where}.fallback`, leaf.fallback);
 }
 
-function checkRequest(c: Checker, where: string, req: ManifestRequest, names: Set<string>) {
+function checkRequest(c: Checker, where: string, req: ManifestRequest, names: Set<string>, m: ProviderManifest) {
   if (typeof req === "string") return c.template(where, req, names);
   c.keys(where, req, new Set([
     "method", "path", "url", "secretUrl", "query", "body", "form", "headers", "auth", "raw", "timeoutMs", "page"
@@ -184,6 +184,7 @@ function checkRequest(c: Checker, where: string, req: ManifestRequest, names: Se
   if (req.url !== undefined) c.expr(`${where}.url`, req.url, names);
   if (req.secretUrl !== undefined) {
     c.str(`${where}.secretUrl.secret`, req.secretUrl?.secret);
+    if (!m.secrets?.includes(req.secretUrl?.secret)) c.fail(`${where}.secretUrl.secret`, "must be listed in \"secrets\"");
     c.expr(`${where}.secretUrl.key`, req.secretUrl?.key, names);
   }
   if (req.method !== undefined && !["GET", "POST"].includes(req.method)) c.fail(`${where}.method`, "must be GET or POST");
@@ -197,7 +198,7 @@ function checkRequest(c: Checker, where: string, req: ManifestRequest, names: Se
     const pageNames = new Set([...names, "response"]);
     c.expr(`${where}.page.items`, req.page.items, pageNames);
     c.expr(`${where}.page.while`, req.page.while, pageNames);
-    checkRequest(c, `${where}.page.next`, req.page.next, pageNames);
+    checkRequest(c, `${where}.page.next`, req.page.next, pageNames, m);
   }
 }
 
@@ -220,7 +221,7 @@ function checkSteps(c: Checker, where: string, steps: unknown, names: Set<string
         names.add(name);
       }
     } else if ("fetch" in step) {
-      checkRequest(c, `${at}.fetch`, step.fetch, names);
+      checkRequest(c, `${at}.fetch`, step.fetch, names, m);
       bind(step.as);
     } else if ("each" in step) {
       c.expr(`${at}.each`, step.each, names);
